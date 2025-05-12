@@ -1,5 +1,4 @@
 # SWP391-SE1861-04-SU25
-# An Online store for mans clothes
 ### Class: SE1861
 ### Group name: 4
 | ID  | Name |
