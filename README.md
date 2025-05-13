@@ -6,5 +6,5 @@
 | SE192231  | Trần Thanh Trung  |
 | SE192175 | Quách Nguyễn Chí Hùng  |
 | SE171204 | Trần Nhật Hoàng |
-| SE171857 | Hoàng Lê Nhật  |
+| SE171857 | Hoàng Lê Nhật Minh |
 | SE193323 | Nguyễn Duy Thanh |
