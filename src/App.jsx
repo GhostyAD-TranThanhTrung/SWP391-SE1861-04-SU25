@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import Navbar from './components/Navbar';
-import Footer from './components/Footer';
+// import Footer from './components/Footer';
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 
@@ -20,7 +20,7 @@ const AppLayout = () => {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
       </Routes>
-      {!hideNavbarAndFooter && <Footer />}
+      {/* {!hideNavbarAndFooter && <Footer />} */}
     </>
   );
 };

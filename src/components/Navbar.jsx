@@ -1,113 +1,68 @@
-import React from 'react';
-import { AppBar, Toolbar, Button, Box, IconButton, TextField, InputAdornment } from '@mui/material';
+import React, { useRef } from 'react';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import "bootstrap-icons/font/bootstrap-icons.css";
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import { Link } from 'react-router-dom';
-import SearchIcon from '@mui/icons-material/Search';
-import Logo from '../images/Logo1.png';
+import Logo from '../images/Logo.png';
+import '../styles/Navbar.scss';
 
 const Navbar = () => {
+    const searchRef = useRef();
+
+    const handleSearch = () => {
+        const query = searchRef.current.value.trim();
+        if (query) {
+            console.log("Searching for:", query); // hoặc chuyển hướng, gọi API...
+        }
+    };
+
     return (
-        <AppBar position="fixed" sx={{ width: '100vw', top: 0, left: 0, zIndex: 1100, backgroundColor: '#E0F7FA' }}>
-            <Toolbar
-                sx={{
-                    position: 'relative',
-                    backgroundColor: '#66B0C6',
-                    color: 'white',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                }}
-            >
-                {/* Logo on the left */}
-                <Box component={Link} to="/" sx={{ display: 'flex', alignItems: 'center' }}>
-                    <img
-                        src={Logo}
-                        alt="Logo"
-                        style={{ height: '60px', width: 'auto', objectFit: 'contain' }}
-                    />
-                </Box>
+        <nav className="navbar fixed-top navbar-expand-lg custom-navbar">
+            <div className="container-fluid">
+                {/* Logo */}
+                <Link className="navbar-brand d-flex align-items-center" to="/">
+                    <img src={Logo} alt="Logo" className="navbar-logo" />
+                </Link>
 
-                {/* Centered navigation links */}
-                <Box
-                    sx={{
-                        position: 'absolute',
-                        right: '30%',
-                        transform: 'translateX(-55%)',
-                        display: 'flex',
-                        gap: 3,
-                    }}
+                {/* Toggler */}
+                <button
+                    className="navbar-toggler"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#navbarNav"
                 >
-                    <Button color="inherit" component={Link} to="/booking" sx={{ '&:hover': { color: 'silver' }, color: 'black' }}>
-                        Booking
-                    </Button>
-                    <Button color="inherit" component={Link} to="/courses" sx={{ '&:hover': { color: 'silver' }, color: 'black' }}>
-                        Courses
-                    </Button>
-                    <Button color="inherit" component={Link} to="/test" sx={{ '&:hover': { color: 'silver' }, color: 'black' }}>
-                        Test
-                    </Button>
-                    <Button color="inherit" component={Link} to="/blog" sx={{ '&:hover': { color: 'silver' }, color: 'black' }}>
-                        Blog
-                    </Button>
-                    <Button color="inherit" component={Link} to="/about" sx={{ '&:hover': { color: 'silver' }, color: 'black' }}>
-                        About Us
-                    </Button>
-                </Box>
+                    <span className="navbar-toggler-icon"></span>
+                </button>
 
-                {/* Search, Login, and Sign Up on the right */}
-                <Box sx={{ display: 'flex', alignItems: 'center', paddingLeft: 2 }}>
-                    <TextField
-                        variant="outlined"
-                        size="small"
-                        placeholder="Search..."
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <SearchIcon sx={{ color: 'white' }} />
-                                </InputAdornment>
-                            ),
-                            sx: {
-                                '& fieldset': { borderColor: 'white' },
-                                '&:hover fieldset': { borderColor: 'silver' },
-                                '&.Mui-focused fieldset': { borderColor: 'white' },
-                                color: 'white',
-                                backgroundColor: '#66B0C6',
-                            },
-                        }}
-                        sx={{
-                            '& .MuiInputBase-input': { color: 'white' },
-                            marginRight: 1,
-                        }}
-                    />
-                    <Box sx={{ display: 'flex', gap: 2 }}>
-                        <Button
-                            color="inherit"
-                            component={Link}
-                            to="/login"
-                            sx={{
-                                '&:hover': { color: 'black' },
-                                backgroundColor: '#6DCCBF',
-                                borderRadius: 8,
-                                width: '100px',
-                            }}
-                        >
-                            Login
-                        </Button>
-                        <Button
-                            color="inherit"
-                            component={Link}
-                            to="/signup"
-                            sx={{
-                                '&:hover': { color: 'black' },
-                                backgroundColor: '#6DCCBF',
-                                borderRadius: 8,
-                                width: '100px',
-                            }}
-                        >
-                            Sign Up
-                        </Button>
-                    </Box>
-                </Box>
-            </Toolbar>
-        </AppBar>
+                {/* Centered links */}
+                <div className="collapse navbar-collapse justify-content-center" id="navbarNav">
+                    <ul className="navbar-nav gap-3">
+                        <li className="nav-item"><Link className="nav-link" to="/booking">Booking</Link></li>
+                        <li className="nav-item"><Link className="nav-link" to="/courses">Courses</Link></li>
+                        <li className="nav-item"><Link className="nav-link" to="/test">Test</Link></li>
+                        <li className="nav-item"><Link className="nav-link" to="/blog">Blog</Link></li>
+                        <li className="nav-item"><Link className="nav-link" to="/about">About Us</Link></li>
+                    </ul>
+                </div>
+
+                {/* Right: search + buttons */}
+                <div className="d-flex align-items-center gap-2">
+                    <div className="input-group search-box">
+                        <input
+                            type="text"
+                            className="form-control"
+                            placeholder="Search..."
+                            ref={searchRef}
+                        />
+                        <button className="btn btn-search" onClick={handleSearch}>
+                            <i className="bi bi-search text-white"></i>
+                        </button>
+                    </div>
+                    <Link to="/login" className="btn btn-login">Login</Link>
+                    <Link to="/signup" className="btn btn-signup">Sign Up</Link>
+                </div>
+            </div>
+        </nav>
     );
 };
 

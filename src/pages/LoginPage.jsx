@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Typography, TextField, Button, Link } from '@mui/material';
 import { styled } from '@mui/system';
-import PreventionImage from '../images/Prevention.jpg'; // Cập nhật đường dẫn đúng
+import PreventionImage from '../images/Prevention.jpg';
 
 const GoogleButton = styled(Button)(({ theme }) => ({
     backgroundColor: '#fff',
@@ -21,30 +21,30 @@ const LoginPage = () => {
                 display: 'flex',
                 width: '100vw',
                 height: '100vh',
-                backgroundImage: `url(${PreventionImage})`, // Move background image here
+                backgroundImage: `url(${PreventionImage})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
+                justifyContent: 'flex-end',
+                alignItems: 'center',
             }}
         >
-            {/* Left: Login form container */}
+            {/* Ô blur chiếm nửa phải màn hình */}
             <Box
                 sx={{
-                    width: { xs: '100%', md: '50%' },
+                    width: '50%', // chiếm nửa màn hình
+                    height: '100%',
+                    padding: 4,
+                    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                    backdropFilter: 'blur(10px)',
+                    boxShadow: '-4px 0 16px rgba(0,0,0,0.2)',
                     display: 'flex',
-                    alignItems: 'center',
+                    flexDirection: 'column',
                     justifyContent: 'center',
+                    alignItems: 'center',
                 }}
             >
-                <Box
-                    sx={{
-                        width: '100%',
-                        maxWidth: 360,
-                        padding: 4,
-                        borderRadius: 2,
-                        textAlign: 'center',
-                    }}
-                >
-                    <Typography variant="h4" gutterBottom>
+                <Box sx={{ width: '100%', maxWidth: 360 }}>
+                    <Typography variant="h4" gutterBottom align="center">
                         Log in
                     </Typography>
 
@@ -86,7 +86,7 @@ const LoginPage = () => {
                         Log in with Google
                     </GoogleButton>
 
-                    <Box sx={{ marginTop: 2 }}>
+                    <Box sx={{ marginTop: 2, textAlign: 'center' }}>
                         <Typography variant="body2">
                             You don't have an account?{' '}
                             <Link href="#" underline="hover">
@@ -102,15 +102,6 @@ const LoginPage = () => {
                     </Box>
                 </Box>
             </Box>
-
-            {/* Right decorative side */}
-            <Box
-                sx={{
-                    flex: 1,
-                    display: { xs: 'none', md: 'block' },
-                    backgroundColor: 'rgba(245, 245, 245, 0.5)', // Optional: Add transparency to see the background image
-                }}
-            />
         </Box>
     );
 };
