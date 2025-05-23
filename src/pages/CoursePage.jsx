@@ -1,6 +1,6 @@
 import { Box, Typography } from '@mui/material';
 
-const HomePage = () => {
+const CoursePage = () => {
     return (
         <>
             <Box
@@ -16,7 +16,7 @@ const HomePage = () => {
             >
                 <Box>
                     <Typography variant="h2" gutterBottom>
-                        Welcome to This HomePage
+                        Welcome to This CoursePage
                     </Typography>
                     <Typography variant="body1" mb={4}>
                         This is the homepage content. Feel free to customize it!
@@ -25,7 +25,7 @@ const HomePage = () => {
                     {[...Array(10)].map((_, i) => (
                         <Box key={i} mb={5}>
                             <Typography variant="h4" gutterBottom>
-                                Welcome to This HomePage
+                                Welcome to This CoursePage
                             </Typography>
                             <Typography variant="body1">
                                 This is the homepage content. Feel free to customize it!
@@ -38,4 +38,4 @@ const HomePage = () => {
     );
 };
 
-export default HomePage;
+export default CoursePage;

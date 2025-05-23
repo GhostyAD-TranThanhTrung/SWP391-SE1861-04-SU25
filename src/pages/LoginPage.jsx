@@ -1,108 +1,69 @@
 import React from 'react';
-import { Box, Typography, TextField, Button, Link } from '@mui/material';
-import { styled } from '@mui/system';
+import '../styles/LoginPage.scss';
 import PreventionImage from '../images/Prevention.jpg';
-
-const GoogleButton = styled(Button)(({ theme }) => ({
-    backgroundColor: '#fff',
-    color: '#000',
-    border: '1px solid #ddd',
-    textTransform: 'none',
-    marginTop: theme.spacing(1.5),
-    '&:hover': {
-        backgroundColor: '#f5f5f5',
-    },
-}));
 
 const LoginPage = () => {
     return (
-        <Box
-            sx={{
-                display: 'flex',
-                width: '100vw',
-                height: '100vh',
-                backgroundImage: `url(${PreventionImage})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                justifyContent: 'flex-end',
-                alignItems: 'center',
-            }}
+        <div
+            className="login-page d-flex align-items-center"
+            style={{ backgroundImage: `url(${PreventionImage})` }}
         >
-            {/* Ô blur chiếm nửa phải màn hình */}
-            <Box
-                sx={{
-                    width: '50%', // chiếm nửa màn hình
-                    height: '100%',
-                    padding: 4,
-                    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-                    backdropFilter: 'blur(10px)',
-                    boxShadow: '-4px 0 16px rgba(0,0,0,0.2)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                }}
-            >
-                <Box sx={{ width: '100%', maxWidth: 360 }}>
-                    <Typography variant="h4" gutterBottom align="center">
-                        Log in
-                    </Typography>
+            <div className="login-blur-box d-flex justify-content-center align-items-center">
+                <div className="login-form-container text-center">
+                    <h2 className="mb-4">Log in</h2>
 
-                    <TextField
-                        label="Email"
-                        variant="outlined"
-                        fullWidth
-                        sx={{ marginBottom: 2 }}
+                    <input
+                        type="email"
+                        placeholder="Email"
+                        className="form-control mb-3"
                     />
 
-                    <TextField
-                        label="Password"
+                    <input
                         type="password"
-                        variant="outlined"
-                        fullWidth
-                        sx={{ marginBottom: 2 }}
+                        placeholder="Password"
+                        className="form-control mb-3"
                     />
 
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        fullWidth
-                        sx={{ marginBottom: 2 }}
-                    >
+                    <div className="form-check mb-3 text-start">
+                        <input
+                            type="checkbox"
+                            className="form-check-input"
+                            id="rememberMe"
+                        />
+                        <label className="form-check-label" htmlFor="rememberMe">
+                            Remember me
+                        </label>
+                    </div>
+
+                    <button className="btn btn-primary w-100 mb-3">
                         Log in
-                    </Button>
+                    </button>
 
-                    <GoogleButton
-                        variant="outlined"
-                        fullWidth
-                        startIcon={
-                            <img
-                                src="https://www.google.com/favicon.ico"
-                                alt="Google"
-                                style={{ width: 20 }}
-                            />
-                        }
-                    >
+                    <hr className="divider" />
+
+                    <button className="btn btn-outline-secondary w-100 google-btn mb-3">
+                        <img
+                            src="https://www.google.com/favicon.ico"
+                            alt="Google"
+                            className="me-2"
+                            style={{ width: '20px' }}
+                        />
                         Log in with Google
-                    </GoogleButton>
+                    </button>
 
-                    <Box sx={{ marginTop: 2, textAlign: 'center' }}>
-                        <Typography variant="body2">
+                    <div className="mt-3">
+                        <p className="small">
                             You don't have an account?{' '}
-                            <Link href="#" underline="hover">
-                                Register
-                            </Link>
-                        </Typography>
-                        <Typography variant="body2">
+                            <a href="/signup">Register</a>
+                        </p>
+                        <p className="small">
                             You forgot password?{' '}
-                            <Link href="#" underline="hover">
-                                Forget password
-                            </Link>
-                        </Typography>
-                    </Box>
-                </Box>
-            </Box>
-        </Box>
+                            <a href="/forget">Forget password</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 };
 
