@@ -1,14 +1,13 @@
-import { useState, useRef } from 'react'; 'react';
+import { useState, useRef } from 'react';
 import '../styles/LoginPage.scss';
 import PreventionImage from '../images/Prevention.jpg';
 import { GoogleLogin } from '@react-oauth/google';
-import { jwtDecode } from "jwt-decode";
 const LoginPage = () => {
     const emailRef = useRef(null)
     const passwordRef = useRef(null)
     const [emailDisplay, setEmailDisplay] = useState('');
     const [type, setType] = useState('off');
-    async function bruh() {
+    async function login() {
         try {
             const email = emailRef.current.value;
             const password = passwordRef.current.value;
@@ -20,8 +19,8 @@ const LoginPage = () => {
                 body: JSON.stringify({ email, password })
             });
             const data = await response.json();
-            if (response.ok && data.user) {
-                setEmailDisplay(data.user.email);
+            if (response.status !== 401 && data.user) {
+                setEmailDisplay("Hello " + data.user.email);
                 setType('on');
                 emailRef.current.value = '';
                 passwordRef.current.value = '';
@@ -36,24 +35,26 @@ const LoginPage = () => {
     }
     async function handleGoogleLogin(credentialResponse) {
         try {
-            const decoded = jwtDecode(credentialResponse.credential);
-            const response= await fetch('http://localhost:3000/api/login', {
+            // Send credential to backend for verification
+            const response = await fetch('http://localhost:3000/api/google-auth', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    email: decoded.email,
-                    password: decoded.sub
+                    credential: credentialResponse.credential
                 })
-            })
+            });
             const data = await response.json();
-            if(data&& data.user) {
-                setEmailDisplay(data.user.email);
+            if (data && data.user) {
+                setEmailDisplay("Hello " + data.user.email);
                 setType('on');
                 emailRef.current.value = '';
                 passwordRef.current.value = '';
+            } else {
+                setEmailDisplay(data.error || 'Google login failed');
+                setType('on');
             }
         } catch (e) {
-            setEmailDisplay('Login failed');
+            setEmailDisplay('Google login failed');
             setType('on');
         }
     }
@@ -93,34 +94,18 @@ const LoginPage = () => {
                         </label>
                     </div>
 
-                    <button onClick={bruh} className="btn btn-primary w-100 mb-3">
+                    <button onClick={login} className="btn btn-primary w-100 mb-3">
                         Log in
                     </button>
+
                     {type === 'on' && (
-                        <button
-                            onClick={() => {
-                                setType('off');
-                                setEmailDisplay('');
-                                emailRef.current.value = '';
-                                passwordRef.current.value = '';
-                            }}
-                            className="btn btn-secondary w-100 mb-3"
-                        >
-                            Log out
-                        </button>
+                        <div className="btn btn-primary w-100 mb-3">{emailDisplay} </div>
                     )}
-                    <div className='bg-primary rounded text-white'>{type === 'on' ? `Hello ${emailDisplay}` : ''}</div>
+
+
                     <hr className="divider" />
 
-                    <button className="btn btn-outline-secondary w-100 google-btn mb-3">
-                        <img
-                            src="https://www.google.com/favicon.ico"
-                            alt="Google"
-                            className="me-2"
-                            style={{ width: '20px' }}
-                        />
-                        Log in with Google
-                    </button>
+
                     <GoogleLogin onSuccess={handleGoogleLogin} onError={() => alert("Failed to login!!")} />
                     <div className="mt-3">
                         <p className="small">

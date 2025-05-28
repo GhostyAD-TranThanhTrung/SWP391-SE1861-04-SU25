@@ -3,7 +3,6 @@ import { useState, useRef } from 'react';
 import '../styles/RegisterPage.scss';
 import PreventionImage from '../images/Prevention.jpg';
 import { GoogleLogin } from '@react-oauth/google';
-import { jwtDecode } from "jwt-decode";
 
 const RegisterPage = () => {
     const nameRef = useRef('');
@@ -23,7 +22,7 @@ const RegisterPage = () => {
             body: JSON.stringify({
                 name: nameRef.current.value,
                 email: emailRef.current.value,
-                password: passwordRef.current.value
+                password: passwordRef.current.value,
             })
         })
         const data = await response.json();
@@ -37,31 +36,29 @@ const RegisterPage = () => {
             alert("Registration failed: " + (data.error || "Unknown error"));
         }
     }
-
-    const handleGoogleRegister = async (credentialResponse) => {
+    async function handleGoogleRegister(credentialResponse) {
         try {
-            const decoded = jwtDecode(credentialResponse.credential);
-            // decoded contains email, name, etc.
-            const response = await fetch('http://localhost:3000/api/register', {
+            // Send the credential directly to backend for verification
+            const response = await fetch('http://localhost:3000/api/google-auth', {//send the credential to the backend
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    name: decoded.name,
-                    email: decoded.email,
-                    password: decoded.sub // Use Google sub as a unique password or generate a random one
+                    credential: credentialResponse.credential
                 })
             });
             const data = await response.json();
             if (data && data.user) {
-                alert('Google registration successful!');
+                alert(data.message || 'Google authentication successful!');
+                // Optionally redirect to dashboard or save user info
+                console.log('User info:', data.user);
             } else {
-                alert('Google registration failed: ' + (data.error || 'Unknown error'));
+                alert('Google authentication failed: ' + (data.error || 'Unknown error'));
             }
         } catch (e) {
-            alert('Google registration failed');
+            console.error('Google auth error:', e);
+            alert('Google authentication failed');
         }
     };
-
     return (
         <div
             className="register-page d-flex"

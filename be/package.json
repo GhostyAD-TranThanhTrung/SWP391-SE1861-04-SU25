@@ -13,6 +13,7 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^5.1.0",
+    "google-auth-library": "^9.15.1",
     "mssql": "^11.0.1",
     "swagger-ui": "^5.22.0"
   },

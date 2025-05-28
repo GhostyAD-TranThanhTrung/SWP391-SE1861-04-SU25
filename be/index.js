@@ -51,3 +51,4 @@ app.get('/', authController.getAllUsers);
 app.get('/api/data', authController.testApi);
 app.post('/api/login', authController.login);
 app.post('/api/register', registerController.registerUser); // Registration endpoint - handles new user creation
+app.post('/api/google-auth', authController.googleAuth); // Google OAuth endpoint

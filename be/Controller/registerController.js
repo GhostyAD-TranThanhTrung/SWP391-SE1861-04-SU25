@@ -10,7 +10,30 @@ exports.getAllUsers = (req, res) => {
         res.json(result.recordset);
     });
 };
-
+/*
+exports.handleGoogleRegister = async (credentialResponse)=> {
+    try {
+        const decoded = jwtDecode(credentialResponse.credential);
+        // decoded contains email, name, etc.
+        const response = await fetch('http://localhost:3000/api/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: decoded.name,
+                email: decoded.email,
+                password: decoded.sub // Use Google sub as a unique password or generate a random one
+            })
+        });
+        const data = await response.json();
+        if (data && data.user) {
+            alert('Google registration successful!');
+        } else {
+            alert('Google registration failed: ' + (data.error || 'Unknown error'));
+        }
+    } catch (e) {
+        alert('Google registration failed');
+    }
+}*/
 // Register a new user
 exports.registerUser = async (req, res) => {
     try {
@@ -40,8 +63,7 @@ exports.registerUser = async (req, res) => {
             .input('status', sql.VarChar, 'active')
         const result = await registerRequest.query( // FIX: Use the correct variable name
             `INSERT INTO Users (email, password, role, status)
-             VALUES (@email, @password, @role, @status);
-             SELECT SCOPE_IDENTITY() AS user_id;` // Get the auto-generated user_id
+             VALUES (@email, @password, @role, @status);`
         );
 
         const userId = result.recordset[0].user_id;
