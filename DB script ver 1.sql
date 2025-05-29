@@ -15,24 +15,37 @@ CREATE TABLE Profiles (
     work_hours_json NVARCHAR(MAX) NULL, -- Nullable; expected for staff
     bio_json NVARCHAR(MAX) NULL,
     date_of_birth DATE NULL,
+    jobs NVARCHAR(MAX) NULL, -- Nullable; expected for staff, consultant, manager
+
 
     CONSTRAINT FK_Profiles_Users FOREIGN KEY (user_id)
         REFERENCES Users(user_id)
         ON DELETE CASCADE
 );
 
+-- Insert Users
 INSERT INTO Users (role, password, status, email)
 VALUES 
-('customer', 'hashed_password_1', 'active', 'alice@example.com'),
-('staff', 'hashed_password_2', 'active', 'bob@example.com'),
-('consultant', 'hashed_password_3', 'inactive', 'carol@example.com'),
-('manager', 'hashed_password_4', 'active', 'dave@example.com'),
-('admin', 'hashed_password_5', 'banned', 'eve@example.com');
+('member', 'hashed_password1', 'active', 'customer1@example.com'),
+('staff', 'hashed_password2', 'active', 'staff1@example.com'),
+('consultant', 'hashed_password3', 'active', 'consultant1@example.com'),
+('manager', 'hashed_password4', 'inactive', 'manager1@example.com'),
+('admin', 'hashed_password5', 'active', 'admin1@example.com');
 
-INSERT INTO Profiles (user_id, name, certification, work_hours_json, bio_json, date_of_birth)
+-- Insert corresponding Profiles
+INSERT INTO Profiles (user_id, name, certification, work_hours_json, bio_json, date_of_birth, jobs)
 VALUES
-(1, 'Alice Nguyen', NULL, NULL, '{"bio": "Customer since 2023"}', '1990-05-10'),
-(2, 'Bob Tran', NULL, '{"monday": "9-5", "friday": "9-3"}', '{"bio": "Support staff"}', '1985-09-15'),
-(3, 'Carol Le', 'Certified Consultant ABC', NULL, '{"bio": "Expert in career guidance"}', '1992-03-22'),
-(4, 'Dave Pham', 'Management Certificate XYZ', NULL, '{"bio": "Oversees team performance"}', '1980-11-02'),
-(5, 'Eve Dao', NULL, NULL, '{"bio": "System administrator"}', '1988-07-30');
+-- Customer
+(1, N'Anna Nguyen', NULL, NULL, N'{"bio": "University student interested in self-help"}', '2002-05-21', N'Student'),
+
+-- Staff
+(2, N'Bao Tran', NULL, N'{"mon-fri": "08:30-17:30"}', N'{"experience": "1 year handling support tickets"}', '1995-10-12', N'Teacher'),
+
+-- Consultant
+(3, N'Chi Le', N'Certified Cognitive Behavioral Therapist', NULL, N'{"specialty": "CBT for young adults"}', '1990-03-18', N'Psychologist'),
+
+-- Manager
+(4, N'Dat Pham', N'Master of Public Health', NULL, N'{"note": "Leads consultant team"}', '1985-07-09', N'Clinical Manager'),
+
+-- Admin
+(5, N'Emily Do', NULL, NULL, N'{"role": "System administrator"}', '1988-12-01', NULL);
