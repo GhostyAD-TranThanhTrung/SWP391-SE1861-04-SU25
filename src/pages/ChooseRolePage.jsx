@@ -14,6 +14,13 @@ const ChooseRolePage = () => {
                 <div className="register-form-container text-start">
                     <h2 className="mb-4 fw-bold text-center">Choose Your Role</h2>
 
+                    <label>Họ và Tên</label>
+                    <input
+                        type="text"
+                        placeholder="Họ và Tên"
+                        className="form-control mb-3"
+                    />
+
                     <label>Date of Birth</label>
                     <div className="position-relative mb-3">
                         <input

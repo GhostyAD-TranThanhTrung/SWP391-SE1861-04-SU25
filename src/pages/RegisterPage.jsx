@@ -74,14 +74,6 @@ const RegisterPage = () => {
                 <div className="register-form-container text-start">
                     <h2 className="mb-4 fw-bold text-center">Register</h2>
 
-                    <label>Họ và Tên</label>
-                    <input
-                        type="text"
-                        placeholder="Họ và Tên"
-                        className="form-control mb-3"
-                        ref={nameRef}
-                    />
-
                     <label>Email</label>
                     <input
                         type="email"

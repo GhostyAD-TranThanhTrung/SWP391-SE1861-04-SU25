@@ -11,6 +11,11 @@ const LoginPage = () => {
     const [type, setType] = useState('off');
     const navigate = useNavigate();
 
+    // Luôn điều hướng về trang chủ
+    const redirectToHome = () => {
+        setTimeout(() => navigate('/'), 500);
+    };
+
     async function login() {
         try {
             const email = emailRef.current.value;
@@ -35,18 +40,7 @@ const LoginPage = () => {
                 setType('on');
                 emailRef.current.value = '';
                 passwordRef.current.value = '';
-
-                // Kiểm tra role một cách rõ ràng
-                const hasRole = data.role && typeof data.role === 'string' && data.role.trim() !== '';
-                console.log('Kiểm tra role:', { role: data.role, hasRole });
-
-                if (hasRole) {
-                    console.log('Có role, chuyển hướng về trang chủ:', data.role);
-                    setTimeout(() => navigate('/'), 500); // Thêm delay để đảm bảo chuyển hướng
-                } else {
-                    console.log('Không có role, chuyển hướng đến /choose-role');
-                    setTimeout(() => navigate('/choose-role'), 500); // Thêm delay để đảm bảo chuyển hướng
-                }
+                redirectToHome();
             } else {
                 console.log('Đăng nhập thất bại:', data.error);
                 setEmailDisplay(data.error || 'Đăng nhập thất bại');
@@ -80,18 +74,7 @@ const LoginPage = () => {
                 setType('on');
                 emailRef.current.value = '';
                 passwordRef.current.value = '';
-
-                // Kiểm tra role một cách rõ ràng
-                const hasRole = data.role && typeof data.role === 'string' && data.role.trim() !== '';
-                console.log('Kiểm tra role (Google):', { role: data.role, hasRole });
-
-                if (hasRole) {
-                    console.log('Có role, chuyển hướng về trang chủ:', data.role);
-                    setTimeout(() => navigate('/'), 500); // Thêm delay để đảm bảo chuyển hướng
-                } else {
-                    console.log('Không có role, chuyển hướng đến /choose-role');
-                    setTimeout(() => navigate('/choose-role'), 500); // Thêm delay để đảm bảo chuyển hướng
-                }
+                redirectToHome();
             } else {
                 console.log('Đăng nhập Google thất bại:', data.error);
                 setEmailDisplay(data.error || 'Đăng nhập Google thất bại');
