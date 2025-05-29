@@ -37,6 +37,7 @@ const Navbar = () => {
                 {/* Centered links */}
                 <div className="collapse navbar-collapse justify-content-center" id="navbarNav">
                     <ul className="navbar-nav gap-3">
+                        <li className="nav-item"><Link className="nav-link" to="/">Home</Link></li>
                         <li className="nav-item"><Link className="nav-link" to="/booking">Booking</Link></li>
                         <li className="nav-item"><Link className="nav-link" to="/courses">Courses</Link></li>
                         <li className="nav-item"><Link className="nav-link" to="/test">Test</Link></li>
