@@ -13,9 +13,6 @@ import CoursePage from "./pages/CoursePage";
 import TestPage from "./pages/TestPage";
 import BlogPage from "./pages/BlogPage";
 import AboutUsPage from "./pages/AboutUsPage";
-// Uncomment these imports when ready to use protected routes
-// import ProtectedRoute from "./components/ProtectedRoute";
-// import ProtectedComponent from "./components/ProtectedComponent";
 
 // Wrapper component to conditionally render Navbar and Footer
 const AppLayout = () => {
@@ -34,23 +31,10 @@ const AppLayout = () => {
           <Route path="/signup" element={<RegisterPage />} />
           <Route path="/forget" element={<ForgetPassPage />} />
           <Route path="/booking" element={<BookingPage />} />
-          <Route path="/courses" element={<CoursePage />} />          <Route path="/test" element={<TestPage />} />
+          <Route path="/courses" element={<CoursePage />} />
+          <Route path="/test" element={<TestPage />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/about" element={<AboutUsPage />} />
-          
-          {/* 
-            PROTECTED ROUTE EXAMPLE - Uncomment when ready to use:
-            This route will redirect to login if user is not authenticated
-            It displays user profile information fetched from protected backend endpoint
-          */}
-          {/* <Route 
-            path="/profile" 
-            element={
-              <ProtectedRoute>
-                <ProtectedComponent />
-              </ProtectedRoute>
-            } 
-          /> */}
         </Routes>
       </div>
 
