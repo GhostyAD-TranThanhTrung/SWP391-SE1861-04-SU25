@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { registerUser } from '../services/api';
 
 const RegisterPage = () => {
+    const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -25,7 +26,7 @@ const RegisterPage = () => {
         }
         
         try {
-            await registerUser({ email, password});
+            await registerUser({ email, password, fullName });
             
             // Redirect to login page after successful registration
             navigate('/login');
@@ -49,6 +50,15 @@ const RegisterPage = () => {
                     {error && <div className="alert alert-danger mb-3">{error}</div>}
 
                     <form onSubmit={handleRegister}>
+                        <label>Họ và Tên</label>
+                        <input
+                            type="text"
+                            placeholder="Họ và Tên"
+                            className="form-control mb-3"
+                            value={fullName}
+                            onChange={(e) => setFullName(e.target.value)}
+                            required
+                        />
 
                         <label>Email</label>
                         <input
