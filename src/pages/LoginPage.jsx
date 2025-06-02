@@ -41,6 +41,7 @@ const LoginPage = () => {
                 emailRef.current.value = '';
                 passwordRef.current.value = '';
                 redirectToHome();
+                localStorage.setItem("email", email, { expires: 7 });
             } else {
                 console.log('Đăng nhập thất bại:', data.error);
                 setEmailDisplay(data.error || 'Đăng nhập thất bại');
