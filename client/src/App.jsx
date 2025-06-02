@@ -13,11 +13,12 @@ import CoursePage from "./pages/CoursePage";
 import TestPage from "./pages/TestPage";
 import BlogPage from "./pages/BlogPage";
 import AboutUsPage from "./pages/AboutUsPage";
+import ChooseRolePage from "./pages/ChooseRolePage";
 
 // Wrapper component to conditionally render Navbar and Footer
 const AppLayout = () => {
   const location = useLocation();
-  const hideNavbarAndFooter = ["/login", "/signup", "/forget"].includes(location.pathname);
+  const hideNavbarAndFooter = ["/login", "/signup", "/forget", "/choose-role"].includes(location.pathname);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
@@ -35,6 +36,7 @@ const AppLayout = () => {
           <Route path="/test" element={<TestPage />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/about" element={<AboutUsPage />} />
+          <Route path="/choose-role" element={<ChooseRolePage />} />
         </Routes>
       </div>
 

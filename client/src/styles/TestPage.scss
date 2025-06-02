@@ -1,0 +1,36 @@
+.test-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: calc(100vh - 80px); // Giả sử navbar cao 80px
+    width: 100vw;
+    padding: 2rem;
+    box-sizing: border-box;
+    background-color: #e6f1ff;
+}
+
+.test-content {
+    text-align: center;
+}
+
+.start-button {
+    background-color: #2bb6cc;
+    color: white;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 1rem;
+
+    &:hover {
+        background-color: #239fb3;
+    }
+}
+
+.exam-result {
+    margin-top: 2rem;
+    border-top: 1px solid #ccc;
+    padding-top: 1rem;
+    text-align: left;
+}
