@@ -1,60 +1,83 @@
-import { useState, useRef } from 'react'; 'react';
+import { useState, useRef, useEffect } from 'react';
 import '../styles/LoginPage.scss';
 import PreventionImage from '../images/Prevention.jpg';
 import { GoogleLogin } from '@react-oauth/google';
 import { jwtDecode } from "jwt-decode";
+import { loginUser, getToken, removeToken } from '../services/api';
 const LoginPage = () => {
     const emailRef = useRef(null)
     const passwordRef = useRef(null)
     const [emailDisplay, setEmailDisplay] = useState('');
     const [type, setType] = useState('off');
-    async function bruh() {
+
+    // Check for existing token on component mount
+    useEffect(() => {
+        const token = getToken();
+        if (token) {
+            try {
+                // Decode the token to get user info
+                const decoded = jwtDecode(token);
+                if (decoded.email && decoded.exp > Date.now() / 1000) {
+                    setEmailDisplay(decoded.email);
+                    setType('on');
+                } else {
+                    // Token is expired, remove it
+                    removeToken();
+                }
+            } catch (error) {
+                // Invalid token, remove it
+                removeToken();
+                console.error('Invalid token:', error);
+            }
+        }
+    }, []);async function handleLogin() {
         try {
             const email = emailRef.current.value;
             const password = passwordRef.current.value;
-            const response = await fetch('http://localhost:3000/api/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email, password })
-            });
-            const data = await response.json();
-            if (response.ok && data.user) {
+            
+            // Use the loginUser function from api.js which handles token storage
+            const data = await loginUser(email, password);
+            
+            if (data.user) {
                 setEmailDisplay(data.user.email);
                 setType('on');
                 emailRef.current.value = '';
                 passwordRef.current.value = '';
-            } else {
-                setEmailDisplay(data.error || 'Login failed');
-                setType('on');
+                
+                // Log the successful login with token info
+                console.log('Login successful:', {
+                    user: data.user,
+                    token: data.token ? 'Token stored successfully' : 'No token received'
+                });
             }
-        } catch (e) {
-            setEmailDisplay('Login failed');
+        } catch (error) {
+            setEmailDisplay(error.message || 'Login failed');
             setType('on');
+            console.error('Login error:', error);
         }
-    }
+    }    
     async function handleGoogleLogin(credentialResponse) {
         try {
             const decoded = jwtDecode(credentialResponse.credential);
-            const response= await fetch('http://localhost:3000/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: decoded.email,
-                    password: decoded.sub
-                })
-            })
-            const data = await response.json();
-            if(data&& data.user) {
+            
+            // Use the loginUser function for Google login as well
+            const data = await loginUser(decoded.email, decoded.sub);
+            
+            if (data && data.user) {
                 setEmailDisplay(data.user.email);
                 setType('on');
                 emailRef.current.value = '';
                 passwordRef.current.value = '';
+                
+                console.log('Google login successful:', {
+                    user: data.user,
+                    token: data.token ? 'Token stored successfully' : 'No token received'
+                });
             }
-        } catch (e) {
-            setEmailDisplay('Login failed');
+        } catch (error) {
+            setEmailDisplay(error.message || 'Google login failed');
             setType('on');
+            console.error('Google login error:', error);
         }
     }
     return (
@@ -91,9 +114,7 @@ const LoginPage = () => {
                         <label className="form-check-label" htmlFor="rememberMe">
                             Remember me
                         </label>
-                    </div>
-
-                    <button onClick={bruh} className="btn btn-primary w-100 mb-3">
+                    </div>                    <button onClick={handleLogin} className="btn btn-primary w-100 mb-3">
                         Log in
                     </button>
                     {type === 'on' && (
@@ -103,6 +124,9 @@ const LoginPage = () => {
                                 setEmailDisplay('');
                                 emailRef.current.value = '';
                                 passwordRef.current.value = '';
+                                // Remove the stored token on logout
+                                removeToken();
+                                console.log('User logged out, token removed');
                             }}
                             className="btn btn-secondary w-100 mb-3"
                         >

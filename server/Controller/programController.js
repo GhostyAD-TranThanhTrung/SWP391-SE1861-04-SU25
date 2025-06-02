@@ -61,29 +61,29 @@ exports.getAllPrograms = async (req, res) => {
         const result = await request.query(query);
         
         // Get total count for pagination
-        let countQuery = `
-            SELECT COUNT(*) as total
-            FROM Programs p
-            WHERE 1=1
-        `;
-        
+        let countQuery = `SELECT COUNT(*) as total FROM Programs p WHERE 1=1`;
         const countRequest = new sql.Request();
+        
         if (category_id) {
             countQuery += ' AND p.category_id = @category_id';
             countRequest.input('category_id', sql.Int, category_id);
         }
+        
         if (status) {
             countQuery += ' AND p.status = @status';
             countRequest.input('status', sql.VarChar, status);
         }
+        
         if (age_group) {
             countQuery += ' AND p.age_group = @age_group';
             countRequest.input('age_group', sql.VarChar, age_group);
         }
+        
         if (created_by) {
             countQuery += ' AND p.create_by = @created_by';
             countRequest.input('created_by', sql.Int, created_by);
         }
+        
         if (search) {
             countQuery += ' AND (p.title LIKE @search OR p.description LIKE @search)';
             countRequest.input('search', sql.NVarChar, `%${search}%`);
@@ -103,7 +103,7 @@ exports.getAllPrograms = async (req, res) => {
         });
         
     } catch (err) {
-        console.error('Error fetching programs:', err);
+        console.error('❌ Error fetching programs:', err);
         res.status(500).json({ error: 'Server error' });
     }
 };
@@ -135,7 +135,7 @@ exports.getProgramById = async (req, res) => {
         res.json(result.recordset[0]);
         
     } catch (err) {
-        console.error('Error fetching program:', err);
+        console.error('❌ Error fetching program:', err);
         res.status(500).json({ error: 'Server error' });
     }
 };
@@ -167,13 +167,15 @@ exports.createProgram = async (req, res) => {
         
         const programId = result.recordset[0].program_id;
         
+        console.log('✅ Program created successfully:', { program_id: programId, title });
+        
         res.status(201).json({
             message: 'Program created successfully',
             program_id: programId
         });
         
     } catch (err) {
-        console.error('Error creating program:', err);
+        console.error('❌ Error creating program:', err);
         res.status(500).json({ error: 'Server error' });
     }
 };
@@ -219,9 +221,8 @@ exports.updateProgram = async (req, res) => {
             request.input('category_id', sql.Int, category_id);
         }
         
-        query += updates.join(', ');
-        query += ' WHERE program_id = @programId';
-        request.input('programId', sql.Int, id);
+        query += updates.join(', ') + ' WHERE program_id = @program_id';
+        request.input('program_id', sql.Int, id);
         
         const result = await request.query(query);
         
@@ -229,10 +230,12 @@ exports.updateProgram = async (req, res) => {
             return res.status(404).json({ error: 'Program not found' });
         }
         
+        console.log('✅ Program updated successfully:', { program_id: id });
+        
         res.json({ message: 'Program updated successfully' });
         
     } catch (err) {
-        console.error('Error updating program:', err);
+        console.error('❌ Error updating program:', err);
         res.status(500).json({ error: 'Server error' });
     }
 };
@@ -251,10 +254,12 @@ exports.deleteProgram = async (req, res) => {
             return res.status(404).json({ error: 'Program not found' });
         }
         
+        console.log('✅ Program deleted successfully:', { program_id: id });
+        
         res.json({ message: 'Program deleted successfully' });
         
     } catch (err) {
-        console.error('Error deleting program:', err);
+        console.error('❌ Error deleting program:', err);
         res.status(500).json({ error: 'Server error' });
     }
 };
@@ -284,7 +289,7 @@ exports.getProgramsByCategory = async (req, res) => {
         res.json(result.recordset);
         
     } catch (err) {
-        console.error('Error fetching programs by category:', err);
+        console.error('❌ Error fetching programs by category:', err);
         res.status(500).json({ error: 'Server error' });
     }
 };
@@ -317,7 +322,7 @@ exports.getProgramsByCreator = async (req, res) => {
         res.json(result.recordset);
         
     } catch (err) {
-        console.error('Error fetching programs by creator:', err);
+        console.error('❌ Error fetching programs by creator:', err);
         res.status(500).json({ error: 'Server error' });
     }
 };

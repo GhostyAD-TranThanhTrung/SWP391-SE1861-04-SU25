@@ -13,11 +13,19 @@ import CoursePage from "./pages/CoursePage";
 import TestPage from "./pages/TestPage";
 import BlogPage from "./pages/BlogPage";
 import AboutUsPage from "./pages/AboutUsPage";
+import ChooseRolePage from "./pages/ChooseRolePage";
+import AdminLoginPage from "./pages/AdminLoginPage";
+import DashboardPage from "./pages/DashboardPage";
+import StaffListPage from "./pages/StaffListPage";
+
+//Import layout
+import AdminLayout from "./layout/AdminLayout";
 
 // Wrapper component to conditionally render Navbar and Footer
 const AppLayout = () => {
   const location = useLocation();
-  const hideNavbarAndFooter = ["/login", "/signup", "/forget"].includes(location.pathname);
+  const hideNavbarAndFooter = ["/login", "/signup", "/forget", "/choose-role","/admin/login",
+    "/dashboard","/stafflist",].includes(location.pathname);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
@@ -35,6 +43,25 @@ const AppLayout = () => {
           <Route path="/test" element={<TestPage />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/about" element={<AboutUsPage />} />
+          <Route path="/choose-role" element={<ChooseRolePage />} />
+           {/* Admin */}
+          <Route path="/admin/login" element={<AdminLoginPage />} />
+          <Route
+            path="/dashboard"
+            element={
+              <AdminLayout>
+                <DashboardPage />
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/stafflist"
+            element={
+              <AdminLayout>
+                <StaffListPage />
+              </AdminLayout>
+            }
+          />
         </Routes>
       </div>
 

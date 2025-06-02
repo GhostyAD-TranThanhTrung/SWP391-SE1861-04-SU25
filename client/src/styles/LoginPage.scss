@@ -1,7 +1,7 @@
 .login-page {
     width: 100vw;
     height: 100vh;
-    display: flex; // cần thiết để justify-content có tác dụng
+    display: flex;
     justify-content: flex-end;
     align-items: center;
     background-size: cover;
@@ -38,4 +38,16 @@
     border: none;
     border-top: 1px solid black;
     margin: 1rem 0;
+}
+
+/* Add custom styling for Google button wrapper */
+.google-login-wrapper {
+    width: 100%;
+    max-width: 360px;
+    /* Matches login-form-container max-width */
+    margin: 1rem 0;
+    /* Consistent margin, matches mb-3 */
+    display: flex;
+    justify-content: center;
+    /* Centers the Google button */
 }

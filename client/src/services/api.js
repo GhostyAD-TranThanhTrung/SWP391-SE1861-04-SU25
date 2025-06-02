@@ -1,18 +1,20 @@
+import { jwtDecode } from "jwt-decode";
+
 const API_URL = 'http://localhost:3000';
 
-// Helper function to get the authentication token from localStorage
+// Helper function to get the authentication token from sessionStorage
 export const getToken = () => {
-    return localStorage.getItem('token');
+    return sessionStorage.getItem('token');
 };
 
-// Helper function to set the authentication token in localStorage
+// Helper function to set the authentication token in sessionStorage
 export const setToken = (token) => {
-    localStorage.setItem('token', token);
+    sessionStorage.setItem('token', token);
 };
 
-// Helper function to remove the authentication token from localStorage
+// Helper function to remove the authentication token from sessionStorage
 export const removeToken = () => {
-    localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
 };
 
 export const loginUser = async (email, password) => {
@@ -29,9 +31,8 @@ export const loginUser = async (email, password) => {
         
         if (!response.ok) {
             throw new Error(data.error || 'Login failed');
-        }
-        
-        // Store the JWT token in localStorage
+        }        
+        // Store the JWT token in sessionStorage
         if (data.token) {
             setToken(data.token);
         }
@@ -90,6 +91,42 @@ export const fetchWithAuth = async (url, options = {}) => {
     }
     
     return data;
+};
+
+// Check if user is authenticated
+export const isAuthenticated = () => {
+    const token = getToken();
+    if (!token) return false;
+    
+    try {
+        const decoded = jwtDecode(token);
+        return decoded.exp > Date.now() / 1000; // Check if token is not expired
+    } catch (error) {
+        return false;
+    }
+};
+
+// Get user info from stored token
+export const getUserFromToken = () => {
+    const token = getToken();
+    if (!token) return null;
+    
+    try {
+        const decoded = jwtDecode(token);
+        if (decoded.exp > Date.now() / 1000) {
+            return {
+                userId: decoded.userId,
+                email: decoded.email,
+                role: decoded.role
+            };
+        } else {
+            removeToken(); // Remove expired token
+            return null;
+        }
+    } catch (error) {
+        removeToken(); // Remove invalid token
+        return null;
+    }
 };
 
 // Get the user profile (protected route example)

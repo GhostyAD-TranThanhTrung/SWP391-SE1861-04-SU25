@@ -1,0 +1,154 @@
+.staff-list-container {
+  padding: 20px;
+  background-color: #f9f9f9;
+
+  .top-bar {
+    .btn-primary {
+      background-color: #66B0C6;
+      border: none;
+      padding: 8px 16px;
+      font-weight: 500;
+      border-radius: 6px;
+
+      &:hover {
+        background-color: #66B0C6;
+      }
+    }
+
+    .search-box {
+      display: flex;
+      align-items: center;
+
+      input {
+        padding: 6px 12px;
+        border: 1px solid #ccc;
+        border-radius: 4px 0 0 4px;
+        outline: none;
+      }
+
+      button {
+        padding: 6px 12px;
+        border: 1px solid #ccc;
+        background-color: #66B0C6;
+        color: white;
+        border-left: none;
+        border-radius: 0 4px 4px 0;
+
+        i {
+          font-size: 1rem;
+        }
+
+        &:hover {
+          background-color: #5936a1;
+        }
+      }
+    }
+  }
+
+  .table-wrapper {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    padding: 20px;
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+
+      th {
+        font-weight: 600;
+        color: #555;
+        background-color: #f0f0f0;
+        padding: 12px;
+      }
+
+      td {
+        padding: 12px;
+        vertical-align: middle;
+      }
+
+      .action-buttons {
+        display: flex;
+        justify-content: flex-start;
+
+        .btn {
+          border: 1px solid #ddd;
+          border-radius: 6px;
+          padding: 6px 10px;
+          background-color: #66B0C6;
+          transition: background-color 0.2s;
+
+          &:hover {
+            background-color: #333;
+          }
+
+        }
+      }
+    }
+  }
+
+.popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    h2, p{
+        margin-bottom: 5px;
+    }
+
+    .close {
+    position: absolute;
+    top: 5px;
+    right: 15px;
+    font-size: 37px;
+    cursor: pointer;
+    color: #aaa;
+
+    &:hover{
+        color: #777;
+    }
+    }
+}
+
+.popup-content {
+    background-color: #fff;
+    padding: 80px;
+    border-radius: 5px;
+    max-width: 550px;
+    max-height: 500px;
+    width: 100%;
+    text-align: center;
+    position: relative;
+}
+
+.form h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.form input {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.form button {
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 10px 0px;
+}
+
+}

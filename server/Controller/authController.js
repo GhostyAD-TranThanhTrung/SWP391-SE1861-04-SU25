@@ -10,13 +10,11 @@ const JWT_SECRET = 'your-secret-key-here';
 exports.login = (req, res) => {
     // This endpoint handles authentication requests from the React login form
     const { email, password } = req.body;
-    console.log(`Login attempt for user: ${email}`);  // Log login attempts
-
-    // Query the database to check credentials
+    console.log(`Login attempt for user: ${email}`);  // Log login attempts    // Query the database to check credentials
     new sql.Request()
         .input('email', sql.NVarChar, email)
         .input('password', sql.NVarChar, password)
-        .query('SELECT * FROM users WHERE email = @email AND password = @password',
+        .query('SELECT * FROM Users WHERE email = @email AND password = @password',
             (err, result) => {
                 if (err) {
                     console.error('SQL error during login:', err);
@@ -46,14 +44,14 @@ exports.login = (req, res) => {
                 console.log(`🔑 JWT Token generated successfully`);
                 console.log(`⏰ Login time: ${new Date().toLocaleString()}`);
                 console.log('='.repeat(50));
-                
-                // Return success response with user data and the token
+                  // Return success response with user data and the token
                 // NOTE: The client will store this token and use it for authenticated requests
                 res.json({
                     message: 'Login successful',
                     user: {
-                        id: user.id,
-                        username: user.username
+                        id: user.user_id,
+                        email: user.email,
+                        role: user.role || 'Member'
                     },
                     token: token  // Include the JWT token in the response
                 });
@@ -63,7 +61,7 @@ exports.login = (req, res) => {
 
 // Get all users endpoint
 exports.getAllUsers = (req, res) => {
-    new sql.Request().query('SELECT * FROM users', (err, result) => {
+    new sql.Request().query('SELECT * FROM Users', (err, result) => {
         if (err) {
             console.error('SQL error', err);
             res.status(500).send('Error querying database');
