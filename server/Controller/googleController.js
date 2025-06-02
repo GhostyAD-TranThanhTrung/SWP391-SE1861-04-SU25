@@ -4,7 +4,8 @@ const jwt = require('jsonwebtoken');
 
 const CLIENT_ID = '97185070436-degnuev5p66ua7ckv130jmbm4eilcp6f.apps.googleusercontent.com';
 const clientID = new OAuth2Client(CLIENT_ID);
-const JWT_SECRET = 'swp391-super-secret-jwt-key-2025-secure'; // Your own secret for JWT tokens
+const JWT_SECRET = 'swp391-super-secret-jwt-key-2025-secure';
+
 exports.googleLogin = async (req, res) => {
     try {
         console.log('\n🚀 GOOGLE LOGIN API CALLED');
@@ -53,9 +54,16 @@ exports.googleLogin = async (req, res) => {
             'SELECT * FROM Users WHERE email = @email AND password = @googleId'
         );
         
-        console.log(`📈 Query result: ${userCheckResult.recordset.length} record(s) found`);        if (userCheckResult.recordset.length > 0) {
+        console.log(`📈 Query result: ${userCheckResult.recordset.length} record(s) found`);        if (userCheckResult.recordset && userCheckResult.recordset.length > 0) {
             // User exists - Login
             const user = userCheckResult.recordset[0];
+            
+            // Validate user object
+            if (!user || !user.id) {
+                console.error('❌ ERROR: Invalid user data from database');
+                return res.status(500).json({ error: 'Invalid user data' });
+            }
+            
             console.log('✅ USER FOUND - EXISTING GOOGLE USER');
             console.log(`🆔 User ID: ${user.id}`);
             console.log(`📧 Email: ${user.email}`);
@@ -86,7 +94,7 @@ exports.googleLogin = async (req, res) => {
                 user: {
                     id: user.id,
                     email: user.email,
-                    role: user.role
+                    role: user.role || 'Member'
                 },
                 token: token
             });
@@ -94,8 +102,11 @@ exports.googleLogin = async (req, res) => {
             console.log('❌ USER NOT FOUND - INITIATING AUTO-REGISTRATION');
             console.log('🔄 Redirecting to Google registration flow...');
             console.log('='.repeat(60));
-            return exports.googleRegister(req, res);
-        }    } catch (error) {
+            
+            // Call register function directly instead of using exports
+            return await googleRegisterInternal(req, res);
+        }
+    } catch (error) {
         console.error('\n❌ GOOGLE LOGIN ERROR OCCURRED');
         console.error('='.repeat(60));
         console.error(`💥 Error type: ${error.name}`);
@@ -123,11 +134,21 @@ exports.googleLogin = async (req, res) => {
         console.error(`   🎫 Credential provided: ${req.body.credential ? 'Yes' : 'No'}`);
         console.error('='.repeat(60));
         
-        return res.status(401).json({ error: 'Google authentication failed' });
+        // Handle specific database connection errors
+        if (error.code === 'ENOTOPEN') {
+            console.error('🔌 ERROR TYPE: Database connection not open');
+            return res.status(503).json({ error: 'Database connection unavailable' });
+        } else if (error.code === 'ELOGIN') {
+            console.error('🔑 ERROR TYPE: Database authentication failed');
+            return res.status(503).json({ error: 'Database authentication error' });
+        }
+        
+        return res.status(500).json({ error: 'Google authentication failed' });
     }
 }
 
-exports.googleRegister = async (req, res) => {
+// Internal register function to avoid circular calls
+async function googleRegisterInternal(req, res) {
     try {
         console.log('\n🚀 GOOGLE AUTO-REGISTRATION API CALLED');
         console.log('='.repeat(60));
@@ -135,6 +156,10 @@ exports.googleRegister = async (req, res) => {
         
         const { credential } = req.body;
         console.log(`🎫 Re-validating credential: ${credential ? 'Yes' : 'No'}`);
+        
+        if (!credential) {
+            return res.status(400).json({ error: 'Google credential is required' });
+        }
         
         console.log('🔐 Re-verifying Google JWT token for registration...');
         // Verify Google JWT token
@@ -145,6 +170,12 @@ exports.googleRegister = async (req, res) => {
 
         const payload = ticket.getPayload();
         const { email, name, sub: googleId } = payload;
+        
+        // Validate required fields
+        if (!email || !name || !googleId) {
+            console.error('❌ ERROR: Missing required fields from Google token');
+            return res.status(400).json({ error: 'Invalid Google token payload' });
+        }
         
         console.log('✅ Google token re-verified successfully');
         console.log(`📧 Email: ${email}`);
@@ -160,7 +191,7 @@ exports.googleRegister = async (req, res) => {
             'SELECT * FROM Users WHERE email = @email'
         );
         
-        console.log(`📈 User check result: ${userCheckResult.recordset.length} record(s) found`);        if (userCheckResult.recordset.length === 0) {
+        console.log(`📈 User check result: ${userCheckResult.recordset.length} record(s) found`);        if (!userCheckResult.recordset || userCheckResult.recordset.length === 0) {
             console.log('✅ CONFIRMED: User does not exist - PROCEEDING WITH REGISTRATION');
             console.log('🔨 STARTING AUTO-REGISTRATION PROCESS');
             console.log('📝 Creating new user account...');
@@ -177,11 +208,19 @@ exports.googleRegister = async (req, res) => {
             registerRequest.input('email', sql.NVarChar, email)
                 .input('password', sql.NVarChar, googleId) // Use Google ID as password
                 .input('role', sql.VarChar, 'Member')
-                .input('status', sql.VarChar, 'active');            const result = await registerRequest.query(
+                .input('status', sql.VarChar, 'active');
+
+            const result = await registerRequest.query(
                 `INSERT INTO Users (email, password, role, status)
                  VALUES (@email, @password, @role, @status);
                  SELECT SCOPE_IDENTITY() AS user_id;`
             );
+
+            // Validate registration result
+            if (!result.recordset || !result.recordset[0] || !result.recordset[0].user_id) {
+                console.error('❌ ERROR: Failed to create user - no ID returned');
+                return res.status(500).json({ error: 'User registration failed' });
+            }
 
             const userId = result.recordset[0].user_id;
             console.log('✅ USER ACCOUNT CREATED SUCCESSFULLY');
@@ -245,8 +284,11 @@ exports.googleRegister = async (req, res) => {
             console.log(`📊 Found ${userCheckResult.recordset.length} existing record(s)`);
             console.log('🔄 Calling Google login function...');
             console.log('='.repeat(60));
+            
+            // Return to login instead of calling exports to avoid circular reference
             return exports.googleLogin(req, res);
-        }    } catch (error) {
+        }
+    } catch (error) {
         console.error('\n❌ GOOGLE REGISTRATION ERROR OCCURRED');
         console.error('='.repeat(60));
         console.error(`💥 Error type: ${error.name}`);
@@ -272,6 +314,17 @@ exports.googleRegister = async (req, res) => {
         console.error(`   🎫 Credential provided: ${req.body.credential ? 'Yes' : 'No'}`);
         console.error('='.repeat(60));
         
-        return res.status(401).json({ error: 'Failed to register Google' });
+        // Handle specific database errors
+        if (error.code === 'ENOTOPEN') {
+            console.error('🔌 ERROR TYPE: Database connection not open');
+            return res.status(503).json({ error: 'Database connection unavailable' });
+        } else if (error.number === 2627) {
+            console.error('🔄 ERROR TYPE: Duplicate key violation');
+            return res.status(409).json({ error: 'User already exists' });
+        }
+        
+        return res.status(500).json({ error: 'Failed to register Google user' });
     }
 }
+
+exports.googleRegister = googleRegisterInternal;
