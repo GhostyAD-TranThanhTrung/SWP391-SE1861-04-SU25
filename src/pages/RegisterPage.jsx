@@ -42,7 +42,7 @@ const RegisterPage = () => {
 
     async function handleGoogleRegister(credentialResponse) {
         try {
-            const response = await fetch('http://localhost:3000/api/google-auth', {
+            const response = await fetch('http://localhost:3000/api/google-register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

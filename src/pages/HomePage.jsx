@@ -58,7 +58,7 @@ const HomePage = () => {
 
             {/* Most Popular Blog Section */}
             <div className="section mb-5">
-                <h2 className="section-header">Most Popular Blog</h2>
+                <h2 className="section-header">Most Popular Blogs</h2>
                 <div className="row gx-4 gy-4">
                     {renderCards(cardData([
                         "Substance Abuse: Awareness & Prevention",
@@ -90,7 +90,7 @@ const HomePage = () => {
 
             {/* News Section */}
             <div className="section mb-5">
-                <h2 className="section-header">News</h2>
+                <h2 className="section-header">New Blogs</h2>
                 <div className="row gx-4 gy-4">
                     {renderCards(cardData([
                         "Health care insider talks Trump’s executive order aimed at lowering US drug prices",

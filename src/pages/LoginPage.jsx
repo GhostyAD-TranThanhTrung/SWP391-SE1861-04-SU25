@@ -57,7 +57,7 @@ const LoginPage = () => {
     async function handleGoogleLogin(credentialResponse) {
         try {
             console.log('Đang xử lý đăng nhập Google:', credentialResponse);
-            const response = await fetch('http://localhost:3000/api/google-auth', {
+            const response = await fetch('http://localhost:3000/api/google-login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
