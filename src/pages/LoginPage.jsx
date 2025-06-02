@@ -76,6 +76,7 @@ const LoginPage = () => {
                 emailRef.current.value = '';
                 passwordRef.current.value = '';
                 redirectToHome();
+                localStorage.setItem("email", data.email);
             } else {
                 console.log('Đăng nhập Google thất bại:', data.error);
                 setEmailDisplay(data.error || 'Đăng nhập Google thất bại');

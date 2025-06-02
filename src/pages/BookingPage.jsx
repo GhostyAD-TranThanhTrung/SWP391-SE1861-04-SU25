@@ -12,6 +12,7 @@ const BookingPage = () => {
         { title: 'Consultant: Dr. John B Kennedy', date: '3:00 PM DD/MM/YYYY', link: 'https://meet.google.com/sdf-sdfq-qaqp', image: Image },
         { title: 'Consultant: Dr. John B Kennedy', date: '3:00 PM DD/MM/YYYY', link: 'https://meet.google.com/sdf-sdfq-qaqp', image: Image },
         { title: 'Consultant: Dr. John B Kennedy', date: '3:00 PM DD/MM/YYYY', link: 'https://meet.google.com/sdf-sdfq-qaqp', image: Image },
+        { title: 'Consultant: Dr. John B Kennedy', date: '3:00 PM DD/MM/YYYY', link: 'https://meet.google.com/sdf-sdfq-qaqp', image: Image },
     ];
 
     return (
@@ -19,7 +20,7 @@ const BookingPage = () => {
             <h1 className="text-center mb-5">Booking Consultant</h1>
             <div className="row">
                 {posts.map((post, index) => (
-                    <div key={index} className="col-10 col-md-10 offset-md-1 mb-4">
+                    <div key={index} className="col-6 col-md-6 mb-4"> {/* Chia thành 2 cột */}
                         <div className="post-card card shadow-sm">
                             <div className="card-body d-flex align-items-center p-3">
                                 <div className="post-image me-2">

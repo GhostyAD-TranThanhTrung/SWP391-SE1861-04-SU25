@@ -83,7 +83,7 @@
 .carousel-wrapper {
     img {
         height: 465px;
-        object-fit: cover;
+        object-fit: contain;
         border-radius: 10px;
         padding-top: 29px;
     }
