@@ -59,13 +59,13 @@ exports.googleLogin = async (req, res) => {
             const user = userCheckResult.recordset[0];
             
             // Validate user object
-            if (!user || !user.id) {
+            if (!user || !user.user_id) {
                 console.error('❌ ERROR: Invalid user data from database');
                 return res.status(500).json({ error: 'Invalid user data' });
             }
             
             console.log('✅ USER FOUND - EXISTING GOOGLE USER');
-            console.log(`🆔 User ID: ${user.id}`);
+            console.log(`🆔 User ID: ${user.user_id}`);
             console.log(`📧 Email: ${user.email}`);
             console.log(`👥 Role: ${user.role}`);
             console.log(`📅 Account created: ${user.created_at || 'N/A'}`);
@@ -75,7 +75,7 @@ exports.googleLogin = async (req, res) => {
             // Generate JWT token for session
             const token = jwt.sign(
                 {
-                    userId: user.id,
+                    userId: user.user_id,
                     email: user.email,
                     role: user.role || 'Member'
                 },
@@ -84,7 +84,7 @@ exports.googleLogin = async (req, res) => {
             );
 
             console.log('✅ JWT token generated successfully');
-            console.log(`🎯 Token payload: userId=${user.id}, email=${user.email}, role=${user.role || 'Member'}`);
+            console.log(`🎯 Token payload: userId=${user.user_id}, email=${user.email}, role=${user.role || 'Member'}`);
             console.log('🎉 GOOGLE LOGIN SUCCESSFUL');
             console.log('📤 Sending response to client...');
             console.log('='.repeat(60));
@@ -92,7 +92,7 @@ exports.googleLogin = async (req, res) => {
             return res.json({
                 message: 'Google login successful',
                 user: {
-                    id: user.id,
+                    id: user.user_id,
                     email: user.email,
                     role: user.role || 'Member'
                 },
