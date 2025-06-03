@@ -116,8 +116,7 @@
                     }
                 }
             }
-        },
-        "/api/profile": {
+        },        "/api/profile": {
             "get": {
                 "summary": "Get user profile (protected route)",
                 "security": [
@@ -131,6 +130,211 @@
                     },
                     "401": {
                         "description": "Unauthorized"
+                    }
+                }
+            },
+            "post": {
+                "summary": "Create new user profile",
+                "description": "Create a new profile for the authenticated user. User ID is automatically extracted from JWT token.",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "description": "User's display name",
+                                        "example": "John Doe"
+                                    },
+                                    "certification": {
+                                        "type": "string",
+                                        "description": "Professional certifications",
+                                        "example": "Certified Life Coach"
+                                    },
+                                    "workHoursJson": {
+                                        "type": "string",
+                                        "description": "Work schedule in JSON format",
+                                        "example": "{\"monday\": \"9-17\", \"tuesday\": \"9-17\"}"
+                                    },
+                                    "bioJson": {
+                                        "type": "string",
+                                        "description": "Biography/description in JSON format",
+                                        "example": "{\"intro\": \"Professional counselor with 5 years experience\"}"
+                                    },
+                                    "dateOfBirth": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Date of birth",
+                                        "example": "1990-01-15"
+                                    },
+                                    "job": {
+                                        "type": "string",
+                                        "description": "Current job/profession",
+                                        "example": "Mental Health Counselor"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Profile created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Profile created successfully"
+                                        },
+                                        "profile": {
+                                            "type": "object",
+                                            "properties": {
+                                                "user_id": {
+                                                    "type": "integer",
+                                                    "example": 123
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "John Doe"
+                                                },
+                                                "certification": {
+                                                    "type": "string",
+                                                    "example": "Certified Life Coach"
+                                                },
+                                                "works_hours_json": {
+                                                    "type": "string",
+                                                    "example": "{\"monday\": \"9-17\"}"
+                                                },
+                                                "bio_json": {
+                                                    "type": "string",
+                                                    "example": "{\"intro\": \"Professional counselor\"}"
+                                                },
+                                                "date_of_birth": {
+                                                    "type": "string",
+                                                    "format": "date",
+                                                    "example": "1990-01-15"
+                                                },
+                                                "job": {
+                                                    "type": "string",
+                                                    "example": "Mental Health Counselor"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Invalid data format"
+                    },
+                    "401": {
+                        "description": "Unauthorized - Invalid or missing JWT token"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    },
+                    "409": {
+                        "description": "Conflict - Profile already exists for this user"
+                    },                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/profile/{userId}": {
+            "get": {
+                "summary": "Get specific user profile by ID",
+                "description": "Retrieve a specific user's profile information by their user ID. Requires authentication.",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "required": true,
+                        "description": "The ID of the user whose profile to retrieve",
+                        "schema": {
+                            "type": "integer",
+                            "example": 123
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Profile retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Profile retrieved successfully"
+                                        },
+                                        "profile": {
+                                            "type": "object",
+                                            "properties": {
+                                                "user_id": {
+                                                    "type": "integer",
+                                                    "example": 123
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "John Doe"
+                                                },
+                                                "certification": {
+                                                    "type": "string",
+                                                    "example": "Certified Life Coach"
+                                                },
+                                                "works_hours_json": {
+                                                    "type": "string",
+                                                    "example": "{\"monday\": \"9-17\"}"
+                                                },
+                                                "bio_json": {
+                                                    "type": "string",
+                                                    "example": "{\"intro\": \"Professional counselor\"}"
+                                                },
+                                                "date_of_birth": {
+                                                    "type": "string",
+                                                    "format": "date",
+                                                    "example": "1990-01-15"
+                                                },
+                                                "job": {
+                                                    "type": "string",
+                                                    "example": "Mental Health Counselor"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - User ID is required"
+                    },
+                    "401": {
+                        "description": "Unauthorized - Invalid or missing JWT token"
+                    },
+                    "404": {
+                        "description": "Profile not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
                     }
                 }
             }

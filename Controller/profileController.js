@@ -11,9 +11,8 @@ exports.getProfile = async (req, res) => {
         
         const request = new sql.Request();
         request.input('userId', sql.Int, userId);
-        
-        const result = await request.query(
-            'SELECT * FROM Profiles WHERE user_id = @userId'
+          const result = await request.query(
+            'SELECT * FROM Profile WHERE user_id = @userId'
         );
         
         if (result.recordset.length === 0) {
@@ -34,10 +33,9 @@ exports.getProfile = async (req, res) => {
 exports.getAllProfiles = async (req, res) => {
     try {
         const request = new sql.Request();
-        
-        const result = await request.query(`
+          const result = await request.query(`
             SELECT p.*, u.email, u.role, u.status 
-            FROM Profiles p 
+            FROM Profile p 
             INNER JOIN Users u ON p.user_id = u.user_id
         `);
         
@@ -54,7 +52,10 @@ exports.getAllProfiles = async (req, res) => {
 // Create a new profile
 exports.createProfile = async (req, res) => {
     try {
-        const { userId, name, certification, workHoursJson, bioJson, dateOfBirth, jobs } = req.body;
+        const { name, certification, workHoursJson, bioJson, dateOfBirth, job } = req.body;
+        
+        // Get user ID from the verified JWT token (set by verifyToken middleware)
+        const userId = req.user.userId;
         
         // Basic validation
         if (!userId) {
@@ -72,13 +73,12 @@ exports.createProfile = async (req, res) => {
         if (userCheckResult.recordset[0].count === 0) {
             return res.status(404).json({ error: 'User not found' });
         }
-        
-        // Check if profile already exists for this user
+          // Check if profile already exists for this user
         const checkProfileRequest = new sql.Request();
         checkProfileRequest.input('userId', sql.Int, userId);
         
         const profileCheckResult = await checkProfileRequest.query(
-            'SELECT COUNT(*) as count FROM Profiles WHERE user_id = @userId'
+            'SELECT COUNT(*) as count FROM Profile WHERE user_id = @userId'
         );
         
         if (profileCheckResult.recordset[0].count > 0) {
@@ -109,20 +109,17 @@ exports.createProfile = async (req, res) => {
             .input('certification', sql.NVarChar, certification || null)
             .input('workHoursJson', sql.NVarChar, workHoursJson || null)
             .input('bioJson', sql.NVarChar, bioJson || null)
-            .input('dateOfBirth', sql.Date, dateOfBirth || null)
-            .input('jobs', sql.NVarChar, jobs || null);
-        
-        await createProfileRequest.query(
-            `INSERT INTO Profiles (user_id, name, certification, work_hours_json, bio_json, date_of_birth, jobs)
-             VALUES (@userId, @name, @certification, @workHoursJson, @bioJson, @dateOfBirth, @jobs)`
+            .input('dateOfBirth', sql.Date, dateOfBirth || null)            .input('job', sql.NVarChar, job || null);
+          await createProfileRequest.query(
+            `INSERT INTO Profile (user_id, name, certification, works_hours_json, bio_json, date_of_birth, job)
+             VALUES (@userId, @name, @certification, @workHoursJson, @bioJson, @dateOfBirth, @job)`
         );
         
         // Return the created profile
         const getProfileRequest = new sql.Request();
         getProfileRequest.input('userId', sql.Int, userId);
-        
-        const createdProfile = await getProfileRequest.query(
-            'SELECT * FROM Profiles WHERE user_id = @userId'
+          const createdProfile = await getProfileRequest.query(
+            'SELECT * FROM Profile WHERE user_id = @userId'
         );
         
         res.status(201).json({
