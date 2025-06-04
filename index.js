@@ -33,8 +33,8 @@ const config = {
 const authController = require('./Controller/authController');
 const registerController = require('./Controller/registerController'); // Import the register controller
 const googleController = require('./Controller/googleController');
-const profileController = require('./Controller/profileController'); // Import the profile controller
-const userController = require('./Controller/userController'); // Import the user controller
+const UserController = require('./Controller/userTypeormController');
+const AppDataSource = require('./src/data-source');
 
 sql.connect(config, err => {
     if (err) {
@@ -43,18 +43,22 @@ sql.connect(config, err => {
     }
     console.log('Connected to the database');
 });
-
+AppDataSource.initialize()
+    .then(() => {
+        console.log('TypeORM Data Source has been initialized!');
+    })
+    .catch((err) => {
+        console.error('Error during Data Source initialization:', err);
+    });
 // User routes
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, { explorer: true }))
 app.get('/', authController.getAllUsers);
+app.get('/orm', UserController.getAllUsers)
 app.get('/api/data', authController.testApi);
 app.post('/api/login', authController.login);
 app.post('/api/register', registerController.registerUser); // Registration endpoint - handles new user creation
 app.post('/api/google-login', googleController.googleLogin); // Google login endpoint
 app.post('/api/google-register', googleController.googleRegister); // Google registration endpoint    
-app.post('/api/profile', authController.verifyToken, profileController.createProfile); // Create new profile endpoint (protected)
-app.get('/api/profile/:userId', authController.verifyToken, profileController.getProfile); // Get specific user profile (protected)
-app.get('/api/user/me', authController.verifyToken, userController.getCurrentUserProfile); // Get current user's profile (protected)
 // Protected routes (require authentication)
 // NOTE: This route demonstrates how to protect an endpoint with the JWT verification middleware
 app.get('/api/profile', authController.verifyToken, (req, res) => {
