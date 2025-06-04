@@ -204,3 +204,63 @@ exports.getUsersByRole = async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 };
+
+// GET current user's profile using token
+exports.getCurrentUserProfile = async (req, res) => {
+    try {
+        // User ID is extracted from JWT token by verifyToken middleware
+        const userId = req.user.userId;
+        
+        console.log(`🔍 Getting profile for authenticated user ID: ${userId}`);
+        console.log(`📧 User email from token: ${req.user.email}`);
+        
+        const request = new sql.Request();
+        request.input('userId', sql.Int, userId);
+        
+        const result = await request.query(`
+            SELECT u.user_id, u.email, u.role, u.status, u.date_create,
+                   p.name, p.certification, p.works_hours_json, p.bio_json, 
+                   p.date_of_birth, p.job
+            FROM Users u
+            LEFT JOIN Profile p ON u.user_id = p.user_id
+            WHERE u.user_id = @userId
+        `);
+        
+        if (result.recordset.length === 0) {
+            console.log(`❌ User not found for ID: ${userId}`);
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        const userData = result.recordset[0];
+        
+        console.log(`✅ Profile retrieved successfully for user: ${userData.email}`);
+        console.log(`👤 Profile name: ${userData.name || 'No profile created'}`);
+        
+        // Structure the response
+        const response = {
+            message: 'Profile retrieved successfully',
+            user: {
+                user_id: userData.user_id,
+                email: userData.email,
+                role: userData.role,
+                status: userData.status,
+                date_create: userData.date_create
+            },
+            profile: userData.name ? {
+                name: userData.name,
+                certification: userData.certification,
+                works_hours_json: userData.works_hours_json,
+                bio_json: userData.bio_json,
+                date_of_birth: userData.date_of_birth,
+                job: userData.job
+            } : null,
+            hasProfile: !!userData.name
+        };
+        
+        res.json(response);
+        
+    } catch (err) {
+        console.error('❌ Error fetching current user profile:', err);
+        res.status(500).json({ error: 'Server error while fetching profile' });
+    }
+};

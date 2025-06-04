@@ -332,9 +332,147 @@
                     },
                     "404": {
                         "description": "Profile not found"
+                    },                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/user/me": {
+            "get": {
+                "summary": "Get current user's profile",
+                "description": "Retrieve the authenticated user's complete profile information including user data and profile details. User identity is determined from the JWT token.",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Current user profile retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Profile retrieved successfully"
+                                        },
+                                        "user": {
+                                            "type": "object",
+                                            "properties": {
+                                                "user_id": {
+                                                    "type": "integer",
+                                                    "example": 123
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "user@example.com"
+                                                },
+                                                "role": {
+                                                    "type": "string",
+                                                    "example": "user"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "active"
+                                                },
+                                                "date_create": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2024-01-15T10:00:00.000Z"
+                                                }
+                                            }
+                                        },
+                                        "profile": {
+                                            "type": "object",
+                                            "nullable": true,
+                                            "properties": {
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "John Doe"
+                                                },
+                                                "certification": {
+                                                    "type": "string",
+                                                    "example": "Certified Life Coach"
+                                                },
+                                                "works_hours_json": {
+                                                    "type": "string",
+                                                    "example": "{\"monday\": \"9-17\", \"tuesday\": \"9-17\"}"
+                                                },
+                                                "bio_json": {
+                                                    "type": "string",
+                                                    "example": "{\"intro\": \"Professional counselor with 5 years experience\"}"
+                                                },
+                                                "date_of_birth": {
+                                                    "type": "string",
+                                                    "format": "date",
+                                                    "example": "1990-01-15"
+                                                },
+                                                "job": {
+                                                    "type": "string",
+                                                    "example": "Mental Health Counselor"
+                                                }
+                                            }
+                                        },
+                                        "hasProfile": {
+                                            "type": "boolean",
+                                            "example": true,
+                                            "description": "Indicates whether the user has created a profile"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Invalid or missing JWT token",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Unauthorized"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "User not found"
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     },
                     "500": {
-                        "description": "Internal server error"
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Server error while fetching profile"
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

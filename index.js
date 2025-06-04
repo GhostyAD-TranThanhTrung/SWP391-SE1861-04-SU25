@@ -34,6 +34,7 @@ const authController = require('./Controller/authController');
 const registerController = require('./Controller/registerController'); // Import the register controller
 const googleController = require('./Controller/googleController');
 const profileController = require('./Controller/profileController'); // Import the profile controller
+const userController = require('./Controller/userController'); // Import the user controller
 
 sql.connect(config, err => {
     if (err) {
@@ -53,6 +54,7 @@ app.post('/api/google-login', googleController.googleLogin); // Google login end
 app.post('/api/google-register', googleController.googleRegister); // Google registration endpoint    
 app.post('/api/profile', authController.verifyToken, profileController.createProfile); // Create new profile endpoint (protected)
 app.get('/api/profile/:userId', authController.verifyToken, profileController.getProfile); // Get specific user profile (protected)
+app.get('/api/user/me', authController.verifyToken, userController.getCurrentUserProfile); // Get current user's profile (protected)
 // Protected routes (require authentication)
 // NOTE: This route demonstrates how to protect an endpoint with the JWT verification middleware
 app.get('/api/profile', authController.verifyToken, (req, res) => {
