@@ -13,7 +13,7 @@ const LoginPage = () => {
 
     // Luôn điều hướng về trang chủ
     const redirectToHome = () => {
-        setTimeout(() => navigate('/'), 500);
+        setTimeout(() => navigate('/choose-role'), 500);
     };
 
     async function login() {
@@ -35,13 +35,14 @@ const LoginPage = () => {
             console.log('Dữ liệu trả về từ API:', data);
 
             if (response.status !== 401 && data) {
-                console.log('Đăng nhập thành công, email:', data.email);
-                setEmailDisplay("Xin chào " + data.email);
+                console.log('Đăng nhập thành công, email:', email);
+                setEmailDisplay("Xin chào " + email);
                 setType('on');
                 emailRef.current.value = '';
                 passwordRef.current.value = '';
                 redirectToHome();
-                localStorage.setItem("email", email, { expires: 7 });
+                localStorage.setItem("email", email);
+                localStorage.setItem("token", data.token);
             } else {
                 console.log('Đăng nhập thất bại:', data.error);
                 setEmailDisplay(data.error || 'Đăng nhập thất bại');
@@ -70,13 +71,14 @@ const LoginPage = () => {
             console.log('Dữ liệu trả về từ API Google:', data);
 
             if (data) {
-                console.log('Đăng nhập Google thành công, email:', data.email);
-                setEmailDisplay("Xin chào " + data.email);
+                console.log('Đăng nhập Google thành công, email:', data.user.email);
+                setEmailDisplay("Xin chào " + data.user.email);
                 setType('on');
                 emailRef.current.value = '';
                 passwordRef.current.value = '';
+                localStorage.setItem("email", data.user.email);
+                localStorage.setItem("token", data.token);
                 redirectToHome();
-                localStorage.setItem("email", data.email);
             } else {
                 console.log('Đăng nhập Google thất bại:', data.error);
                 setEmailDisplay(data.error || 'Đăng nhập Google thất bại');
