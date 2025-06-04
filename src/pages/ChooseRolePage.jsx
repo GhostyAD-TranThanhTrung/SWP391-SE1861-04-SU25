@@ -5,7 +5,7 @@ import PreventionImage from '../images/Prevention.jpg';
 
 const ChooseRolePage = () => {
     const [name, setName] = useState('');
-    const [dob, setDob] = useState('');
+    const [dateOfBirth, setDateOfBirth] = useState('');
     const [job, setJob] = useState('');
     const navigate = useNavigate();
 
@@ -13,18 +13,13 @@ const ChooseRolePage = () => {
         const email = localStorage.getItem('email');
         const token = localStorage.getItem('token');
 
-        // Log the retrieved email and token for debugging
-        console.log('Email từ localStorage:', email);
-        console.log('Token từ localStorage:', token);
-
-        // Validate email and token
         if (!email || !token) {
             alert("Không tìm thấy email hoặc token. Vui lòng đăng nhập lại.");
             navigate('/login');
             return;
         }
 
-        const payload = { email, name, dob, job };
+        const payload = { email, name, dateOfBirth, job };
         console.log("Gửi dữ liệu đến API:", payload);
 
         try {
@@ -37,15 +32,14 @@ const ChooseRolePage = () => {
                 body: JSON.stringify(payload)
             });
 
-            console.log("Phản hồi từ server (status):", response.status);
             const data = await response.json();
-            console.log("Dữ liệu trả về từ server:", data);
+            console.log("Phản hồi từ server:", response.status, data);
 
             if (response.ok) {
                 alert("Cập nhật thành công!");
                 navigate('/home');
             } else {
-                alert("Lỗi gửi thông tin: " + (data.error || 'Không rõ lỗi'));
+                alert("Lỗi: " + (data.error || "Không rõ lỗi"));
             }
         } catch (error) {
             console.error("Lỗi fetch:", error);
@@ -67,8 +61,8 @@ const ChooseRolePage = () => {
                     <label>Họ và Tên</label>
                     <input
                         type="text"
-                        placeholder="Họ và Tên"
                         className="form-control mb-3"
+                        placeholder="Họ và Tên"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                     />
@@ -77,8 +71,8 @@ const ChooseRolePage = () => {
                     <input
                         type="date"
                         className="form-control mb-3"
-                        value={dob}
-                        onChange={(e) => setDob(e.target.value)}
+                        value={dateOfBirth}
+                        onChange={(e) => setDateOfBirth(e.target.value)}
                     />
 
                     <label>Your Job</label>
