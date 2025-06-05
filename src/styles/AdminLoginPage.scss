@@ -1,0 +1,25 @@
+.login-page {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    background-size: cover;
+    background-position: center;
+}
+
+.login-blur-box {
+    width: 50vw;
+    height: 100vh;
+    background-color: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+    box-shadow: -4px 0 16px rgba(0, 0, 0, 0.2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-form-container {
+    width: 100%;
+    max-width: 360px;
+}

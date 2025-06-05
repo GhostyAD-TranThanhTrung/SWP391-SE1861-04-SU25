@@ -1,0 +1,65 @@
+.about-us-section {
+    background-color: #e6f1ff;
+    padding: 60px 0;
+
+    .section-heading {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 50px;
+        padding-top: 50px;
+    }
+
+    .feature-item {
+        margin-bottom: 60px;
+        padding-left: 50px;
+        padding-right: 50px;
+
+        .feature-title {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #222;
+            padding-left: 12px;
+            padding-right: 12px;
+        }
+
+        .feature-text {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #555;
+            margin-bottom: 20px;
+            padding-left: 12px;
+            padding-right: 12px;
+        }
+
+        .btn-learn-more {
+            background-color: #66B0C6;
+            color: #fff;
+            padding: 10px 20px;
+            font-weight: 500;
+            border: none;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+
+            &:hover {
+                background-color: #66B0C6;
+                transform: translateY(-2px);
+            }
+        }
+
+        .image-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            img {
+                width: 380px; // đồng bộ kích thước ảnh
+                height: auto;
+                object-fit: cover;
+                border-radius: 12px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+        }
+    }
+}

@@ -1,0 +1,53 @@
+.login-page {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    background-size: cover;
+    background-position: center;
+}
+
+.login-blur-box {
+    width: 50vw;
+    height: 100vh;
+    background-color: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+    box-shadow: -4px 0 16px rgba(0, 0, 0, 0.2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-form-container {
+    width: 100%;
+    max-width: 360px;
+}
+
+.google-btn {
+    background-color: #fff;
+    color: #000;
+    border: 1px solid #ddd;
+
+    &:hover {
+        background-color: #f5f5f5;
+    }
+}
+
+.divider {
+    border: none;
+    border-top: 1px solid black;
+    margin: 1rem 0;
+}
+
+/* Add custom styling for Google button wrapper */
+.google-login-wrapper {
+    width: 100%;
+    max-width: 360px;
+    /* Matches login-form-container max-width */
+    margin: 1rem 0;
+    /* Consistent margin, matches mb-3 */
+    display: flex;
+    justify-content: center;
+    /* Centers the Google button */
+}
