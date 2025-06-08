@@ -1,6 +1,7 @@
-const sql = require('mssql');
 const { OAuth2Client } = require('google-auth-library');
 const jwt = require('jsonwebtoken');
+const AppDataSource = require('../src/data-source');
+const User = require('../src/entities/User');
 
 const CLIENT_ID = '97185070436-degnuev5p66ua7ckv130jmbm4eilcp6f.apps.googleusercontent.com';
 const clientID = new OAuth2Client(CLIENT_ID);
@@ -41,22 +42,24 @@ exports.googleLogin = async (req, res) => {
         console.log(`👤 Name: ${name}`);
         console.log(`🆔 Google ID: ${googleId}`);
         console.log(`🔍 Token issuer: ${payload.iss}`);
-        console.log(`⏰ Token expiry: ${new Date(payload.exp * 1000).toLocaleString()}`);
-        console.log('🔍 Checking if user exists in database...');        // Check if user exists
-        const checkUserRequest = new sql.Request();
-        checkUserRequest.input('email', sql.NVarChar, email)
-            .input('googleId', sql.NVarChar, googleId);
-            
-        console.log('📊 Executing database query...');
-        console.log(`   SQL: SELECT * FROM Users WHERE email = '${email}' AND password = '${googleId}'`);
+        console.log(`⏰ Token expiry: ${new Date(payload.exp * 1000).toLocaleString()}`);        console.log('🔍 Checking if user exists in database...');
         
-        const userCheckResult = await checkUserRequest.query(
-            'SELECT * FROM Users WHERE email = @email AND password = @googleId'
-        );
+        // Check if user exists using TypeORM
+        const userRepository = AppDataSource.getRepository(User);
         
-        console.log(`📈 Query result: ${userCheckResult.recordset.length} record(s) found`);        if (userCheckResult.recordset && userCheckResult.recordset.length > 0) {
+        console.log('📊 Executing TypeORM query...');
+        console.log(`   Query: Find user with email='${email}' AND password='${googleId}'`);
+        
+        const existingUser = await userRepository.findOne({
+            where: { 
+                email: email, 
+                password: googleId 
+            }
+        });
+        
+        console.log(`📈 Query result: ${existingUser ? '1' : '0'} record(s) found`);        if (existingUser) {
             // User exists - Login
-            const user = userCheckResult.recordset[0];
+            const user = existingUser;
             
             // Validate user object
             if (!user || !user.user_id) {
@@ -68,7 +71,7 @@ exports.googleLogin = async (req, res) => {
             console.log(`🆔 User ID: ${user.user_id}`);
             console.log(`📧 Email: ${user.email}`);
             console.log(`👥 Role: ${user.role}`);
-            console.log(`📅 Account created: ${user.created_at || 'N/A'}`);
+            console.log(`📅 Account created: ${user.date_create || 'N/A'}`);
             console.log(`✅ Status: ${user.status || 'N/A'}`);
             console.log('🔑 Generating JWT token for existing user...');
 
@@ -178,73 +181,51 @@ async function googleRegisterInternal(req, res) {
         }
         
         console.log('✅ Google token re-verified successfully');
-        console.log(`📧 Email: ${email}`);
-        console.log(`👤 Name: ${name}`);
+        console.log(`📧 Email: ${email}`);        console.log(`👤 Name: ${name}`);
         console.log(`🆔 Google ID: ${googleId}`);
         console.log('🔍 Double-checking user existence in database...');
         
-        const checkUserRequest = new sql.Request();
-        checkUserRequest.input('email', sql.NVarChar, email);
-
-        console.log(`📊 Query: SELECT * FROM Users WHERE email = '${email}'`);
-        const userCheckResult = await checkUserRequest.query(
-            'SELECT * FROM Users WHERE email = @email'
-        );
+        const userRepository = AppDataSource.getRepository(User);
         
-        console.log(`📈 User check result: ${userCheckResult.recordset.length} record(s) found`);        if (!userCheckResult.recordset || userCheckResult.recordset.length === 0) {
+        console.log(`📊 TypeORM Query: Find user with email='${email}'`);
+        const userCheckResult = await userRepository.findOne({
+            where: { email: email }
+        });
+        
+        console.log(`📈 User check result: ${userCheckResult ? '1' : '0'} record(s) found`);        if (!userCheckResult) {
             console.log('✅ CONFIRMED: User does not exist - PROCEEDING WITH REGISTRATION');
             console.log('🔨 STARTING AUTO-REGISTRATION PROCESS');
             console.log('📝 Creating new user account...');
 
-            // User doesn't exist - Register new user
+            // User doesn't exist - Register new user using TypeORM
             console.log(`📧 Registering new Google user: ${email}`);
             console.log(`👤 User name: ${name}`);
             console.log(`🔑 Using Google ID as password: ${googleId}`);
             console.log(`👥 Default role: Member`);
             console.log(`✅ Default status: active`);
-            console.log('💾 Inserting into Users table...');
+            console.log('💾 Creating user with TypeORM...');
 
-            const registerRequest = new sql.Request();
-            registerRequest.input('email', sql.NVarChar, email)
-                .input('password', sql.NVarChar, googleId) // Use Google ID as password
-                .input('role', sql.VarChar, 'Member')
-                .input('status', sql.VarChar, 'active');
+            const newUser = userRepository.create({
+                email: email,
+                password: googleId, // Use Google ID as password
+                role: 'Member',
+                status: 'active'
+            });
 
-            const result = await registerRequest.query(
-                `INSERT INTO Users (email, password, role, status)
-                 VALUES (@email, @password, @role, @status);
-                 SELECT SCOPE_IDENTITY() AS user_id;`
-            );
+            const savedUser = await userRepository.save(newUser);
 
             // Validate registration result
-            if (!result.recordset || !result.recordset[0] || !result.recordset[0].user_id) {
+            if (!savedUser || !savedUser.user_id) {
                 console.error('❌ ERROR: Failed to create user - no ID returned');
                 return res.status(500).json({ error: 'User registration failed' });
             }
 
-            const userId = result.recordset[0].user_id;
+            const userId = savedUser.user_id;
             console.log('✅ USER ACCOUNT CREATED SUCCESSFULLY');
             console.log(`🆔 New User ID: ${userId}`);
             console.log(`📧 Email: ${email}`);
             console.log(`👥 Role: Member`);
-            console.log(`✅ Status: active`);
-            console.log('📝 Creating user profile...');
-
-            // Create profile for the new user
-            const createProfileRequest = new sql.Request();
-            createProfileRequest.input('userId', sql.Int, userId)
-                .input('name', sql.NVarChar, name);
-
-            console.log(`💾 Inserting into Profiles table for user ID: ${userId}`);
-            await createProfileRequest.query(
-                `INSERT INTO Profiles (user_id, name)
-                 VALUES (@userId, @name);`
-            );
-
-            console.log('✅ USER PROFILE CREATED SUCCESSFULLY');
-            console.log(`🆔 Profile for User ID: ${userId}`);
-            console.log(`👤 Profile Name: ${name}`);
-            console.log('🔑 Generating JWT token for new user...');
+            console.log(`✅ Status: active`);            console.log('📝 Profile creation skipped - user can create profile later through ChooseRolePage');
 
             console.log('🎉 GOOGLE AUTO-REGISTRATION COMPLETED SUCCESSFULLY');
             console.log('📊 REGISTRATION SUMMARY:');
@@ -253,7 +234,10 @@ async function googleRegisterInternal(req, res) {
             console.log(`   🆔 User ID: ${userId}`);
             console.log(`   👥 Role: Member`);
             console.log(`   ✅ Status: active`);
-            console.log(`   📅 Created: ${new Date().toLocaleString()}`);            // Generate JWT token for session
+            console.log(`   📅 Created: ${new Date().toLocaleString()}`);
+            console.log(`   📝 Profile: Not created - user will create via ChooseRolePage`);
+
+            // Generate JWT token for session
             const token = jwt.sign(
                 {
                     userId: userId,
@@ -281,7 +265,7 @@ async function googleRegisterInternal(req, res) {
             });
         } else {
             console.log('⚠️  USER ALREADY EXISTS - REDIRECTING TO LOGIN');
-            console.log(`📊 Found ${userCheckResult.recordset.length} existing record(s)`);
+            console.log(`📊 Found ${userCheckResult ? '1' : '0'} existing record(s)`);
             console.log('🔄 Calling Google login function...');
             console.log('='.repeat(60));
             

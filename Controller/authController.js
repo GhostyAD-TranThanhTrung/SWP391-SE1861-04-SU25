@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 
 // Define a secret key for signing the JWT tokens
 // NOTE: In production, this should be stored in environment variables for security
-const JWT_SECRET = 'your-secret-key-here';
+const JWT_SECRET = 'swp391-super-secret-jwt-key-2025-secure';
 
 // Login endpoint
 exports.login = (req, res) => {
