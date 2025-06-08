@@ -34,6 +34,7 @@ const authController = require('./Controller/authController');
 const registerController = require('./Controller/registerController'); // Import the register controller
 const googleController = require('./Controller/googleController');
 const UserController = require('./Controller/userTypeormController');
+const ProfileController = require('./Controller/profileTypeormController');
 const AppDataSource = require('./src/data-source');
 
 sql.connect(config, err => {
@@ -58,17 +59,30 @@ app.get('/api/data', authController.testApi);
 app.post('/api/login', authController.login);
 app.post('/api/register', registerController.registerUser); // Registration endpoint - handles new user creation
 app.post('/api/google-login', googleController.googleLogin); // Google login endpoint
-app.post('/api/google-register', googleController.googleRegister); // Google registration endpoint    
+app.post('/api/google-register', googleController.googleRegister); // Google registration endpoint   
+
 // Protected routes (require authentication)
+// Profile routes using TypeORM
+app.post('/api/profile', authController.verifyToken, ProfileController.createProfile); // Create profile - used by ChooseRolePage
+app.get('/api/profile', authController.verifyToken, ProfileController.getUserProfile); // Get user's own profile using token
+app.get('/api/profile/me', authController.verifyToken, ProfileController.getUserProfile); // Alternative endpoint for getting user's own profile
+app.get('/api/profile/status', authController.verifyToken, ProfileController.checkProfileStatus); // Check if user has a profile (for login verification)
+app.put('/api/profile', authController.verifyToken, ProfileController.updateProfile); // Update user's own profile
+app.delete('/api/profile', authController.verifyToken, ProfileController.deleteProfile); // Delete user's own profile
+
+// Admin routes for profiles
+app.get('/api/profiles', ProfileController.getAllProfiles); // Get all profiles (admin)
+app.get('/api/profile/:userId', ProfileController.getProfileByUserId); // Get profile by user ID (admin)
+
 // NOTE: This route demonstrates how to protect an endpoint with the JWT verification middleware
-app.get('/api/profile', authController.verifyToken, (req, res) => {
+app.get('/api/test-profile', authController.verifyToken, (req, res) => {
     // The verifyToken middleware ensures this route is only accessible with a valid token
     // The decoded user information is available in req.user
     res.json({
         message: 'Protected route accessed successfully',
         user: req.user // Return the user data from the token 
     });
-});
+}); 
 
 app.listen(3000, () => {
     console.log('Server is running on port 3000');
