@@ -1,6 +1,10 @@
 /**
  * Staff Management Controller using TypeORM
- * Manages staff operations using Users and Profile tables
+ * Manages staff operations using Users and Profile tables based on ERD diagram
+ * 
+ * ERD Schema:
+ * Users: user_id, date_create, role, password, status, email  
+ * Profile: user_id, name, bio_json, date_of_birth, job
  */
 const AppDataSource = require('../src/data-source');
 const User = require('../src/entities/User');
@@ -22,14 +26,22 @@ class StaffController {
                     { role: 'admin' },
                     { role: 'consultant' }
                 ]
-            });
-
-            // Get profile information for each staff member
+            });            // Get profile information for each staff member
             const staffWithProfiles = await Promise.all(
                 staffUsers.map(async (user) => {
                     const profile = await profileRepository.findOne({
                         where: { user_id: user.user_id }
                     });
+
+                    // Convert bio_json from text to JSON if it exists
+                    if (profile && profile.bio_json) {
+                        try {
+                            profile.bio_json = JSON.parse(profile.bio_json);
+                        } catch (error) {
+                            // If parsing fails, keep as string
+                            console.warn(`Failed to parse bio_json for user ${user.user_id}:`, error);
+                        }
+                    }
 
                     return {
                         ...user,
@@ -57,103 +69,102 @@ class StaffController {
     /**
      * POST /api/staff - Create new staff
      * Creates a new user with staff role and optional profile
-     */
-    static async createStaff(req, res) {
+     * ERD Compliant: Only uses email, password, role, status from Users table
+     * and name, bio_json, date_of_birth, job from Profile table
+     */    static async createStaff(req, res) {
+        // Start database transaction
+        const queryRunner = AppDataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
         try {
-            const userRepository = AppDataSource.getRepository(User);
-            const profileRepository = AppDataSource.getRepository(Profile);
+            const userRepository = queryRunner.manager.getRepository(User);
+            const profileRepository = queryRunner.manager.getRepository(Profile);
 
             const {
-                username,
+                // Users table fields (ERD compliant)
                 email,
                 password,
-                role = 'consultant', // Default to consultant if not specified
+                role,
                 status = 'active',
-                // Profile fields (optional)
-                full_name,
-                phone_number,
-                date_of_birth,
-                gender,
-                address,
+                // Profile table fields (ERD compliant)
+                name,
                 bio_json,
-                profile_picture_url
+                date_of_birth,
+                job
             } = req.body;
 
             // Validate required fields
-            if (!username || !email || !password) {
+            if (!email || !password) {
+                await queryRunner.rollbackTransaction();
                 return res.status(400).json({
                     success: false,
-                    message: 'Username, email, and password are required'
+                    message: 'Email and password are required'
                 });
             }
 
             // Validate role is staff role
             if (!['admin', 'consultant'].includes(role)) {
+                await queryRunner.rollbackTransaction();
                 return res.status(400).json({
                     success: false,
                     message: 'Role must be admin or consultant for staff creation'
                 });
             }
 
-            // Check if username or email already exists
-            const existingUser = await userRepository.findOne({
-                where: [
-                    { username: username },
-                    { email: email }
-                ]
-            });
-
-            if (existingUser) {
-                return res.status(409).json({
+            // Validate status
+            if (!['active', 'inactive', 'banned'].includes(status)) {
+                await queryRunner.rollbackTransaction();
+                return res.status(400).json({
                     success: false,
-                    message: 'Username or email already exists'
+                    message: 'Status must be active, inactive, or banned'
                 });
             }
 
-            // Create new user
+            // Check if email already exists
+            const existingUser = await userRepository.findOne({
+                where: { email: email }
+            });
+
+            if (existingUser) {
+                await queryRunner.rollbackTransaction();
+                return res.status(409).json({
+                    success: false,
+                    message: 'Email already exists'
+                });
+            }
+
+            // Create new user (ERD compliant - no username field)
             const newUser = userRepository.create({
-                username,
                 email,
                 password, // Note: In production, password should be hashed
                 role,
-                status,
-                created_at: new Date(),
-                updated_at: new Date()
+                status
+                // date_create is handled by database default
             });
 
-            const savedUser = await userRepository.save(newUser);
-
-            // Create profile if profile data provided
+            const savedUser = await userRepository.save(newUser);            // Create profile if profile data provided (ERD compliant fields only)
             let savedProfile = null;
-            if (full_name || phone_number || date_of_birth || gender || address || bio_json || profile_picture_url) {
-                // Validate bio_json if provided
-                let parsedBioJson = null;
+            if (name || bio_json || date_of_birth || job) {
+                // Store bio_json as string
+                let bioJsonString = null;
                 if (bio_json) {
-                    try {
-                        parsedBioJson = typeof bio_json === 'string' ? JSON.parse(bio_json) : bio_json;
-                    } catch (error) {
-                        return res.status(400).json({
-                            success: false,
-                            message: 'Invalid JSON format for bio_json'
-                        });
-                    }
+                    bioJsonString = typeof bio_json === 'string' ? bio_json : JSON.stringify(bio_json);
                 }
 
                 const newProfile = profileRepository.create({
                     user_id: savedUser.user_id,
-                    full_name,
-                    phone_number,
+                    name,
+                    bio_json: bioJsonString,
                     date_of_birth: date_of_birth ? new Date(date_of_birth) : null,
-                    gender,
-                    address,
-                    bio_json: parsedBioJson,
-                    profile_picture_url,
-                    created_at: new Date(),
-                    updated_at: new Date()
+                    job
                 });
 
                 savedProfile = await profileRepository.save(newProfile);
             }
+
+            // Commit transaction if all operations successful
+            await queryRunner.commitTransaction();
 
             res.status(201).json({
                 success: true,
@@ -164,18 +175,24 @@ class StaffController {
                 message: 'Staff created successfully'
             });
         } catch (error) {
+            // Rollback transaction on any error
+            await queryRunner.rollbackTransaction();
             console.error('Error creating staff:', error);
             res.status(500).json({
                 success: false,
                 message: 'Failed to create staff',
                 error: error.message
             });
+        } finally {
+            // Release query runner resources
+            await queryRunner.release();
         }
     }
 
     /**
-     * PUT /api/staff/{staffId} - Update staff by ID
+     * PUT /api/staff/{staffId} - Update staff by ID  
      * Updates both user and profile information
+     * ERD Compliant: Only uses fields that exist in ERD schema
      */
     static async updateStaff(req, res) {
         try {
@@ -196,7 +213,7 @@ class StaffController {
             }
 
             // Verify user is staff
-            if (!['admin', 'consultant'].includes(user.role)) {
+            if (!['admin', 'consultant'].includes(user.role.toLowerCase())) {
                 return res.status(400).json({
                     success: false,
                     message: 'User is not a staff member'
@@ -204,23 +221,19 @@ class StaffController {
             }
 
             const {
-                username,
+                // Users table fields (ERD compliant)
                 email,
                 password,
                 role,
                 status,
-                // Profile fields
-                full_name,
-                phone_number,
-                date_of_birth,
-                gender,
-                address,
+                // Profile table fields (ERD compliant)
+                name,
                 bio_json,
-                profile_picture_url
+                date_of_birth,
+                job
             } = req.body;
 
             // Update user fields if provided
-            if (username !== undefined) user.username = username;
             if (email !== undefined) user.email = email;
             if (password !== undefined) user.password = password; // Note: Should be hashed in production
             if (role !== undefined) {
@@ -232,22 +245,26 @@ class StaffController {
                 }
                 user.role = role;
             }
-            if (status !== undefined) user.status = status;
-            user.updated_at = new Date();
+            if (status !== undefined) {
+                if (!['active', 'inactive', 'banned'].includes(status)) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Status must be active, inactive, or banned'
+                    });
+                }
+                user.status = status;
+            }
 
-            // Check for duplicate username/email if being updated
-            if (username || email) {
+            // Check for duplicate email if being updated
+            if (email) {
                 const duplicateCheck = await userRepository.findOne({
-                    where: [
-                        username ? { username: username } : {},
-                        email ? { email: email } : {}
-                    ].filter(condition => Object.keys(condition).length > 0)
+                    where: { email: email }
                 });
 
                 if (duplicateCheck && duplicateCheck.user_id !== parseInt(staffId)) {
                     return res.status(409).json({
                         success: false,
-                        message: 'Username or email already exists'
+                        message: 'Email already exists'
                     });
                 }
             }
@@ -259,10 +276,8 @@ class StaffController {
                 where: { user_id: parseInt(staffId) }
             });
 
-            const hasProfileData = full_name !== undefined || phone_number !== undefined ||
-                date_of_birth !== undefined || gender !== undefined ||
-                address !== undefined || bio_json !== undefined ||
-                profile_picture_url !== undefined;
+            const hasProfileData = name !== undefined || bio_json !== undefined ||
+                date_of_birth !== undefined || job !== undefined;
 
             if (hasProfileData) {
                 // Validate bio_json if provided
@@ -280,29 +295,20 @@ class StaffController {
 
                 if (updatedProfile) {
                     // Update existing profile
-                    if (full_name !== undefined) updatedProfile.full_name = full_name;
-                    if (phone_number !== undefined) updatedProfile.phone_number = phone_number;
-                    if (date_of_birth !== undefined) updatedProfile.date_of_birth = date_of_birth ? new Date(date_of_birth) : null;
-                    if (gender !== undefined) updatedProfile.gender = gender;
-                    if (address !== undefined) updatedProfile.address = address;
+                    if (name !== undefined) updatedProfile.name = name;
                     if (parsedBioJson !== undefined) updatedProfile.bio_json = parsedBioJson;
-                    if (profile_picture_url !== undefined) updatedProfile.profile_picture_url = profile_picture_url;
-                    updatedProfile.updated_at = new Date();
+                    if (date_of_birth !== undefined) updatedProfile.date_of_birth = date_of_birth ? new Date(date_of_birth) : null;
+                    if (job !== undefined) updatedProfile.job = job;
 
                     updatedProfile = await profileRepository.save(updatedProfile);
                 } else {
                     // Create new profile
                     const newProfile = profileRepository.create({
                         user_id: parseInt(staffId),
-                        full_name,
-                        phone_number,
-                        date_of_birth: date_of_birth ? new Date(date_of_birth) : null,
-                        gender,
-                        address,
+                        name,
                         bio_json: parsedBioJson,
-                        profile_picture_url,
-                        created_at: new Date(),
-                        updated_at: new Date()
+                        date_of_birth: date_of_birth ? new Date(date_of_birth) : null,
+                        job
                     });
 
                     updatedProfile = await profileRepository.save(newProfile);
@@ -325,9 +331,7 @@ class StaffController {
                 error: error.message
             });
         }
-    }
-
-    /**
+    }    /**
      * DELETE /api/staff/{staffId} - Delete staff by ID
      * Deletes both user and associated profile
      */
@@ -347,10 +351,8 @@ class StaffController {
                     success: false,
                     message: 'Staff not found'
                 });
-            }
-
-            // Verify user is staff
-            if (!['admin', 'consultant'].includes(user.role)) {
+            }            // Verify user is staff
+            if (!['admin', 'consultant'].includes(user.role.toLowerCase())) {
                 return res.status(400).json({
                     success: false,
                     message: 'User is not a staff member'
@@ -389,7 +391,7 @@ class StaffController {
 
     /**
      * GET /api/staff/{staffName} - Search staff by name
-     * Searches for staff by username or full name in profile
+     * Searches for staff by email or name in profile
      */
     static async searchStaffByName(req, res) {
         try {
@@ -406,27 +408,27 @@ class StaffController {
 
             const searchTerm = `%${staffName.trim()}%`;
 
-            // Search users by username with staff roles
-            const usersByUsername = await userRepository
+            // Search users by email with staff roles
+            const usersByEmail = await userRepository
                 .createQueryBuilder('user')
                 .where('user.role IN (:...roles)', { roles: ['admin', 'consultant'] })
-                .andWhere('user.username LIKE :searchTerm', { searchTerm })
+                .andWhere('user.email LIKE :searchTerm', { searchTerm })
                 .getMany();
 
-            // Search profiles by full name and get associated users with staff roles
-            const profilesByFullName = await profileRepository
+            // Search profiles by name and get associated users with staff roles
+            const profilesByName = await profileRepository
                 .createQueryBuilder('profile')
                 .leftJoin('profile.user', 'user')
                 .where('user.role IN (:...roles)', { roles: ['admin', 'consultant'] })
-                .andWhere('profile.full_name LIKE :searchTerm', { searchTerm })
+                .andWhere('profile.name LIKE :searchTerm', { searchTerm })
                 .getMany();
 
             // Combine results and remove duplicates
             const foundUserIds = new Set();
             const combinedResults = [];
 
-            // Add users found by username
-            for (const user of usersByUsername) {
+            // Add users found by email
+            for (const user of usersByEmail) {
                 if (!foundUserIds.has(user.user_id)) {
                     foundUserIds.add(user.user_id);
                     const profile = await profileRepository.findOne({
@@ -439,8 +441,8 @@ class StaffController {
                 }
             }
 
-            // Add users found by profile full name
-            for (const profile of profilesByFullName) {
+            // Add users found by profile name
+            for (const profile of profilesByName) {
                 if (!foundUserIds.has(profile.user_id)) {
                     foundUserIds.add(profile.user_id);
                     const user = await userRepository.findOne({

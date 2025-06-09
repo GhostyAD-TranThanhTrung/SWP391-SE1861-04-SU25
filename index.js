@@ -77,12 +77,12 @@ app.get('/api/profiles', ProfileController.getAllProfiles); // Get all profiles 
 app.get('/api/profile/:userId', ProfileController.getProfileByUserId); // Get profile by user ID (admin)
 
 
-// Staff routes (Protected - require authentication)
-app.get('/api/staff', authController.verifyToken, StaffController.getAllStaff);
-app.get('/api/staff/:staffName', authController.verifyToken, StaffController.searchStaffByName);
-app.post('/api/staff', authController.verifyToken, StaffController.createStaff);
-app.put('/api/staff/:staffId', authController.verifyToken, StaffController.updateStaff);
-app.delete('/api/staff/:staffId', authController.verifyToken, StaffController.deleteStaff);
+// Staff routes (Protected - require authentication)//add verfify token later
+app.get('/api/staff', StaffController.getAllStaff);
+app.get('/api/staff/:staffName', StaffController.searchStaffByName);
+app.post('/api/staff', StaffController.createStaff);
+app.put('/api/staff/:staffId', StaffController.updateStaff);
+app.delete('/api/staff/:staffId', StaffController.deleteStaff);
 
 // Staff statistics (Protected)
 app.get('/api/staff/statistics', authController.verifyToken, StaffController.getStaffStatistics);

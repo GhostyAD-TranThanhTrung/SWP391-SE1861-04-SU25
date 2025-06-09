@@ -30,7 +30,6 @@ class DashboardService {
             .where('start_at >= :startOfMonth', { startOfMonth })
             .andWhere('start_at <= :endOfMonth', { endOfMonth })
             .getRawOne();//return object 'count'
-
         return parseInt(result.count) || 0;
     }
 

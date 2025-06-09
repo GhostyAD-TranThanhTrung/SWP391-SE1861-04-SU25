@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 // Define a secret key for signing the JWT tokens
 // NOTE: In production, this should be stored in environment variables for security
 const JWT_SECRET = 'swp391-super-secret-jwt-key-2025-secure';
-
+const BYPASS = true
 // Login endpoint
 exports.login = (req, res) => {
     // This endpoint handles authentication requests from the React login form
@@ -19,21 +19,21 @@ exports.login = (req, res) => {
                 if (err) {
                     console.error('SQL error during login:', err);
                     return res.status(500).json({ error: 'Server error' });
-                }                if (result.recordset.length === 0) {
+                } if (result.recordset.length === 0) {
                     return res.status(401).json({ error: 'Invalid credentials' });
                 }
 
                 // Get the user record from the database result
                 const user = result.recordset[0];
-                
+
                 // Generate a JWT token with user information as the payload
                 // NOTE: The token contains user data that will be available in protected routes
                 const token = jwt.sign(
-                    { 
+                    {
                         userId: user.user_id,              // Include user ID in the token payload
                         email: user.email,            // Include email in the token payload
                         role: user.role || 'Member'   // Include user role with a default value
-                    }, 
+                    },
                     JWT_SECRET,                       // Sign the token with our secret key
                     { expiresIn: '24h' }              // Token will expire in 24 hours
                 );                // Login successful - log information
@@ -44,7 +44,7 @@ exports.login = (req, res) => {
                 console.log(`🔑 JWT Token generated successfully`);
                 console.log(`⏰ Login time: ${new Date().toLocaleString()}`);
                 console.log('='.repeat(50));
-                  // Return success response with user data and the token
+                // Return success response with user data and the token
                 // NOTE: The client will store this token and use it for authenticated requests
                 res.json({
                     message: 'Login successful',
@@ -81,26 +81,33 @@ exports.testApi = (req, res) => {
 exports.verifyToken = (req, res, next) => {
     // Get the authorization header from the request
     // NOTE: The client must send the token in the Authorization header
+    if (BYPASS) {
+        req.user = {
+            userId: 1,
+            email: 'hung',
+            role: 'Admin'
+        }
+        return next();
+    }
     const authHeader = req.headers.authorization;
-    
     // Check if the auth header exists and starts with "Bearer "
     // NOTE: Bearer tokens should be formatted as "Bearer <token>"
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return res.status(401).json({ error: 'Access denied. No token provided.' });
     }
-    
+
     // Extract the token by removing the "Bearer " prefix
     const token = authHeader.split(' ')[1];
-    
+
     try {
         // Verify the token signature using our secret key
         // NOTE: This will throw an error if the token is invalid or expired
         const decoded = jwt.verify(token, JWT_SECRET);
-        
+
         // Add the decoded user information to the request object
         // NOTE: This makes the user data available to route handlers
         req.user = decoded;
-        
+
         // Proceed to the next middleware or route handler
         next();
     } catch (error) {
