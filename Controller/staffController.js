@@ -9,6 +9,7 @@
 const AppDataSource = require('../src/data-source');
 const User = require('../src/entities/User');
 const Profile = require('../src/entities/Profile');
+const bcrypt = require('bcryptjs');
 
 class StaffController {
     /**
@@ -137,7 +138,7 @@ class StaffController {
             // Create new user (ERD compliant - no username field)
             const newUser = userRepository.create({
                 email,
-                password, // Note: In production, password should be hashed
+                password: await bcrypt.hash(password, 10),
                 role,
                 status
                 // date_create is handled by database default
@@ -235,7 +236,7 @@ class StaffController {
 
             // Update user fields if provided
             if (email !== undefined) user.email = email;
-            if (password !== undefined) user.password = password; // Note: Should be hashed in production
+            if (password !== undefined) user.password = await bcrypt.hash(password, 10);
             if (role !== undefined) {
                 if (!['admin', 'consultant'].includes(role)) {
                     return res.status(400).json({
