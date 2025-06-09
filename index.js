@@ -38,6 +38,7 @@ const ProfileController = require('./Controller/profileTypeormController');
 const AppDataSource = require('./src/data-source');
 const DashboardController = require('./Controller/dashboardController');
 const StaffController = require('./Controller/staffController');
+const MemberController = require('./Controller/MemberController');
 
 sql.connect(config, err => {
     if (err) {
@@ -86,6 +87,15 @@ app.delete('/api/staff/:staffId', StaffController.deleteStaff);
 
 // Staff statistics (Protected)
 app.get('/api/staff/statistics', authController.verifyToken, StaffController.getStaffStatistics);
+
+// Member routes (Protected - require authentication) //add verify token later
+app.get('/api/members', MemberController.getAllMembers);
+app.get('/api/members/search/:memberName', MemberController.searchMembersByName);
+app.get('/api/members/statistics', authController.verifyToken, MemberController.getMemberStatistics);
+app.get('/api/members/:memberId', MemberController.getMemberById);
+app.post('/api/members', MemberController.createMember);
+app.put('/api/members/:memberId', MemberController.updateMember);
+app.delete('/api/members/:memberId', MemberController.deleteMember);
 
 // NOTE: This route demonstrates how to protect an endpoint with the JWT verification middleware
 app.get('/api/test-profile', authController.verifyToken, (req, res) => {

@@ -873,6 +873,452 @@
                     }
                 }
             }
+        },
+        "/api/members": {
+            "get": {
+                "summary": "Get all members",
+                "description": "Retrieve all users with member role and their profile information",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Members retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/MemberWithProfile"
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Members retrieved successfully"
+                                        },
+                                        "count": {
+                                            "type": "integer",
+                                            "example": 10
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            },
+            "post": {
+                "summary": "Create new member",
+                "description": "Create a new member with member role and profile information",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateMemberRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Member created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "user": {
+                                                    "$ref": "#/components/schemas/User"
+                                                },
+                                                "profile": {
+                                                    "$ref": "#/components/schemas/Profile"
+                                                }
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Member created successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Invalid data"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "409": {
+                        "description": "Email already exists"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/members/{memberId}": {
+            "get": {
+                "summary": "Get member by ID",
+                "description": "Retrieve a specific member by their ID with profile information",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "memberId",
+                        "in": "path",
+                        "required": true,
+                        "description": "The ID of the member to retrieve",
+                        "schema": {
+                            "type": "integer",
+                            "example": 123
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Member retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/MemberWithProfile"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Member retrieved successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Member not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            },
+            "put": {
+                "summary": "Update member by ID",
+                "description": "Update member information including user and profile data",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "memberId",
+                        "in": "path",
+                        "required": true,
+                        "description": "The ID of the member to update",
+                        "schema": {
+                            "type": "integer",
+                            "example": 123
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateMemberRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Member updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "user": {
+                                                    "$ref": "#/components/schemas/User"
+                                                },
+                                                "profile": {
+                                                    "$ref": "#/components/schemas/Profile"
+                                                }
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Member updated successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Invalid data"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Member not found"
+                    },
+                    "409": {
+                        "description": "Email already exists"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Delete member by ID",
+                "description": "Delete a member and their associated profile",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "memberId",
+                        "in": "path",
+                        "required": true,
+                        "description": "The ID of the member to delete",
+                        "schema": {
+                            "type": "integer",
+                            "example": 123
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Member deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Member deleted successfully"
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "deleted_user_id": {
+                                                    "type": "integer",
+                                                    "example": 123
+                                                },
+                                                "deleted_profile": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Member not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/members/search/{memberName}": {
+            "get": {
+                "summary": "Search members by name",
+                "description": "Search for members by email or name in profile",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "memberName",
+                        "in": "path",
+                        "required": true,
+                        "description": "The name to search for (searches email and name)",
+                        "schema": {
+                            "type": "string",
+                            "example": "john"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Member search results",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/MemberWithProfile"
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Found 2 member(s) matching \"john\""
+                                        },
+                                        "searchTerm": {
+                                            "type": "string",
+                                            "example": "john"
+                                        },
+                                        "count": {
+                                            "type": "integer",
+                                            "example": 2
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Member name parameter is required"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/members/statistics": {
+            "get": {
+                "summary": "Get member statistics",
+                "description": "Get comprehensive statistics about members",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Member statistics retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "totalMembers": {
+                                                    "type": "integer",
+                                                    "example": 150
+                                                },
+                                                "activeMembers": {
+                                                    "type": "integer",
+                                                    "example": 140
+                                                },
+                                                "inactiveMembers": {
+                                                    "type": "integer",
+                                                    "example": 10
+                                                },
+                                                "membersWithProfiles": {
+                                                    "type": "integer",
+                                                    "example": 130
+                                                },
+                                                "membersWithoutProfiles": {
+                                                    "type": "integer",
+                                                    "example": 20
+                                                }
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Member statistics retrieved successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -1086,6 +1532,112 @@
                                 "trauma"
                             ]
                         }
+                    }
+                }
+            },
+            "MemberWithProfile": {
+                "type": "object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/User"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "profile": {
+                                "$ref": "#/components/schemas/Profile"
+                            }
+                        }
+                    }
+                ]
+            },
+            "CreateMemberRequest": {
+                "type": "object",
+                "required": [
+                    "email",
+                    "password"
+                ],
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "member@example.com",
+                        "description": "Member's email address"
+                    },
+                    "password": {
+                        "type": "string",
+                        "minLength": 6,
+                        "example": "password123",
+                        "description": "Member's password"
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "John Smith",
+                        "description": "Member's full name"
+                    },
+                    "bio_json": {
+                        "type": "string",
+                        "example": "{\"interests\": [\"mental health\", \"wellness\"]}",
+                        "description": "Member's biography in JSON string format"
+                    },
+                    "date_of_birth": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "1990-01-15",
+                        "description": "Member's date of birth"
+                    },
+                    "job": {
+                        "type": "string",
+                        "example": "Software Engineer",
+                        "description": "Member's job title"
+                    }
+                }
+            },
+            "UpdateMemberRequest": {
+                "type": "object",
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "updated@example.com",
+                        "description": "Updated email address"
+                    },
+                    "password": {
+                        "type": "string",
+                        "minLength": 6,
+                        "example": "newpassword123",
+                        "description": "Updated password"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "active",
+                            "inactive",
+                            "banned"
+                        ],
+                        "example": "active",
+                        "description": "Updated member status"
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "John Updated Smith",
+                        "description": "Updated full name"
+                    },
+                    "bio_json": {
+                        "type": "string",
+                        "example": "{\"interests\": [\"updated interests\"]}",
+                        "description": "Updated biography in JSON string format"
+                    },
+                    "date_of_birth": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "1990-01-15",
+                        "description": "Updated date of birth"
+                    },
+                    "job": {
+                        "type": "string",
+                        "example": "Senior Software Engineer",
+                        "description": "Updated job title"
                     }
                 }
             }
