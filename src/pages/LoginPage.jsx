@@ -9,13 +9,74 @@ const LoginPage = () => {
     const passwordRef = useRef(null);
     const [emailDisplay, setEmailDisplay] = useState('');
     const [type, setType] = useState('off');
-    const navigate = useNavigate();
+    const navigate = useNavigate();    
 
-    // Luôn điều hướng về trang chủ
-    const redirectToHome = () => {
-        setTimeout(() => navigate('/choose-role'), 500);
-    };
+    // Hàm kiểm tra profile và điều hướng người dùng
+    async function checkProfileAndRedirect() {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.error('Không tìm thấy token');
+                navigate('/login'); // Redirect to login instead of choose-role
+                return;
+            }
 
+            console.log('🔍 Checking profile with token:', token.substring(0, 20) + '...');
+
+            const res = await fetch('http://localhost:3000/api/profile/status', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            console.log('📊 Profile status response:', res.status);
+            
+            if (res.ok) {
+                const data = await res.json();
+                console.log('✅ Profile data received:', data);
+                
+                // Check for both possible response formats
+                if (data.success && data.hasProfile) {
+                    console.log('👤 User has profile, redirecting to home');
+                    navigate('/'); // User has profile
+                } else if (data.success && !data.hasProfile) {
+                    console.log('📝 User needs to create profile, redirecting to choose-role');
+                    navigate('/choose-role'); // User needs to create profile
+                } else {
+                    console.log('⚠️ Unexpected response format:', data);
+                    navigate('/choose-role'); // Default to profile creation
+                }
+            } else if (res.status === 401) {
+                console.error('🔒 Token invalid or expired');
+                // Clear invalid token and redirect to login
+                localStorage.removeItem('token');
+                localStorage.removeItem('email');
+                setEmailDisplay('Phiên đăng nhập đã hết hạn');
+                setType('on');
+                navigate('/login');
+            } else if (res.status === 404) {
+                console.log('📝 Profile not found, redirecting to choose-role');
+                navigate('/choose-role'); // Profile doesn't exist
+            } else {
+                console.error('❌ Server error:', res.status);
+                const errorData = await res.json().catch(() => ({}));
+                console.error('Error details:', errorData);
+                navigate('/choose-role'); // Default fallback
+            }
+        } catch (err) {
+            console.error('🌐 Network error during profile check:', err);
+            // Check if it's a network error or server is down
+            if (err.name === 'TypeError' && err.message.includes('fetch')) {
+                setEmailDisplay('Không thể kết nối đến server');
+                setType('on');
+            }
+            navigate('/choose-role'); // Fallback for network errors
+        }
+    }
+
+    // Đăng nhập thông thường
     async function login() {
         try {
             const email = emailRef.current.value;
@@ -39,10 +100,11 @@ const LoginPage = () => {
                 setEmailDisplay("Xin chào " + email);
                 setType('on');
                 emailRef.current.value = '';
-                passwordRef.current.value = '';
-                redirectToHome();
-                localStorage.setItem("email", email);
+                passwordRef.current.value = '';                localStorage.setItem("email", email);
                 localStorage.setItem("token", data.token);
+
+                // Kiểm tra profile sau khi lưu token
+                await checkProfileAndRedirect();
             } else {
                 console.log('Đăng nhập thất bại:', data.error);
                 setEmailDisplay(data.error || 'Đăng nhập thất bại');
@@ -55,6 +117,7 @@ const LoginPage = () => {
         }
     }
 
+    // Đăng nhập bằng Google
     async function handleGoogleLogin(credentialResponse) {
         try {
             console.log('Đang xử lý đăng nhập Google:', credentialResponse);
@@ -70,15 +133,18 @@ const LoginPage = () => {
             const data = await response.json();
             console.log('Dữ liệu trả về từ API Google:', data);
 
-            if (data) {
+            if (data && data.user) {
                 console.log('Đăng nhập Google thành công, email:', data.user.email);
                 setEmailDisplay("Xin chào " + data.user.email);
                 setType('on');
                 emailRef.current.value = '';
-                passwordRef.current.value = '';
+                passwordRef.current.value = '';      
+                          
                 localStorage.setItem("email", data.user.email);
                 localStorage.setItem("token", data.token);
-                redirectToHome();
+
+                // Kiểm tra profile sau khi lưu token
+                await checkProfileAndRedirect();
             } else {
                 console.log('Đăng nhập Google thất bại:', data.error);
                 setEmailDisplay(data.error || 'Đăng nhập Google thất bại');

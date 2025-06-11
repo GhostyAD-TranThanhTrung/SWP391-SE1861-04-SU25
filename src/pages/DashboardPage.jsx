@@ -1,10 +1,37 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { Chart } from 'chart.js/auto';
 import '../styles/DashboardPage.scss';
 
 const DashboardPage = () => {
   const canvasRef = useRef(null);
   const chartInstance = useRef(null);
+
+  const [dashboardData, setDashboardData] = useState({
+    totalMonthlyCourseEnrollment: 0,
+    totalMonthlyCourseCompletion: 0, // 👈 Thêm trường mới
+    monthlyCreatedMember: 0,
+    memberActiveCount: 0,
+    totalMonthlyBookingSession: 0,
+    monthlyRevenueData: []
+  });
+
+  useEffect(() => {
+    fetch('http://localhost:3000/api/dashboard')
+      .then((res) => res.json())
+      .then((data) => {
+        setDashboardData({
+          totalMonthlyCourseEnrollment: data.data.totalMonthlyCourseEnrollment || 0,
+          totalMonthlyCourseCompletion: data.data.totalMonthlyCourseCompletion || 3, // 👈 Dữ liệu mới
+          monthlyCreatedMember: data.data.monthlyCreatedMember || 0,
+          memberActiveCount: data.data.memberActiveCount || 0,
+          totalMonthlyBookingSession: data.data.totalMonthlyBookingSession || 0,
+          monthlyRevenueData: data.data.monthlyRevenueData || []
+        });
+      })
+      .catch((error) => {
+        console.error('Error fetching dashboard data:', error);
+      });
+  }, []);
 
   useEffect(() => {
     const ctx = canvasRef.current.getContext('2d');
@@ -21,8 +48,8 @@ const DashboardPage = () => {
           'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
         ],
         datasets: [{
-          label: 'Month',
-          data: [30, 20, 35, 40, 60, 50, 90, 70, 20, 70, 50, 40],
+          label: 'Revenue',
+          data: dashboardData.monthlyRevenueData,
           backgroundColor: '#66B0C6',
           borderRadius: 8
         }]
@@ -46,33 +73,39 @@ const DashboardPage = () => {
         }
       }
     });
-  }, []);
+  }, [dashboardData.monthlyRevenueData]);
 
   return (
     <div className="dashboard-container">
       <div className="stat-cards">
         <div className="card">
-          <div>Revenue</div>
+          <div>Total Member Enroll Course</div>
           <small>/month</small>
-          <h4>10.000.000</h4>
-          <small>VND</small>
+          <h4>{dashboardData.totalMonthlyCourseEnrollment}</h4>
+          <small>member</small>
         </div>
         <div className="card">
-          <div>Total course</div>
+          <div>Total Member Complete Course</div>
           <small>/month</small>
-          <h4>1.000</h4>
-          <small>course</small>
+          <h4>{dashboardData.totalMonthlyCourseCompletion}</h4>
+          <small>member</small>
         </div>
         <div className="card">
           <div>Total user</div>
           <small>/month</small>
-          <h4>1.000</h4>
+          <h4>{dashboardData.monthlyCreatedMember}</h4>
           <small>user</small>
+        </div>
+        <div className="card">
+          <div>Active user</div>
+          <small>/month</small>
+          <h4>{dashboardData.memberActiveCount}</h4>
+          <small>active</small>
         </div>
         <div className="card">
           <div>Total consultation</div>
           <small>/month</small>
-          <h4>10</h4>
+          <h4>{dashboardData.totalMonthlyBookingSession}</h4>
           <small>consultation</small>
         </div>
       </div>

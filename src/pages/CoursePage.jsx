@@ -112,28 +112,120 @@ const CoursePage = () => {
     const newsData = cardData(newsTitles);
 
     return (
-        <div className="coursepage container py-5">
-            {/* Most Popular Blog Section */}
-            <div className="section mb-5" style={{ marginTop: '60px' }}>
-                <div className="category-tabs d-flex justify-content-center">
-                    <button className="category-btn">Bài đọc</button>
-                    <button className="category-btn">Postcard</button>
-                    <button className="category-btn">Video</button>
+        <div className="course-page">
+            {/* Hero Section */}
+            <section className="course-hero">
+                <div className="container">
+                    <div className="row align-items-center">
+                        <div className="col-lg-8">
+                            <h1 className="hero-title">
+                                Discover Learning Pathways
+                            </h1>
+                            <p className="hero-subtitle">
+                                Explore our comprehensive collection of educational resources, courses, and latest updates 
+                                designed to support your journey towards awareness and recovery.
+                            </p>
+                        </div>
+                        <div className="col-lg-4">
+                            <div className="hero-stats">
+                                <div className="stat-item">
+                                    <span className="stat-number">500+</span>
+                                    <span className="stat-label">Resources</span>
+                                </div>
+                                <div className="stat-item">
+                                    <span className="stat-number">1000+</span>
+                                    <span className="stat-label">Students</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <h2 className="section-header">Most Popular Courses</h2>
-                {renderCards(blogData, "/blog", blogIndex, blogIndex, setBlogIndex, blogTitles.length)}
-            </div>
+            </section>
 
-            {/* Free Courses Section */}
-            <div className="section mb-5">
-                <h2 className="section-header">Free Courses</h2>
-                {renderCards(courseData, "/course", courseIndex, courseIndex, setCourseIndex, courseTitles.length)}
-            </div>
+            <div className="container" style={{paddingTop: '5rem', paddingBottom: '5rem'}}>
+                {/* Most Popular Section */}
+                <section className="section mb-5">
+                    <div className="section-header-wrapper text-center mb-5">
+                        <h2 className="section-header">Most Popular Resources</h2>
+                        <p className="section-subtitle">Start with our most engaging and educational content</p>
+                    </div>
+                    
+                    <div className="category-tabs d-flex justify-content-center mb-4">
+                        <button className="category-btn active">
+                            <i className="bi bi-book me-2"></i>
+                            <span>Articles</span>
+                        </button>
+                        <button className="category-btn">
+                            <i className="bi bi-postcard me-2"></i>
+                            <span>Postcards</span>
+                        </button>
+                        <button className="category-btn">
+                            <i className="bi bi-play-circle me-2"></i>
+                            <span>Videos</span>
+                        </button>
+                    </div>
+                    
+                    {renderCards(blogData, "/blog", blogIndex, blogIndex, setBlogIndex, blogTitles.length)}
+                    
+                    <div className="text-center mt-4">
+                        <Link to="/blog" className="btn btn-outline-primary btn-lg">
+                            <i className="bi bi-arrow-right me-2"></i>
+                            View All Articles
+                        </Link>
+                    </div>
+                </section>
 
-            {/* News Section */}
-            <div className="section mb-5">
-                <h2 className="section-header">New C</h2>
-                {renderCards(newsData, "/news", newsIndex, newsIndex, setNewsIndex, newsTitles.length)}
+                {/* Free Courses Section */}
+                <section className="section mb-5">
+                    <div className="section-header-wrapper text-center mb-5">
+                        <h2 className="section-header">Free Learning Courses</h2>
+                        <p className="section-subtitle">Access high-quality educational courses at no cost</p>
+                    </div>
+                    
+                    {renderCards(courseData, "/course", courseIndex, courseIndex, setCourseIndex, courseTitles.length)}
+                    
+                    <div className="text-center mt-4">
+                        <Link to="/courses" className="btn btn-outline-primary btn-lg">
+                            <i className="bi bi-collection me-2"></i>
+                            Explore All Courses
+                        </Link>
+                    </div>
+                </section>
+
+                {/* Latest News Section */}
+                <section className="section mb-5">
+                    <div className="section-header-wrapper text-center mb-5">
+                        <h2 className="section-header">Latest News & Updates</h2>
+                        <p className="section-subtitle">Stay informed with the latest developments and research</p>
+                    </div>
+                    
+                    {renderCards(newsData, "/news", newsIndex, newsIndex, setNewsIndex, newsTitles.length)}
+                    
+                    <div className="text-center mt-4">
+                        <Link to="/news" className="btn btn-outline-primary btn-lg">
+                            <i className="bi bi-newspaper me-2"></i>
+                            Read More News
+                        </Link>
+                    </div>
+                </section>
+
+                {/* Call to Action */}
+                <section className="cta-section py-5">
+                    <div className="row align-items-center">
+                        <div className="col-lg-8">
+                            <h3 className="cta-title">Ready to Start Your Learning Journey?</h3>
+                            <p className="cta-description">
+                                Join thousands of learners who have transformed their lives through education and awareness.
+                            </p>
+                        </div>
+                        <div className="col-lg-4 text-lg-end">
+                            <Link to="/signup" className="btn btn-cta btn-lg">
+                                <i className="bi bi-person-plus me-2"></i>
+                                Get Started Today
+                            </Link>
+                        </div>
+                    </div>
+                </section>
             </div>
         </div>
     );

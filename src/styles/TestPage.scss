@@ -7,30 +7,176 @@
     padding: 2rem;
     box-sizing: border-box;
     background-color: #e6f1ff;
+    margin-top: 80px; // Thêm margin-top để tránh navbar
 }
 
 .test-content {
+    width: 100%;
+    max-width: 800px; // Giảm max-width từ 1000px xuống 800px
+    margin: 0 auto;
+}
+
+.test-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2.5rem; // Giảm padding từ 3rem xuống 2.5rem
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+
+    &:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+    }
+}
+
+.test-header {
     text-align: center;
+    margin-bottom: 2rem; // Giảm margin từ 3rem xuống 2rem
+
+    .header-icon {
+        font-size: 3rem;
+        color: #2bb6cc;
+        margin-bottom: 1.5rem;
+    }
+
+    h2 {
+        font-size: 2.2rem; // Giảm font-size từ 2.5rem xuống 2.2rem
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 1rem;
+        line-height: 1.2;
+    }
+
+    .subtitle {
+        font-size: 1rem; // Giảm font-size từ 1.1rem xuống 1rem
+        color: #6c757d;
+        max-width: 600px; // Giảm max-width từ 800px xuống 600px
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+}
+
+.features {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin: 3rem 0;
+
+    .feature-item {
+        text-align: center;
+        padding: 1.5rem;
+        border-radius: 15px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        transition: all 0.3s ease;
+
+        &:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            color: #2bb6cc;
+            margin-bottom: 1rem;
+        }
+
+        h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin: 0;
+        }
+    }
 }
 
 .start-button {
-    background-color: #2bb6cc;
+    display: block;
+    width: 100%;
+    max-width: 300px;
+    margin: 2rem auto;
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
     color: white;
+    background: linear-gradient(135deg, #2bb6cc 0%, #20c997 100%);
     border: none;
-    padding: 10px 25px;
-    border-radius: 8px;
-    font-size: 16px;
+    border-radius: 50px;
     cursor: pointer;
-    margin-top: 1rem;
+    transition: all 0.3s ease;
+    text-align: center;
+
+    i {
+        margin-left: 0.5rem;
+        transition: transform 0.3s ease;
+    }
 
     &:hover {
-        background-color: #239fb3;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(43, 182, 204, 0.3);
+
+        i {
+            transform: translateX(5px);
+        }
     }
 }
 
 .exam-result {
-    margin-top: 2rem;
-    border-top: 1px solid #ccc;
-    padding-top: 1rem;
-    text-align: left;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 2px solid #f0f0f0;
+
+    .result-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+
+        .result-icon {
+            font-size: 1.5rem;
+            color: #2bb6cc;
+            margin-right: 1rem;
+        }
+
+        h4 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0;
+        }
+    }
+
+    .no-results {
+        text-align: center;
+        color: #6c757d;
+        font-style: italic;
+        margin: 0;
+    }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+    .test-card {
+        padding: 1.5rem; // Giảm padding cho mobile
+    }
+
+    .test-header {
+        h2 {
+            font-size: 1.8rem; // Giảm font-size cho mobile
+        }
+    }
+
+    .features {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .start-button {
+        font-size: 1rem;
+        padding: 0.8rem 1.5rem;
+    }
 }

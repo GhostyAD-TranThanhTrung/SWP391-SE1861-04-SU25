@@ -17,6 +17,9 @@ import ChooseRolePage from "./pages/ChooseRolePage";
 import AdminLoginPage from "./pages/AdminLoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import StaffListPage from "./pages/StaffListPage";
+import SettingSidebar from "./components/SettingSidebar";
+import ChooseTypeExam from "./pages/ChooseTypeExam";
+import ExamPage from "./pages/ExamPage";
 
 //Import layout
 import AdminLayout from "./layout/AdminLayout";
@@ -24,8 +27,8 @@ import AdminLayout from "./layout/AdminLayout";
 // Wrapper component to conditionally render Navbar and Footer
 const AppLayout = () => {
   const location = useLocation();
-  const hideNavbarAndFooter = ["/login", "/signup", "/forget", "/choose-role","/admin/login",
-    "/dashboard","/stafflist",].includes(location.pathname);
+  const hideNavbarAndFooter = ["/login", "/signup", "/forget", "/choose-role", "/admin/login",
+    "/dashboard", "/stafflist",].includes(location.pathname);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
@@ -43,8 +46,12 @@ const AppLayout = () => {
           <Route path="/test" element={<TestPage />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/about" element={<AboutUsPage />} />
+          <Route path="/setting" element={<SettingSidebar />} />
           <Route path="/choose-role" element={<ChooseRolePage />} />
-           {/* Admin */}
+          <Route path="/choosetype" element={<ChooseTypeExam />} />
+          <Route path="/exam/:type" element={<ExamPage />} />
+
+          {/* Admin */}
           <Route path="/admin/login" element={<AdminLoginPage />} />
           <Route
             path="/dashboard"

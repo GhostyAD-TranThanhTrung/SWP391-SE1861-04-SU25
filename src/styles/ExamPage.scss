@@ -1,0 +1,117 @@
+.exam-page {
+    background-color: #f8f9fa;
+    min-height: 100vh;
+
+    .card {
+        border: none;
+        border-radius: 10px;
+        overflow: hidden;
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: none;
+
+            h3 {
+                font-size: 1.5rem;
+                font-weight: 600;
+            }
+        }
+
+        .card-body {
+            padding: 2rem;
+
+            .progress {
+                height: 1.5rem;
+                border-radius: 0.5rem;
+                background-color: #e9ecef;
+
+                .progress-bar {
+                    transition: width 0.3s ease-in-out;
+                }
+            }
+
+            .question-section {
+                .question-text {
+                    font-size: 1.2rem;
+                    font-weight: 500;
+                    margin-bottom: 1.5rem;
+                    color: #343a40;
+                }
+
+                .options {
+                    .form-check {
+                        padding-left: 2rem;
+                        margin-bottom: 0.75rem;
+
+                        .form-check-input {
+                            width: 1.2rem;
+                            height: 1.2rem;
+                            margin-top: 0.2rem;
+                            cursor: pointer;
+
+                            &:checked {
+                                background-color: #007bff;
+                                border-color: #007bff;
+                            }
+                        }
+
+                        .form-check-label {
+                            font-size: 1rem;
+                            color: #495057;
+                            cursor: pointer;
+                        }
+                    }
+                }
+            }
+
+            .btn {
+                padding: 0.75rem 1.5rem;
+                font-size: 1rem;
+                border-radius: 0.5rem;
+                transition: all 0.2s ease;
+
+                &.btn-primary {
+                    background-color: #007bff;
+                    border-color: #007bff;
+
+                    &:hover {
+                        background-color: #0056b3;
+                        border-color: #0056b3;
+                    }
+                }
+
+                &.btn-outline-secondary {
+                    border-color: #6c757d;
+                    color: #6c757d;
+
+                    &:hover {
+                        background-color: #6c757d;
+                        color: #fff;
+                    }
+
+                    &:disabled {
+                        opacity: 0.5;
+                        cursor: not-allowed;
+                    }
+                }
+            }
+        }
+
+        .card-footer {
+            background-color: #fff;
+            border-top: none;
+            padding: 1rem 2rem;
+
+            .btn-danger {
+                padding: 0.75rem 1.5rem;
+                font-size: 1rem;
+                border-radius: 0.5rem;
+
+                &:hover {
+                    background-color: #c82333;
+                    border-color: #bd2130;
+                }
+            }
+        }
+    }
+}

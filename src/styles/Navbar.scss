@@ -1,106 +1,233 @@
 .custom-navbar {
     background-color: #66B0C6;
     color: white;
-    padding: 0;
+    padding: 0.75rem 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
 
     .navbar-logo {
         height: 60px;
         width: 200px;
         object-fit: contain;
+        filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.2));
     }
 
     .nav-link {
-        color: black !important;
-        transition: color 0.3s;
-
+        color: white !important;
+        font-weight: 500;
+        font-size: 1rem;
+        padding: 0.75rem 1rem !important;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+        position: relative;
+        
         &:hover {
-            color: silver !important;
+            color: #66B0C6 !important;
+            background-color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        &:active,
+        &.active {
+            color: #66B0C6 !important;
+            background-color: white;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+        }
+    }
+
+    .navbar-nav {
+        .nav-item {
+            margin: 0 0.25rem;
         }
     }
 
     .search-box {
-        margin-right: 10px;
-        background-color: #66B0C6;
-        border-radius: 0.375rem;
+        margin-right: 15px;
+        background-color: white;
+        border-radius: 25px;
         width: 300px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        border: 2px solid white;
 
         .form-control {
-            background-color: #66B0C6;
-            color: white;
-            border: 1px solid white;
+            background-color: white;
+            color: #333;
+            border: none;
+            border-radius: 25px 0 0 25px;
+            padding: 0.75rem 1rem;
+            font-size: 0.95rem;
 
             &::placeholder {
-                color: rgba(255, 255, 255, 0.8);
+                color: #666;
+                font-style: italic;
             }
 
             &:focus {
-                border-color: white;
+                border: none;
                 box-shadow: none;
+                outline: none;
+                background-color: #f8f9fa;
             }
         }
 
         .input-group-text {
-            background-color: #66B0C6;
-            border: 1px solid white;
+            background-color: white;
+            border: none;
+            padding: 0;
         }
     }
 
     .btn-login,
     .btn-signup {
         background-color: #6DCCBF;
-        border-radius: 8px;
-        min-width: 100px; // đảm bảo đủ chứa cả "Sign Up"
+        border: 2px solid #6DCCBF;
+        border-radius: 25px;
+        min-width: 100px;
         color: white;
-        transition: color 0.3s;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
         display: inline-block;
         text-align: center;
-        padding: 0.5rem 1rem;
+        padding: 0.75rem 1.5rem;
+        text-decoration: none;
+        margin: 0 0.25rem;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 
         &:hover {
-            color: black;
+            color: #6DCCBF;
+            background-color: white;
+            border-color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        &:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
         }
     }
 
     .btn-search {
-        background-color: #0e1d68; // màu khác biệt một chút
-        border: 1px solid white;
-        border-left: none; // gắn liền với input
+        background-color: #0e1d68;
+        border: none;
         color: white;
-        padding: 0.375rem 0.75rem;
-        border-top-right-radius: 0.375rem;
-        border-bottom-right-radius: 0.375rem;
+        padding: 0.75rem 1rem;
+        border-radius: 0 25px 25px 0;
+        transition: all 0.3s ease;
+        cursor: pointer;
 
         &:hover {
-            background-color: gray;
-            color: black;
+            background-color: #1a2d7a;
+            color: white;
+        }
+
+        &:focus {
+            outline: none;
+            box-shadow: none;
         }
 
         i {
-            font-size: 1rem;
+            font-size: 1.1rem;
         }
     }
 
     .btn-logout {
-        background-color: red;
+        background-color: #dc3545;
         color: white;
+        border: none;
+        transition: all 0.3s ease;
 
         &:hover {
-            background-color: black;
+            background-color: #c82333;
             color: white;
+        }
+    }
+
+    // User dropdown styling
+    .dropdown {
+        .btn {
+            background-color: rgba(255, 255, 255, 0.2) !important;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 25px;
+            padding: 0.5rem 1rem;
+            transition: all 0.3s ease;
+
+            &:hover {
+                background-color: white !important;
+                color: #66B0C6 !important;
+                border-color: white;
+                
+                .navbar-text {
+                    color: #66B0C6 !important;
+                }
+            }
+        }
+
+        .navbar-text {
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+    }
+
+    // Mobile responsiveness
+    @media (max-width: 991px) {
+        .search-box {
+            width: 100%;
+            margin: 1rem 0;
+        }
+
+        .navbar-nav {
+            text-align: center;
+            margin: 1rem 0;
+            
+            .nav-link {
+                margin: 0.25rem 0;
+            }
+        }
+
+        .btn-login,
+        .btn-signup {
+            width: 100%;
+            margin: 0.25rem 0;
         }
     }
 }
 
 .custom-dropdown {
-    background-color: silver;
+    background-color: white;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    padding: 0.5rem 0;
+    margin-top: 0.5rem;
+
+    .dropdown-item {
+        color: #333;
+        padding: 0.75rem 1.5rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+
+        &:hover {
+            background-color: #f8f9fa;
+            color: #66B0C6;
+        }
+
+        i {
+            color: #66B0C6;
+            margin-right: 0.5rem;
+        }
+    }
 }
 
 .btn-settings {
-    color: white;
-    transition: background-color 0.3s;
+    color: #333;
+    transition: all 0.3s ease;
 
     &:hover {
-        background-color: black;
-        color: white;
+        background-color: #f8f9fa;
+        color: #66B0C6;
     }
 }

@@ -10,6 +10,12 @@ const ChooseRolePage = () => {
     const navigate = useNavigate();
 
     const handleSubmit = async () => {
+        // Kiểm tra đầu vào
+        if (!name || !dateOfBirth || !job) {
+            alert("Vui lòng điền đầy đủ thông tin trước khi gửi.");
+            return;
+        }
+
         const email = localStorage.getItem('email');
         const token = localStorage.getItem('token');
 
@@ -37,7 +43,7 @@ const ChooseRolePage = () => {
 
             if (response.ok) {
                 alert("Cập nhật thành công!");
-                navigate('/home');
+                navigate('/');
             } else {
                 alert("Lỗi: " + (data.error || "Không rõ lỗi"));
             }
@@ -91,6 +97,7 @@ const ChooseRolePage = () => {
                     <button
                         className="btn btn-primary w-100 mb-3"
                         onClick={handleSubmit}
+                        disabled={!name || !dateOfBirth || !job}
                     >
                         Submit
                     </button>

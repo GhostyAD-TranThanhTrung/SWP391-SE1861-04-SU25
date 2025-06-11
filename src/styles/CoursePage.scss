@@ -1,81 +1,364 @@
-.coursepage {
-    max-width: 100%;
+// CoursePage.scss - Modern Theme to Match HomePage
+.course-page {
+    width: 100vw;
     min-height: 100vh;
-    background-color: #e6f1ff;
-
-    .section-header {
-        font-weight: bold;
-        text-decoration: underline;
-        margin-bottom: 20px;
-        padding-top: 50px;
+    background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+    
+    // Hero Section
+    .course-hero {
+        background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+        color: white;
+        padding: 6rem 0 4rem 0;
+        margin-top: 60px;
+        position: relative;
+        
+        // Add light overlay for better text contrast
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 1;
+        }
+        
+        .container {
+            position: relative;
+            z-index: 2;
+            padding-left: 4rem;
+            padding-right: 4rem;
+        }
+        
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+            color: #2c3e50;
+            text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8);
+            
+            @media (max-width: 768px) {
+                font-size: 2.5rem;
+            }
+        }
+        
+        .hero-subtitle {
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+            color: #34495e;
+            line-height: 1.6;
+            text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.8);
+        }
+        
+        .hero-stats {
+            display: flex;
+            gap: 2rem;
+            margin-top: 2rem;
+            
+            @media (max-width: 768px) {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .stat-item {
+                text-align: center;
+                
+                .stat-number {
+                    display: block;
+                    font-size: 3rem;
+                    font-weight: 700;
+                    color: #f39c12;
+                    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8);
+                }
+                
+                .stat-label {
+                    font-size: 1rem;
+                    color: #2c3e50;
+                    margin-top: 0.25rem;
+                    text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.8);
+                }
+            }
+        }
     }
-
-    .custom-card {
-        background-color: white;
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        text-align: center;
+    
+    // Main Content Container
+    .container {
+        background: white;
+        margin-top: 0;
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        max-width: none;
+        margin-left: 0;
+        margin-right: 0;
+        padding-left: 4rem !important;
+        padding-right: 4rem !important;
+        
+        .section {
+            margin-bottom: 5rem;
+            padding: 0 4rem;
+        }
     }
-
-    .show-more-btn {
-        padding: 8px 20px;
-        border: 2px solid #3498db;
-        background-color: transparent;
-        border-radius: 30px;
-        color: #3498db;
-        font-weight: 500;
-        transition: 0.3s ease-in-out;
-        text-align: left;
-
+    
+    // Section Headers
+    .section-header-wrapper {
+        padding: 0 4rem;
+        
+        .section-header {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+            
+            @media (max-width: 768px) {
+                font-size: 2rem;
+            }
+        }
+        
+        .section-subtitle {
+            font-size: 1.1rem;
+            color: #6c757d;
+            margin-bottom: 0;
+            
+            @media (max-width: 768px) {
+                font-size: 1rem;
+            }
+        }
+    }
+    
+    // Category Tabs
+    .category-tabs {
+        margin-bottom: 2rem;
+        
+        .category-btn {
+            display: inline-flex;
+            align-items: center;
+            margin: 0 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            color: #6c757d;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            
+            &:hover {
+                background: #667eea;
+                color: white;
+                border-color: #667eea;
+                transform: translateY(-2px);
+            }
+            
+            &.active {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                border-color: transparent;
+                box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            }
+            
+            i {
+                font-size: 1.1rem;
+            }
+        }
+    }
+    
+    // Enhanced Buttons
+    .btn-outline-primary {
+        border: 2px solid #667eea;
+        color: #667eea;
+        border-radius: 25px;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        
         &:hover {
-            background-color: #3498db;
+            background: #667eea;
             color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+    }
+    
+    // Call to Action Section
+    .cta-section {
+        background: linear-gradient(135deg, #17a2b8, #20c997);
+        border-radius: 20px;
+        color: white;
+        margin: 0 4rem;
+        padding: 3rem 4rem;
+        position: relative;
+        
+        // Add overlay for better text contrast
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            z-index: 1;
+        }
+        
+        .row {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .cta-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #ffffff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+        }
+        
+        .cta-description {
+            font-size: 1.1rem;
+            color: #ffffff;
+            margin-bottom: 0;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+        }
+        
+        .btn-cta {
+            background: white;
+            color: #667eea;
+            border: 2px solid white;
+            border-radius: 25px;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            
+            &:hover {
+                background: transparent;
+                color: white;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            }
         }
     }
 }
 
+// Enhanced Card Styling
 .custom-card-link {
     text-decoration: none;
     color: inherit;
+    display: block;
+    height: 100%;
+    margin-bottom: 2rem;
 
     .custom-card {
-        transition: transform 0.2s ease-in-out;
-        cursor: pointer;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        padding: 16px;
-        background-color: #fff;
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        border: none;
+        padding: 0;
+        margin: 0 1rem;
 
         &:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+            transform: translateY(-8px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
         }
     }
 
     .card-image {
         width: 100%;
-        height: 160px;
+        height: 200px;
         object-fit: cover;
-        border-radius: 6px;
+        border-radius: 0;
+        transition: transform 0.3s ease;
+        
+        &:hover {
+            transform: scale(1.05);
+        }
     }
 
     .card-divider {
         border: 0;
-        height: 3px; // Tăng từ 1px → 2px (đậm hơn)
-        background: #000; // Hoặc #666 cho đậm hơn nữa
-        margin: 12px 0;
+        height: 2px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        margin: 1rem 1.5rem;
+        opacity: 0.7;
     }
 
     .card-title {
-        font-size: 1rem;
-        font-weight: 600;
-        color: #333;
-        margin-bottom: 6px;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+        padding: 0 1.5rem;
+        line-height: 1.3;
     }
 
     .card-date {
-        font-size: 0.85rem;
-        color: #777;
+        font-size: 0.9rem;
+        color: #667eea;
+        font-weight: 500;
+        padding: 0 1.5rem 1.5rem 1.5rem;
+        margin-top: auto;
+        
+        &::before {
+            content: '📅 ';
+            margin-right: 0.25rem;
+        }
     }
 }
+
+// Responsive Design
+@media (max-width: 768px) {
+    .course-page {
+        .course-hero {
+            padding: 4rem 0 3rem 0;
+            
+            .container {
+                padding-left: 2rem !important;
+                padding-right: 2rem !important;
+            }
+            
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.1rem;
+            }
+        }
+        
+        .container {
+            padding-left: 2rem !important;
+            padding-right: 2rem !important;
+        }
+        
+        .category-tabs {
+            .category-btn {
+                margin: 0.25rem;
+                padding: 0.5rem 1rem;
+                font-size: 0.9rem;
+            }
+        }
+        
+        .cta-section {
+            padding: 2rem 2rem;
+            margin: 0 2rem;
+            
+            .cta-title {
+                font-size: 1.5rem;
+            }
+            
+            .btn-cta {
+                display: block;
+                width: 100%;
+                margin-top: 1rem;
+            }
+        }
+    }
+} 

@@ -12,11 +12,7 @@ const ForgetPassPage = () => {
 
             <div className="register-blur-box d-flex justify-content-center align-items-center">
                 <div className="register-form-container text-start">
-                    <h2 className="mb-4 fw-bold text-center">Forgot Password</h2>
-
-                    <p className="text-center mb-3 small">
-                        Enter your email to receive password reset instructions.
-                    </p>
+                    <h2 className="mb-4 fw-bold text-center">Reset Password</h2>
 
                     <label>Email</label>
                     <input
@@ -25,11 +21,23 @@ const ForgetPassPage = () => {
                         className="form-control mb-3"
                     />
 
-                    <button className="btn btn-primary w-100 mb-3">
-                        Send Reset Link
-                    </button>
+                    <label>Password</label>
+                    <input
+                        type="password"
+                        placeholder="Password"
+                        className="form-control mb-3"
+                    />
 
-                    <hr />
+                    <label>Confirm Password</label>
+                    <input
+                        type="password"
+                        placeholder="Confirm Password"
+                        className="form-control mb-3"
+                    />
+
+                    <button className="btn btn-primary w-100 mb-3">
+                        Submit
+                    </button>
 
                     <div className="mt-3 d-flex flex-column align-items-center text-center w-100">
                         <p className="small mb-1">

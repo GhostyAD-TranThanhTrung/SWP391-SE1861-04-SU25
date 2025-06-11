@@ -5,38 +5,55 @@ import PreventionImage from '../images/Prevention.jpg';
 import { GoogleLogin } from '@react-oauth/google';
 
 const RegisterPage = () => {
-    const nameRef = useRef('');
-    const emailRef = useRef('');
-    const passwordRef = useRef('');
-    const confirmPasswordRef = useRef('');
-    const navigate = useNavigate(); // Hook for navigation
+    const emailRef = useRef(null);
+    const passwordRef = useRef(null);
+    const confirmPasswordRef = useRef(null);
+    const navigate = useNavigate();
 
     async function handleRegister() {
-        if (passwordRef.current.value !== confirmPasswordRef.current.value) {
+        if (!emailRef.current || !passwordRef.current || !confirmPasswordRef.current) return;
+
+        const email = emailRef.current.value.trim();
+        const password = passwordRef.current.value;
+        const confirmPassword = confirmPasswordRef.current.value;
+
+        // ✅ Kiểm tra định dạng Gmail
+        const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+        if (!gmailRegex.test(email)) {
+            alert("Vui lòng nhập địa chỉ Gmail hợp lệ (ví dụ: example@gmail.com)");
+            return;
+        }
+
+        if (password !== confirmPassword) {
             alert("Passwords do not match");
             return;
         }
-        const response = await fetch('http://localhost:3000/api/register', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                name: nameRef.current.value,
-                email: emailRef.current.value,
-                password: passwordRef.current.value,
-            })
-        });
-        const data = await response.json();
-        if (data && !data.error) {
-            alert("Registration successful");
-            nameRef.current.value = '';
-            emailRef.current.value = '';
-            passwordRef.current.value = '';
-            confirmPasswordRef.current.value = '';
-            navigate('/login'); // Redirect to login page on success
-        } else {
-            alert("Registration failed: " + (data.error || "Unknown error"));
+
+        try {
+            const response = await fetch('http://localhost:3000/api/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && !data.error) {
+                alert("Registration successful");
+
+                emailRef.current.value = '';
+                passwordRef.current.value = '';
+                confirmPasswordRef.current.value = '';
+
+                navigate('/login');
+            } else {
+                alert("Registration failed: " + (data.error || "Unknown error"));
+            }
+        } catch (error) {
+            console.error("Registration error:", error);
+            alert("Registration failed: Server error");
         }
     }
 
@@ -53,7 +70,7 @@ const RegisterPage = () => {
             if (data && data.user) {
                 alert(data.message || 'Google authentication successful!');
                 console.log('User info:', data.user);
-                navigate('/login'); // Redirect to login page on success
+                navigate('/login');
             } else {
                 alert('Google authentication failed: ' + (data.error || 'Unknown error'));
             }
