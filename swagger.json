@@ -1319,6 +1319,669 @@
                     }
                 }
             }
+        },
+        "/api/assessments": {
+            "get": {
+                "summary": "Get all assessments",
+                "description": "Retrieve all assessments from the database",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Assessments retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Assessment"
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Assessments retrieved successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            },
+            "post": {
+                "summary": "Create new assessment",
+                "description": "Create a new assessment record",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateAssessmentRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Assessment created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Assessment"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Assessment created successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Invalid data"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/assessments/take-test": {
+            "post": {
+                "summary": "Take test from user",
+                "description": "Process user's test score, find matching action based on score range, and save assessment. Only members can take tests.",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TakeTestRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Test completed and assessment saved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/TestResult"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Test completed and assessment saved successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Invalid data or user is not a member"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "User not found or no action found for score"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/assessments/{id}": {
+            "get": {
+                "summary": "Get assessment by ID",
+                "description": "Retrieve a specific assessment by its ID",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "The ID of the assessment to retrieve",
+                        "schema": {
+                            "type": "integer",
+                            "example": 123
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Assessment retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Assessment"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Assessment retrieved successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Assessment not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            },
+            "put": {
+                "summary": "Update assessment",
+                "description": "Update an existing assessment by ID",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "The ID of the assessment to update",
+                        "schema": {
+                            "type": "integer",
+                            "example": 123
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateAssessmentRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Assessment updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Assessment"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Assessment updated successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Invalid data"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Assessment not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Delete assessment",
+                "description": "Delete an assessment by ID",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "The ID of the assessment to delete",
+                        "schema": {
+                            "type": "integer",
+                            "example": 123
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Assessment deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Assessment with ID 123 deleted successfully"
+                                        },
+                                        "deletedAssessment": {
+                                            "type": "object",
+                                            "properties": {
+                                                "assessment_id": {
+                                                    "type": "integer",
+                                                    "example": 123
+                                                },
+                                                "type": {
+                                                    "type": "string",
+                                                    "example": "test"
+                                                },
+                                                "create_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Invalid assessment ID"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Assessment not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/assessments/user/{userId}": {
+            "get": {
+                "summary": "Get assessments by user ID",
+                "description": "Retrieve all assessments for a specific user",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "required": true,
+                        "description": "The ID of the user",
+                        "schema": {
+                            "type": "integer",
+                            "example": 123
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User assessments retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Assessment"
+                                            }
+                                        },
+                                        "count": {
+                                            "type": "integer",
+                                            "example": 5
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Assessments for user 123 retrieved successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/assessments/type/{type}": {
+            "get": {
+                "summary": "Get assessments by type",
+                "description": "Retrieve all assessments of a specific type",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "type",
+                        "in": "path",
+                        "required": true,
+                        "description": "The type of assessments to retrieve",
+                        "schema": {
+                            "type": "string",
+                            "example": "test"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Assessments by type retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Assessment"
+                                            }
+                                        },
+                                        "count": {
+                                            "type": "integer",
+                                            "example": 3
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Assessments with type 'test' retrieved successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/assessments/date-range": {
+            "get": {
+                "summary": "Get assessments by date range",
+                "description": "Retrieve assessments within a specific date range",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "startDate",
+                        "in": "query",
+                        "required": true,
+                        "description": "Start date (YYYY-MM-DD)",
+                        "schema": {
+                            "type": "string",
+                            "format": "date",
+                            "example": "2024-01-01"
+                        }
+                    },
+                    {
+                        "name": "endDate",
+                        "in": "query",
+                        "required": true,
+                        "description": "End date (YYYY-MM-DD)",
+                        "schema": {
+                            "type": "string",
+                            "format": "date",
+                            "example": "2024-12-31"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Assessments within date range retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Assessment"
+                                            }
+                                        },
+                                        "count": {
+                                            "type": "integer",
+                                            "example": 10
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Assessments within date range retrieved successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Start date and end date are required"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/assessments/with-relations": {
+            "get": {
+                "summary": "Get assessments with related data",
+                "description": "Retrieve assessments with related user and action information",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Assessments with relations retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/AssessmentWithRelations"
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Assessments with relations retrieved successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/assessments/details/{userId}": {
+            "get": {
+                "summary": "Get assessment details for a member user",
+                "description": "Retrieve assessment details with joined action data for a specific member user based on ERD diagram",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "required": true,
+                        "description": "The ID of the member user whose assessment details to retrieve",
+                        "schema": {
+                            "type": "integer",
+                            "example": 123
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Assessment details retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/AssessmentWithActionDetails"
+                                            }
+                                        },
+                                        "count": {
+                                            "type": "integer",
+                                            "example": 3
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Assessment details for member user 123 retrieved successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Invalid user ID or user is not a member"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "User not found or no assessments found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -1640,6 +2303,237 @@
                         "description": "Updated job title"
                     }
                 }
+            },
+            "Assessment": {
+                "type": "object",
+                "properties": {
+                    "assessment_id": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "user_id": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "type": {
+                        "type": "string",
+                        "example": "test"
+                    },
+                    "result_json": {
+                        "type": "string",
+                        "example": "{\"score\": 85}"
+                    },
+                    "create_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-01-15T10:00:00.000Z"
+                    },
+                    "action_id": {
+                        "type": "integer",
+                        "example": 456
+                    }
+                }
+            },
+            "Action": {
+                "type": "object",
+                "properties": {
+                    "action_id": {
+                        "type": "integer",
+                        "example": 456
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Seek professional counseling"
+                    },
+                    "range": {
+                        "type": "string",
+                        "example": "80-100"
+                    },
+                    "type": {
+                        "type": "string",
+                        "example": "mental_health"
+                    }
+                }
+            },
+            "CreateAssessmentRequest": {
+                "type": "object",
+                "properties": {
+                    "user_id": {
+                        "type": "integer",
+                        "example": 123,
+                        "description": "ID of the user taking the assessment"
+                    },
+                    "type": {
+                        "type": "string",
+                        "example": "test",
+                        "description": "Type of assessment"
+                    },
+                    "result_json": {
+                        "type": "string",
+                        "example": "{\"score\": 85, \"answers\": [\"A\", \"B\", \"C\"]}",
+                        "description": "Assessment results in JSON format"
+                    },
+                    "action_id": {
+                        "type": "integer",
+                        "example": 456,
+                        "description": "ID of the recommended action"
+                    }
+                }
+            },
+            "UpdateAssessmentRequest": {
+                "type": "object",
+                "properties": {
+                    "user_id": {
+                        "type": "integer",
+                        "example": 123,
+                        "description": "ID of the user"
+                    },
+                    "type": {
+                        "type": "string",
+                        "example": "updated_test",
+                        "description": "Updated type of assessment"
+                    },
+                    "result_json": {
+                        "type": "string",
+                        "example": "{\"score\": 90, \"updated\": true}",
+                        "description": "Updated assessment results in JSON format"
+                    },
+                    "action_id": {
+                        "type": "integer",
+                        "example": 789,
+                        "description": "Updated ID of the recommended action"
+                    }
+                }
+            },
+            "TakeTestRequest": {
+                "type": "object",
+                "required": [
+                    "user_id",
+                    "score"
+                ],
+                "properties": {
+                    "user_id": {
+                        "type": "integer",
+                        "example": 123,
+                        "description": "ID of the member taking the test"
+                    },
+                    "score": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 100,
+                        "example": 85,
+                        "description": "Test score (0-100)"
+                    },
+                    "type": {
+                        "type": "string",
+                        "example": "mental_health_test",
+                        "description": "Type of test (optional, defaults to 'test')"
+                    }
+                }
+            },
+            "TestResult": {
+                "type": "object",
+                "properties": {
+                    "user": {
+                        "type": "object",
+                        "properties": {
+                            "user_id": {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            "email": {
+                                "type": "string",
+                                "example": "member@example.com"
+                            },
+                            "role": {
+                                "type": "string",
+                                "example": "member"
+                            },
+                            "status": {
+                                "type": "string",
+                                "example": "active"
+                            },
+                            "date_create": {
+                                "type": "string",
+                                "format": "date-time",
+                                "example": "2024-01-15T10:00:00.000Z"
+                            }
+                        }
+                    },
+                    "test_result": {
+                        "type": "object",
+                        "properties": {
+                            "score": {
+                                "type": "integer",
+                                "example": 85
+                            },
+                            "type": {
+                                "type": "string",
+                                "example": "mental_health_test"
+                            },
+                            "create_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "example": "2024-01-15T10:30:00.000Z"
+                            }
+                        }
+                    },
+                    "recommended_action": {
+                        "type": "object",
+                        "properties": {
+                            "description": {
+                                "type": "string",
+                                "example": "Seek professional counseling for stress management"
+                            },
+                            "range": {
+                                "type": "string",
+                                "example": "80-100"
+                            },
+                            "type": {
+                                "type": "string",
+                                "example": "mental_health"
+                            }
+                        }
+                    }
+                }
+            },
+            "AssessmentWithRelations": {
+                "type": "object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Assessment"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "user": {
+                                "$ref": "#/components/schemas/User"
+                            },
+                            "action": {
+                                "$ref": "#/components/schemas/Action"
+                            }
+                        }
+                    }
+                ]
+            },
+            "AssessmentWithActionDetails": {
+                "type": "object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Assessment"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "user": {
+                                "$ref": "#/components/schemas/User"
+                            },
+                            "action": {
+                                "$ref": "#/components/schemas/Action"
+                            }
+                        }
+                    }
+                ]
             }
         }
     }

@@ -4,6 +4,8 @@
  */
 const AppDataSource = require("../src/data-source");
 const Assessment = require("../src/entities/Assessment");
+const Action = require("../src/entities/Action");
+const User = require("../src/entities/User");
 
 class AssessmentController {
   /**
@@ -310,6 +312,235 @@ class AssessmentController {
       res.status(500).json({
         success: false,
         message: "Failed to retrieve assessments by date range",
+        error: error.message,
+      });
+    }
+  }
+
+  /**
+   * Take test from user - Process test score and save assessment
+   * POST /api/assessments/take-test
+   * Takes score from user, finds matching action based on score range, and saves assessment
+   */
+  static async takeTestFromUser(req, res) {
+    // Start database transaction
+    const queryRunner = AppDataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const { user_id, score, type } = req.body;
+
+      // Validate required fields
+      if (!user_id || score === undefined || score === null) {
+        await queryRunner.rollbackTransaction();
+        return res.status(400).json({
+          success: false,
+          message: "User ID and score are required",
+        });
+      }
+
+      // Validate score is a number
+      const numericScore = parseInt(score);
+      if (isNaN(numericScore)) {
+        await queryRunner.rollbackTransaction();
+        return res.status(400).json({
+          success: false,
+          message: "Score must be a valid number",
+        });
+      }
+
+      // Verify user exists and has member role
+      const userRepository = queryRunner.manager.getRepository("User");
+      const user = await userRepository.findOne({
+        where: { user_id: parseInt(user_id) },
+      });
+
+      if (!user) {
+        await queryRunner.rollbackTransaction();
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      if (user.role.toLowerCase() !== "member") {
+        await queryRunner.rollbackTransaction();
+        return res.status(400).json({
+          success: false,
+          message: "Only members can take tests",
+        });
+      }
+
+      // Find action based on score range using the provided SQL logic
+      const actionRepository = queryRunner.manager.getRepository("Action");
+
+      // Use TypeORM query builder to replicate the SQL query
+      const action = await actionRepository
+        .createQueryBuilder("action")
+        .where(
+          "action.type= :type AND :score BETWEEN " +
+          "CAST(LEFT(action.range, CHARINDEX('-', action.range) - 1) AS INT) " +
+          "AND " +
+          "CAST(SUBSTRING(action.range, CHARINDEX('-', action.range) + 1, LEN(action.range)) AS INT)",
+          { score: numericScore, type: type }
+        )
+        .getOne();
+
+      if (!action) {
+        await queryRunner.rollbackTransaction();
+        return res.status(404).json({
+          success: false,
+          message: `No action found for score ${numericScore}`,
+        });
+      }
+
+      // Create assessment with the score and action
+      const assessmentRepository = queryRunner.manager.getRepository("Assessment");
+
+      const newAssessment = assessmentRepository.create({
+        user_id: parseInt(user_id),
+        type: type || "test", // Default type if not provided
+        result_json: numericScore + "",
+        create_at: new Date(),
+        action_id: action.action_id,
+      });
+
+      const savedAssessment = await assessmentRepository.save(newAssessment);
+
+      // Commit transaction
+      await queryRunner.commitTransaction();
+
+      // Return complete information (excluding action_id and assessment_id as requested)
+      const response = {
+        user: {
+          user_id: user.user_id
+        },
+        test_result: {
+          score: numericScore,
+          type: savedAssessment.type,
+          create_at: savedAssessment.create_at,
+        },
+        recommended_action: {
+          description: action.description,
+          range: action.range,
+          type: action.type,
+        },
+      };
+
+      res.status(201).json({
+        success: true,
+        data: response,
+        message: "Test completed and assessment saved successfully",
+      });
+    } catch (error) {
+      // Rollback transaction on error
+      await queryRunner.rollbackTransaction();
+      console.error("Error processing test from user:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to process test",
+        error: error.message,
+      });
+    } finally {
+      // Release query runner resources
+      await queryRunner.release();
+    }
+  }
+
+  /**
+   * Get assessment details for a member user
+   * GET /api/assessments/details/:userId
+   * Joins assessment and action data for a specific member user
+   */
+  static async getAssessmentDetails(req, res) {
+    try {
+      const { userId } = req.params;
+
+      // Validate user ID
+      if (!userId || isNaN(parseInt(userId))) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid user ID provided",
+        });
+      }
+
+      // Verify user exists and has member role
+      const userRepository = AppDataSource.getRepository(User);
+      const user = await userRepository.findOne({
+        where: { user_id: parseInt(userId) }
+      });
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      if (user.role.toLowerCase() !== 'member') {
+        return res.status(400).json({
+          success: false,
+          message: "Only member users can access assessment details",
+        });
+      }
+
+      // Get assessments with joined action data using query builder
+      const assessmentRepository = AppDataSource.getRepository(Assessment);
+
+      const assessmentDetails = await assessmentRepository
+        .createQueryBuilder("assessment")
+        .leftJoinAndSelect("assessment.action", "action", "assessment.action_id = action.action_id")
+        .leftJoinAndSelect("assessment.user", "user", "assessment.user_id = user.user_id")
+        .where("assessment.user_id = :userId", { userId: parseInt(userId) })
+        .select([
+          "assessment.assessment_id",
+          "assessment.user_id",
+          "assessment.type",
+          "assessment.result_json",
+          "assessment.create_at",
+          "action.description",
+          "user.email",
+          "user.role",
+          "user.status"
+        ])
+        .getMany();
+
+      if (!assessmentDetails || assessmentDetails.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: `No assessments found for user ${userId}`,
+        });
+      }
+
+      // Format the response to match ERD structure
+      const formattedDetails = assessmentDetails.map(assessment => ({
+        assessment: {
+          assessment_id: assessment.assessment_id,
+          user_id: assessment.user_id,
+          result_json: assessment.result_json,
+          create_at: assessment.create_at
+        },
+        action: assessment.action ? {
+          description: assessment.action.description,
+        } : null,
+        user: {
+          user_id: assessment.user_id
+        }
+      }));
+
+      res.status(200).json({
+        success: true,
+        data: formattedDetails,
+        count: formattedDetails.length,
+        message: `Assessment details for member user ${userId} retrieved successfully`,
+      });
+
+    } catch (error) {
+      console.error("Error getting assessment details:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to retrieve assessment details",
         error: error.message,
       });
     }
