@@ -13,10 +13,15 @@ const Program = new EntitySchema({
             primary: true,
             generated: true
         },
+        img_link: {
+            type: "nvarchar",
+            length: "MAX",
+            nullable: true
+        },
         title: {
             type: "nvarchar",
             length: 255,
-            nullable: true
+            nullable: false
         },
         description: {
             type: "nvarchar",
@@ -25,12 +30,12 @@ const Program = new EntitySchema({
         },
         create_by: {
             type: "int",
-            nullable: true
+            nullable: false
         },
         status: {
             type: "varchar",
             length: 50,
-            nullable: true
+            nullable: false
         },
         age_group: {
             type: "varchar",
@@ -39,11 +44,12 @@ const Program = new EntitySchema({
         },
         create_at: {
             type: "datetime",
-            nullable: true
+            nullable: false,
+            default: () => "GETDATE()"
         },
         category_id: {
             type: "int",
-            nullable: true
+            nullable: false
         }
     },
     relations: {

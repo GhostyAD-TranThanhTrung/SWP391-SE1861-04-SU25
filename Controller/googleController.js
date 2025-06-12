@@ -2,10 +2,39 @@ const { OAuth2Client } = require('google-auth-library');
 const jwt = require('jsonwebtoken');
 const AppDataSource = require('../src/data-source');
 const User = require('../src/entities/User');
+const axios = require('axios');
+const fs = require('fs').promises;
+const path = require('path');
 
 const CLIENT_ID = '97185070436-degnuev5p66ua7ckv130jmbm4eilcp6f.apps.googleusercontent.com';
 const clientID = new OAuth2Client(CLIENT_ID);
 const JWT_SECRET = 'swp391-super-secret-jwt-key-2025-secure';
+
+// Function to download and save profile picture
+async function saveProfilePicture(imageUrl, userId) {
+    try {
+        // Create directory if it doesn't exist
+        const uploadDir = path.join(__dirname, '..', 'public', 'uploads', 'profile-pictures');
+        await fs.mkdir(uploadDir, { recursive: true });
+
+        // Download image
+        const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+        const buffer = Buffer.from(response.data, 'binary');
+
+        // Generate filename and save path
+        const filename = `google-profile-${userId}-${Date.now()}.jpg`;
+        const filepath = path.join(uploadDir, filename);
+
+        // Save the file
+        await fs.writeFile(filepath, buffer);
+
+        // Return the relative path that frontend can use
+        return `/uploads/profile-pictures/${filename}`;
+    } catch (error) {
+        console.error('Failed to save profile picture:', error);
+        return null;
+    }
+}
 
 exports.googleLogin = async (req, res) => {
     try {
@@ -97,7 +126,8 @@ exports.googleLogin = async (req, res) => {
                 user: {
                     id: user.user_id,
                     email: user.email,
-                    role: user.role || 'Member'
+                    role: user.role || 'Member',
+                    img_link: user.img_link || null
                 },
                 token: token
             });
@@ -172,7 +202,7 @@ async function googleRegisterInternal(req, res) {
         });
 
         const payload = ticket.getPayload();
-        const { email, name, sub: googleId } = payload;
+        const { email, name, sub: googleId, picture } = payload;
         
         // Validate required fields
         if (!email || !name || !googleId) {
@@ -181,8 +211,10 @@ async function googleRegisterInternal(req, res) {
         }
         
         console.log('✅ Google token re-verified successfully');
-        console.log(`📧 Email: ${email}`);        console.log(`👤 Name: ${name}`);
+        console.log(`📧 Email: ${email}`);
+        console.log(`👤 Name: ${name}`);
         console.log(`🆔 Google ID: ${googleId}`);
+        console.log(`🖼️ Profile Picture: ${picture || 'Not available'}`);
         console.log('🔍 Double-checking user existence in database...');
         
         const userRepository = AppDataSource.getRepository(User);
@@ -192,22 +224,16 @@ async function googleRegisterInternal(req, res) {
             where: { email: email }
         });
         
-        console.log(`📈 User check result: ${userCheckResult ? '1' : '0'} record(s) found`);        if (!userCheckResult) {
+        console.log(`📈 User check result: ${userCheckResult ? '1' : '0'} record(s) found`);
+        if (!userCheckResult) {
             console.log('✅ CONFIRMED: User does not exist - PROCEEDING WITH REGISTRATION');
             console.log('🔨 STARTING AUTO-REGISTRATION PROCESS');
             console.log('📝 Creating new user account...');
 
-            // User doesn't exist - Register new user using TypeORM
-            console.log(`📧 Registering new Google user: ${email}`);
-            console.log(`👤 User name: ${name}`);
-            console.log(`🔑 Using Google ID as password: ${googleId}`);
-            console.log(`👥 Default role: Member`);
-            console.log(`✅ Default status: active`);
-            console.log('💾 Creating user with TypeORM...');
-
+            // Create new user first to get the ID
             const newUser = userRepository.create({
                 email: email,
-                password: googleId, // Use Google ID as password
+                password: googleId,
                 role: 'Member',
                 status: 'active'
             });
@@ -221,11 +247,29 @@ async function googleRegisterInternal(req, res) {
             }
 
             const userId = savedUser.user_id;
+
+            // Handle profile picture if available
+            if (picture) {
+                console.log('🖼️ Downloading and saving Google profile picture...');
+                const imgPath = await saveProfilePicture(picture, userId);
+                
+                if (imgPath) {
+                    console.log(`✅ Profile picture saved successfully: ${imgPath}`);
+                    // Update user with image path
+                    savedUser.img_link = imgPath;
+                    await userRepository.save(savedUser);
+                } else {
+                    console.log('⚠️ Failed to save profile picture, continuing with registration');
+                }
+            }
+
             console.log('✅ USER ACCOUNT CREATED SUCCESSFULLY');
             console.log(`🆔 New User ID: ${userId}`);
             console.log(`📧 Email: ${email}`);
             console.log(`👥 Role: Member`);
-            console.log(`✅ Status: active`);            console.log('📝 Profile creation skipped - user can create profile later through ChooseRolePage');
+            console.log(`✅ Status: active`);
+            console.log(`🖼️ Profile Picture: ${savedUser.img_link || 'Not saved'}`);
+            console.log('📝 Profile creation skipped - user can create profile later through ChooseRolePage');
 
             console.log('🎉 GOOGLE AUTO-REGISTRATION COMPLETED SUCCESSFULLY');
             console.log('📊 REGISTRATION SUMMARY:');
@@ -259,7 +303,8 @@ async function googleRegisterInternal(req, res) {
                 user: {
                     id: userId,
                     email: email,
-                    role: 'Member'
+                    role: 'Member',
+                    img_link: savedUser.img_link || null
                 },
                 token: token
             });

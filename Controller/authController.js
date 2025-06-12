@@ -72,6 +72,7 @@ class AuthController {
           id: user.user_id,
           email: user.email,
           role: user.role || "Member",
+          img_link: user.img_link || null, // Add img_link to response
         },
         token: token, // Include the JWT token in the response
       });
@@ -80,6 +81,89 @@ class AuthController {
       res.status(500).json({
         success: false,
         error: "Server error during authentication",
+        message: error.message,
+      });
+    }
+  }
+
+  /**
+   * Register new user endpoint
+   */
+  static async register(req, res) {
+    try {
+      const { email, password, role = 'Member' } = req.body;
+
+      // Basic validation
+      if (!email || !password) {
+        return res.status(400).json({
+          success: false,
+          error: "Email and password are required",
+        });
+      }
+
+      const userRepository = AppDataSource.getRepository(User);
+
+      // Check if email already exists
+      const existingUser = await userRepository.findOne({
+        where: { email: email }
+      });
+
+      if (existingUser) {
+        return res.status(409).json({
+          success: false,
+          error: "Email already exists",
+        });
+      }
+
+      // Create new user with TypeORM
+      const newUser = userRepository.create({
+        email: email,
+        password: password, // Note: In production, hash the password first
+        role: role,
+        status: 'active',
+        img_link: null // Initialize img_link as null for new users
+      });
+
+      const savedUser = await userRepository.save(newUser);
+
+      // Generate JWT token for immediate login
+      const token = jwt.sign(
+        {
+          userId: savedUser.user_id,
+          email: savedUser.email,
+          role: savedUser.role || "Member",
+        },
+        JWT_SECRET,
+        { expiresIn: "24h" }
+      );
+
+      // Log registration success
+      console.log("=".repeat(50));
+      console.log(`✅ REGISTRATION SUCCESSFUL`);
+      console.log(`📧 Email: ${savedUser.email}`);
+      console.log(`🆔 User ID: ${savedUser.user_id}`);
+      console.log(`👥 Role: ${savedUser.role}`);
+      console.log(`⏰ Registration time: ${new Date().toLocaleString()}`);
+      console.log("=".repeat(50));
+
+      // Return success response with user data and token
+      res.status(201).json({
+        success: true,
+        message: "User registered successfully",
+        user: {
+          id: savedUser.user_id,
+          email: savedUser.email,
+          role: savedUser.role,
+          status: savedUser.status,
+          img_link: savedUser.img_link // Add img_link to response
+        },
+        token: token
+      });
+    } catch (error) {
+      console.error("Registration error:", error);
+      res.status(500).json({
+        success: false,
+        error: "Registration failed",
         message: error.message,
       });
     }
@@ -183,6 +267,7 @@ class AuthController {
           email: user.email,
           role: user.role,
           status: user.status,
+          img_link: user.img_link || null // Add img_link to response
         },
         message: "User profile retrieved successfully",
       });

@@ -30,7 +30,6 @@ const config = {
 
 // Import controllers
 const authController = require("./Controller/authController");
-const registerController = require("./Controller/registerController"); // Import the register controller
 const googleController = require("./Controller/googleController");
 const UserController = require("./Controller/userController");
 const ProfileController = require("./Controller/profileController");
@@ -65,7 +64,7 @@ app.get("/", authController.getAllUsers);
 app.get("/orm", UserController.getAllUsers);
 app.get("/api/data", authController.testApi);
 app.post("/api/login", authController.login);
-app.post("/api/register", registerController.registerUser); // Registration endpoint - handles new user creation
+app.post("/api/register", authController.register); // Updated to use TypeORM registration
 app.post("/api/google-login", googleController.googleLogin); // Google login endpoint
 app.post("/api/google-register", googleController.googleRegister); // Google registration endpoint
 app.get("/api/dashboard", DashboardController.getDashboardStats);

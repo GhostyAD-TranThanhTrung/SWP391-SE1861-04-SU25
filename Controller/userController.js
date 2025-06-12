@@ -12,7 +12,9 @@ class UserController {
   static async getAllUsers(req, res) {
     try {
       const userRepository = AppDataSource.getRepository(User);
-      const users = await userRepository.find();
+      const users = await userRepository.find({
+        select: ["user_id", "email", "role", "status", "img_link"]
+      });
 
       res.status(200).json({
         success: true,
@@ -38,6 +40,7 @@ class UserController {
       const userRepository = AppDataSource.getRepository(User);
       const user = await userRepository.findOne({
         where: { user_id: parseInt(id) },
+        select: ["user_id", "email", "role", "status", "img_link"]
       });
 
       if (!user) {
@@ -67,7 +70,7 @@ class UserController {
    */
   static async createUser(req, res) {
     try {
-      const { role, password, status, email } = req.body;
+      const { role, password, status, email, img_link } = req.body;
 
       // Validate required fields
       if (!role || !password || !status || !email) {
@@ -97,13 +100,17 @@ class UserController {
         password, // Note: In production, hash the password first
         status,
         email,
+        img_link: img_link || null
       });
 
       const savedUser = await userRepository.save(newUser);
 
+      // Return user without sensitive information
+      const { password: _, ...userWithoutPassword } = savedUser;
+
       res.status(201).json({
         success: true,
-        data: savedUser,
+        data: userWithoutPassword,
         message: "User created successfully",
       });
     } catch (error) {
@@ -122,7 +129,7 @@ class UserController {
   static async updateUser(req, res) {
     try {
       const { id } = req.params;
-      const { role, password, status, email } = req.body;
+      const { role, password, status, email, img_link } = req.body;
 
       const userRepository = AppDataSource.getRepository(User);
 
@@ -143,12 +150,16 @@ class UserController {
       if (password) user.password = password; // Note: Hash password in production
       if (status) user.status = status;
       if (email) user.email = email;
+      if (img_link !== undefined) user.img_link = img_link;
 
       const updatedUser = await userRepository.save(user);
 
+      // Return user without sensitive information
+      const { password: _, ...userWithoutPassword } = updatedUser;
+
       res.status(200).json({
         success: true,
-        data: updatedUser,
+        data: userWithoutPassword,
         message: "User updated successfully",
       });
     } catch (error) {
@@ -180,6 +191,7 @@ class UserController {
       // Check if user exists before deleting
       const user = await userRepository.findOne({
         where: { user_id: parseInt(id) },
+        select: ["user_id", "email", "role", "img_link"]
       });
 
       if (!user) {
@@ -199,6 +211,7 @@ class UserController {
           user_id: user.user_id,
           email: user.email,
           role: user.role,
+          img_link: user.img_link
         },
       });
     } catch (error) {
@@ -227,6 +240,12 @@ class UserController {
 
       const userRepository = AppDataSource.getRepository(User);
 
+      // Get user before deletion to include in response
+      const user = await userRepository.findOne({
+        where: { user_id: parseInt(id) },
+        select: ["user_id", "email", "role", "img_link"]
+      });
+
       // Use delete query directly
       const deleteResult = await userRepository.delete({
         user_id: parseInt(id),
@@ -243,6 +262,7 @@ class UserController {
         success: true,
         message: `User with ID ${id} deleted successfully`,
         affectedRows: deleteResult.affected,
+        deletedUser: user || undefined
       });
     } catch (error) {
       console.error("Error deleting user:", error);

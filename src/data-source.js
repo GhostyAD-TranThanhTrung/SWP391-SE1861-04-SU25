@@ -10,7 +10,6 @@ const ConsultantSlot = require('./entities/ConsultantSlot.js');
 const BookingSession = require('./entities/BookingSession.js');
 const Blog = require('./entities/Blog.js');
 const Flag = require('./entities/Flag.js');
-const TicketSupport = require('./entities/TicketSupport.js');
 const ConsoleLog = require('./entities/ConsoleLog.js');
 const Action = require('./entities/Action.js');
 const Assessment = require('./entities/Assessment.js');
@@ -32,7 +31,6 @@ const AppDataSource = new DataSource({
         BookingSession,
         Blog,
         Flag,
-        TicketSupport,
         ConsoleLog,
         Action,
         Assessment,

@@ -13,6 +13,11 @@ const User = new EntitySchema({
             primary: true,
             generated: true
         },
+        img_link: {
+            type: "nvarchar",
+            length: "MAX",
+            nullable: true
+        },
         date_create: {
             type: "datetime",
             nullable: false,
@@ -31,7 +36,8 @@ const User = new EntitySchema({
         status: {
             type: "varchar",
             length: 20,
-            nullable: false
+            nullable: false,
+            check: "status IN ('active', 'inactive', 'banned')"
         },
         email: {
             type: "nvarchar",
@@ -64,11 +70,6 @@ const User = new EntitySchema({
         flags: {
             type: "one-to-many",
             target: "Flag",
-            inverseSide: "user"
-        },
-        tickets: {
-            type: "one-to-many",
-            target: "TicketSupport",
             inverseSide: "user"
         },
         logs: {

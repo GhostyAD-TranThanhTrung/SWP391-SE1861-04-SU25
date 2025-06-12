@@ -2,17 +2,17 @@
 -- This file contains realistic sample data for testing and development
 
 -- Insert Users (Admin, Consultants, Members)
-INSERT INTO Users (role, password, status, email) VALUES
-('admin', 'hashed_password_123', 'active', 'admin@drugprevention.com'),
-('consultant', 'hashed_password_456', 'active', 'dr.smith@drugprevention.com'),
-('consultant', 'hashed_password_789', 'active', 'therapist.johnson@drugprevention.com'),
-('consultant', 'hashed_password_321', 'active', 'counselor.williams@drugprevention.com'),
-('consultant', 'hashed_password_654', 'inactive', 'dr.brown@drugprevention.com'),
-('member', 'hashed_password_987', 'active', 'john.doe@email.com'),
-('member', 'hashed_password_147', 'active', 'jane.smith@email.com'),
-('member', 'hashed_password_258', 'active', 'mike.wilson@email.com'),
-('member', 'hashed_password_369', 'active', 'sarah.davis@email.com'),
-('member', 'hashed_password_741', 'banned', 'banned.user@email.com');
+INSERT INTO Users (role, password, status, email, img_link) VALUES
+('admin', 'hashed_password_123', 'active', 'admin@drugprevention.com', '/uploads/profile-pictures/default-admin.png'),
+('consultant', 'hashed_password_456', 'active', 'dr.smith@drugprevention.com', '/uploads/profile-pictures/default-consultant.png'),
+('consultant', 'hashed_password_789', 'active', 'therapist.johnson@drugprevention.com', '/uploads/profile-pictures/default-consultant.png'),
+('consultant', 'hashed_password_321', 'active', 'counselor.williams@drugprevention.com', '/uploads/profile-pictures/default-consultant.png'),
+('consultant', 'hashed_password_654', 'inactive', 'dr.brown@drugprevention.com', '/uploads/profile-pictures/default-consultant.png'),
+('member', 'hashed_password_987', 'active', 'john.doe@email.com', '/uploads/profile-pictures/default-member.png'),
+('member', 'hashed_password_147', 'active', 'jane.smith@email.com', '/uploads/profile-pictures/default-member.png'),
+('member', 'hashed_password_258', 'active', 'mike.wilson@email.com', '/uploads/profile-pictures/default-member.png'),
+('member', 'hashed_password_369', 'active', 'sarah.davis@email.com', '/uploads/profile-pictures/default-member.png'),
+('member', 'hashed_password_741', 'banned', 'banned.user@email.com', NULL);
 
 -- Insert Profiles for all users
 INSERT INTO Profile (user_id, name, bio_json, date_of_birth, job) VALUES
@@ -99,14 +99,14 @@ INSERT INTO Category (description) VALUES
 ('Educational Resources');
 
 -- Insert Prevention Programs
-INSERT INTO Programs (title, description, create_by, status, age_group, category_id) VALUES
-('Teen SMART Choices', 'Comprehensive substance abuse prevention program for teenagers focusing on decision-making skills, peer pressure resistance, and healthy lifestyle choices.', 1, 'active', '13-18', 1),
-('Recovery Foundations', 'Evidence-based recovery program for adults struggling with substance addiction. Includes cognitive behavioral therapy modules and peer support components.', 1, 'active', '18+', 2),
-('Family Resilience Building', 'Support program for families affected by substance abuse. Focuses on communication, boundary setting, and healing family relationships.', 1, 'active', 'All Ages', 3),
-('Campus Prevention Initiative', 'Substance abuse prevention program designed specifically for college students, addressing binge drinking and drug experimentation.', 1, 'active', '18-25', 1),
-('Professional Helper Training', 'Training program for healthcare workers, teachers, and counselors to identify and respond to substance abuse issues.', 1, 'active', 'Adult', 4),
-('Community Action Program', 'Community-wide prevention initiative involving local organizations, schools, and families in substance abuse prevention efforts.', 1, 'draft', 'All Ages', 5),
-('Digital Wellness for Teens', 'Modern approach to prevention education using digital tools and social media awareness for healthy choices.', 1, 'active', '13-18', 6);
+INSERT INTO Programs (title, description, create_by, status, age_group, category_id, img_link) VALUES
+('Teen SMART Choices', 'Comprehensive substance abuse prevention program for teenagers focusing on decision-making skills, peer pressure resistance, and healthy lifestyle choices.', 1, 'active', '13-18', 1, '/uploads/program-images/default-youth.png'),
+('Recovery Foundations', 'Evidence-based recovery program for adults struggling with substance addiction. Includes cognitive behavioral therapy modules and peer support components.', 1, 'active', '18+', 2, '/uploads/program-images/default-adult.png'),
+('Family Resilience Building', 'Support program for families affected by substance abuse. Focuses on communication, boundary setting, and healing family relationships.', 1, 'active', 'All Ages', 3, '/uploads/program-images/default-family.png'),
+('Campus Prevention Initiative', 'Substance abuse prevention program designed specifically for college students, addressing binge drinking and drug experimentation.', 1, 'active', '18-25', 1, '/uploads/program-images/default-campus.png'),
+('Professional Helper Training', 'Training program for healthcare workers, teachers, and counselors to identify and respond to substance abuse issues.', 1, 'active', 'Adult', 4, '/uploads/program-images/default-training.png'),
+('Community Action Program', 'Community-wide prevention initiative involving local organizations, schools, and families in substance abuse prevention efforts.', 1, 'draft', 'All Ages', 5, '/uploads/program-images/default-community.png'),
+('Digital Wellness for Teens', 'Modern approach to prevention education using digital tools and social media awareness for healthy choices.', 1, 'active', '13-18', 6, '/uploads/program-images/default-digital.png');
 
 -- Insert User Enrollments
 INSERT INTO Enroll (user_id, program_id, start_at, progress) VALUES

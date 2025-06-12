@@ -47,6 +47,7 @@ class ConsultantController {
           role: consultant.user?.role,
           status: consultant.user?.status,
           email: consultant.user?.email,
+          img_link: consultant.user?.img_link,
 
           // Profile table fields
           name: profile?.name,
@@ -115,6 +116,7 @@ class ConsultantController {
         role: consultant.user?.role,
         status: consultant.user?.status,
         email: consultant.user?.email,
+        img_link: consultant.user?.img_link,
 
         // Profile table fields
         name: profile?.name,
@@ -180,6 +182,7 @@ class ConsultantController {
         role: consultant.user?.role,
         status: consultant.user?.status,
         email: consultant.user?.email,
+        img_link: consultant.user?.img_link,
 
         // Profile table fields
         name: profile?.name,
@@ -297,6 +300,7 @@ class ConsultantController {
           role: savedUser.role,
           status: savedUser.status,
           email: savedUser.email,
+          img_link: savedUser.img_link,
 
           // Profile table fields
           name: savedProfile?.name,
@@ -433,6 +437,7 @@ class ConsultantController {
           role: updatedUser?.role,
           status: updatedUser?.status,
           email: updatedUser?.email,
+          img_link: updatedUser?.img_link,
 
           // Profile table fields
           name: profile?.name,
@@ -517,6 +522,7 @@ class ConsultantController {
           role: consultant.user?.role,
           status: consultant.user?.status,
           email: consultant.user?.email,
+          img_link: consultant.user?.img_link,
 
           // Profile table fields
           name: profile?.name,

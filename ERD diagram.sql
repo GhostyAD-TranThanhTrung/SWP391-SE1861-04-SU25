@@ -21,6 +21,7 @@ DROP TABLE IF EXISTS Users;
 -- USERS
 CREATE TABLE Users (
   user_id INT IDENTITY(1,1) PRIMARY KEY,
+  img_link NVARCHAR(MAX),
   date_create DATETIME NOT NULL DEFAULT GETDATE(),
   role VARCHAR(50) NOT NULL,
   password NVARCHAR(255) NOT NULL,
@@ -34,7 +35,7 @@ CREATE TABLE Consultant (
   user_id INT NOT NULL UNIQUE,
   cost DECIMAL(10,2),
   certification NVARCHAR(MAX),
-  bios NVARCHAR(MAX),
+  speciality NVARCHAR(MAX),
   FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
 );
 
@@ -101,15 +102,6 @@ CREATE TABLE Flags (
   FOREIGN KEY (flagged_by) REFERENCES Users(user_id)
 );
 
--- TICKET SUPPORT
-CREATE TABLE Ticket_Support (
-  ticket_id INT IDENTITY(1,1) PRIMARY KEY,
-  user_id INT,
-  content NVARCHAR(MAX),
-  status VARCHAR(50),
-  type VARCHAR(50),
-  FOREIGN KEY (user_id) REFERENCES Users(user_id)
-);
 
 -- CONSOLE LOG
 CREATE TABLE console_log (
@@ -151,6 +143,7 @@ CREATE TABLE Category (
 -- PROGRAMS
 CREATE TABLE Programs (
   program_id INT IDENTITY(1,1) PRIMARY KEY,
+  img_link NVARCHAR(MAX),
   title NVARCHAR(255),
   description NVARCHAR(MAX),
   create_by INT,
@@ -203,3 +196,4 @@ CREATE TABLE Survey_Responses (
   FOREIGN KEY (survey_id) REFERENCES Surveys(survey_id),
   FOREIGN KEY (user_id) REFERENCES Users(user_id)
 );
+
