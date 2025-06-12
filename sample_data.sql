@@ -118,11 +118,25 @@ INSERT INTO Enroll (user_id, program_id, start_at, progress) VALUES
 
 -- Insert Actions for Assessments
 INSERT INTO Action (description, range, type) VALUES
-('Low Risk - Continue Prevention Education', 'Low', 'Prevention'),
-('Moderate Risk - Enhanced Monitoring and Support', 'Moderate', 'Intervention'),
-('High Risk - Immediate Professional Intervention Required', 'High', 'Treatment'),
-('Very High Risk - Crisis Intervention Protocol', 'Very High', 'Crisis'),
-('Assessment Complete - Refer to Appropriate Resources', 'Variable', 'Referral');
+('Assessment Complete - Refer to Appropriate Resources', 'Variable', 'Referral'),
+
+-- ASSIST (Alcohol, Smoking and Substance Involvement Screening Test) Actions
+('Brief education - Inform patients about the risks of illicit drug use and signs of a substance use disorder', '0-3', 'ASSIST'),
+('Brief intervention - Patient-centered discussion that employs Motivational Interviewing concepts to raise awareness of substance use and enhance motivation to change. Brief interventions are typically performed in 3-15 minutes, and should be done in the same session as the screening. Repeated sessions are more effective than a one-time intervention.', '4-26', 'ASSIST'),
+('Brief intervention (offer options that include treatment) - If a patient is ready to accept treatment, a referral is a proactive process that facilitates access to specialized care for individuals likely experiencing a substance use disorder. These patients are referred to alcohol and drug treatment experts for more definitive, in-depth assessment and, if warranted, treatment. However, treatment also includes prescribing medications for substance use disorders as part of a patient''s normal primary care.', '27+', 'ASSIST'),
+
+-- ASSIST Cannabis-specific (different range: 0-4 instead of 0-3)
+('Brief education - Cannabis: Inform patients about the risks of cannabis use and signs of a substance use disorder', '0-4', 'ASSIST'),
+('Brief intervention - Cannabis: Patient-centered discussion using Motivational Interviewing concepts specific to cannabis use patterns and risks', '5-26', 'ASSIST'),
+
+-- CRAFFT (Car, Relax, Alone, Forget, Friends, Trouble) Assessment Actions
+('Low Risk - Provide information about risks of substance use and substance use-related riding/driving; offer praise and encouragement. Give Contract for Life or Pledge for Life handouts.', '0', 'CRAFFT'),
+('Medium Risk - Provide information about risks of substance use and substance use-related riding/driving; brief advice; possible follow-up visit. Engage in discussion about adverse health effects with clear recommendation to stop.', '1', 'CRAFFT'),
+('High Risk - Provide information about risks of substance use and substance use-related riding/driving; brief advice; follow-up visit; possible referral to counseling/treatment. Use 5 Rs framework: Review, Recommend, Riding/Driving risk counseling, Response (elicit self-motivational statements), Reinforce self-efficacy.', '2+', 'CRAFFT'),
+
+-- CRAFFT Age-specific variations (18+ years may use higher cut-point)
+('Medium Risk (Young Adults 18+) - Brief intervention with motivational enhancement techniques; follow-up assessment recommended', '2-3', 'CRAFFT'),
+('High Risk (Young Adults 18+) - Comprehensive assessment and referral to specialized substance abuse treatment; structured intervention required', '4+', 'CRAFFT');
 
 -- Insert Assessments
 INSERT INTO Assessments (user_id, type, result_json, action_id) VALUES
