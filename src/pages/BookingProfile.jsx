@@ -33,42 +33,30 @@ const BookingProfile = () => {
         }
     };
 
-    // Transform API data to component format based on actual database structure
+    // Transform API data to component format based on updated controller structure
     const transformConsultantData = (apiConsultant) => {
         if (!apiConsultant) return null;
-        
+
         return {
-            id_consultant: apiConsultant.id || 'N/A',
-            user_id: apiConsultant.userId || 'N/A',
+            // Consultant table fields
+            id_consultant: apiConsultant.id_consultant || 'N/A',
             cost: apiConsultant.cost || 'N/A',
             certification: apiConsultant.certification || 'N/A',
-            bios: apiConsultant.bios || 'N/A',
-            user: {
-                user_id: apiConsultant.userId || 'N/A',
-                role: apiConsultant.role || 'N/A',
-                email: apiConsultant.email || 'N/A',
-                status: apiConsultant.status || 'N/A'
-            },
-            profile: {
-                name: 'N/A', // Will be fetched separately if needed
-                job: 'N/A',  // Will be fetched separately if needed
-                date_of_birth: 'N/A', // Will be fetched separately if needed
-                bio_json: 'N/A' // Will be fetched separately if needed
-            }
-        };
-    };
+            speciality: apiConsultant.speciality || 'N/A',
 
-    // Get specialization from bios text based on actual data
-    const getSpecializationFromBios = (bios) => {
-        if (!bios || bios === 'N/A') return 'N/A';
-        
-        const lowerBios = bios.toLowerCase();
-        if (lowerBios.includes('prevention')) return 'Prevention Specialist';
-        if (lowerBios.includes('counselor') || lowerBios.includes('therapy')) return 'Counseling & Therapy';
-        if (lowerBios.includes('community')) return 'Community Outreach';
-        if (lowerBios.includes('clinical') || lowerBios.includes('psychologist')) return 'Clinical Psychology';
-        if (lowerBios.includes('rehab') || lowerBios.includes('recovery')) return 'Rehabilitation';
-        return 'General Consultation';
+            // Users table fields
+            user_id: apiConsultant.user_id || 'N/A',
+            date_create: apiConsultant.date_create || 'N/A',
+            role: apiConsultant.role || 'N/A',
+            email: apiConsultant.email || 'N/A',
+            status: apiConsultant.status || 'N/A',
+
+            // Profile table fields
+            name: apiConsultant.name || 'N/A',
+            bio_json: apiConsultant.bio_json || 'N/A',
+            date_of_birth: apiConsultant.date_of_birth || 'N/A',
+            job: apiConsultant.job || 'N/A'
+        };
     };
 
     // Load consultant data on component mount
@@ -92,6 +80,57 @@ const BookingProfile = () => {
             loadConsultant();
         }
     }, [id]);
+
+    // Helper functions to parse actual data structure from sample_data.sql
+    const parseBioJson = (bioJson) => {
+        if (!bioJson || bioJson === 'N/A') {
+            return { bio: 'No biography available', education: '' };
+        }
+
+        if (typeof bioJson === 'string') {
+            try {
+                const parsed = JSON.parse(bioJson);
+                return {
+                    bio: parsed.bio || 'No biography available',
+                    education: parsed.education || ''
+                };
+            } catch (e) {
+                return { bio: bioJson, education: '' };
+            }
+        }
+
+        return {
+            bio: bioJson.bio || 'No biography available',
+            education: bioJson.education || ''
+        };
+    };
+
+    // Format specialization - handle comma-separated values from sample data
+    const formatSpecialization = (speciality) => {
+        if (!speciality || speciality === 'N/A') return 'General Consultation';
+        return speciality;
+    };
+
+    // The only service offered is video consultation
+    const getServices = () => {
+        return [{
+            title: 'Video Consultation',
+            icon: 'bi-camera-video'
+        }];
+    };
+
+    // Calculate years of experience from bio (simplified estimation)
+    const getExperienceYears = (bioData) => {
+        const bio = bioData.bio || '';
+        const match = bio.match(/(\d+)\s+years?\s+of\s+experience/i);
+        return match ? match[1] : null;
+    };
+
+    // Format cost with proper currency
+    const formatCost = (cost) => {
+        if (!cost || cost === 'N/A') return 'Contact for pricing';
+        return `$${parseFloat(cost).toFixed(0)}`;
+    };
 
     // Loading state
     if (loading) {
@@ -133,7 +172,7 @@ const BookingProfile = () => {
         );
     }
 
-    const specialization = getSpecializationFromBios(consultant.bios);
+    const specialization = formatSpecialization(consultant.speciality);
     const qualifications = [
         consultant.certification !== 'N/A' ? consultant.certification : null,
         'Licensed Professional',
@@ -155,16 +194,16 @@ const BookingProfile = () => {
                     <div className="hero-content">
                         <div className="consultant-intro">
                             <div className="consultant-image-wrapper">
-                                <img 
-                                    src={Image} 
-                                    alt={consultant.profile?.name !== 'N/A' ? consultant.profile?.name : 'Consultant'} 
-                                    className="consultant-avatar" 
+                                <img
+                                    src={Image}
+                                    alt={consultant.name !== 'N/A' ? consultant.name : 'Consultant'}
+                                    className="consultant-avatar"
                                 />
                                 <div className="status-indicator online"></div>
                             </div>
                             <div className="consultant-info">
-                                <h1 className="consultant-name">{consultant.profile?.name !== 'N/A' ? consultant.profile?.name : 'N/A'}</h1>
-                                <p className="consultant-title">{consultant.profile?.job !== 'N/A' ? consultant.profile?.job : 'N/A'}</p>
+                                <h1 className="consultant-name">{consultant.name !== 'N/A' ? consultant.name : 'N/A'}</h1>
+                                <p className="consultant-title">{consultant.job !== 'N/A' ? consultant.job : 'N/A'}</p>
                                 <div className="consultant-meta">
                                     <div className="specialization-tag">
                                         <i className="bi bi-shield-check"></i>
@@ -174,7 +213,7 @@ const BookingProfile = () => {
                             </div>
                         </div>
                         <div className="hero-actions">
-                            <button 
+                            <button
                                 className="btn btn-primary btn-lg"
                                 disabled
                                 title="Consultation link not available"
@@ -182,7 +221,7 @@ const BookingProfile = () => {
                                 <i className="bi bi-camera-video me-2"></i>
                                 Start Consultation
                             </button>
-                            <button 
+                            <button
                                 className="btn btn-outline-light btn-lg"
                                 onClick={() => navigate('/booking')}
                             >
@@ -198,28 +237,28 @@ const BookingProfile = () => {
             <section className="profile-navigation">
                 <div className="container">
                     <div className="nav-tabs-wrapper">
-                        <button 
+                        <button
                             className={`nav-tab ${activeTab === 'overview' ? 'active' : ''}`}
                             onClick={() => setActiveTab('overview')}
                         >
                             <i className="bi bi-person-badge"></i>
                             Overview
                         </button>
-                        <button 
+                        <button
                             className={`nav-tab ${activeTab === 'experience' ? 'active' : ''}`}
                             onClick={() => setActiveTab('experience')}
                         >
                             <i className="bi bi-award"></i>
                             Experience
                         </button>
-                        <button 
+                        <button
                             className={`nav-tab ${activeTab === 'services' ? 'active' : ''}`}
                             onClick={() => setActiveTab('services')}
                         >
                             <i className="bi bi-heart-pulse"></i>
                             Services
                         </button>
-                        <button 
+                        <button
                             className={`nav-tab ${activeTab === 'contact' ? 'active' : ''}`}
                             onClick={() => setActiveTab('contact')}
                         >
@@ -235,49 +274,176 @@ const BookingProfile = () => {
                 <div className="container">
                     {activeTab === 'overview' && (
                         <div className="tab-content overview-content">
-                            <div className="row g-4">
-                                <div className="col-lg-8">
+                            <div className="row g-4 h-100">
+                                <div className="col-lg-7 col-md-12 h-100">
                                     <div className="content-card about-card">
                                         <div className="card-header">
-                                            <h3><i className="bi bi-person-heart"></i> About {consultant.profile?.name !== 'N/A' ? consultant.profile?.name : 'Consultant'}</h3>
+                                            <h3><i className="bi bi-person-heart"></i> About {consultant.name !== 'N/A' ? consultant.name : 'Consultant'}</h3>
                                         </div>
                                         <div className="card-body">
-                                            <p className="bio-text">{consultant.bios !== 'N/A' ? consultant.bios : 'No biography available'}</p>
+                                            <p className="bio-text">
+                                                {(() => {
+                                                    if (!consultant.bio_json || consultant.bio_json === 'N/A') {
+                                                        return 'No biography available';
+                                                    }
+
+                                                    // If it's a string that looks like JSON, parse it
+                                                    if (typeof consultant.bio_json === 'string') {
+                                                        try {
+                                                            const parsed = JSON.parse(consultant.bio_json);
+                                                            return parsed.bio || 'No biography available';
+                                                        } catch (e) {
+                                                            // If JSON parsing fails, return the string as-is
+                                                            return consultant.bio_json;
+                                                        }
+                                                    }
+
+                                                    // If it's already an object
+                                                    if (typeof consultant.bio_json === 'object') {
+                                                        return consultant.bio_json.bio || 'No biography available';
+                                                    }
+
+                                                    return consultant.bio_json;
+                                                })()}
+                                            </p>
+                                            {(() => {
+                                                let education = '';
+
+                                                if (consultant.bio_json && consultant.bio_json !== 'N/A') {
+                                                    if (typeof consultant.bio_json === 'string') {
+                                                        try {
+                                                            const parsed = JSON.parse(consultant.bio_json);
+                                                            education = parsed.education || '';
+                                                        } catch (e) {
+                                                            education = '';
+                                                        }
+                                                    } else if (typeof consultant.bio_json === 'object') {
+                                                        education = consultant.bio_json.education || '';
+                                                    }
+                                                }
+
+                                                return education && (
+                                                    <div className="education-section mb-3">
+                                                        <h5><i className="bi bi-mortarboard-fill me-2"></i>Education</h5>
+                                                        <p className="education-text text-muted">{education}</p>
+                                                    </div>
+                                                );
+                                            })()}
                                             <div className="key-stats">
                                                 <div className="stat-item">
-                                                    <div className="stat-value">{consultant.cost !== 'N/A' ? `$${consultant.cost}` : 'N/A'}</div>
+                                                    <div className="stat-value">{formatCost(consultant.cost)}</div>
                                                     <div className="stat-label">Per Session</div>
                                                 </div>
                                                 <div className="stat-item">
-                                                    <div className="stat-value">{consultant.user?.status !== 'N/A' ? consultant.user?.status : 'N/A'}</div>
-                                                    <div className="stat-label">Status</div>
+                                                    <div className="stat-value">{(() => {
+                                                        let bio = '';
+                                                        if (consultant.bio_json && consultant.bio_json !== 'N/A') {
+                                                            if (typeof consultant.bio_json === 'string') {
+                                                                try {
+                                                                    const parsed = JSON.parse(consultant.bio_json);
+                                                                    bio = parsed.bio || '';
+                                                                } catch (e) {
+                                                                    bio = consultant.bio_json;
+                                                                }
+                                                            } else if (typeof consultant.bio_json === 'object') {
+                                                                bio = consultant.bio_json.bio || '';
+                                                            }
+                                                        }
+
+                                                        const match = bio.match(/(\d+)\s+years?\s+of\s+experience/i);
+                                                        const years = match ? match[1] : null;
+                                                        return years ? `${years}+` : (consultant.status !== 'N/A' ? consultant.status.charAt(0).toUpperCase() + consultant.status.slice(1) : 'Available');
+                                                    })()}</div>
+                                                    <div className="stat-label">{(() => {
+                                                        let bio = '';
+                                                        if (consultant.bio_json && consultant.bio_json !== 'N/A') {
+                                                            if (typeof consultant.bio_json === 'string') {
+                                                                try {
+                                                                    const parsed = JSON.parse(consultant.bio_json);
+                                                                    bio = parsed.bio || '';
+                                                                } catch (e) {
+                                                                    bio = consultant.bio_json;
+                                                                }
+                                                            } else if (typeof consultant.bio_json === 'object') {
+                                                                bio = consultant.bio_json.bio || '';
+                                                            }
+                                                        }
+
+                                                        const match = bio.match(/(\d+)\s+years?\s+of\s+experience/i);
+                                                        const years = match ? match[1] : null;
+                                                        return years ? 'Years Experience' : 'Status';
+                                                    })()}</div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="col-lg-4">
-                                    <div className="content-card quick-info">
+                                <div className="col-lg-5 col-md-12 h-100">
+                                    <div className="content-card quick-info-card">
                                         <div className="card-header">
-                                            <h3><i className="bi bi-info-circle"></i> Quick Info</h3>
+                                            <h3><i className="bi bi-info-circle me-2"></i>Quick Info</h3>
                                         </div>
-                                        <div className="card-body">
+                                        <div className="card-body p-0">
                                             <div className="info-list">
-                                                <div className="info-item">
-                                                    <span className="info-label">Specialization</span>
-                                                    <span className="info-value">{specialization}</span>
+                                                <div className="info-item specialization-item">
+                                                    <div className="info-content">
+                                                        <div className="info-label">
+                                                            <i className="bi bi-award-fill me-2"></i>
+                                                            Specialization
+                                                        </div>
+                                                        <div className="info-value specialization-value">
+                                                            {specialization.includes(',') ? (
+                                                                <div className="specialization-list">
+                                                                    {specialization.split(',').map((spec, index) => (
+                                                                        <div key={index} className="spec-item">
+                                                                            • {spec.trim()}
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            ) : (
+                                                                specialization
+                                                            )}
+                                                        </div>
+                                                    </div>
                                                 </div>
+
                                                 <div className="info-item">
-                                                    <span className="info-label">Role</span>
-                                                    <span className="info-value">{consultant.user?.role !== 'N/A' ? consultant.user?.role : 'N/A'}</span>
+                                                    <div className="info-content">
+                                                        <div className="info-label">
+                                                            <i className="bi bi-person-badge me-2"></i>
+                                                            Role
+                                                        </div>
+                                                        <div className="info-value">
+                                                            {consultant.role !== 'N/A' ?
+                                                                consultant.role.charAt(0).toUpperCase() + consultant.role.slice(1).toLowerCase()
+                                                                : 'N/A'
+                                                            }
+                                                        </div>
+                                                    </div>
                                                 </div>
+
                                                 <div className="info-item">
-                                                    <span className="info-label">Session Cost</span>
-                                                    <span className="info-value">{consultant.cost !== 'N/A' ? `$${consultant.cost}` : 'N/A'}</span>
+                                                    <div className="info-content">
+                                                        <div className="info-label">
+                                                            <i className="bi bi-currency-dollar me-2"></i>
+                                                            Session Cost
+                                                        </div>
+                                                        <div className="info-value cost-value">
+                                                            {formatCost(consultant.cost)}
+                                                        </div>
+                                                    </div>
                                                 </div>
+
                                                 <div className="info-item">
-                                                    <span className="info-label">Email</span>
-                                                    <span className="info-value">{consultant.user?.email !== 'N/A' ? consultant.user?.email : 'N/A'}</span>
+                                                    <div className="info-content">
+                                                        <div className="info-label">
+                                                            <i className="bi bi-envelope me-2"></i>
+                                                            Email
+                                                        </div>
+                                                        <div className="info-value email-value">
+                                                            {consultant.email !== 'N/A' ? consultant.email : 'Contact available upon booking'}
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -288,7 +454,7 @@ const BookingProfile = () => {
                     )}
 
                     {activeTab === 'experience' && (
-                                                <div className="tab-content experience-content">
+                        <div className="tab-content experience-content">
                             <div className="row g-4">
                                 <div className="col-12">
                                     <div className="content-card">
@@ -297,24 +463,56 @@ const BookingProfile = () => {
                                         </div>
                                         <div className="card-body">
                                             <div className="certification-list">
-                                                <div className="cert-item">
-                                                    <div className="cert-icon">
-                                                        <i className="bi bi-award-fill"></i>
+                                                {consultant.certification !== 'N/A' && consultant.certification ? (
+                                                    consultant.certification.split(',').map((cert, index) => (
+                                                        <div key={index} className="cert-item">
+                                                            <div className="cert-icon">
+                                                                <i className="bi bi-award-fill"></i>
+                                                            </div>
+                                                            <div className="cert-details">
+                                                                <h4>{cert.trim()}</h4>
+                                                            </div>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <div className="cert-item">
+                                                        <div className="cert-icon">
+                                                            <i className="bi bi-shield-check"></i>
+                                                        </div>
+                                                        <div className="cert-details">
+                                                            <h4>No Certifications Listed</h4>
+                                                        </div>
                                                     </div>
-                                                    <div className="cert-details">
-                                                        <h4>{consultant.certification !== 'N/A' ? consultant.certification : 'No Certification Listed'}</h4>
-                                                        <p>Primary certification in drug prevention and counseling</p>
-                                                    </div>
-                                                </div>
-                                                <div className="cert-item">
-                                                    <div className="cert-icon">
-                                                        <i className="bi bi-shield-check"></i>
-                                                    </div>
-                                                    <div className="cert-details">
-                                                        <h4>Licensed Professional</h4>
-                                                        <p>State licensed to practice counseling and prevention services</p>
-                                                    </div>
-                                                </div>
+                                                )}
+
+                                                {/* Show education from actual DB data if available */}
+                                                {(() => {
+                                                    let education = '';
+
+                                                    if (consultant.bio_json && consultant.bio_json !== 'N/A') {
+                                                        if (typeof consultant.bio_json === 'string') {
+                                                            try {
+                                                                const parsed = JSON.parse(consultant.bio_json);
+                                                                education = parsed.education || '';
+                                                            } catch (e) {
+                                                                education = '';
+                                                            }
+                                                        } else if (typeof consultant.bio_json === 'object') {
+                                                            education = consultant.bio_json.education || '';
+                                                        }
+                                                    }
+
+                                                    return education && (
+                                                        <div className="cert-item">
+                                                            <div className="cert-icon">
+                                                                <i className="bi bi-mortarboard-fill"></i>
+                                                            </div>
+                                                            <div className="cert-details">
+                                                                <h4>{education}</h4>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })()}
                                             </div>
                                         </div>
                                     </div>
@@ -331,14 +529,15 @@ const BookingProfile = () => {
                                 </div>
                                 <div className="card-body">
                                     <div className="services-grid">
-                                        <div className="service-item">
-                                            <div className="service-icon">
-                                                <i className="bi bi-camera-video"></i>
+                                        {getServices().map((service, index) => (
+                                            <div key={index} className="service-item">
+                                                <div className="service-icon">
+                                                    <i className={`bi ${service.icon}`}></i>
+                                                </div>
+                                                <h4>{service.title}</h4>
+                                                <div className="service-price">{formatCost(consultant.cost)}/session</div>
                                             </div>
-                                            <h4>Video Consultations</h4>
-                                            <p>One-on-one video sessions for personalized guidance and support</p>
-                                            <div className="service-price">{consultant.cost !== 'N/A' ? `$${consultant.cost}/session` : 'Price N/A'}</div>
-                                        </div>
+                                        ))}
                                     </div>
                                 </div>
                             </div>
@@ -359,21 +558,14 @@ const BookingProfile = () => {
                                                     <i className="bi bi-envelope-fill"></i>
                                                     <div>
                                                         <strong>Email</strong>
-                                                        <p>{consultant.user?.email !== 'N/A' ? consultant.user?.email : 'Email not available'}</p>
+                                                        <p>{consultant.email !== 'N/A' ? consultant.email : 'Email not available'}</p>
                                                     </div>
                                                 </div>
                                                 <div className="contact-method">
                                                     <i className="bi bi-camera-video-fill"></i>
                                                     <div>
                                                         <strong>Video Call</strong>
-                                                        <p>Available for scheduled consultations</p>
-                                                    </div>
-                                                </div>
-                                                <div className="contact-method">
-                                                    <i className="bi bi-clock-fill"></i>
-                                                    <div>
-                                                        <strong>Response Time</strong>
-                                                        <p>Usually within 24 hours</p>
+                                                        <p>Available</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -400,9 +592,7 @@ const BookingProfile = () => {
                                                     <span className="time">Emergency Only</span>
                                                 </div>
                                             </div>
-                                            <div className="emergency-contact">
-                                                <p><strong>Emergency Support:</strong> Available 24/7 for urgent situations</p>
-                                            </div>
+
                                         </div>
                                     </div>
                                 </div>
