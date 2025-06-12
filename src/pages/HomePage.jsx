@@ -109,7 +109,7 @@ const HomePage = () => {
                             </div>
                         </div>
                         <div className="card-content">
-                            <h5 className="card-title">{item.title}</h5>
+                        <h5 className="card-title">{item.title}</h5>
                             {showExcerpt && <p className="card-excerpt">{item.excerpt}</p>}
                             <div className="card-meta">
                                 <span className="card-date">
@@ -157,8 +157,8 @@ const HomePage = () => {
                             <div className="col-lg-6">
                                 <div className="hero-carousel">
                                     <div id="heroCarousel" className="carousel slide" data-bs-ride="carousel">
-                                        <div className="carousel-inner">
-                                            <div className="carousel-item active">
+                    <div className="carousel-inner">
+                        <div className="carousel-item active">
                                                 <img src={GroupSessionImg} className="d-block w-100" alt="Group Support Session" />
                                                 <div className="carousel-caption">
                                                     <h5>Community Support</h5>
@@ -258,7 +258,7 @@ const HomePage = () => {
                             <i className="bi bi-collection me-2"></i>
                             View All Courses
                         </Link>
-                    </div>
+            </div>
                 </section>
 
                 {/* Popular Blogs Section */}
@@ -268,19 +268,19 @@ const HomePage = () => {
                         <p className="section-subtitle">Stay informed with the latest insights and research</p>
                     </div>
                     <div className="row gx-3">
-                        {renderCards(cardData([
-                            "Substance Abuse: Awareness & Prevention",
-                            "12 ways to prevent drug abuse",
-                            "Drug Abuse Awareness", 
-                            "Effects of Long-Term Drug Use"
+                    {renderCards(cardData([
+                        "Substance Abuse: Awareness & Prevention",
+                        "12 ways to prevent drug abuse",
+                        "Drug Abuse Awareness",
+                        "Effects of Long-Term Drug Use"
                         ], [PreventionImg, Image1, Image2, Image3]), "/blog")}
-                    </div>
+                </div>
                     <div className="text-center mt-4">
                         <Link to="/blog" className="btn btn-outline-primary btn-lg">
                             <i className="bi bi-journal-text me-2"></i>
                             Read More Articles
                         </Link>
-                    </div>
+                </div>
                 </section>
             </div>
 
@@ -306,7 +306,7 @@ const HomePage = () => {
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                </div>
                         <div className="testimonial-indicators">
                             {testimonials.map((_, index) => (
                                 <button
@@ -315,8 +315,8 @@ const HomePage = () => {
                                     onClick={() => setCurrentTestimonial(index)}
                                 ></button>
                             ))}
-                        </div>
-                    </div>
+                </div>
+            </div>
                 </div>
             </section>
 

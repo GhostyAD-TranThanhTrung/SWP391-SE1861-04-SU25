@@ -64,6 +64,7 @@ const BookingPage = () => {
                 role: apiConsultant.role || 'N/A',
                 email: apiConsultant.email || 'N/A',
                 status: apiConsultant.status || 'N/A',
+                img_link: apiConsultant.img_link || null,
 
                 // Profile table fields
                 name: apiConsultant.name || 'N/A',
@@ -308,7 +309,15 @@ const BookingPage = () => {
                                 <div className="consultant-card">
                                     <div className="consultant-header">
                                         <div className="consultant-image">
-                                            <img src={Image} alt={consultant.name !== 'N/A' ? consultant.name : 'Consultant'} className="img-fluid" />
+                                            <img 
+                                                src={consultant.img_link ? `http://localhost:3000${consultant.img_link}` : Image} 
+                                                alt={consultant.name !== 'N/A' ? consultant.name : 'Consultant'} 
+                                                className="img-fluid"
+                                                onError={(e) => {
+                                                    e.target.onerror = null; // Prevent infinite loop
+                                                    e.target.src = Image; // Fallback to default image
+                                                }}
+                                            />
                                         </div>
                                         <div className="consultant-info">
                                             <h4 className="consultant-name">{consultant.name !== 'N/A' ? consultant.name : 'N/A'}</h4>
