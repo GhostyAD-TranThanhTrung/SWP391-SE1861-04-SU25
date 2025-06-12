@@ -18,11 +18,11 @@ app.use(cors()); // This allows the React app to make requests to this server
 app.use(express.json()); // This parses JSON request bodies from React fetch calls
 
 const config = {
-    user: "sa",
+    user: "SA",
     password: "12345",
     server: "localhost",
     port: 1433,
-    database: "SWP391demo",
+    database: "SWP391-demo",
     options: {
         trustServerCertificate: true, // Change to true for local dev / self-signed certs
     },

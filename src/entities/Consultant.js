@@ -29,12 +29,11 @@ const Consultant = new EntitySchema({
       length: "MAX",
       nullable: true,
     },
-    bios: {
+    speciality: {
       type: "nvarchar",
       length: "MAX",
       nullable: true,
     },
-    // Removing works_hours_json as it's not in the ERD
   },
   relations: {
     user: {

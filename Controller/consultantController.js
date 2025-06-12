@@ -30,24 +30,29 @@ class ConsultantController {
       const profileMap = new Map();
       profiles.forEach((profile) => profileMap.set(profile.user_id, profile));
 
-      // Transform the data to include user information and all consultant fields
+      // Transform the data to include ALL fields from Users, Consultant, and Profile tables
       const consultantDetails = consultants.map((consultant) => {
         const profile = profileMap.get(consultant.user_id);
 
         return {
-          id: consultant.id_consultant,
-          userId: consultant.user_id,
-          email: consultant.user?.email || "Not specified",
-          status: consultant.user?.status || "Not specified",
-          // role: consultant.user?.role || "Not specified",
-          name: profile?.name || "Not specified",
-          dateOfBirth: profile?.date_of_birth || null,
-          job: profile?.job || "Not specified",
-          profileBio: profile?.bio_json || "Not specified",
-          cost: consultant.cost || null,
-          certification: consultant.certification || "Not specified",
-          bios: consultant.bios || "Not specified",
-          dateCreated: consultant.user?.date_create,
+          // Consultant table fields
+          id_consultant: consultant.id_consultant,
+          cost: consultant.cost,
+          certification: consultant.certification,
+          speciality: consultant.speciality,
+
+          // Users table fields (excluding password for security)
+          user_id: consultant.user_id,
+          date_create: consultant.user?.date_create,
+          role: consultant.user?.role,
+          status: consultant.user?.status,
+          email: consultant.user?.email,
+
+          // Profile table fields
+          name: profile?.name,
+          bio_json: profile?.bio_json,
+          date_of_birth: profile?.date_of_birth,
+          job: profile?.job,
         };
       });
 
@@ -96,20 +101,26 @@ class ConsultantController {
         where: { user_id: consultant.user_id },
       });
 
-      // Format consultant information with profile data
+      // Format consultant information with ALL fields from Users, Consultant, and Profile tables
       const consultantDetail = {
-        id: consultant.id_consultant,
-        userId: consultant.user_id,
-        email: consultant.user?.email || "Not specified",
-        status: consultant.user?.status || "Not specified",
-        name: profile?.name || "Not specified",
-        dateOfBirth: profile?.date_of_birth || null,
-        job: profile?.job || "Not specified",
-        profileBio: profile?.bio_json || "Not specified",
-        cost: consultant.cost || null,
-        certification: consultant.certification || "Not specified",
-        bios: consultant.bios || "Not specified",
-        dateCreated: consultant.user?.date_create,
+        // Consultant table fields
+        id_consultant: consultant.id_consultant,
+        cost: consultant.cost,
+        certification: consultant.certification,
+        speciality: consultant.speciality,
+
+        // Users table fields (excluding password for security)
+        user_id: consultant.user_id,
+        date_create: consultant.user?.date_create,
+        role: consultant.user?.role,
+        status: consultant.user?.status,
+        email: consultant.user?.email,
+
+        // Profile table fields
+        name: profile?.name,
+        bio_json: profile?.bio_json,
+        date_of_birth: profile?.date_of_birth,
+        job: profile?.job,
       };
 
       res.status(200).json({
@@ -155,29 +166,26 @@ class ConsultantController {
         where: { user_id: consultant.user_id },
       });
 
-      // Format response with combined data
+      // Format response with ALL fields from Users, Consultant, and Profile tables
       const consultantData = {
-        consultantInfo: {
-          id: consultant.id_consultant,
-          cost: consultant.cost,
-          certification: consultant.certification,
-          bios: consultant.bios,
-        },
-        userInfo: {
-          id: consultant.user?.user_id,
-          email: consultant.user?.email,
-          role: consultant.user?.role,
-          status: consultant.user?.status,
-          dateCreated: consultant.user?.date_create,
-        },
-        profileInfo: profile
-          ? {
-              name: profile.name,
-              bioJson: profile.bio_json,
-              dateOfBirth: profile.date_of_birth,
-              job: profile.job,
-            }
-          : null,
+        // Consultant table fields
+        id_consultant: consultant.id_consultant,
+        cost: consultant.cost,
+        certification: consultant.certification,
+        speciality: consultant.speciality,
+
+        // Users table fields (excluding password for security)
+        user_id: consultant.user?.user_id,
+        date_create: consultant.user?.date_create,
+        role: consultant.user?.role,
+        status: consultant.user?.status,
+        email: consultant.user?.email,
+
+        // Profile table fields
+        name: profile?.name,
+        bio_json: profile?.bio_json,
+        date_of_birth: profile?.date_of_birth,
+        job: profile?.job,
       };
 
       res.status(200).json({
@@ -196,62 +204,120 @@ class ConsultantController {
   }
 
   /**
-   * Create new consultant
+   * Create new consultant with complete data from Users, Consultant, and Profile tables
    */
   static async createConsultant(req, res) {
     try {
-      const { user_id, cost, certification, bios } = req.body;
+      const {
+        // User table fields
+        role, password, status, email,
+        // Consultant table fields
+        cost, certification, speciality,
+        // Profile table fields
+        name, bio_json, date_of_birth, job
+      } = req.body;
 
       // Validate required fields
-      if (!user_id) {
+      if (!email || !password || !role) {
         return res.status(400).json({
           success: false,
-          message: "User ID is required",
+          message: "Email, password, and role are required",
         });
       }
 
-      const consultantRepository = AppDataSource.getRepository(Consultant);
       const userRepository = AppDataSource.getRepository(User);
+      const consultantRepository = AppDataSource.getRepository(Consultant);
+      const profileRepository = AppDataSource.getRepository(Profile);
 
-      // Check if user exists
-      const user = await userRepository.findOne({
-        where: { user_id: parseInt(user_id) },
+      // Check if user already exists with this email
+      const existingUser = await userRepository.findOne({
+        where: { email: email },
       });
 
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: "User not found",
-        });
-      }
-
-      // Check if consultant already exists for this user
-      const existingConsultant = await consultantRepository.findOne({
-        where: { user_id: parseInt(user_id) },
-      });
-
-      if (existingConsultant) {
+      if (existingUser) {
         return res.status(409).json({
           success: false,
-          message: "A consultant profile already exists for this user",
+          message: "A user with this email already exists",
         });
       }
 
-      // Create new consultant with updated fields
-      const newConsultant = consultantRepository.create({
-        user_id: parseInt(user_id),
-        cost: cost || null,
-        certification: certification || null,
-        bios: bios || null,
-      });
+      // Start transaction to ensure data integrity
+      const queryRunner = AppDataSource.createQueryRunner();
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
 
-      const savedConsultant = await consultantRepository.save(newConsultant);
+      try {
+        // Create new user
+        const newUser = queryRunner.manager.create(User, {
+          role: role,
+          password: password, // Note: In production, this should be hashed
+          status: status || 'active',
+          email: email,
+        });
 
-      res.status(201).json({
-        success: true,
-        data: savedConsultant,
-        message: "Consultant created successfully",
-      });
+        const savedUser = await queryRunner.manager.save(newUser);
+
+        // Create consultant profile
+        const newConsultant = queryRunner.manager.create(Consultant, {
+          user_id: savedUser.user_id,
+          cost: cost || null,
+          certification: certification || null,
+          speciality: speciality || null,
+        });
+
+        const savedConsultant = await queryRunner.manager.save(newConsultant);
+
+        // Create profile if profile data is provided
+        let savedProfile = null;
+        if (name || bio_json || date_of_birth || job) {
+          const newProfile = queryRunner.manager.create(Profile, {
+            user_id: savedUser.user_id,
+            name: name || null,
+            bio_json: bio_json || null,
+            date_of_birth: date_of_birth || null,
+            job: job || null,
+          });
+
+          savedProfile = await queryRunner.manager.save(newProfile);
+        }
+
+        await queryRunner.commitTransaction();
+
+        // Return complete consultant data
+        const completeConsultantData = {
+          // Consultant table fields
+          id_consultant: savedConsultant.id_consultant,
+          cost: savedConsultant.cost,
+          certification: savedConsultant.certification,
+          speciality: savedConsultant.speciality,
+
+          // Users table fields (excluding password for security)
+          user_id: savedUser.user_id,
+          date_create: savedUser.date_create,
+          role: savedUser.role,
+          status: savedUser.status,
+          email: savedUser.email,
+
+          // Profile table fields
+          name: savedProfile?.name,
+          bio_json: savedProfile?.bio_json,
+          date_of_birth: savedProfile?.date_of_birth,
+          job: savedProfile?.job,
+        };
+
+        res.status(201).json({
+          success: true,
+          data: completeConsultantData,
+          message: "Consultant created successfully with complete profile",
+        });
+
+      } catch (error) {
+        await queryRunner.rollbackTransaction();
+        throw error;
+      } finally {
+        await queryRunner.release();
+      }
+
     } catch (error) {
       console.error("Error creating consultant:", error);
       res.status(500).json({
@@ -263,18 +329,28 @@ class ConsultantController {
   }
 
   /**
-   * Update consultant
+   * Update consultant with complete data from Users, Consultant, and Profile tables
    */
   static async updateConsultant(req, res) {
     try {
       const { id } = req.params;
-      const { cost, certification, bios } = req.body;
+      const {
+        // User table fields
+        role, status, email,
+        // Consultant table fields
+        cost, certification, speciality,
+        // Profile table fields
+        name, bio_json, date_of_birth, job
+      } = req.body;
 
       const consultantRepository = AppDataSource.getRepository(Consultant);
+      const userRepository = AppDataSource.getRepository(User);
+      const profileRepository = AppDataSource.getRepository(Profile);
 
       // Check if consultant exists
       const consultant = await consultantRepository.findOne({
         where: { id_consultant: parseInt(id) },
+        relations: { user: true },
       });
 
       if (!consultant) {
@@ -284,18 +360,100 @@ class ConsultantController {
         });
       }
 
-      // Update consultant fields
-      if (cost !== undefined) consultant.cost = cost;
-      if (certification !== undefined) consultant.certification = certification;
-      if (bios !== undefined) consultant.bios = bios;
+      // Start transaction to ensure data integrity
+      const queryRunner = AppDataSource.createQueryRunner();
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
 
-      const updatedConsultant = await consultantRepository.save(consultant);
+      try {
+        // Update consultant fields
+        if (cost !== undefined) consultant.cost = cost;
+        if (certification !== undefined) consultant.certification = certification;
+        if (speciality !== undefined) consultant.speciality = speciality;
 
-      res.status(200).json({
-        success: true,
-        data: updatedConsultant,
-        message: "Consultant updated successfully",
-      });
+        const updatedConsultant = await queryRunner.manager.save(consultant);
+
+        // Update user fields
+        const user = await queryRunner.manager.findOne(User, {
+          where: { user_id: consultant.user_id },
+        });
+
+        if (user) {
+          if (role !== undefined) user.role = role;
+          if (status !== undefined) user.status = status;
+          if (email !== undefined) user.email = email;
+
+          await queryRunner.manager.save(user);
+        }
+
+        // Update or create profile
+        let profile = await queryRunner.manager.findOne(Profile, {
+          where: { user_id: consultant.user_id },
+        });
+
+        if (!profile && (name || bio_json || date_of_birth || job)) {
+          // Create new profile if it doesn't exist and we have profile data
+          profile = queryRunner.manager.create(Profile, {
+            user_id: consultant.user_id,
+            name: name || null,
+            bio_json: bio_json || null,
+            date_of_birth: date_of_birth || null,
+            job: job || null,
+          });
+        } else if (profile) {
+          // Update existing profile
+          if (name !== undefined) profile.name = name;
+          if (bio_json !== undefined) profile.bio_json = bio_json;
+          if (date_of_birth !== undefined) profile.date_of_birth = date_of_birth;
+          if (job !== undefined) profile.job = job;
+        }
+
+        if (profile) {
+          await queryRunner.manager.save(profile);
+        }
+
+        await queryRunner.commitTransaction();
+
+        // Get updated user data
+        const updatedUser = await userRepository.findOne({
+          where: { user_id: consultant.user_id },
+        });
+
+        // Return complete updated data
+        const completeUpdatedData = {
+          // Consultant table fields
+          id_consultant: updatedConsultant.id_consultant,
+          cost: updatedConsultant.cost,
+          certification: updatedConsultant.certification,
+          speciality: updatedConsultant.speciality,
+
+          // Users table fields (excluding password for security)
+          user_id: updatedUser?.user_id,
+          date_create: updatedUser?.date_create,
+          role: updatedUser?.role,
+          status: updatedUser?.status,
+          email: updatedUser?.email,
+
+          // Profile table fields
+          name: profile?.name,
+          bio_json: profile?.bio_json,
+          date_of_birth: profile?.date_of_birth,
+          job: profile?.job,
+        };
+
+        res.status(200).json({
+          success: true,
+          data: completeUpdatedData,
+          message: "Consultant updated successfully with complete profile",
+        });
+
+      } catch (error) {
+        await queryRunner.rollbackTransaction();
+        throw error;
+      } finally {
+        await queryRunner.release();
+      }
+
     } catch (error) {
       console.error("Error updating consultant:", error);
       res.status(500).json({
@@ -342,23 +500,29 @@ class ConsultantController {
       const profileMap = new Map();
       profiles.forEach((profile) => profileMap.set(profile.user_id, profile));
 
-      // Format response consistent with other methods
+      // Format response with ALL fields from Users, Consultant, and Profile tables
       const formattedConsultants = consultants.map((consultant) => {
         const profile = profileMap.get(consultant.user_id);
 
         return {
-          id: consultant.id_consultant,
-          userId: consultant.user_id,
-          email: consultant.user?.email || "Not specified",
-          status: consultant.user?.status || "Not specified",
-          name: profile?.name || "Not specified",
-          dateOfBirth: profile?.date_of_birth || null,
-          job: profile?.job || "Not specified",
-          profileBio: profile?.bio_json || "Not specified",
-          cost: consultant.cost || null,
-          certification: consultant.certification || "Not specified",
-          bios: consultant.bios || "Not specified",
-          dateCreated: consultant.user?.date_create,
+          // Consultant table fields
+          id_consultant: consultant.id_consultant,
+          cost: consultant.cost,
+          certification: consultant.certification,
+          speciality: consultant.speciality,
+
+          // Users table fields (excluding password for security)
+          user_id: consultant.user_id,
+          date_create: consultant.user?.date_create,
+          role: consultant.user?.role,
+          status: consultant.user?.status,
+          email: consultant.user?.email,
+
+          // Profile table fields
+          name: profile?.name,
+          bio_json: profile?.bio_json,
+          date_of_birth: profile?.date_of_birth,
+          job: profile?.job,
         };
       });
 

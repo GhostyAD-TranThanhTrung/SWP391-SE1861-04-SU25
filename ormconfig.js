@@ -7,9 +7,9 @@ const config = {
   type: "mssql",
   host: "localhost",
   port: 1433,
-  username: "sa",
+  username: "SA",
   password: "12345",
-  database: "SWP391demo",
+  database: "SWP391-demo",
   synchronize: false, // Set to true only in development to auto-create tables
   logging: true, // Shows SQL queries in console for debugging
   entities: [
