@@ -39,10 +39,11 @@ class ConsultantController {
           userId: consultant.user_id,
           email: consultant.user?.email || "Not specified",
           status: consultant.user?.status || "Not specified",
-          role: consultant.user?.role || "Not specified",
+          // role: consultant.user?.role || "Not specified",
           name: profile?.name || "Not specified",
           dateOfBirth: profile?.date_of_birth || null,
           job: profile?.job || "Not specified",
+          profileBio: profile?.bio_json || "Not specified",
           cost: consultant.cost || null,
           certification: consultant.certification || "Not specified",
           bios: consultant.bios || "Not specified",
@@ -89,21 +90,31 @@ class ConsultantController {
         });
       }
 
-      // Format response to match entity structure
-      const consultantData = {
+      // Get profile information for the consultant
+      const profileRepository = AppDataSource.getRepository(Profile);
+      const profile = await profileRepository.findOne({
+        where: { user_id: consultant.user_id },
+      });
+
+      // Format consultant information with profile data
+      const consultantDetail = {
         id: consultant.id_consultant,
         userId: consultant.user_id,
-        email: consultant.user?.email,
-        role: consultant.user?.role,
-        status: consultant.user?.status,
-        cost: consultant.cost,
-        certification: consultant.certification,
-        bios: consultant.bios,
+        email: consultant.user?.email || "Not specified",
+        status: consultant.user?.status || "Not specified",
+        name: profile?.name || "Not specified",
+        dateOfBirth: profile?.date_of_birth || null,
+        job: profile?.job || "Not specified",
+        profileBio: profile?.bio_json || "Not specified",
+        cost: consultant.cost || null,
+        certification: consultant.certification || "Not specified",
+        bios: consultant.bios || "Not specified",
+        dateCreated: consultant.user?.date_create,
       };
 
       res.status(200).json({
         success: true,
-        data: consultantData,
+        data: consultantDetail,
         message: "Consultant retrieved successfully",
       });
     } catch (error) {
@@ -331,26 +342,32 @@ class ConsultantController {
       const profileMap = new Map();
       profiles.forEach((profile) => profileMap.set(profile.user_id, profile));
 
-      // Format response
+      // Format response consistent with other methods
       const formattedConsultants = consultants.map((consultant) => {
         const profile = profileMap.get(consultant.user_id);
 
         return {
           id: consultant.id_consultant,
           userId: consultant.user_id,
+          email: consultant.user?.email || "Not specified",
+          status: consultant.user?.status || "Not specified",
           name: profile?.name || "Not specified",
-          email: consultant.user?.email,
-          status: consultant.user?.status,
-          cost: consultant.cost,
-          certification: consultant.certification,
-          bios: consultant.bios,
+          dateOfBirth: profile?.date_of_birth || null,
+          job: profile?.job || "Not specified",
+          profileBio: profile?.bio_json || "Not specified",
+          cost: consultant.cost || null,
+          certification: consultant.certification || "Not specified",
+          bios: consultant.bios || "Not specified",
+          dateCreated: consultant.user?.date_create,
         };
       });
 
       res.status(200).json({
         success: true,
-        data: formattedConsultants,
-        count: formattedConsultants.length,
+        data: {
+          totalConsultants: formattedConsultants.length,
+          consultants: formattedConsultants,
+        },
         message: `Found ${formattedConsultants.length} consultants matching "${consultantName}"`,
       });
     } catch (error) {
