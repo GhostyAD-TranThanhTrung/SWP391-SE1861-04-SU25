@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Crafft_Data, resultInitalState as crafftInitial, assessRiskLevel as assessCrafftRisk } from '../QuizData/Crafft-Data';
 import { Assist_Data, resultInitalState as assistInitial, assessRiskLevel as assessAssistRisk } from '../QuizData/Assist_Data';
+import { motion } from 'framer-motion';
 import '../styles/ExamPage.scss';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -13,21 +14,26 @@ const ExamPage = () => {
     const [selectedOption, setSelectedOption] = useState(null);
     const [quizData, setQuizData] = useState(null);
     const [assessRiskLevel, setAssessRiskLevel] = useState(() => () => 'Chưa xác định');
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const lowerType = type.toLowerCase();
+        setIsLoading(true);
 
-        if (lowerType === 'crafft') {
-            setQuizData(Crafft_Data);
-            setResult(crafftInitial);
-            setAssessRiskLevel(() => assessCrafftRisk);
-        } else if (lowerType === 'assist') {
-            setQuizData(Assist_Data);
-            setResult(assistInitial);
-            setAssessRiskLevel(() => assessAssistRisk);
-        } else {
-            navigate('/choosetype');
-        }
+        setTimeout(() => {
+            if (lowerType === 'crafft') {
+                setQuizData(Crafft_Data);
+                setResult(crafftInitial);
+                setAssessRiskLevel(() => assessCrafftRisk);
+            } else if (lowerType === 'assist') {
+                setQuizData(Assist_Data);
+                setResult(assistInitial);
+                setAssessRiskLevel(() => assessAssistRisk);
+            } else {
+                navigate('/choosetype');
+            }
+            setIsLoading(false);
+        }, 500);
     }, [type, navigate]);
 
     const handleOptionSelect = (option) => {
@@ -36,7 +42,7 @@ const ExamPage = () => {
 
     const handleNextQuestion = () => {
         if (selectedOption === null) {
-            alert('Please select an option before proceeding.');
+            alert('Vui lòng chọn một câu trả lời trước khi tiếp tục.');
             return;
         }
 
@@ -71,104 +77,141 @@ const ExamPage = () => {
     };
 
     const handleQuit = () => {
-        if (window.confirm('Are you sure you want to quit the assessment?')) {
+        if (window.confirm('Bạn có chắc chắn muốn thoát khỏi bài đánh giá không?')) {
             navigate('/choosetype');
         }
     };
 
+    if (isLoading) {
+        return (
+            <div className="exam-page">
+                <div className="container d-flex justify-content-center align-items-center">
+                    <div className="spinner-border text-primary" role="status">
+                        <span className="visually-hidden">Đang tải...</span>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     if (!quizData || !result) {
-        return <div className="container text-center mt-5">Loading...</div>;
+        return (
+            <div className="exam-page">
+                <div className="container">
+                    <div className="card">
+                        <div className="card-body">
+                            <div className="alert alert-danger">
+                                Đã xảy ra lỗi khi tải dữ liệu. Vui lòng thử lại sau.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     const currentQuestion = quizData.questions[currentQuestionIndex];
     const progress = ((currentQuestionIndex + 1) / quizData.questions.length) * 100;
 
     return (
-        <div className="exam-page">
-            <div className="container py-5">
-                <div className="row justify-content-center">
-                    <div className="col-lg-8">
-                        <div className="card shadow-sm">
-                            <div className="card-header bg-primary text-white">
-                                <h3 className="mb-0">{type.toUpperCase()} Assessment</h3>
-                            </div>
-                            <div className="card-body">
-                                {/* Progress Bar */}
-                                <div className="progress mb-4">
-                                    <div
-                                        className="progress-bar bg-success"
-                                        role="progressbar"
-                                        style={{ width: `${progress}%` }}
-                                        aria-valuenow={progress}
-                                        aria-valuemin="0"
-                                        aria-valuemax="100"
-                                    >
-                                        {Math.round(progress)}%
-                                    </div>
-                                </div>
+        <motion.div
+            className="exam-page"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+        >
+            <div className="container">
+                <motion.div
+                    className="card"
+                    initial={{ y: 20 }}
+                    animate={{ y: 0 }}
+                    transition={{ duration: 0.5 }}
+                >
+                    <div className="card-header">
+                        <h3>{type.toUpperCase()} Assessment</h3>
+                        <p>Câu hỏi {currentQuestionIndex + 1} / {quizData.questions.length}</p>
+                    </div>
+                    <div className="card-body">
+                        <div className="progress">
+                            <motion.div
+                                className="progress-bar"
+                                initial={{ width: 0 }}
+                                animate={{ width: `${progress}%` }}
+                                transition={{ duration: 0.5 }}
+                            >
+                                {Math.round(progress)}%
+                            </motion.div>
+                        </div>
 
-                                {/* Question Section */}
-                                <div className="question-section mb-4">
-                                    <h4 className="question-text">
-                                        {currentQuestionIndex + 1}. {currentQuestion.question}
-                                    </h4>
-                                    <div className="options">
-                                        {currentQuestion.options.map((option) => (
-                                            <div className="form-check mb-2" key={option.id}>
-                                                <input
-                                                    className="form-check-input"
-                                                    type="radio"
-                                                    name="option"
-                                                    id={`option-${option.id}`}
-                                                    checked={selectedOption?.id === option.id}
-                                                    onChange={() => handleOptionSelect(option)}
-                                                />
-                                                <label
-                                                    className="form-check-label"
-                                                    htmlFor={`option-${option.id}`}
-                                                >
-                                                    {option.text}
-                                                </label>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
+                        <motion.div
+                            className="question-section"
+                            key={currentQuestionIndex}
+                            initial={{ x: 20, opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            transition={{ duration: 0.3 }}
+                        >
+                            <h4 className="question-text">
+                                {currentQuestion.question}
+                            </h4>
+                            <div className="options">
+                                {currentQuestion.options.map((option, index) => (
+                                    <motion.div
+                                        className="form-check"
+                                        key={option.id}
+                                        initial={{ x: -20, opacity: 0 }}
+                                        animate={{ x: 0, opacity: 1 }}
+                                        transition={{ duration: 0.3, delay: index * 0.1 }}
+                                        onClick={() => handleOptionSelect(option)}
+                                    >
+                                        <input
+                                            className="form-check-input"
+                                            type="radio"
+                                            name="option"
+                                            id={`option-${option.id}`}
+                                            checked={selectedOption?.id === option.id}
+                                            onChange={() => { }}
+                                        />
+                                        <label
+                                            className="form-check-label"
+                                            htmlFor={`option-${option.id}`}
+                                        >
+                                            {option.text}
+                                        </label>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        </motion.div>
 
-                                {/* Navigation Buttons */}
-                                <div className="d-flex justify-content-between">
-                                    <button
-                                        className="btn btn-outline-secondary"
-                                        onClick={handlePreviousQuestion}
-                                        disabled={currentQuestionIndex === 0}
-                                    >
-                                        <i className="bi bi-arrow-left me-2"></i>
-                                        Previous
-                                    </button>
-                                    <button
-                                        className="btn btn-primary"
-                                        onClick={handleNextQuestion}
-                                    >
-                                        {currentQuestionIndex === quizData.questions.length - 1
-                                            ? 'Finish'
-                                            : 'Next'}
-                                        <i className="bi bi-arrow-right ms-2"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            <div className="card-footer text-end">
-                                <button
-                                    className="btn btn-danger"
-                                    onClick={handleQuit}
-                                >
-                                    <i className="bi bi-x-circle me-2"></i>
-                                    Quit Assessment
-                                </button>
-                            </div>
+                        <div className="btn-group">
+                            <button
+                                className="btn btn-outline-secondary"
+                                onClick={handlePreviousQuestion}
+                                disabled={currentQuestionIndex === 0}
+                            >
+                                Câu trước
+                            </button>
+                            <button
+                                className="btn btn-primary"
+                                onClick={handleNextQuestion}
+                            >
+                                {currentQuestionIndex === quizData.questions.length - 1
+                                    ? 'Hoàn thành'
+                                    : 'Câu tiếp theo'}
+                            </button>
                         </div>
                     </div>
-                </div>
+                    <div className="quit-button">
+                        <button
+                            className="btn btn-danger"
+                            onClick={handleQuit}
+                        >
+                            <i className="fas fa-times"></i>
+                            Thoát khỏi bài đánh giá
+                        </button>
+                    </div>
+                </motion.div>
             </div>
-        </div>
+        </motion.div>
     );
 };
 

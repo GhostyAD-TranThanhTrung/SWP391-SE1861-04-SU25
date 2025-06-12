@@ -20,6 +20,8 @@ import StaffListPage from "./pages/StaffListPage";
 import SettingSidebar from "./components/SettingSidebar";
 import ChooseTypeExam from "./pages/ChooseTypeExam";
 import ExamPage from "./pages/ExamPage";
+import BookingProfile from "./pages/BookingProfile";
+import ResultPage from "./pages/ResultPage";
 
 //Import layout
 import AdminLayout from "./layout/AdminLayout";
@@ -50,6 +52,8 @@ const AppLayout = () => {
           <Route path="/choose-role" element={<ChooseRolePage />} />
           <Route path="/choosetype" element={<ChooseTypeExam />} />
           <Route path="/exam/:type" element={<ExamPage />} />
+          <Route path="/consultant/:id" element={<BookingProfile />} />
+          <Route path="/result" element={<ResultPage />} />
 
           {/* Admin */}
           <Route path="/admin/login" element={<AdminLoginPage />} />

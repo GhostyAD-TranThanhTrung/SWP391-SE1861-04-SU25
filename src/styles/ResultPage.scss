@@ -1,0 +1,187 @@
+.result-page {
+    min-height: 100vh;
+    padding: 6rem 0;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+
+    .container {
+        max-width: 1200px;
+        width: 90%;
+        margin: 0 auto;
+    }
+
+    .result-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        max-height: none;
+        margin: 0 auto;
+        width: 100%;
+
+        .card-header {
+            background: #4a90e2;
+            color: white;
+            padding: 1.8rem;
+            text-align: center;
+            border-bottom: none;
+
+            h2 {
+                margin: 0;
+                font-weight: 600;
+                font-size: 2rem;
+            }
+        }
+
+        .card-body {
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+    }
+
+    .result-summary {
+        text-align: center;
+        margin-bottom: 0;
+
+        .risk-level {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 1rem 0;
+            padding: 1rem;
+            border-radius: 10px;
+
+            &.low {
+                background-color: #d4edda;
+                color: #155724;
+            }
+
+            &.moderate {
+                background-color: #fff3cd;
+                color: #856404;
+            }
+
+            &.high {
+                background-color: #f8d7da;
+                color: #721c24;
+            }
+        }
+    }
+
+    .result-details {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        text-align: center;
+        margin-top: -1rem;
+
+        .detail-item {
+            display: inline-block;
+            margin: 0 auto;
+
+            .score-circle {
+                width: 120px;
+                height: 120px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #4a90e2, #63b3ed);
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                margin: 0 auto;
+                box-shadow: 0 8px 20px rgba(74, 144, 226, 0.3);
+
+                .score-value {
+                    font-size: 3rem;
+                    font-weight: 700;
+                    color: white;
+                    line-height: 1;
+                    margin-bottom: 0.3rem;
+                }
+
+                .score-label {
+                    font-size: 1rem;
+                    color: rgba(255, 255, 255, 0.9);
+                    font-weight: 500;
+                }
+            }
+        }
+    }
+
+    .recommendations {
+        margin-top: 1rem;
+        padding: 2rem;
+        background: #e8f4ff;
+        border-radius: 10px;
+
+        h4 {
+            color: #2d3748;
+            margin-bottom: 1.5rem;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        ul {
+            list-style-type: none;
+            padding-left: 0;
+            margin-bottom: 0;
+
+            li {
+                padding: 0.8rem 0;
+                color: #4a5568;
+                position: relative;
+                padding-left: 2rem;
+                font-size: 1.1rem;
+
+                &:before {
+                    content: "•";
+                    color: #4a90e2;
+                    font-weight: bold;
+                    position: absolute;
+                    left: 0.5rem;
+                    font-size: 1.5rem;
+                }
+            }
+        }
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1.5rem;
+        justify-content: center;
+        margin-top: 2.5rem;
+
+        .btn {
+            padding: 1rem 2.5rem;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+
+            &:hover {
+                transform: translateY(-2px);
+            }
+
+            &.btn-primary {
+                background: linear-gradient(135deg, #4a90e2, #63b3ed);
+                border: none;
+                box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+
+                &:hover {
+                    box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+                }
+            }
+
+            &.btn-outline-secondary {
+                border: 2px solid #718096;
+                color: #718096;
+
+                &:hover {
+                    background: #718096;
+                    color: white;
+                }
+            }
+        }
+    }
+}

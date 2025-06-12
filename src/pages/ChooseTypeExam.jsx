@@ -25,7 +25,7 @@ const ChooseTypeExam = () => {
             title: 'ASSIST Assessment',
             subtitle: 'WHO Screening Tool',
             description: 'A comprehensive WHO-developed screening tool for identifying substance use patterns and related health risks.',
-            features: ['Quick 8-question assessment', 'Evidence-based results', 'Risk level identification'],
+            features: ['Quick 15-questions assessment', 'Evidence-based results', 'Risk level identification'],
             icon: 'bi-clipboard-check'
         },
         {
@@ -49,7 +49,7 @@ const ChooseTypeExam = () => {
                                 Choose Your Assessment Type
                             </h1>
                             <p className="hero-subtitle">
-                                Select the most appropriate screening tool for your needs. Both assessments 
+                                Select the most appropriate screening tool for your needs. Both assessments
                                 are professionally validated and provide valuable insights into substance use patterns.
                             </p>
                         </div>
@@ -57,7 +57,7 @@ const ChooseTypeExam = () => {
                 </div>
             </section>
 
-            <div className="container" style={{paddingTop: '5rem', paddingBottom: '5rem'}}>
+            <div className="container" style={{ paddingTop: '5rem', paddingBottom: '5rem' }}>
                 {/* Assessment Options Section */}
                 <section className="assessment-section">
                     <div className="section-header text-center mb-5">
@@ -108,8 +108,8 @@ const ChooseTypeExam = () => {
                     <div className="row justify-content-center">
                         <div className="col-lg-6 text-center">
                             <div className="action-buttons">
-                                <button 
-                                    className="btn btn-primary btn-lg me-3" 
+                                <button
+                                    className="btn btn-primary btn-lg me-3"
                                     onClick={handleConfirm}
                                     disabled={!selectedType}
                                 >
@@ -141,8 +141,8 @@ const ChooseTypeExam = () => {
                                     Privacy & Confidentiality
                                 </h3>
                                 <p className="info-description">
-                                    Your assessment results are completely confidential and are used solely 
-                                    for providing you with personalized recommendations. We do not store or 
+                                    Your assessment results are completely confidential and are used solely
+                                    for providing you with personalized recommendations. We do not store or
                                     share your personal information without your explicit consent.
                                 </p>
                                 <div className="info-features">

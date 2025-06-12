@@ -1,84 +1,139 @@
 .footer {
-    background-color: #6fb7bd;
-    color: black;
-    border-top: 1px solid black;
-    width: 100%;
-    box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.1);
+    background-color: #e3f2fd;
+    color: #1e88e5;
 
-    .footer-content {
-        max-width: 1200px;
-        margin: 0 auto;
+    .footer-top {
+        background-color: #e3f2fd;
+        border-top: 1px solid #bbdefb;
+    }
+
+    .footer-logo {
+        margin-bottom: 1.5rem;
+
+        img {
+            max-width: 100%;
+            height: auto;
+            object-fit: contain;
+        }
+    }
+
+    .footer-brand {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 1rem;
+    }
+
+    .footer-about {
+        p {
+            color: #42a5f5;
+            line-height: 1.6;
+        }
+    }
+
+    .footer-contact {
+        p {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            color: #42a5f5;
+
+            svg {
+                color: #1e88e5;
+                margin-right: 10px;
+            }
+        }
     }
 
     .footer-title {
-        font-weight: bold;
-        color: #1a3c47;
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #1976d2;
+        margin-bottom: 1.5rem;
     }
 
-    .footer-link {
-        margin-top: 4px;
-        font-size: 0.95rem;
+    .footer-links {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+
+        li {
+            margin-bottom: 0.8rem;
+
+            a {
+                color: #42a5f5;
+                text-decoration: none;
+                transition: color 0.3s ease;
+
+                &:hover {
+                    color: #1976d2;
+                }
+            }
+        }
     }
 
-    .footer-divider {
-        border-top: 2px solid #1a3c47;
-        width: 80%;
-        margin-left: auto;
-        margin-right: auto;
+    .footer-newsletter {
+        .form-control {
+            background-color: #ffffff;
+            border: 1px solid #bbdefb;
+            padding: 0.8rem;
+            color: #1976d2;
+
+            &::placeholder {
+                color: #90caf9;
+            }
+
+            &:focus {
+                box-shadow: none;
+                border-color: #1e88e5;
+                background-color: #ffffff;
+            }
+        }
+
+        .btn-primary {
+            background-color: #1e88e5;
+            border: none;
+            padding: 0.8rem 2rem;
+            width: 100%;
+            transition: background-color 0.3s ease;
+
+            &:hover {
+                background-color: #1976d2;
+            }
+        }
     }
 
-    .copyright {
-        font-size: 0.9rem;
-        color: #1a3c47;
+    .footer-bottom {
+        background-color: #bbdefb;
+        border-top: 1px solid #90caf9;
+
+        p {
+            margin: 0;
+            color: #1976d2;
+        }
     }
 
-    .footer-social-icons {
+    .footer-social {
         display: flex;
-        gap: 16px;
+        gap: 1rem;
 
-        .icon {
-            font-size: 24px;
-            cursor: pointer;
-            transition: color 0.3s ease;
+        .social-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background-color: #ffffff;
+            color: #1e88e5;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 
-            &.facebook {
-                color: #3b5998;
-
-                &:hover {
-                    color: #2a4373;
-                }
-            }
-
-            &.instagram {
-                color: #e1306c;
-
-                &:hover {
-                    color: #b12656;
-                }
-            }
-
-            &.linkedin {
-                color: #0077b5;
-
-                &:hover {
-                    color: #005f8f;
-                }
-            }
-
-            &.twitter {
-                color: #1da1f2;
-
-                &:hover {
-                    color: #1781c2;
-                }
-            }
-
-            &.youtube {
-                color: #ff0000;
-
-                &:hover {
-                    color: #cc0000;
-                }
+            &:hover {
+                background-color: #1e88e5;
+                color: #ffffff;
+                transform: translateY(-3px);
             }
         }
     }

@@ -187,8 +187,6 @@ export const Assist_Data = {
 
 export const resultInitalState = {
     score: 0,
-    correctAnswers: 0,
-    wrongAnswers: 0,
     riskLevel: "Chưa xác định",
 };
 
