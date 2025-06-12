@@ -34,9 +34,9 @@ const HomePage = () => {
                     allComplete = false;
                 }
             });
-            
+
             setStats({ ...counters });
-            
+
             if (allComplete) {
                 clearInterval(timer);
             }
@@ -139,7 +139,7 @@ const HomePage = () => {
                                         <br />Starts Here
                                     </h1>
                                     <p className="hero-description">
-                                        Discover comprehensive resources, expert guidance, and a supportive community 
+                                        Discover comprehensive resources, expert guidance, and a supportive community
                                         dedicated to substance abuse prevention, recovery, and healing.
                                     </p>
                                     <div className="hero-buttons">
@@ -248,7 +248,7 @@ const HomePage = () => {
                     <div className="row gx-3">
                         {renderCards(cardData([
                             "The Truth About Drugs",
-                            "The Truth About Prescription Drug Abuse", 
+                            "The Truth About Prescription Drug Abuse",
                             "Recovery Pathways - Online Course",
                             "Youth Drug Prevention Toolkit"
                         ], [PreventionImg, Image2, SupportImg, Image3]), "/course")}
@@ -271,7 +271,7 @@ const HomePage = () => {
                         {renderCards(cardData([
                             "Substance Abuse: Awareness & Prevention",
                             "12 ways to prevent drug abuse",
-                            "Drug Abuse Awareness", 
+                            "Drug Abuse Awareness",
                             "Effects of Long-Term Drug Use"
                         ], [PreventionImg, Image1, Image2, Image3]), "/blog")}
                     </div>

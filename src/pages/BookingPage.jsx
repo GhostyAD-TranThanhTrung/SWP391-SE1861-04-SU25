@@ -46,44 +46,39 @@ const BookingPage = () => {
         }
     };
 
-    // Transform API data to component format based on actual database structure
+    // Transform API data to component format based on updated controller structure
     const transformConsultantsArray = (apiConsultants) => {
         if (!apiConsultants || !Array.isArray(apiConsultants)) return [];
 
         return apiConsultants.map(apiConsultant => {
             return {
-                id_consultant: apiConsultant.id || 'N/A',
-                user_id: apiConsultant.userId || 'N/A',
+                // Consultant table fields
+                id_consultant: apiConsultant.id_consultant || 'N/A',
                 cost: apiConsultant.cost || 'N/A',
                 certification: apiConsultant.certification || 'N/A',
-                bios: apiConsultant.bios || 'N/A',
-                user: {
-                    user_id: apiConsultant.userId || 'N/A',
-                    role: apiConsultant.role || 'N/A',
-                    email: apiConsultant.email || 'N/A',
-                    status: apiConsultant.status || 'N/A'
-                },
-                profile: {
-                    name: apiConsultant.name || 'N/A',
-                    job: apiConsultant.job || 'N/A',
-                    date_of_birth: apiConsultant.dateOfBirth || 'N/A',
-                    bio_json: 'N/A' // Will be fetched separately if needed
-                }
+                speciality: apiConsultant.speciality || 'N/A',
+
+                // Users table fields
+                user_id: apiConsultant.user_id || 'N/A',
+                date_create: apiConsultant.date_create || 'N/A',
+                role: apiConsultant.role || 'N/A',
+                email: apiConsultant.email || 'N/A',
+                status: apiConsultant.status || 'N/A',
+                img_link: apiConsultant.img_link || null,
+
+                // Profile table fields
+                name: apiConsultant.name || 'N/A',
+                bio_json: apiConsultant.bio_json || 'N/A',
+                date_of_birth: apiConsultant.date_of_birth || 'N/A',
+                job: apiConsultant.job || 'N/A'
             };
         });
     };
 
-    // Get specialization from bios text based on actual data
-    const getSpecializationFromBios = (bios) => {
-        if (!bios || bios === 'N/A') return 'N/A';
-
-        const lowerBios = bios.toLowerCase();
-        if (lowerBios.includes('prevention')) return 'Prevention Specialist';
-        if (lowerBios.includes('counselor') || lowerBios.includes('therapy')) return 'Counseling & Therapy';
-        if (lowerBios.includes('community')) return 'Community Outreach';
-        if (lowerBios.includes('clinical') || lowerBios.includes('psychologist')) return 'Clinical Psychology';
-        if (lowerBios.includes('rehab') || lowerBios.includes('recovery')) return 'Rehabilitation';
-        return 'General Consultation';
+    // Get specialization from the speciality field (no longer need to parse bios)
+    const getSpecializationFromSpeciality = (speciality) => {
+        if (!speciality || speciality === 'N/A') return 'General Consultation';
+        return speciality;
     };
 
     // Format time from API time format
@@ -187,7 +182,7 @@ const BookingPage = () => {
     ];
 
     const filteredConsultants = consultants.filter(consultant => {
-        const specialization = getSpecializationFromBios(consultant.bios);
+        const specialization = getSpecializationFromSpeciality(consultant.speciality);
         const specializationMatch = selectedSpecialization === 'all' || specialization === selectedSpecialization;
 
         // Time slot filtering based on database slots (9 AM - 5 PM)
@@ -314,21 +309,38 @@ const BookingPage = () => {
                                 <div className="consultant-card">
                                     <div className="consultant-header">
                                         <div className="consultant-image">
-                                            <img src={Image} alt={consultant.profile?.name !== 'N/A' ? consultant.profile?.name : 'Consultant'} className="img-fluid" />
+                                            <img
+                                                src={consultant.img_link ? `http://localhost:3000${consultant.img_link}` : Image}
+                                                alt={consultant.name !== 'N/A' ? consultant.name : 'Consultant'}
+                                                className="img-fluid"
+                                                onError={(e) => {
+                                                    e.target.onerror = null; // Prevent infinite loop
+                                                    e.target.src = Image; // Fallback to default image
+                                                }}
+                                            />
                                         </div>
                                         <div className="consultant-info">
-                                            <h4 className="consultant-name">{consultant.profile?.name !== 'N/A' ? consultant.profile?.name : 'N/A'}</h4>
-                                            <p className="consultant-title">{consultant.profile?.job !== 'N/A' ? consultant.profile?.job : 'N/A'}</p>
+                                            <h4 className="consultant-name">{consultant.name !== 'N/A' ? consultant.name : 'N/A'}</h4>
+                                            <p className="consultant-title">{consultant.job !== 'N/A' ? consultant.job : 'N/A'}</p>
                                             <p className="consultant-specialization">
                                                 <i className="bi bi-award me-2"></i>
-                                                {getSpecializationFromBios(consultant.bios)}
+                                                {getSpecializationFromSpeciality(consultant.speciality)}
                                             </p>
                                         </div>
                                     </div>
 
                                     <div className="consultant-body">
                                         <p className="consultant-description">
-                                            {consultant.bios !== 'N/A' ? consultant.bios : 'No biography available'}
+                                            {consultant.bio_json !== 'N/A' ? (() => {
+                                                try {
+                                                    const bioData = typeof consultant.bio_json === 'string'
+                                                        ? JSON.parse(consultant.bio_json)
+                                                        : consultant.bio_json;
+                                                    return bioData?.bio || consultant.bio_json;
+                                                } catch (error) {
+                                                    return consultant.bio_json;
+                                                }
+                                            })() : 'No biography available'}
                                         </p>
 
                                         <div className="consultant-qualifications">

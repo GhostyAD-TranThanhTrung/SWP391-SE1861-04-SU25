@@ -1,12 +1,20 @@
 .result-page {
     min-height: 100vh;
-    padding: 6rem 0;
+    width: 100vw;
+    margin: 0;
+    padding: 0;
     background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-x: hidden;
 
     .container {
-        max-width: 1200px;
+        max-width: 800px;
         width: 90%;
         margin: 0 auto;
+        padding: 2rem;
+        margin-top: 80px;
     }
 
     .result-card {
@@ -21,19 +29,19 @@
         .card-header {
             background: #4a90e2;
             color: white;
-            padding: 1.8rem;
+            padding: 1rem;
             text-align: center;
             border-bottom: none;
 
             h2 {
                 margin: 0;
-                font-weight: 600;
-                font-size: 2rem;
+                font-weight: 400;
+                font-size: 1.5rem;
             }
         }
 
         .card-body {
-            padding: 2.5rem;
+            padding: 1rem;
             display: flex;
             flex-direction: column;
             gap: 1.5rem;
@@ -74,15 +82,15 @@
         padding: 1.5rem;
         margin-bottom: 1rem;
         text-align: center;
-        margin-top: -1rem;
+        margin-top: -3rem;
 
         .detail-item {
             display: inline-block;
             margin: 0 auto;
 
             .score-circle {
-                width: 120px;
-                height: 120px;
+                width: 110px;
+                height: 110px;
                 border-radius: 50%;
                 background: linear-gradient(135deg, #4a90e2, #63b3ed);
                 display: flex;
@@ -110,7 +118,7 @@
     }
 
     .recommendations {
-        margin-top: 1rem;
+        margin-top: -2.5rem;
         padding: 2rem;
         background: #e8f4ff;
         border-radius: 10px;
@@ -150,7 +158,7 @@
         display: flex;
         gap: 1.5rem;
         justify-content: center;
-        margin-top: 2.5rem;
+        margin-top: -0.5rem;
 
         .btn {
             padding: 1rem 2.5rem;
