@@ -329,8 +329,13 @@ class AssessmentController {
     await queryRunner.startTransaction();
 
     try {
-      const { user_id, score, type } = req.body;
-
+      const { user_id, score, type, results } = req.body;
+      if (!results || !Array.isArray(results) || results.length === 0 || results === undefined || results === null) {
+        return res.status(400).json({
+          success: false,
+          message: "Results array is required and cannot be empty",
+        });
+      }
       // Validate required fields
       if (!user_id || score === undefined || score === null) {
         await queryRunner.rollbackTransaction();
@@ -379,10 +384,21 @@ class AssessmentController {
       const action = await actionRepository
         .createQueryBuilder("action")
         .where(
-          "action.type= :type AND :score BETWEEN " +
-          "CAST(LEFT(action.range, CHARINDEX('-', action.range) - 1) AS INT) " +
-          "AND " +
-          "CAST(SUBSTRING(action.range, CHARINDEX('-', action.range) + 1, LEN(action.range)) AS INT)",
+          "action.type = :type " +
+          "AND ISNUMERIC(LEFT(action.range, 1)) = 1 " +
+          "AND (" +
+          "  (CHARINDEX('-', action.range) > 0 AND :score BETWEEN " +
+          "    CAST(LEFT(action.range, CHARINDEX('-', action.range) - 1) AS INT) " +
+          "    AND " +
+          "    CAST(SUBSTRING(action.range, CHARINDEX('-', action.range) + 1, LEN(action.range)) AS INT)" +
+          "  ) " +
+          "  OR (CHARINDEX('+', action.range) > 0 AND " +
+          "    :score >= CAST(LEFT(action.range, CHARINDEX('+', action.range) - 1) AS INT)" +
+          "  ) " +
+          "  OR (CHARINDEX('-', action.range) = 0 AND CHARINDEX('+', action.range) = 0 AND " +
+          "    :score = CAST(action.range AS INT)" +
+          "  )" +
+          ")",
           { score: numericScore, type: type }
         )
         .getOne();
@@ -397,11 +413,10 @@ class AssessmentController {
 
       // Create assessment with the score and action
       const assessmentRepository = queryRunner.manager.getRepository("Assessment");
-
       const newAssessment = assessmentRepository.create({
         user_id: parseInt(user_id),
         type: type || "test", // Default type if not provided
-        result_json: numericScore + "",
+        result_json: JSON.stringify({ result: results, score: score }),
         create_at: new Date(),
         action_id: action.action_id,
       });
