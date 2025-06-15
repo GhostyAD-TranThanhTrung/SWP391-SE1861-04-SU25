@@ -1,0 +1,2540 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "SWP391 API",
+        "version": "1.0.0",
+        "description": "API documentation for SWP391 project"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:3000",
+            "description": "Development server"
+        }
+    ],
+    "paths": {
+        "/": {
+            "get": {
+                "summary": "Get all users",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                }
+            }
+        },
+        "/api/data": {
+            "get": {
+                "summary": "Test API endpoint",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                }
+            }
+        },
+        "/api/login": {
+            "post": {
+                "summary": "User login",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "password": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login successful"
+                    },
+                    "401": {
+                        "description": "Invalid credentials"
+                    }
+                }
+            }
+        },
+        "/api/register": {
+            "post": {
+                "summary": "User registration",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "password": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "User created successfully"
+                    },
+                    "400": {
+                        "description": "Registration failed"
+                    }
+                }
+            }
+        },
+        "/api/google-login": {
+            "post": {
+                "summary": "Google login",
+                "responses": {
+                    "200": {
+                        "description": "Google login successful"
+                    }
+                }
+            }
+        },
+        "/api/google-register": {
+            "post": {
+                "summary": "Google registration",
+                "responses": {
+                    "201": {
+                        "description": "Google registration successful"
+                    }
+                }
+            }
+        },
+        "/api/profile": {
+            "get": {
+                "summary": "Get user profile (protected route)",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Profile data retrieved successfully"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                }
+            },
+            "post": {
+                "summary": "Create new user profile",
+                "description": "Create a new profile for the authenticated user. User ID is automatically extracted from JWT token.",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "description": "User's display name",
+                                        "example": "John Doe"
+                                    },
+                                    "certification": {
+                                        "type": "string",
+                                        "description": "Professional certifications",
+                                        "example": "Certified Life Coach"
+                                    },
+                                    "workHoursJson": {
+                                        "type": "string",
+                                        "description": "Work schedule in JSON format",
+                                        "example": "{\"monday\": \"9-17\", \"tuesday\": \"9-17\"}"
+                                    },
+                                    "bioJson": {
+                                        "type": "string",
+                                        "description": "Biography/description in JSON format",
+                                        "example": "{\"intro\": \"Professional counselor with 5 years experience\"}"
+                                    },
+                                    "dateOfBirth": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Date of birth",
+                                        "example": "1990-01-15"
+                                    },
+                                    "job": {
+                                        "type": "string",
+                                        "description": "Current job/profession",
+                                        "example": "Mental Health Counselor"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Profile created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Profile created successfully"
+                                        },
+                                        "profile": {
+                                            "type": "object",
+                                            "properties": {
+                                                "user_id": {
+                                                    "type": "integer",
+                                                    "example": 123
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "John Doe"
+                                                },
+                                                "certification": {
+                                                    "type": "string",
+                                                    "example": "Certified Life Coach"
+                                                },
+                                                "works_hours_json": {
+                                                    "type": "string",
+                                                    "example": "{\"monday\": \"9-17\"}"
+                                                },
+                                                "bio_json": {
+                                                    "type": "string",
+                                                    "example": "{\"intro\": \"Professional counselor\"}"
+                                                },
+                                                "date_of_birth": {
+                                                    "type": "string",
+                                                    "format": "date",
+                                                    "example": "1990-01-15"
+                                                },
+                                                "job": {
+                                                    "type": "string",
+                                                    "example": "Mental Health Counselor"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Invalid data format"
+                    },
+                    "401": {
+                        "description": "Unauthorized - Invalid or missing JWT token"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    },
+                    "409": {
+                        "description": "Conflict - Profile already exists for this user"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/profile/{userId}": {
+            "get": {
+                "summary": "Get specific user profile by ID",
+                "description": "Retrieve a specific user's profile information by their user ID. Requires authentication.",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "required": true,
+                        "description": "The ID of the user whose profile to retrieve",
+                        "schema": {
+                            "type": "integer",
+                            "example": 123
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Profile retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Profile retrieved successfully"
+                                        },
+                                        "profile": {
+                                            "type": "object",
+                                            "properties": {
+                                                "user_id": {
+                                                    "type": "integer",
+                                                    "example": 123
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "John Doe"
+                                                },
+                                                "certification": {
+                                                    "type": "string",
+                                                    "example": "Certified Life Coach"
+                                                },
+                                                "works_hours_json": {
+                                                    "type": "string",
+                                                    "example": "{\"monday\": \"9-17\"}"
+                                                },
+                                                "bio_json": {
+                                                    "type": "string",
+                                                    "example": "{\"intro\": \"Professional counselor\"}"
+                                                },
+                                                "date_of_birth": {
+                                                    "type": "string",
+                                                    "format": "date",
+                                                    "example": "1990-01-15"
+                                                },
+                                                "job": {
+                                                    "type": "string",
+                                                    "example": "Mental Health Counselor"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - User ID is required"
+                    },
+                    "401": {
+                        "description": "Unauthorized - Invalid or missing JWT token"
+                    },
+                    "404": {
+                        "description": "Profile not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/user/me": {
+            "get": {
+                "summary": "Get current user's profile",
+                "description": "Retrieve the authenticated user's complete profile information including user data and profile details. User identity is determined from the JWT token.",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Current user profile retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Profile retrieved successfully"
+                                        },
+                                        "user": {
+                                            "type": "object",
+                                            "properties": {
+                                                "user_id": {
+                                                    "type": "integer",
+                                                    "example": 123
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "user@example.com"
+                                                },
+                                                "role": {
+                                                    "type": "string",
+                                                    "example": "user"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "active"
+                                                },
+                                                "date_create": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2024-01-15T10:00:00.000Z"
+                                                }
+                                            }
+                                        },
+                                        "profile": {
+                                            "type": "object",
+                                            "nullable": true,
+                                            "properties": {
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "John Doe"
+                                                },
+                                                "certification": {
+                                                    "type": "string",
+                                                    "example": "Certified Life Coach"
+                                                },
+                                                "works_hours_json": {
+                                                    "type": "string",
+                                                    "example": "{\"monday\": \"9-17\", \"tuesday\": \"9-17\"}"
+                                                },
+                                                "bio_json": {
+                                                    "type": "string",
+                                                    "example": "{\"intro\": \"Professional counselor with 5 years experience\"}"
+                                                },
+                                                "date_of_birth": {
+                                                    "type": "string",
+                                                    "format": "date",
+                                                    "example": "1990-01-15"
+                                                },
+                                                "job": {
+                                                    "type": "string",
+                                                    "example": "Mental Health Counselor"
+                                                }
+                                            }
+                                        },
+                                        "hasProfile": {
+                                            "type": "boolean",
+                                            "example": true,
+                                            "description": "Indicates whether the user has created a profile"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Invalid or missing JWT token",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Unauthorized"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "User not found"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Server error while fetching profile"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/staff": {
+            "get": {
+                "summary": "Get all staff",
+                "description": "Retrieve all staff members (admin and consultant roles) with their profile information",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Staff retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/StaffMember"
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Staff retrieved successfully"
+                                        },
+                                        "count": {
+                                            "type": "integer",
+                                            "example": 5
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            },
+            "post": {
+                "summary": "Create new staff",
+                "description": "Create a new staff member with admin or consultant role",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateStaffRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Staff created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "user": {
+                                                    "$ref": "#/components/schemas/User"
+                                                },
+                                                "profile": {
+                                                    "$ref": "#/components/schemas/Profile"
+                                                }
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Staff created successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Invalid data or role must be admin/consultant"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "409": {
+                        "description": "Username or email already exists"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/staff/{staffId}": {
+            "put": {
+                "summary": "Update staff by ID",
+                "description": "Update staff member information including user and profile data",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "staffId",
+                        "in": "path",
+                        "required": true,
+                        "description": "The ID of the staff member to update",
+                        "schema": {
+                            "type": "integer",
+                            "example": 123
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateStaffRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Staff updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "user": {
+                                                    "$ref": "#/components/schemas/User"
+                                                },
+                                                "profile": {
+                                                    "$ref": "#/components/schemas/Profile"
+                                                }
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Staff updated successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - User is not a staff member"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Staff not found"
+                    },
+                    "409": {
+                        "description": "Username or email already exists"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Delete staff by ID",
+                "description": "Delete a staff member and their associated profile",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "staffId",
+                        "in": "path",
+                        "required": true,
+                        "description": "The ID of the staff member to delete",
+                        "schema": {
+                            "type": "integer",
+                            "example": 123
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Staff deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Staff deleted successfully"
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "deleted_user_id": {
+                                                    "type": "integer",
+                                                    "example": 123
+                                                },
+                                                "deleted_profile": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - User is not a staff member"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Staff not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/staff/{staffName}": {
+            "get": {
+                "summary": "Search staff by name",
+                "description": "Search for staff members by username or full name",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "staffName",
+                        "in": "path",
+                        "required": true,
+                        "description": "The name to search for (searches username and full name)",
+                        "schema": {
+                            "type": "string",
+                            "example": "john"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Staff search results",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/StaffMember"
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Found 2 staff member(s) matching \"john\""
+                                        },
+                                        "searchTerm": {
+                                            "type": "string",
+                                            "example": "john"
+                                        },
+                                        "count": {
+                                            "type": "integer",
+                                            "example": 2
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Staff name parameter is required"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/staff/statistics": {
+            "get": {
+                "summary": "Get staff statistics",
+                "description": "Get comprehensive statistics about staff members",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Staff statistics retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "totalStaff": {
+                                                    "type": "integer",
+                                                    "example": 10
+                                                },
+                                                "activeStaff": {
+                                                    "type": "integer",
+                                                    "example": 8
+                                                },
+                                                "inactiveStaff": {
+                                                    "type": "integer",
+                                                    "example": 2
+                                                },
+                                                "adminCount": {
+                                                    "type": "integer",
+                                                    "example": 3
+                                                },
+                                                "consultantCount": {
+                                                    "type": "integer",
+                                                    "example": 7
+                                                }
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Staff statistics retrieved successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/members": {
+            "get": {
+                "summary": "Get all members",
+                "description": "Retrieve all users with member role and their profile information",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Members retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/MemberWithProfile"
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Members retrieved successfully"
+                                        },
+                                        "count": {
+                                            "type": "integer",
+                                            "example": 10
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            },
+            "post": {
+                "summary": "Create new member",
+                "description": "Create a new member with member role and profile information",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateMemberRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Member created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "user": {
+                                                    "$ref": "#/components/schemas/User"
+                                                },
+                                                "profile": {
+                                                    "$ref": "#/components/schemas/Profile"
+                                                }
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Member created successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Invalid data"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "409": {
+                        "description": "Email already exists"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/members/{memberId}": {
+            "get": {
+                "summary": "Get member by ID",
+                "description": "Retrieve a specific member by their ID with profile information",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "memberId",
+                        "in": "path",
+                        "required": true,
+                        "description": "The ID of the member to retrieve",
+                        "schema": {
+                            "type": "integer",
+                            "example": 123
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Member retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/MemberWithProfile"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Member retrieved successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Member not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            },
+            "put": {
+                "summary": "Update member by ID",
+                "description": "Update member information including user and profile data",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "memberId",
+                        "in": "path",
+                        "required": true,
+                        "description": "The ID of the member to update",
+                        "schema": {
+                            "type": "integer",
+                            "example": 123
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateMemberRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Member updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "user": {
+                                                    "$ref": "#/components/schemas/User"
+                                                },
+                                                "profile": {
+                                                    "$ref": "#/components/schemas/Profile"
+                                                }
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Member updated successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Invalid data"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Member not found"
+                    },
+                    "409": {
+                        "description": "Email already exists"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Delete member by ID",
+                "description": "Delete a member and their associated profile",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "memberId",
+                        "in": "path",
+                        "required": true,
+                        "description": "The ID of the member to delete",
+                        "schema": {
+                            "type": "integer",
+                            "example": 123
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Member deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Member deleted successfully"
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "deleted_user_id": {
+                                                    "type": "integer",
+                                                    "example": 123
+                                                },
+                                                "deleted_profile": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Member not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/members/search/{memberName}": {
+            "get": {
+                "summary": "Search members by name",
+                "description": "Search for members by email or name in profile",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "memberName",
+                        "in": "path",
+                        "required": true,
+                        "description": "The name to search for (searches email and name)",
+                        "schema": {
+                            "type": "string",
+                            "example": "john"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Member search results",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/MemberWithProfile"
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Found 2 member(s) matching \"john\""
+                                        },
+                                        "searchTerm": {
+                                            "type": "string",
+                                            "example": "john"
+                                        },
+                                        "count": {
+                                            "type": "integer",
+                                            "example": 2
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Member name parameter is required"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/members/statistics": {
+            "get": {
+                "summary": "Get member statistics",
+                "description": "Get comprehensive statistics about members",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Member statistics retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "totalMembers": {
+                                                    "type": "integer",
+                                                    "example": 150
+                                                },
+                                                "activeMembers": {
+                                                    "type": "integer",
+                                                    "example": 140
+                                                },
+                                                "inactiveMembers": {
+                                                    "type": "integer",
+                                                    "example": 10
+                                                },
+                                                "membersWithProfiles": {
+                                                    "type": "integer",
+                                                    "example": 130
+                                                },
+                                                "membersWithoutProfiles": {
+                                                    "type": "integer",
+                                                    "example": 20
+                                                }
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Member statistics retrieved successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/assessments": {
+            "get": {
+                "summary": "Get all assessments",
+                "description": "Retrieve all assessments from the database",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Assessments retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Assessment"
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Assessments retrieved successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            },
+            "post": {
+                "summary": "Create new assessment",
+                "description": "Create a new assessment record",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateAssessmentRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Assessment created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Assessment"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Assessment created successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Invalid data"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/assessments/take-test": {
+            "post": {
+                "summary": "Take test from user",
+                "description": "Process user's test score, find matching action based on score range, and save assessment. Only members can take tests.",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TakeTestRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Test completed and assessment saved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/TestResult"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Test completed and assessment saved successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Invalid data or user is not a member"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "User not found or no action found for score"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/assessments/{id}": {
+            "get": {
+                "summary": "Get assessment by ID",
+                "description": "Retrieve a specific assessment by its ID",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "The ID of the assessment to retrieve",
+                        "schema": {
+                            "type": "integer",
+                            "example": 123
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Assessment retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Assessment"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Assessment retrieved successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Assessment not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            },
+            "put": {
+                "summary": "Update assessment",
+                "description": "Update an existing assessment by ID",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "The ID of the assessment to update",
+                        "schema": {
+                            "type": "integer",
+                            "example": 123
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateAssessmentRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Assessment updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Assessment"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Assessment updated successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Invalid data"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Assessment not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Delete assessment",
+                "description": "Delete an assessment by ID",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "The ID of the assessment to delete",
+                        "schema": {
+                            "type": "integer",
+                            "example": 123
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Assessment deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Assessment with ID 123 deleted successfully"
+                                        },
+                                        "deletedAssessment": {
+                                            "type": "object",
+                                            "properties": {
+                                                "assessment_id": {
+                                                    "type": "integer",
+                                                    "example": 123
+                                                },
+                                                "type": {
+                                                    "type": "string",
+                                                    "example": "test"
+                                                },
+                                                "create_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Invalid assessment ID"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Assessment not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/assessments/user/{userId}": {
+            "get": {
+                "summary": "Get assessments by user ID",
+                "description": "Retrieve all assessments for a specific user",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "required": true,
+                        "description": "The ID of the user",
+                        "schema": {
+                            "type": "integer",
+                            "example": 123
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User assessments retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Assessment"
+                                            }
+                                        },
+                                        "count": {
+                                            "type": "integer",
+                                            "example": 5
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Assessments for user 123 retrieved successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/assessments/type/{type}": {
+            "get": {
+                "summary": "Get assessments by type",
+                "description": "Retrieve all assessments of a specific type",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "type",
+                        "in": "path",
+                        "required": true,
+                        "description": "The type of assessments to retrieve",
+                        "schema": {
+                            "type": "string",
+                            "example": "test"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Assessments by type retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Assessment"
+                                            }
+                                        },
+                                        "count": {
+                                            "type": "integer",
+                                            "example": 3
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Assessments with type 'test' retrieved successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/assessments/date-range": {
+            "get": {
+                "summary": "Get assessments by date range",
+                "description": "Retrieve assessments within a specific date range",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "startDate",
+                        "in": "query",
+                        "required": true,
+                        "description": "Start date (YYYY-MM-DD)",
+                        "schema": {
+                            "type": "string",
+                            "format": "date",
+                            "example": "2024-01-01"
+                        }
+                    },
+                    {
+                        "name": "endDate",
+                        "in": "query",
+                        "required": true,
+                        "description": "End date (YYYY-MM-DD)",
+                        "schema": {
+                            "type": "string",
+                            "format": "date",
+                            "example": "2024-12-31"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Assessments within date range retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Assessment"
+                                            }
+                                        },
+                                        "count": {
+                                            "type": "integer",
+                                            "example": 10
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Assessments within date range retrieved successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Start date and end date are required"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/assessments/with-relations": {
+            "get": {
+                "summary": "Get assessments with related data",
+                "description": "Retrieve assessments with related user and action information",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Assessments with relations retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/AssessmentWithRelations"
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Assessments with relations retrieved successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/api/assessments/details/{userId}": {
+            "get": {
+                "summary": "Get assessment details for a member user",
+                "description": "Retrieve assessment details with joined action data for a specific member user based on ERD diagram",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "required": true,
+                        "description": "The ID of the member user whose assessment details to retrieve",
+                        "schema": {
+                            "type": "integer",
+                            "example": 123
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Assessment details retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/AssessmentWithActionDetails"
+                                            }
+                                        },
+                                        "count": {
+                                            "type": "integer",
+                                            "example": 3
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Assessment details for member user 123 retrieved successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Invalid user ID or user is not a member"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "User not found or no assessments found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            }
+        },
+        "schemas": {
+            "User": {
+                "type": "object",
+                "properties": {
+                    "user_id": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "email": {
+                        "type": "string",
+                        "example": "john@example.com"
+                    },
+                    "role": {
+                        "type": "string",
+                        "enum": [
+                            "admin",
+                            "consultant",
+                            "Member"
+                        ],
+                        "example": "consultant"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "active",
+                            "inactive",
+                            "banned"
+                        ],
+                        "example": "active"
+                    },
+                    "date_create": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-01-15T10:00:00.000Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-01-15T10:00:00.000Z"
+                    }
+                }
+            },
+            "Profile": {
+                "type": "object",
+                "nullable": true,
+                "properties": {
+                    "user_id": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "John Doe"
+                    },
+                    "date_of_birth": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "1990-01-15"
+                    },
+                    "job": {
+                        "type": "string",
+                        "example": "Counselor"
+                    },
+                    "bio_json": {
+                        "type": "object",
+                        "example": {
+                            "intro": "Professional counselor with 5 years experience",
+                            "specialties": [
+                                "anxiety",
+                                "depression"
+                            ]
+                        }
+                    }
+                }
+            },
+            "StaffMember": {
+                "type": "object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/User"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "profile": {
+                                "$ref": "#/components/schemas/Profile"
+                            }
+                        }
+                    }
+                ]
+            },
+            "CreateStaffRequest": {
+                "type": "object",
+                "required": [
+                    "email",
+                    "password"
+                ],
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "john@company.com"
+                    },
+                    "password": {
+                        "type": "string",
+                        "example": "securePassword123"
+                    },
+                    "role": {
+                        "type": "string",
+                        "enum": [
+                            "admin",
+                            "consultant"
+                        ],
+                        "default": "consultant",
+                        "example": "consultant"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "active",
+                            "inactive",
+                            "banned"
+                        ],
+                        "default": "active",
+                        "example": "active"
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "John Doe"
+                    },
+                    "date_of_birth": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "1990-01-15"
+                    },
+                    "job": {
+                        "type": "string",
+                        "example": "Counselor"
+                    },
+                    "bio_json": {
+                        "type": "object",
+                        "example": {
+                            "intro": "Professional counselor",
+                            "specialties": [
+                                "anxiety",
+                                "depression"
+                            ]
+                        }
+                    }
+                }
+            },
+            "UpdateStaffRequest": {
+                "type": "object",
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "john.updated@company.com"
+                    },
+                    "password": {
+                        "type": "string",
+                        "example": "newSecurePassword123"
+                    },
+                    "role": {
+                        "type": "string",
+                        "enum": [
+                            "admin",
+                            "consultant"
+                        ],
+                        "example": "admin"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "active",
+                            "inactive",
+                            "banned"
+                        ],
+                        "example": "active"
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "John Doe Updated"
+                    },
+                    "date_of_birth": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "1990-01-15"
+                    },
+                    "job": {
+                        "type": "string",
+                        "example": "Senior Counselor"
+                    },
+                    "bio_json": {
+                        "type": "object",
+                        "example": {
+                            "intro": "Senior professional counselor",
+                            "specialties": [
+                                "anxiety",
+                                "depression",
+                                "trauma"
+                            ]
+                        }
+                    }
+                }
+            },
+            "MemberWithProfile": {
+                "type": "object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/User"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "profile": {
+                                "$ref": "#/components/schemas/Profile"
+                            }
+                        }
+                    }
+                ]
+            },
+            "CreateMemberRequest": {
+                "type": "object",
+                "required": [
+                    "email",
+                    "password"
+                ],
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "member@example.com",
+                        "description": "Member's email address"
+                    },
+                    "password": {
+                        "type": "string",
+                        "minLength": 6,
+                        "example": "password123",
+                        "description": "Member's password"
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "John Smith",
+                        "description": "Member's full name"
+                    },
+                    "bio_json": {
+                        "type": "string",
+                        "example": "{\"interests\": [\"mental health\", \"wellness\"]}",
+                        "description": "Member's biography in JSON string format"
+                    },
+                    "date_of_birth": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "1990-01-15",
+                        "description": "Member's date of birth"
+                    },
+                    "job": {
+                        "type": "string",
+                        "example": "Software Engineer",
+                        "description": "Member's job title"
+                    }
+                }
+            },
+            "UpdateMemberRequest": {
+                "type": "object",
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "updated@example.com",
+                        "description": "Updated email address"
+                    },
+                    "password": {
+                        "type": "string",
+                        "minLength": 6,
+                        "example": "newpassword123",
+                        "description": "Updated password"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "active",
+                            "inactive",
+                            "banned"
+                        ],
+                        "example": "active",
+                        "description": "Updated member status"
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "John Updated Smith",
+                        "description": "Updated full name"
+                    },
+                    "bio_json": {
+                        "type": "string",
+                        "example": "{\"interests\": [\"updated interests\"]}",
+                        "description": "Updated biography in JSON string format"
+                    },
+                    "date_of_birth": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "1990-01-15",
+                        "description": "Updated date of birth"
+                    },
+                    "job": {
+                        "type": "string",
+                        "example": "Senior Software Engineer",
+                        "description": "Updated job title"
+                    }
+                }
+            },
+            "Assessment": {
+                "type": "object",
+                "properties": {
+                    "assessment_id": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "user_id": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "type": {
+                        "type": "string",
+                        "example": "test"
+                    },
+                    "result_json": {
+                        "type": "string",
+                        "example": "{\"score\": 85}"
+                    },
+                    "create_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-01-15T10:00:00.000Z"
+                    },
+                    "action_id": {
+                        "type": "integer",
+                        "example": 456
+                    }
+                }
+            },
+            "Action": {
+                "type": "object",
+                "properties": {
+                    "action_id": {
+                        "type": "integer",
+                        "example": 456
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Seek professional counseling"
+                    },
+                    "range": {
+                        "type": "string",
+                        "example": "80-100"
+                    },
+                    "type": {
+                        "type": "string",
+                        "example": "mental_health"
+                    }
+                }
+            },
+            "CreateAssessmentRequest": {
+                "type": "object",
+                "properties": {
+                    "user_id": {
+                        "type": "integer",
+                        "example": 123,
+                        "description": "ID of the user taking the assessment"
+                    },
+                    "type": {
+                        "type": "string",
+                        "example": "test",
+                        "description": "Type of assessment"
+                    },
+                    "result_json": {
+                        "type": "string",
+                        "example": "{\"score\": 85, \"answers\": [\"A\", \"B\", \"C\"]}",
+                        "description": "Assessment results in JSON format"
+                    },
+                    "action_id": {
+                        "type": "integer",
+                        "example": 456,
+                        "description": "ID of the recommended action"
+                    }
+                }
+            },
+            "UpdateAssessmentRequest": {
+                "type": "object",
+                "properties": {
+                    "user_id": {
+                        "type": "integer",
+                        "example": 123,
+                        "description": "ID of the user"
+                    },
+                    "type": {
+                        "type": "string",
+                        "example": "updated_test",
+                        "description": "Updated type of assessment"
+                    },
+                    "result_json": {
+                        "type": "string",
+                        "example": "{\"score\": 90, \"updated\": true}",
+                        "description": "Updated assessment results in JSON format"
+                    },
+                    "action_id": {
+                        "type": "integer",
+                        "example": 789,
+                        "description": "Updated ID of the recommended action"
+                    }
+                }
+            },
+            "TakeTestRequest": {
+                "type": "object",
+                "required": [
+                    "user_id",
+                    "score"
+                ],
+                "properties": {
+                    "user_id": {
+                        "type": "integer",
+                        "example": 123,
+                        "description": "ID of the member taking the test"
+                    },
+                    "score": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 100,
+                        "example": 85,
+                        "description": "Test score (0-100)"
+                    },
+                    "type": {
+                        "type": "string",
+                        "example": "mental_health_test",
+                        "description": "Type of test (optional, defaults to 'test')"
+                    }
+                }
+            },
+            "TestResult": {
+                "type": "object",
+                "properties": {
+                    "user": {
+                        "type": "object",
+                        "properties": {
+                            "user_id": {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            "email": {
+                                "type": "string",
+                                "example": "member@example.com"
+                            },
+                            "role": {
+                                "type": "string",
+                                "example": "member"
+                            },
+                            "status": {
+                                "type": "string",
+                                "example": "active"
+                            },
+                            "date_create": {
+                                "type": "string",
+                                "format": "date-time",
+                                "example": "2024-01-15T10:00:00.000Z"
+                            }
+                        }
+                    },
+                    "test_result": {
+                        "type": "object",
+                        "properties": {
+                            "score": {
+                                "type": "integer",
+                                "example": 85
+                            },
+                            "type": {
+                                "type": "string",
+                                "example": "mental_health_test"
+                            },
+                            "create_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "example": "2024-01-15T10:30:00.000Z"
+                            }
+                        }
+                    },
+                    "recommended_action": {
+                        "type": "object",
+                        "properties": {
+                            "description": {
+                                "type": "string",
+                                "example": "Seek professional counseling for stress management"
+                            },
+                            "range": {
+                                "type": "string",
+                                "example": "80-100"
+                            },
+                            "type": {
+                                "type": "string",
+                                "example": "mental_health"
+                            }
+                        }
+                    }
+                }
+            },
+            "AssessmentWithRelations": {
+                "type": "object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Assessment"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "user": {
+                                "$ref": "#/components/schemas/User"
+                            },
+                            "action": {
+                                "$ref": "#/components/schemas/Action"
+                            }
+                        }
+                    }
+                ]
+            },
+            "AssessmentWithActionDetails": {
+                "type": "object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Assessment"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "user": {
+                                "$ref": "#/components/schemas/User"
+                            },
+                            "action": {
+                                "$ref": "#/components/schemas/Action"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    }
+}
