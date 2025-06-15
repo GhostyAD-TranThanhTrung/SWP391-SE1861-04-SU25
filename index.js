@@ -39,6 +39,7 @@ const StaffController = require("./Controller/staffController");
 const MemberController = require("./Controller/MemberController");
 const ConsultantController = require("./Controller/consultantController");
 const AssessmentController = require("./Controller/assessmentController");
+const ActionController = require("./Controller/actionController");
 
 sql.connect(config, (err) => {
     if (err) {
@@ -186,6 +187,15 @@ app.delete('/api/assessments/:id', AssessmentController.deleteAssessment);
 
 // Special endpoint for taking tests - processes score and saves assessment
 app.post('/api/assessments/take-test', authController.verifyToken, AssessmentController.takeTestFromUser);
+
+// Action routes (Protected - require authentication)
+app.get('/api/actions', ActionController.getAllActions);
+app.get('/api/actions/:id', ActionController.getActionById);
+app.get('/api/actions/type/:type', ActionController.getActionsByType);
+app.get('/api/actions/with-assessments', ActionController.getActionsWithAssessments);
+app.post('/api/actions', ActionController.createAction);
+app.put('/api/actions/:id', ActionController.updateAction);
+app.delete('/api/actions/:id', ActionController.deleteAction);
 
 //================================================================================
 // NOTE: This route demonstrates how to protect an endpoint with the JWT verification middleware
