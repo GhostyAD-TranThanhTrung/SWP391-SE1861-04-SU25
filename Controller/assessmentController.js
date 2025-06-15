@@ -329,7 +329,8 @@ class AssessmentController {
     await queryRunner.startTransaction();
 
     try {
-      const { user_id, score, type, results } = req.body;
+      const { score, type, results } = req.body;
+      const user_id = req.user.userId;
       if (!results || !Array.isArray(results) || results.length === 0 || results === undefined || results === null) {
         return res.status(400).json({
           success: false,
@@ -375,32 +376,34 @@ class AssessmentController {
           success: false,
           message: "Only members can take tests",
         });
-      }
-
-      // Find action based on score range using the provided SQL logic
+      }      // Find action based on score range using TypeORM query builder
       const actionRepository = queryRunner.manager.getRepository("Action");
 
-      // Use TypeORM query builder to replicate the SQL query
       const action = await actionRepository
         .createQueryBuilder("action")
-        .where(
-          "action.type = :type " +
-          "AND ISNUMERIC(LEFT(action.range, 1)) = 1 " +
-          "AND (" +
-          "  (CHARINDEX('-', action.range) > 0 AND :score BETWEEN " +
-          "    CAST(LEFT(action.range, CHARINDEX('-', action.range) - 1) AS INT) " +
-          "    AND " +
-          "    CAST(SUBSTRING(action.range, CHARINDEX('-', action.range) + 1, LEN(action.range)) AS INT)" +
-          "  ) " +
-          "  OR (CHARINDEX('+', action.range) > 0 AND " +
-          "    :score >= CAST(LEFT(action.range, CHARINDEX('+', action.range) - 1) AS INT)" +
-          "  ) " +
-          "  OR (CHARINDEX('-', action.range) = 0 AND CHARINDEX('+', action.range) = 0 AND " +
-          "    :score = CAST(action.range AS INT)" +
-          "  )" +
-          ")",
-          { score: numericScore, type: type }
-        )
+        .where("action.type = :type", { type })
+        .andWhere("ISNUMERIC(LEFT(action.range, 1)) = 1")
+        .andWhere(qb => {
+          return qb.where(subQb => {
+            // Range condition: "10-20"
+            return subQb
+              .where("CHARINDEX('-', action.range) > 0")
+              .andWhere(":score BETWEEN CAST(LEFT(action.range, CHARINDEX('-', action.range) - 1) AS INT) AND CAST(SUBSTRING(action.range, CHARINDEX('-', action.range) + 1, LEN(action.range)) AS INT)", { score: numericScore });
+          })
+            .orWhere(subQb => {
+              // Plus condition: "50+"
+              return subQb
+                .where("CHARINDEX('+', action.range) > 0")
+                .andWhere(":score >= CAST(LEFT(action.range, CHARINDEX('+', action.range) - 1) AS INT)", { score: numericScore });
+            })
+            .orWhere(subQb => {
+              // Exact match: "25"
+              return subQb
+                .where("CHARINDEX('-', action.range) = 0")
+                .andWhere("CHARINDEX('+', action.range) = 0")
+                .andWhere(":score = CAST(action.range AS INT)", { score: numericScore });
+            });
+        })
         .getOne();
 
       if (!action) {
