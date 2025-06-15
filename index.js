@@ -72,7 +72,7 @@ app.get("/api/dashboard", DashboardController.getDashboardStats);
 app.get("/api/dashboard/detailed", DashboardController.getDetailedDashboard);
 
 app.get(
-    "/api/dashboard/consultants",
+    "/api/dashboard/consultants",authController.verifyToken,
     DashboardController.getConsultantDashboard
 );
 
@@ -110,15 +110,15 @@ app.delete(
 ); // Delete user's own profile
 
 // Admin routes for profiles
-app.get("/api/profiles", ProfileController.getAllProfiles); // Get all profiles (admin)
-app.get("/api/profile/:userId", ProfileController.getProfileByUserId); // Get profile by user ID (admin)
+app.get("/api/profiles", authController.verifyToken, ProfileController.getAllProfiles); // Get all profiles (admin)
+app.get("/api/profile/:userId",authController.verifyToken, ProfileController.getProfileByUserId); // Get profile by user ID (admin)
 
 // Staff routes (Protected - require authentication)//add verfify token later
-app.get("/api/staff", StaffController.getAllStaff);
-app.get("/api/staff/:staffName", StaffController.searchStaffByName);
-app.post("/api/staff", StaffController.createStaff);
-app.put("/api/staff/:staffId", StaffController.updateStaff);
-app.delete("/api/staff/:staffId", StaffController.deleteStaff);
+app.get("/api/staff", authController.verifyToken, StaffController.getAllStaff);
+app.get("/api/staff/:staffName", authController.verifyToken, StaffController.searchStaffByName);
+app.post("/api/staff", authController.verifyToken, StaffController.createStaff);
+app.put("/api/staff/:staffId", authController.verifyToken, StaffController.updateStaff);
+app.delete("/api/staff/:staffId", authController.verifyToken, StaffController.deleteStaff);
 
 // Staff statistics (Protected)
 app.get(
@@ -128,9 +128,9 @@ app.get(
 );
 
 // Member routes (Protected - require authentication) //add verify token later
-app.get("/api/members", MemberController.getAllMembers);
+app.get("/api/members",authController.verifyToken, MemberController.getAllMembers);
 app.get(
-    "/api/members/search/:memberName",
+    "/api/members/search/:memberName",authController.verifyToken,
     MemberController.searchMembersByName
 );
 app.get(
@@ -138,15 +138,15 @@ app.get(
     authController.verifyToken,
     MemberController.getMemberStatistics
 );
-app.get("/api/members/:memberId", MemberController.getMemberById);
-app.post("/api/members", MemberController.createMember);
-app.put("/api/members/:memberId", MemberController.updateMember);
-app.delete("/api/members/:memberId", MemberController.deleteMember);
+app.get("/api/members/:memberId", authController.verifyToken, MemberController.getMemberById);
+app.post("/api/members", authController.verifyToken, MemberController.createMember);
+app.put("/api/members/:memberId", authController.verifyToken, MemberController.updateMember);
+app.delete("/api/members/:memberId", authController.verifyToken, MemberController.deleteMember);
 
 //================================================================================
 // Consultant routes (Protected - require authentication) //add verify token later
 app.get(
-    "/api/consultants/search/:consultantName",
+    "/api/consultants/search/:consultantName", authController.verifyToken,
     ConsultantController.searchConsultantsByName
 );
 app.get(
@@ -157,45 +157,45 @@ app.get(
 
 // Single consultant route
 app.get(
-    "/api/consultants/:consultantId",
+    "/api/consultants/:consultantId", authController.verifyToken,
     ConsultantController.getConsultantById
 );
 
-app.get("/api/consultants", ConsultantController.getAllConsultants);
-app.post("/api/consultants", ConsultantController.createConsultant);
+app.get("/api/consultants", authController.verifyToken, ConsultantController.getAllConsultants);
+app.post("/api/consultants", authController.verifyToken, ConsultantController.createConsultant);
 app.put(
-    "/api/consultants/:consultantId",
+    "/api/consultants/:consultantId", authController.verifyToken,
     ConsultantController.updateConsultant
 );
 app.delete(
-    "/api/consultants/:consultantId",
+    "/api/consultants/:consultantId", authController.verifyToken,
     ConsultantController.deleteConsultant
 );
 
 // Assessment routes (Protected - require authentication)
-app.get('/api/assessments', AssessmentController.getAllAssessments);
-app.get('/api/assessments/:id', AssessmentController.getAssessmentById);
-app.get('/api/assessments/user/:userId', AssessmentController.getAssessmentsByUserId);
-app.get('/api/assessments/details/:userId', AssessmentController.getAssessmentDetails);
-app.get('/api/assessments/with-relations', AssessmentController.getAssessmentsWithRelations);
-app.get('/api/assessments/type/:type', AssessmentController.getAssessmentsByType);
-app.get('/api/assessments/date-range', AssessmentController.getAssessmentsByDateRange);
-app.post('/api/assessments', AssessmentController.createAssessment);
-app.post('/api/assessments/take-test', AssessmentController.takeTestFromUser);
-app.put('/api/assessments/:id', AssessmentController.updateAssessment);
-app.delete('/api/assessments/:id', AssessmentController.deleteAssessment);
+app.get('/api/assessments', authController.verifyToken, AssessmentController.getAllAssessments);
+app.get('/api/assessments/:id', authController.verifyToken, AssessmentController.getAssessmentById);
+app.get('/api/assessments/user/:userId', authController.verifyToken, AssessmentController.getAssessmentsByUserId);
+app.get('/api/assessments/details/:userId', authController.verifyToken, AssessmentController.getAssessmentDetails);
+app.get('/api/assessments/with-relations', authController.verifyToken, AssessmentController.getAssessmentsWithRelations);
+app.get('/api/assessments/type/:type', authController.verifyToken, AssessmentController.getAssessmentsByType);
+app.get('/api/assessments/date-range', authController.verifyToken, AssessmentController.getAssessmentsByDateRange);
+app.post('/api/assessments', authController.verifyToken, AssessmentController.createAssessment);
+app.post('/api/assessments/take-test', authController.verifyToken, AssessmentController.takeTestFromUser);
+app.put('/api/assessments/:id', authController.verifyToken, AssessmentController.updateAssessment);
+app.delete('/api/assessments/:id', authController.verifyToken, AssessmentController.deleteAssessment);
 
 // Special endpoint for taking tests - processes score and saves assessment
 app.post('/api/assessments/take-test', authController.verifyToken, AssessmentController.takeTestFromUser);
 
 // Action routes (Protected - require authentication)
-app.get('/api/actions', ActionController.getAllActions);
-app.get('/api/actions/:id', ActionController.getActionById);
-app.get('/api/actions/type/:type', ActionController.getActionsByType);
-app.get('/api/actions/with-assessments', ActionController.getActionsWithAssessments);
-app.post('/api/actions', ActionController.createAction);
-app.put('/api/actions/:id', ActionController.updateAction);
-app.delete('/api/actions/:id', ActionController.deleteAction);
+app.get('/api/actions', authController.verifyToken, ActionController.getAllActions);
+app.get('/api/actions/:id', authController.verifyToken, ActionController.getActionById);
+app.get('/api/actions/type/:type', authController.verifyToken, ActionController.getActionsByType);
+app.get('/api/actions/with-assessments', authController.verifyToken, ActionController.getActionsWithAssessments);
+app.post('/api/actions', authController.verifyToken, ActionController.createAction);
+app.put('/api/actions/:id', authController.verifyToken, ActionController.updateAction);
+app.delete('/api/actions/:id', authController.verifyToken, ActionController.deleteAction);
 
 //================================================================================
 // NOTE: This route demonstrates how to protect an endpoint with the JWT verification middleware
