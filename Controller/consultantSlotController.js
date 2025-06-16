@@ -67,8 +67,7 @@ class ConsultantSlotController {
   static async getSlotsByConsultantId(req, res) {
     try {
       const { consultantId } = req.params;
-      const consultantSlotRepository =
-        AppDataSource.getRepository(ConsultantSlot);
+      const consultantSlotRepository = AppDataSource.getRepository(ConsultantSlot);
 
       const consultantSlots = await consultantSlotRepository.find({
         where: { consultant_id: parseInt(consultantId) },
@@ -77,10 +76,19 @@ class ConsultantSlotController {
         },
       });
 
+      // Format the response to include slot times
+      const formattedSlots = consultantSlots.map(cs => ({
+        consultant_id: cs.consultant_id,
+        slot_id: cs.slot_id,
+        day_of_week: cs.day_of_week,
+        start_time: cs.slot.start_time,
+        end_time: cs.slot.end_time
+      }));
+
       res.status(200).json({
         success: true,
-        data: consultantSlots,
-        count: consultantSlots.length,
+        data: formattedSlots,
+        count: formattedSlots.length,
         message: `Slots for consultant ID ${consultantId} retrieved successfully`,
       });
     } catch (error) {
@@ -505,9 +513,8 @@ class ConsultantSlotController {
         },
         savedCount: savedSlots.length,
         errorCount: errors.length,
-        message: `Created ${savedSlots.length} consultant slots${
-          errors.length > 0 ? ` with ${errors.length} errors` : ""
-        }`,
+        message: `Created ${savedSlots.length} consultant slots${errors.length > 0 ? ` with ${errors.length} errors` : ""
+          }`,
       });
     } catch (error) {
       console.error("Error bulk creating consultant slots:", error);
@@ -562,9 +569,8 @@ class ConsultantSlotController {
       res.status(200).json({
         success: true,
         deletedCount: result.affected,
-        message: `Removed ${
-          result.affected || 0
-        } slots from consultant schedule`,
+        message: `Removed ${result.affected || 0
+          } slots from consultant schedule`,
       });
     } catch (error) {
       console.error("Error clearing consultant schedule:", error);
