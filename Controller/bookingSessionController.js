@@ -94,30 +94,44 @@ class BookingSessionController {
     static async getBookingSessionsByMember(req, res) {
         try {
             // Get member ID from the authenticated user token
-            const memberId = req.user.id;
-            
-            const bookingRepository = AppDataSource.getRepository(BookingSession);
-            const bookings = await bookingRepository
-                .createQueryBuilder('booking')
-                .leftJoinAndSelect('booking.consultant', 'consultant')
-                .leftJoinAndSelect('consultant.user', 'user')
-                .leftJoinAndSelect('booking.slot', 'slot')
-                .leftJoinAndSelect('booking.consultant_slot', 'consultant_slot')
-                .where('booking.member_id = :memberId', { memberId })
-                .select([
-                    'booking',
-                    'consultant.id_consultant',
-                    'user.fullname',
-                    'slot.start_time',
-                    'slot.end_time',
-                    'consultant_slot.day_of_week'
-                ])
-                .getMany();
+            const memberId = req.user.userId;
+
+            const bookingQuery = `
+                SELECT 
+                    b.booking_id,
+                    b.consultant_id,
+                    b.member_id,
+                    b.slot_id,
+                    b.booking_date,
+                    b.status,
+                    b.notes,
+                    c.id_consultant,
+                    cu.email,
+                    s.start_time,
+                    s.end_time,
+                    cs.day_of_week
+                FROM Booking_Session b
+                LEFT JOIN Consultant c ON b.consultant_id = c.id_consultant
+                LEFT JOIN [Users] cu ON c.user_id = cu.user_id
+                LEFT JOIN Slot s ON b.slot_id = s.slot_id
+                LEFT JOIN Consultant_Slot cs ON (b.consultant_id = cs.consultant_id AND b.slot_id = cs.slot_id)
+                WHERE b.member_id = @0
+            `;
+
+            console.log('Member bookings query:', bookingQuery);
+            console.log('Member bookings parameters:', [memberId]);
+
+            const bookings = await AppDataSource.query(
+                bookingQuery,
+                [parseInt(memberId)]
+            );
 
             // Check if no booking sessions exist
             if (!bookings || bookings.length === 0) {
                 return res.status(200).json({
                     success: true,
+                    data: [],
+                    count: 0,
                     message: 'No booking sessions exist for this member'
                 });
             }
@@ -132,8 +146,9 @@ class BookingSessionController {
             console.error('Error getting booking sessions by member:', error);
             res.status(500).json({
                 success: false,
-                message: 'Failed to retrieve booking sessions',
-                error: error.message
+                data: [],
+                count: 0,
+                message: error.message || 'Failed to retrieve booking sessions'
             });
         }
     }
@@ -143,67 +158,184 @@ class BookingSessionController {
      */
     static async createBookingSession(req, res) {
         try {
+            console.log('Request body:', req.body);
             const { consultant_id, slot_id, booking_date } = req.body;
+            const member_id = req.user.userId;
 
-            // Get member ID from token
-            const member_id = req.user.id;
+            console.log('Parsed input data:', {
+                consultant_id,
+                slot_id,
+                booking_date,
+                member_id
+            });
 
-            // Validate required fields
-            if (!booking_date) {
+            // Validate all required fields
+            if (!consultant_id || !slot_id || !booking_date) {
+                console.log('Missing required fields');
                 return res.status(400).json({
                     success: false,
                     data: [],
                     count: 0,
-                    message: 'Missing required field: booking_date'
+                    message: 'Missing required fields: consultant_id, slot_id, and booking_date are required'
+                });
+            }
+
+            // Validate date format
+            const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+            if (!dateRegex.test(booking_date)) {
+                console.log('Invalid date format:', booking_date);
+                return res.status(400).json({
+                    success: false,
+                    data: [],
+                    count: 0,
+                    message: 'Invalid date format. Use YYYY-MM-DD'
                 });
             }
 
             const bookingRepository = AppDataSource.getRepository(BookingSession);
 
-            // Create new booking session with default scheduled status
-            const newBooking = bookingRepository.create({
-                consultant_id: consultant_id ? parseInt(consultant_id) : null,
-                member_id: member_id,
-                slot_id: slot_id ? parseInt(slot_id) : null,
-                booking_date,
-                status: 'scheduled', // Set default status
-                notes: '' // Empty notes by default
+            // Check if booking already exists
+            console.log('Checking for existing booking with params:', {
+                consultant_id: parseInt(consultant_id),
+                slot_id: parseInt(slot_id),
+                booking_date
             });
 
-            const savedBooking = await bookingRepository.save(newBooking);
+            const existingBookingQuery = `
+                SELECT booking_id, consultant_id, member_id, slot_id, booking_date, status, notes
+                FROM Booking_Session
+                WHERE consultant_id = @0
+                AND slot_id = @1
+                AND booking_date = @2
+                AND status = @3
+            `;
 
-            // Fetch the complete booking with relations
-            const completeBooking = await bookingRepository
-                .createQueryBuilder('booking')
-                .leftJoinAndSelect('booking.consultant', 'consultant')
-                .leftJoinAndSelect('consultant.user', 'user')
-                .leftJoinAndSelect('booking.slot', 'slot')
-                .leftJoinAndSelect('booking.consultant_slot', 'consultant_slot')
-                .where('booking.booking_id = :bookingId', { bookingId: savedBooking.booking_id })
-                .select([
-                    'booking',
-                    'consultant.id_consultant',
-                    'user.fullname',
-                    'slot.start_time',
-                    'slot.end_time',
-                    'consultant_slot.day_of_week'
-                ])
-                .getOne();
+            console.log('Existing booking check - SQL Query:', existingBookingQuery);
+            console.log('Existing booking check - Parameters:', [
+                parseInt(consultant_id),
+                parseInt(slot_id),
+                booking_date,
+                'scheduled'
+            ]);
+
+            const [existingBooking] = await AppDataSource.query(
+                existingBookingQuery,
+                [parseInt(consultant_id), parseInt(slot_id), booking_date, 'scheduled']
+            );
+
+            if (existingBooking) {
+                console.log('Found existing booking:', existingBooking);
+                return res.status(409).json({
+                    success: false,
+                    data: [],
+                    count: 0,
+                    message: 'This time slot is already booked'
+                });
+            }
+
+            // Create new booking session
+            console.log('Creating new booking with data:', {
+                consultant_id: parseInt(consultant_id),
+                member_id: parseInt(member_id),
+                slot_id: parseInt(slot_id),
+                booking_date,
+                status: 'scheduled'
+            });
+
+            const insertBookingQuery = `
+                INSERT INTO Booking_Session (consultant_id, member_id, slot_id, booking_date, status, notes)
+                OUTPUT INSERTED.*
+                VALUES (@0, @1, @2, CAST(@3 AS DATE), @4, @5)
+            `;
+
+            console.log('Insert booking - SQL Query:', insertBookingQuery);
+            console.log('Insert booking - Parameters:', [
+                parseInt(consultant_id),
+                parseInt(member_id),
+                parseInt(slot_id),
+                booking_date,
+                'scheduled',
+                null
+            ]);
+
+            const [savedBooking] = await AppDataSource.query(
+                insertBookingQuery,
+                [parseInt(consultant_id), parseInt(member_id), parseInt(slot_id), booking_date, 'scheduled', null]
+            );
+
+            console.log('Saved new booking:', savedBooking);
+
+            // Fetch complete booking
+            console.log('Fetching complete booking details for ID:', savedBooking.booking_id);
+            const completeBookingQuery = `
+                SELECT 
+                    b.booking_id,
+                    b.consultant_id,
+                    b.member_id,
+                    b.slot_id,
+                    b.booking_date,
+                    b.status,
+                    b.notes,
+                    c.id_consultant,
+                    cu.email,
+                    s.start_time,
+                    s.end_time
+                FROM Booking_Session b
+                LEFT JOIN Consultant c ON b.consultant_id = c.id_consultant
+                LEFT JOIN [Users] cu ON c.user_id = cu.user_id
+                LEFT JOIN Slot s ON b.slot_id = s.slot_id
+                WHERE b.booking_id = @0
+            `;
+
+            console.log('Complete booking fetch - SQL Query:', completeBookingQuery);
+            console.log('Complete booking fetch - Parameters:', [savedBooking.booking_id]);
+
+            const [completeBooking] = await AppDataSource.query(
+                completeBookingQuery,
+                [savedBooking.booking_id]
+            );
+
+            console.log('Complete booking data:', completeBooking);
+
+            // Get day of week using raw SQL
+            console.log('Fetching day of week for consultant_id:', consultant_id, 'slot_id:', slot_id);
+            const dayOfWeekQuery = `
+                SELECT day_of_week 
+                FROM Consultant_Slot 
+                WHERE consultant_id = @0 AND slot_id = @1
+            `;
+            console.log('Day of week - Raw SQL Query:', dayOfWeekQuery);
+            console.log('Day of week - Parameters:', [parseInt(consultant_id), parseInt(slot_id)]);
+
+            const [dayOfWeekResult] = await AppDataSource.query(
+                dayOfWeekQuery,
+                [parseInt(consultant_id), parseInt(slot_id)]
+            );
+            console.log('Day of week result:', dayOfWeekResult);
+
+            const responseData = {
+                ...completeBooking,
+                day_of_week: dayOfWeekResult ? dayOfWeekResult.day_of_week : null
+            };
+            console.log('Final response data:', responseData);
 
             res.status(201).json({
                 success: true,
-                data: [completeBooking], // Wrap in array to match get response structure
+                data: [responseData],
                 count: 1,
                 message: 'Booking session created successfully'
             });
         } catch (error) {
-            console.error('Error creating booking session:', error);
+            console.error('Detailed error in createBookingSession:', {
+                message: error.message,
+                stack: error.stack,
+                name: error.name
+            });
             res.status(500).json({
                 success: false,
                 data: [],
                 count: 0,
-                message: 'Failed to create booking session',
-                error: error.message
+                message: error.message || 'Failed to create booking session'
             });
         }
     }
@@ -367,7 +499,7 @@ class BookingSessionController {
     static async getScheduledBookingSessions(req, res) {
         try {
             const memberId = req.user.id;
-            
+
             const bookingRepository = AppDataSource.getRepository(BookingSession);
             const bookings = await bookingRepository
                 .createQueryBuilder('booking')

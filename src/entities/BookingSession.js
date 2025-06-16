@@ -64,6 +64,14 @@ const BookingSession = new EntitySchema({
                 name: "slot_id",
                 referencedColumnName: "slot_id"
             }
+        },
+        consultant_slot: {
+            type: "many-to-one",
+            target: "ConsultantSlot",
+            joinColumns: [
+                { name: "consultant_id", referencedColumnName: "consultant_id" },
+                { name: "slot_id", referencedColumnName: "slot_id" }
+            ]
         }
     }
 });

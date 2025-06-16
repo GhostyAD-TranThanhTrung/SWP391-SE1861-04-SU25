@@ -126,7 +126,7 @@ app.delete("/api/members/:memberId", authController.verifyToken, MemberControlle
 app.get("/api/consultants", ConsultantController.getAllConsultants);
 app.get("/api/consultants/search/:consultantName", authController.verifyToken, ConsultantController.searchConsultantsByName);
 app.get("/api/consultants/statistics", authController.verifyToken, ConsultantController.getAllConsultants);
-app.get("/api/consultants/:consultantId",  ConsultantController.getConsultantById);
+app.get("/api/consultants/:consultantId", ConsultantController.getConsultantById);
 app.post("/api/consultants", authController.verifyToken, ConsultantController.createConsultant);
 app.put("/api/consultants/:consultantId", ConsultantController.updateConsultant);
 app.delete("/api/consultants/:consultantId", authController.verifyToken, ConsultantController.deleteConsultant);
@@ -137,6 +137,7 @@ app.get("/api/consultant-slots/:consultantId", ConsultantSlotController.getSlots
 // Booking Session Routes
 app.get("/api/booking-sessions/me", authController.verifyToken, BookingSessionController.getBookingSessionsByMember); // toàn bộ booking session
 app.get("/api/booking-sessions/scheduled", authController.verifyToken, BookingSessionController.getScheduledBookingSessions);// chỉ lấy đang có lịch lịch hạn trong tương lailai
+app.post("/api/booking-sessions", authController.verifyToken, BookingSessionController.createBookingSession);
 
 // Assessment Routes
 app.get('/api/assessments', authController.verifyToken, AssessmentController.getAllAssessments);

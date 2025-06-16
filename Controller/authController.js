@@ -91,7 +91,7 @@ class AuthController {
    */
   static async register(req, res) {
     try {
-      const { email, password, role = 'Member' } = req.body;
+      const { email, password, role = 'member' } = req.body;
 
       // Basic validation
       if (!email || !password) {

@@ -1,6 +1,6 @@
 /**
  * ConsultantSlot Entity for TypeORM
- * Represents the Consultant_Slot junction table in the database
+ * Represents the Consultant_Slot table in the database
  */
 const { EntitySchema } = require('typeorm');
 
