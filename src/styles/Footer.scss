@@ -138,3 +138,36 @@
         }
     }
 }
+
+.admin-login-btn {
+    background: linear-gradient(45deg, #2c3e50, #3498db);
+    color: white !important;
+    padding: 6px 12px;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: inline-block;
+    margin-top: 4px;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        color: white !important;
+        text-decoration: none;
+    }
+
+    .admin-icon {
+        margin-right: 6px;
+        font-size: 1em;
+        color: white;
+    }
+
+    .admin-text {
+        font-weight: 500;
+        letter-spacing: 0.5px;
+        font-size: 0.95em;
+        color: white;
+    }
+}

@@ -42,6 +42,15 @@ const Footer = () => {
                                 <li><Link to="/booking">Đặt lich tư vấn uy tín</Link></li>
                                 <li><Link to="/test">Bài kiểm tra khảo sát</Link></li>
                                 <li><Link to="/blog">Blog chuyên sâu</Link></li>
+                                <li>
+                                    <Link
+                                        to="/admin/login"
+                                        className="admin-login-btn"
+                                    >
+                                        <span className="admin-icon">👨‍💼</span>
+                                        <span className="admin-text">Admin Login</span>
+                                    </Link>
+                                </li>
                             </ul>
                         </div>
 

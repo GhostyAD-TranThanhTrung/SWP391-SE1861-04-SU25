@@ -16,6 +16,7 @@ const ExamPage = () => {
     const [quizData, setQuizData] = useState(null);
     const [assessRiskLevel, setAssessRiskLevel] = useState(() => () => 'Chưa xác định');
     const [isLoading, setIsLoading] = useState(true);
+    const [savedAnswers, setSavedAnswers] = useState({});
 
     useEffect(() => {
         const lowerType = type.toLowerCase();
@@ -40,14 +41,25 @@ const ExamPage = () => {
     const handleOptionSelect = (option) => {
         if (currentQuestionIndex === 0 && type.toLowerCase() === 'assist') {
             setSelectedOptions(prev => {
-                if (prev.find(opt => opt.id === option.id)) {
-                    return prev.filter(opt => opt.id !== option.id);
-                } else {
-                    return [...prev, option];
-                }
+                const newOptions = prev.find(opt => opt.id === option.id)
+                    ? prev.filter(opt => opt.id !== option.id)
+                    : [...prev, option];
+
+                // Lưu đáp án đã chọn
+                setSavedAnswers(prev => ({
+                    ...prev,
+                    [currentQuestionIndex]: newOptions
+                }));
+
+                return newOptions;
             });
         } else {
             setSelectedOption(option);
+            // Lưu đáp án đã chọn
+            setSavedAnswers(prev => ({
+                ...prev,
+                [currentQuestionIndex]: option
+            }));
         }
     };
 
@@ -73,8 +85,18 @@ const ExamPage = () => {
 
         if (currentQuestionIndex < quizData.questions.length - 1) {
             setCurrentQuestionIndex((prev) => prev + 1);
-            setSelectedOption(null);
-            setSelectedOptions([]);
+            // Khôi phục đáp án đã lưu cho câu hỏi tiếp theo
+            const nextQuestionAnswer = savedAnswers[currentQuestionIndex + 1];
+            if (nextQuestionAnswer) {
+                if (Array.isArray(nextQuestionAnswer)) {
+                    setSelectedOptions(nextQuestionAnswer);
+                } else {
+                    setSelectedOption(nextQuestionAnswer);
+                }
+            } else {
+                setSelectedOption(null);
+                setSelectedOptions([]);
+            }
         } else {
             const riskLevel = assessRiskLevel(newScore);
             navigate('/result', {
@@ -89,7 +111,18 @@ const ExamPage = () => {
     const handlePreviousQuestion = () => {
         if (currentQuestionIndex > 0) {
             setCurrentQuestionIndex(currentQuestionIndex - 1);
-            setSelectedOption(null);
+            // Khôi phục đáp án đã lưu cho câu hỏi trước đó
+            const prevQuestionAnswer = savedAnswers[currentQuestionIndex - 1];
+            if (prevQuestionAnswer) {
+                if (Array.isArray(prevQuestionAnswer)) {
+                    setSelectedOptions(prevQuestionAnswer);
+                } else {
+                    setSelectedOption(prevQuestionAnswer);
+                }
+            } else {
+                setSelectedOption(null);
+                setSelectedOptions([]);
+            }
         }
     };
 
