@@ -1,13 +1,13 @@
 .custom-navbar {
     background-color: #66B0C6;
     color: white;
-    padding: 0.75rem 0;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 0.5rem 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     border-bottom: 2px solid rgba(255, 255, 255, 0.2);
 
     .navbar-logo {
-        height: 60px;
-        width: 200px;
+        height: 40px;
+        width: auto;
         object-fit: contain;
         filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.2));
     }
@@ -15,24 +15,16 @@
     .nav-link {
         color: white !important;
         font-weight: 500;
-        font-size: 1rem;
-        padding: 0.75rem 1rem !important;
-        border-radius: 6px;
-        transition: all 0.3s ease;
-        position: relative;
-        
+        padding: 0.5rem 1rem;
+        transition: color 0.3s ease;
+
         &:hover {
-            color: #66B0C6 !important;
-            background-color: white;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            color: #e9ecef !important;
         }
 
-        &:active,
         &.active {
-            color: #66B0C6 !important;
-            background-color: white;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+            color: #e9ecef !important;
+            font-weight: 600;
         }
     }
 
@@ -43,39 +35,58 @@
     }
 
     .search-box {
-        margin-right: 15px;
-        background-color: white;
-        border-radius: 25px;
-        width: 300px;
-        overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-        border: 2px solid white;
+        max-width: 300px;
+        position: relative;
+        height: 40px;
+        display: flex;
+        align-items: center;
 
         .form-control {
-            background-color: white;
-            color: #333;
+            height: 100%;
+            border-radius: 50px;
             border: none;
-            border-radius: 25px 0 0 25px;
-            padding: 0.75rem 1rem;
+            padding-left: 1.25rem;
+            padding-right: 3.5rem;
             font-size: 0.95rem;
+            background: white;
+            width: 100%;
 
             &::placeholder {
-                color: #666;
-                font-style: italic;
+                color: #6c757d;
+                opacity: 0.8;
             }
 
             &:focus {
-                border: none;
-                box-shadow: none;
+                box-shadow: 0 0 0 2px rgba(10, 77, 104, 0.2);
                 outline: none;
-                background-color: #f8f9fa;
             }
         }
 
-        .input-group-text {
-            background-color: white;
+        .btn-search {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            width: 50px;
+            border-radius: 0 50px 50px 0;
+            background-color: #0A2647;
             border: none;
-            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s ease;
+
+            i {
+                font-size: 1.1rem;
+            }
+
+            &:hover {
+                background-color: darken(#0A2647, 5%);
+            }
+
+            &:active {
+                background-color: darken(#0A2647, 10%);
+            }
         }
     }
 
@@ -110,30 +121,6 @@
         }
     }
 
-    .btn-search {
-        background-color: #0e1d68;
-        border: none;
-        color: white;
-        padding: 0.75rem 1rem;
-        border-radius: 0 25px 25px 0;
-        transition: all 0.3s ease;
-        cursor: pointer;
-
-        &:hover {
-            background-color: #1a2d7a;
-            color: white;
-        }
-
-        &:focus {
-            outline: none;
-            box-shadow: none;
-        }
-
-        i {
-            font-size: 1.1rem;
-        }
-    }
-
     .btn-logout {
         background-color: #dc3545;
         color: white;
@@ -159,7 +146,7 @@
                 background-color: white !important;
                 color: #66B0C6 !important;
                 border-color: white;
-                
+
                 .navbar-text {
                     color: #66B0C6 !important;
                 }
@@ -182,7 +169,7 @@
         .navbar-nav {
             text-align: center;
             margin: 1rem 0;
-            
+
             .nav-link {
                 margin: 0.25rem 0;
             }

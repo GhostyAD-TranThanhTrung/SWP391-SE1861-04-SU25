@@ -127,8 +127,8 @@ const Navbar = () => {
                 </div>
 
                 {/* Right: search + buttons or email */}
-                <div className="d-flex align-items-center gap-2">
-                    <div className="input-group search-box">
+                <div className="d-flex align-items-center gap-3">
+                    <div className="search-box">
                         <input
                             type="text"
                             className="form-control"
@@ -150,7 +150,7 @@ const Navbar = () => {
                     {email ? (
                         <div className="dropdown">
                             <button
-                                className="btn d-flex align-items-center text-white"
+                                className="btn d-flex align-items-center text-white user-dropdown-btn"
                                 style={{ backgroundColor: '#66B0C6', border: 'none' }}
                                 onClick={toggleDropdown}
                                 data-bs-toggle="dropdown"
@@ -158,7 +158,7 @@ const Navbar = () => {
                                 aria-label={`User menu for ${email}`}
                             >
                                 <i className="bi bi-person-circle me-2" style={{ fontSize: '1.5rem' }}></i>
-                                <span className="navbar-text">{email}</span>
+                                <span className="navbar-text email-truncate" title={email}>{email}</span>
                                 <i className="bi bi-chevron-down ms-1"></i>
                             </button>
                             <ul className="dropdown-menu dropdown-menu-end custom-dropdown">
