@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "start": "node index.js",
     "devStart": "nodemon index.js"
   },
@@ -27,6 +27,11 @@
     "typeorm": "^0.3.24"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "jest": "^30.0.0",
+    "mock-req-res": "^1.2.1",
+    "nock": "^14.0.5",
+    "nodemon": "^3.1.10",
+    "sinon": "^21.0.0",
+    "supertest": "^7.1.1"
   }
 }

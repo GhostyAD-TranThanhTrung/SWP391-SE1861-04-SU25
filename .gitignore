@@ -1,1 +1,7 @@
 node_modules
+.env
+# Test files
+tests/
+jest.config.js
+coverage/
+.nyc_output/

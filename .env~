@@ -1,0 +1,32 @@
+# Google API Credentials for Google Meet
+
+GOOGLE_CLIENT_ID=632495426602-9c2fn1ch0aa7o1vqobvasv8voisl68kl.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=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
+GOOGLE_REDIRECT_URI=http://localhost:3000/auth/google/callback
+GOOGLE_REFRESH_TOKEN=1//04D-36IHWmOwnCgYIARAAGAQSNwF-L9IrGzNSg78s39uH3Kghc8ZqxCLF565YhdKiafqhcwcsH7pJh3rwWw653o_kTpl2lmoXU6I
+
+# Instructions to get these credentials:
+
+# 1. Go to Google Cloud Console (https://console.cloud.google.com/)
+
+# 2. Create a new project or select an existing one
+
+# 3. Enable the Google Calendar API
+
+# 4. Create OAuth 2.0 credentials (client ID and secret)
+
+# 5. Set up the redirect URI
+
+# 6. Generate a refresh token using OAuth 2.0 playground or through your application's auth flow
+
+# Database Configuration
+
+# SQL_USER=sa
+
+# SQL_PASSWORD=12345
+
+# SQL_SERVER=localhost
+
+# SQL_PORT=1433
+
+# SQL_DATABASE=SWP391demo
