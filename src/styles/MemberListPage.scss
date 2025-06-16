@@ -1,0 +1,164 @@
+// Member List Page Styles
+.staff-list-container {
+    padding: 20px;
+    background-color: #f9f9f9;
+  
+    // ===== Top Bar =====
+    .top-bar {
+      .btn-primary {
+        background-color: #66B0C6;
+        border: none;
+        padding: 8px 16px;
+        font-weight: 500;
+        border-radius: 6px;
+  
+        &:hover {
+          background-color: #66B0C6;
+        }
+      }
+  
+      .search-box {
+        display: flex;
+        align-items: center;
+  
+        input {
+          padding: 6px 12px;
+          border: 1px solid #ccc;
+          border-radius: 4px 0 0 4px;
+          outline: none;
+        }
+  
+        button {
+          padding: 6px 12px;
+          border: 1px solid #ccc;
+          background-color: #66B0C6;
+          color: white;
+          border-left: none;
+          border-radius: 0 4px 4px 0;
+  
+          i {
+            font-size: 1rem;
+          }
+  
+          &:hover {
+            background-color: #5936a1;
+          }
+        }
+      }
+    }
+  
+    // ===== Table Wrapper =====
+    .table-wrapper {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      padding: 20px;
+  
+      table {
+        width: 100%;
+        border-collapse: collapse;
+  
+        th {
+          font-weight: 600;
+          color: #555;
+          background-color: #f0f0f0;
+          padding: 12px;
+        }
+  
+        td {
+          padding: 12px;
+          vertical-align: middle;
+        }
+  
+        .action-buttons {
+          display: flex;
+          justify-content: flex-start;
+  
+          .btn {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 6px 10px;
+            background-color: #66B0C6;
+            transition: background-color 0.2s;
+  
+            &:hover {
+              background-color: #333;
+            }
+  
+          }
+        }
+      }
+    }
+  
+  // ===== Popup Overlay =====
+  .popup {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+  
+      h2, p{
+          margin-bottom: 5px;
+      }
+  
+      .close {
+      position: absolute;
+      top: 5px;
+      right: 15px;
+      font-size: 37px;
+      cursor: pointer;
+      color: #aaa;
+  
+      &:hover{
+          color: #777;
+      }
+      }
+  }
+  
+  // ===== Popup Content =====
+  .popup-content {
+      background-color: #fff;
+      padding: 40px 32px 32px 32px;
+      border-radius: 12px;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+      border: 1.5px solid #e0e0e0;
+  }
+  
+  .popup-content h2, .popup-content h4 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 24px;
+    color: #222;
+  }
+  
+  .popup-content .member-detail-row {
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    gap: 8px;
+  }
+  
+  .popup-content .member-detail-label {
+    font-weight: 600;
+    color: #333;
+    min-width: 120px;
+    text-align: right;
+  }
+  
+  .popup-content .member-detail-value {
+    color: #444;
+    text-align: left;
+    word-break: break-word;
+  }
+}
+  

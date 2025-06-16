@@ -15,13 +15,16 @@ import BlogPage from "./pages/BlogPage";
 import AboutUsPage from "./pages/AboutUsPage";
 import ChooseRolePage from "./pages/ChooseRolePage";
 import AdminLoginPage from "./pages/AdminLoginPage";
-import DashboardPage from "./pages/DashboardPage";
-import StaffListPage from "./pages/StaffListPage";
 import SettingSidebar from "./components/SettingSidebar";
 import ChooseTypeExam from "./pages/ChooseTypeExam";
 import ExamPage from "./pages/ExamPage";
 import BookingProfile from "./pages/BookingProfile";
 import ResultPage from "./pages/ResultPage";
+import DashboardPage from "./pages/admin/DashboardPage";
+import StaffListPage from "./pages/admin/StaffListPage";
+import MemberListPage from "./pages/admin/MemberListPage";
+import ConsultantListPage from "./pages/admin/ConsultantListPage";
+import ScoreListPage from "./pages/admin/ScoreListPage";
 
 //Import layout
 import AdminLayout from "./layout/AdminLayout";
@@ -30,7 +33,7 @@ import AdminLayout from "./layout/AdminLayout";
 const AppLayout = () => {
   const location = useLocation();
   const hideNavbarAndFooter = ["/login", "/signup", "/forget", "/choose-role", "/admin/login",
-    "/dashboard", "/stafflist",].includes(location.pathname);
+    "/dashboard", "/stafflist", "/memberlist", "/consultantlist", '/scorelist'].includes(location.pathname);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
@@ -70,6 +73,30 @@ const AppLayout = () => {
             element={
               <AdminLayout>
                 <StaffListPage />
+              </AdminLayout>
+            }
+          />
+           <Route
+            path="/memberlist"
+            element={
+              <AdminLayout>
+                <MemberListPage />
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/consultantlist"
+            element={
+              <AdminLayout>
+                <ConsultantListPage />
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/scorelist"
+            element={
+              <AdminLayout>
+                <ScoreListPage />
               </AdminLayout>
             }
           />
