@@ -16,8 +16,8 @@ const ChooseRolePage = () => {
             return;
         }
 
-        const email = localStorage.getItem('email');
-        const token = localStorage.getItem('token');
+        const email = sessionStorage.getItem('email');
+        const token = sessionStorage.getItem('token');
 
         if (!email || !token) {
             alert("Không tìm thấy email hoặc token. Vui lòng đăng nhập lại.");

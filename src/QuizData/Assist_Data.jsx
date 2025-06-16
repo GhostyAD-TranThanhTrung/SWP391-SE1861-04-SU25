@@ -2,7 +2,7 @@ export const Assist_Data = {
     questions: [
         {
             id: 1,
-            question: "Trong suốt cuộc đời bạn, bạn đã từng sử dụng các chất sau đây không?",
+            question: "Trong suốt cuộc đời bạn, bạn đã từng sử dụng các chất nào sau đây? (Có thể chọn nhiều đáp án)",
             options: [
                 { id: 1, text: "Cần sa (marijuana, pot, cỏ, hash, v.v.)" },
                 { id: 2, text: "Cocaine (coke, crack, v.v.)" },
@@ -13,14 +13,18 @@ export const Assist_Data = {
                 { id: 7, text: "Ảo giác (LSD, nấm thần, PCP, ketamine, v.v.)" },
                 { id: 8, text: "Opioids đường phố (heroin, thuốc phiện)" },
                 { id: 9, text: "Opioids kê đơn (Oxycodone, Vicodin, Fentanyl, Methadone, v.v.) dùng sai mục đích" },
-                { id: 10, text: "Chất khác để tạo cảm giác 'phê' (Ghi rõ sau)" },
+                { id: 10, text: "Chất khác để tạo cảm giác 'phê'" },
+                { id: 11, text: "Tôi chưa từng sử dụng bất kỳ chất nào" }
             ],
-            type: "MCQs",
-            correctAnswer: "Tùy câu trả lời",
+            type: "multi-select",
+            multiSelect: true,
+            allowMultiple: true,
+            correctAnswer: "Tùy câu trả lời"
         },
         {
             id: 2,
             question: "Trong 3 tháng qua, bạn đã sử dụng [chất] bao nhiêu lần?",
+            note: "Dùng để đo tần suất sử dụng gần đây. [chất] sẽ thay bằng loại chất bạn chọn ở câu hỏi 1.",
             options: [
                 { id: 1, text: "Không bao giờ", score: 0 },
                 { id: 2, text: "Một hoặc hai lần", score: 2 },
@@ -33,7 +37,8 @@ export const Assist_Data = {
         },
         {
             id: 3,
-            question: "Trong 3 tháng qua, bạn có cảm thấy thèm muốn mạnh mẽ sử dụng [chất] không?",
+            question: "Trong 3 tháng qua, bạn có từng rất muốn sử dụng [chất] không?",
+            note: "‘Rất muốn’ tức là cảm giác mạnh mẽ, khó cưỡng lại khi không sử dụng.",
             options: [
                 { id: 1, text: "Không bao giờ", score: 0 },
                 { id: 2, text: "Một hoặc hai lần", score: 3 },
@@ -46,7 +51,8 @@ export const Assist_Data = {
         },
         {
             id: 4,
-            question: "Trong 3 tháng qua, việc sử dụng [chất] đã từng gây ra vấn đề về sức khỏe, xã hội, pháp lý hoặc tài chính không?",
+            question: "Trong 3 tháng qua, việc sử dụng [chất] có làm bạn gặp vấn đề về sức khỏe, tài chính, xã hội hoặc pháp lý không?",
+            note: "Ví dụ: đau ốm, mất tiền, bị xa lánh, bị phạt hoặc bắt.",
             options: [
                 { id: 1, text: "Không bao giờ", score: 0 },
                 { id: 2, text: "Một hoặc hai lần", score: 4 },
@@ -59,7 +65,8 @@ export const Assist_Data = {
         },
         {
             id: 5,
-            question: "Trong 3 tháng qua, bạn đã từng không hoàn thành trách nhiệm do sử dụng [chất] chưa?",
+            question: "Trong 3 tháng qua, bạn có từng bỏ bê trách nhiệm ở nhà, trường học, hoặc nơi làm vì sử dụng [chất] không?",
+            note: "Ví dụ: nghỉ học, đi làm trễ, quên việc do ảnh hưởng của chất.",
             options: [
                 { id: 1, text: "Không bao giờ", score: 0 },
                 { id: 2, text: "Một hoặc hai lần", score: 5 },
@@ -72,7 +79,8 @@ export const Assist_Data = {
         },
         {
             id: 6,
-            question: "Đã có ai lo ngại về việc bạn sử dụng [chất] chưa?",
+            question: "Có ai từng lo lắng hoặc phàn nàn về việc bạn sử dụng [chất] không?",
+            note: "Người khác cảm thấy bạn có vấn đề với chất và thể hiện sự lo ngại.",
             options: [
                 { id: 1, text: "Không bao giờ", score: 0 },
                 { id: 2, text: "Có, trong 3 tháng qua", score: 6 },
@@ -83,7 +91,8 @@ export const Assist_Data = {
         },
         {
             id: 7,
-            question: "Bạn đã từng cố gắng cắt giảm hoặc ngừng sử dụng [chất] nhưng thất bại chưa?",
+            question: "Bạn đã từng cố gắng ngừng hoặc giảm sử dụng [chất] nhưng không thành công chưa?",
+            note: "Cố gắng dừng lại nhưng vẫn không kiểm soát được.",
             options: [
                 { id: 1, text: "Không bao giờ", score: 0 },
                 { id: 2, text: "Có, trong 3 tháng qua", score: 6 },
@@ -94,7 +103,8 @@ export const Assist_Data = {
         },
         {
             id: 8,
-            question: "Bạn đã từng tiêm bất kỳ chất nào vào cơ thể chưa? (Không tính mục đích y tế)",
+            question: "Bạn đã từng tiêm chất nào đó vào cơ thể chưa? (Không tính trường hợp tiêm vì lý do y tế)",
+            note: "Tiêm bằng kim để đưa chất vào máu hoặc cơ.",
             options: [
                 { id: 1, text: "Không bao giờ", score: 0 },
                 { id: 2, text: "Có, trong 3 tháng qua", score: 2 },
@@ -105,7 +115,8 @@ export const Assist_Data = {
         },
         {
             id: 9,
-            question: "Việc sử dụng [chất] của bạn có bao giờ khiến bạn gặp nguy hiểm (ví dụ: lái xe, vận hành máy móc, quan hệ tình dục không an toàn) không?",
+            question: "Việc sử dụng [chất] của bạn có từng khiến bạn gặp nguy hiểm không? (như lái xe khi say, quan hệ tình dục không an toàn, v.v.)",
+            note: "Hành vi nguy hiểm do ảnh hưởng của chất, đe dọa an toàn bản thân hoặc người khác.",
             options: [
                 { id: 1, text: "Không bao giờ", score: 0 },
                 { id: 2, text: "Một hoặc hai lần", score: 4 },
@@ -118,7 +129,8 @@ export const Assist_Data = {
         },
         {
             id: 10,
-            question: "Bạn có từng trải qua các triệu chứng cai nghiện khi ngừng sử dụng [chất] không?",
+            question: "Khi bạn ngừng sử dụng [chất], bạn có từng trải qua triệu chứng khó chịu như run tay, mất ngủ, cáu gắt không?",
+            note: "Đây là triệu chứng cai nghiện, xuất hiện khi ngừng dùng chất gây nghiện.",
             options: [
                 { id: 1, text: "Không bao giờ", score: 0 },
                 { id: 2, text: "Một hoặc hai lần", score: 4 },
@@ -129,7 +141,8 @@ export const Assist_Data = {
         },
         {
             id: 11,
-            question: "Bạn có từng phải tăng liều lượng [chất] để đạt được hiệu quả tương tự không?",
+            question: "Bạn có cần tăng liều [chất] để cảm thấy hiệu quả như trước không?",
+            note: "Càng dùng nhiều mới có tác dụng như cũ gọi là hiện tượng 'dung nạp'.",
             options: [
                 { id: 1, text: "Không bao giờ", score: 0 },
                 { id: 2, text: "Một vài lần", score: 3 },
@@ -140,7 +153,8 @@ export const Assist_Data = {
         },
         {
             id: 12,
-            question: "Bạn có từng bỏ qua các hoạt động quan trọng (gia đình, học tập, giải trí) vì sử dụng [chất] không?",
+            question: "Bạn đã từng bỏ qua các hoạt động quan trọng vì sử dụng [chất] chưa? (như học tập, giải trí, gia đình)",
+            note: "Ví dụ: bỏ họp lớp, không ăn cơm gia đình vì bận dùng chất.",
             options: [
                 { id: 1, text: "Không bao giờ", score: 0 },
                 { id: 2, text: "Một vài lần", score: 4 },
@@ -151,7 +165,8 @@ export const Assist_Data = {
         },
         {
             id: 13,
-            question: "Bạn có từng gặp vấn đề về trí nhớ, khả năng tập trung hay giấc ngủ do sử dụng [chất] không?",
+            question: "Việc sử dụng [chất] có từng khiến bạn bị mất ngủ, giảm trí nhớ hoặc khó tập trung không?",
+            note: "Ảnh hưởng đến chức năng thần kinh như suy nghĩ, học tập, làm việc.",
             options: [
                 { id: 1, text: "Không bao giờ", score: 0 },
                 { id: 2, text: "Thỉnh thoảng", score: 3 },
@@ -162,7 +177,8 @@ export const Assist_Data = {
         },
         {
             id: 14,
-            question: "Việc sử dụng [chất] có từng khiến bạn bị buộc phải nghỉ học hoặc nghỉ việc không?",
+            question: "Bạn có từng bị nghỉ học hoặc mất việc do việc sử dụng [chất] không?",
+            note: "Có thể là bị đình chỉ học, sa thải hoặc tự nghỉ.",
             options: [
                 { id: 1, text: "Không bao giờ", score: 0 },
                 { id: 2, text: "Một lần", score: 4 },
@@ -173,7 +189,8 @@ export const Assist_Data = {
         },
         {
             id: 15,
-            question: "Bạn có từng bị bắt hoặc bị xử lý pháp lý do liên quan đến việc sử dụng hoặc sở hữu [chất] không?",
+            question: "Bạn đã từng bị công an bắt hoặc bị xử phạt vì liên quan đến sử dụng hoặc sở hữu [chất] chưa?",
+            note: "Ví dụ: bị cảnh sát xử lý hành chính, hình sự hoặc bị lập hồ sơ.",
             options: [
                 { id: 1, text: "Không bao giờ", score: 0 },
                 { id: 2, text: "Một lần", score: 5 },

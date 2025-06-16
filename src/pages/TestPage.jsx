@@ -1,12 +1,18 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/TestPage.scss';
-import { FaClipboardCheck, FaChartLine } from 'react-icons/fa';
+import { FaClipboardCheck, FaChartLine, FaArrowRight } from 'react-icons/fa';
 
 const TestPage = () => {
     const navigate = useNavigate();
 
     const handleStartExam = () => {
+        const token = sessionStorage.getItem('token');
+        if (!token) {
+            alert('Vui lòng đăng nhập để tiếp tục!');
+            navigate('/login');
+            return;
+        }
         navigate('/choosetype');
     };
 
@@ -24,7 +30,7 @@ const TestPage = () => {
 
                     <button className="start-button" onClick={handleStartExam}>
                         Start Assessment
-                        <i className="fas fa-arrow-right"></i>
+                        <FaArrowRight className="arrow-icon" />
                     </button>
 
                     <div className="exam-result">

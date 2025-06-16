@@ -12,6 +12,7 @@ const ExamPage = () => {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [result, setResult] = useState(null);
     const [selectedOption, setSelectedOption] = useState(null);
+    const [selectedOptions, setSelectedOptions] = useState([]);
     const [quizData, setQuizData] = useState(null);
     const [assessRiskLevel, setAssessRiskLevel] = useState(() => () => 'Chưa xác định');
     const [isLoading, setIsLoading] = useState(true);
@@ -37,27 +38,43 @@ const ExamPage = () => {
     }, [type, navigate]);
 
     const handleOptionSelect = (option) => {
-        setSelectedOption(option);
+        if (currentQuestionIndex === 0 && type.toLowerCase() === 'assist') {
+            setSelectedOptions(prev => {
+                if (prev.find(opt => opt.id === option.id)) {
+                    return prev.filter(opt => opt.id !== option.id);
+                } else {
+                    return [...prev, option];
+                }
+            });
+        } else {
+            setSelectedOption(option);
+        }
     };
 
     const handleNextQuestion = () => {
-        if (selectedOption === null) {
+        if (currentQuestionIndex === 0 && type.toLowerCase() === 'assist') {
+            if (selectedOptions.length === 0) {
+                alert('Vui lòng chọn ít nhất một đáp án trước khi tiếp tục.');
+                return;
+            }
+        } else if (selectedOption === null) {
             alert('Vui lòng chọn một câu trả lời trước khi tiếp tục.');
             return;
         }
 
-        const newScore = result.score + (selectedOption.score || 0);
+        const newScore = result.score + (selectedOption?.score || 0);
 
         setResult((prev) => ({
             ...prev,
             score: newScore,
-            correctAnswers: prev.correctAnswers + (selectedOption.score === 0 ? 1 : 0),
-            wrongAnswers: prev.wrongAnswers + (selectedOption.score > 0 ? 1 : 0),
+            correctAnswers: prev.correctAnswers + (selectedOption?.score === 0 ? 1 : 0),
+            wrongAnswers: prev.wrongAnswers + (selectedOption?.score > 0 ? 1 : 0),
         }));
 
         if (currentQuestionIndex < quizData.questions.length - 1) {
             setCurrentQuestionIndex((prev) => prev + 1);
             setSelectedOption(null);
+            setSelectedOptions([]);
         } else {
             const riskLevel = assessRiskLevel(newScore);
             navigate('/result', {
@@ -153,6 +170,12 @@ const ExamPage = () => {
                             <h4 className="question-text">
                                 {currentQuestion.question}
                             </h4>
+                            {currentQuestion.note && (
+                                <p className="question-note text-muted">
+                                    <i className="fas fa-info-circle me-2"></i>
+                                    {currentQuestion.note}
+                                </p>
+                            )}
                             <div className="options">
                                 {currentQuestion.options.map((option, index) => (
                                     <motion.div
@@ -165,10 +188,12 @@ const ExamPage = () => {
                                     >
                                         <input
                                             className="form-check-input"
-                                            type="radio"
+                                            type={currentQuestionIndex === 0 && type.toLowerCase() === 'assist' ? "checkbox" : "radio"}
                                             name="option"
                                             id={`option-${option.id}`}
-                                            checked={selectedOption?.id === option.id}
+                                            checked={currentQuestionIndex === 0 && type.toLowerCase() === 'assist'
+                                                ? selectedOptions.some(opt => opt.id === option.id)
+                                                : selectedOption?.id === option.id}
                                             onChange={() => { }}
                                         />
                                         <label

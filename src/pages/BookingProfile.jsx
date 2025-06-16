@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import '../styles/BookingProfile.scss';
 import Image from '../images/Images.jpg';
+import BookingModal from '../components/BookingModal';
 
 const BookingProfile = () => {
     const { id } = useParams();
@@ -10,6 +11,7 @@ const BookingProfile = () => {
     const [consultant, setConsultant] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
     // API call function to get consultant by ID
     const fetchConsultant = async (consultantId) => {
@@ -133,6 +135,15 @@ const BookingProfile = () => {
         return `$${parseFloat(cost).toFixed(0)}`;
     };
 
+    // Thêm hàm xử lý đóng modal
+    const handleCloseBookingModal = (success) => {
+        setIsBookingModalOpen(false);
+        if (success) {
+            // Có thể thêm thông báo thành công ở đây
+            alert('Đặt lịch thành công!');
+        }
+    };
+
     // Loading state
     if (loading) {
         return (
@@ -228,7 +239,7 @@ const BookingProfile = () => {
                             </button>
                             <button
                                 className="btn btn-outline-light btn-lg"
-                                onClick={() => navigate('/booking')}
+                                onClick={() => setIsBookingModalOpen(true)}
                             >
                                 <i className="bi bi-calendar-check me-2"></i>
                                 Book Session
@@ -606,8 +617,15 @@ const BookingProfile = () => {
                     )}
                 </div>
             </section>
+
+            {/* Thêm BookingModal */}
+            <BookingModal
+                isOpen={isBookingModalOpen}
+                onClose={handleCloseBookingModal}
+                consultantId={consultant?.id_consultant}
+            />
         </div>
     );
 };
 
-export default BookingProfile;  
+export default BookingProfile;

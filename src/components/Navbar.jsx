@@ -10,7 +10,7 @@ const Navbar = () => {
     const searchRef = useRef();
     const navigate = useNavigate();
     const location = useLocation();
-    const email = localStorage.getItem("email");
+    const email = sessionStorage.getItem("email");
     const [dropdownOpen, setDropdownOpen] = useState(false);
 
     const handleSearch = () => {
@@ -27,7 +27,8 @@ const Navbar = () => {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem("email");
+        sessionStorage.removeItem("email");
+        sessionStorage.removeItem("token");
         navigate("/");
     };
 
@@ -69,8 +70,8 @@ const Navbar = () => {
                 <div className="collapse navbar-collapse justify-content-center" id="navbarNav">
                     <ul className="navbar-nav gap-3">
                         <li className="nav-item">
-                            <Link 
-                                className={`nav-link ${isActiveLink('/') ? 'active' : ''}`} 
+                            <Link
+                                className={`nav-link ${isActiveLink('/') ? 'active' : ''}`}
                                 to="/"
                                 aria-current={isActiveLink('/') ? 'page' : undefined}
                             >
@@ -78,8 +79,8 @@ const Navbar = () => {
                             </Link>
                         </li>
                         <li className="nav-item">
-                            <Link 
-                                className={`nav-link ${isActiveLink('/booking') ? 'active' : ''}`} 
+                            <Link
+                                className={`nav-link ${isActiveLink('/booking') ? 'active' : ''}`}
                                 to="/booking"
                                 aria-current={isActiveLink('/booking') ? 'page' : undefined}
                             >
@@ -87,8 +88,8 @@ const Navbar = () => {
                             </Link>
                         </li>
                         <li className="nav-item">
-                            <Link 
-                                className={`nav-link ${isActiveLink('/courses') ? 'active' : ''}`} 
+                            <Link
+                                className={`nav-link ${isActiveLink('/courses') ? 'active' : ''}`}
                                 to="/courses"
                                 aria-current={isActiveLink('/courses') ? 'page' : undefined}
                             >
@@ -96,8 +97,8 @@ const Navbar = () => {
                             </Link>
                         </li>
                         <li className="nav-item">
-                            <Link 
-                                className={`nav-link ${isActiveLink('/test') ? 'active' : ''}`} 
+                            <Link
+                                className={`nav-link ${isActiveLink('/test') ? 'active' : ''}`}
                                 to="/test"
                                 aria-current={isActiveLink('/test') ? 'page' : undefined}
                             >
@@ -105,8 +106,8 @@ const Navbar = () => {
                             </Link>
                         </li>
                         <li className="nav-item">
-                            <Link 
-                                className={`nav-link ${isActiveLink('/blog') ? 'active' : ''}`} 
+                            <Link
+                                className={`nav-link ${isActiveLink('/blog') ? 'active' : ''}`}
                                 to="/blog"
                                 aria-current={isActiveLink('/blog') ? 'page' : undefined}
                             >
@@ -114,8 +115,8 @@ const Navbar = () => {
                             </Link>
                         </li>
                         <li className="nav-item">
-                            <Link 
-                                className={`nav-link ${isActiveLink('/about') ? 'active' : ''}`} 
+                            <Link
+                                className={`nav-link ${isActiveLink('/about') ? 'active' : ''}`}
                                 to="/about"
                                 aria-current={isActiveLink('/about') ? 'page' : undefined}
                             >
@@ -136,8 +137,8 @@ const Navbar = () => {
                             onKeyPress={handleKeyPress}
                             aria-label="Search"
                         />
-                        <button 
-                            className="btn btn-search" 
+                        <button
+                            className="btn btn-search"
                             onClick={handleSearch}
                             aria-label="Search button"
                             type="button"

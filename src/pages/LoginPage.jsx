@@ -9,12 +9,12 @@ const LoginPage = () => {
     const passwordRef = useRef(null);
     const [emailDisplay, setEmailDisplay] = useState('');
     const [type, setType] = useState('off');
-    const navigate = useNavigate();    
+    const navigate = useNavigate();
 
     // Hàm kiểm tra profile và điều hướng người dùng
     async function checkProfileAndRedirect() {
         try {
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             if (!token) {
                 console.error('Không tìm thấy token');
                 navigate('/login'); // Redirect to login instead of choose-role
@@ -32,11 +32,11 @@ const LoginPage = () => {
             });
 
             console.log('📊 Profile status response:', res.status);
-            
+
             if (res.ok) {
                 const data = await res.json();
                 console.log('✅ Profile data received:', data);
-                
+
                 // Check for both possible response formats
                 if (data.success && data.hasProfile) {
                     console.log('👤 User has profile, redirecting to home');
@@ -51,8 +51,8 @@ const LoginPage = () => {
             } else if (res.status === 401) {
                 console.error('🔒 Token invalid or expired');
                 // Clear invalid token and redirect to login
-                localStorage.removeItem('token');
-                localStorage.removeItem('email');
+                sessionStorage.removeItem('token');
+                sessionStorage.removeItem('email');
                 setEmailDisplay('Phiên đăng nhập đã hết hạn');
                 setType('on');
                 navigate('/login');
@@ -100,8 +100,8 @@ const LoginPage = () => {
                 setEmailDisplay("Xin chào " + email);
                 setType('on');
                 emailRef.current.value = '';
-                passwordRef.current.value = '';                localStorage.setItem("email", email);
-                localStorage.setItem("token", data.token);
+                passwordRef.current.value = ''; sessionStorage.setItem("email", email);
+                sessionStorage.setItem("token", data.token);
 
                 // Kiểm tra profile sau khi lưu token
                 await checkProfileAndRedirect();
@@ -138,10 +138,10 @@ const LoginPage = () => {
                 setEmailDisplay("Xin chào " + data.user.email);
                 setType('on');
                 emailRef.current.value = '';
-                passwordRef.current.value = '';      
-                          
-                localStorage.setItem("email", data.user.email);
-                localStorage.setItem("token", data.token);
+                passwordRef.current.value = '';
+
+                sessionStorage.setItem("email", data.user.email);
+                sessionStorage.setItem("token", data.token);
 
                 // Kiểm tra profile sau khi lưu token
                 await checkProfileAndRedirect();

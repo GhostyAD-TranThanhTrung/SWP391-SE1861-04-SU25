@@ -5,10 +5,8 @@ import Image from '../images/Images.jpg';
 
 const BookingPage = () => {
     const [selectedSpecialization, setSelectedSpecialization] = useState('all');
-    const [selectedTimeSlot, setSelectedTimeSlot] = useState('all');
     const [selectedDate, setSelectedDate] = useState('');
     const [consultants, setConsultants] = useState([]);
-    const [slots, setSlots] = useState([]);
     const [loading, setLoading] = useState(true);
     const [bookingStatus, setBookingStatus] = useState(null);
 
@@ -117,11 +115,9 @@ const BookingPage = () => {
                 const apiConsultants = await fetchAllConsultants();
                 const transformedConsultants = transformConsultantsArray(apiConsultants);
                 setConsultants(transformedConsultants);
-                setSlots(databaseSlots); // Use database-based slots from sample.sql
             } catch (error) {
                 console.error('Error loading consultants:', error);
                 setConsultants([]); // Fallback to empty array
-                setSlots(databaseSlots);
             } finally {
                 setLoading(false);
             }
@@ -146,10 +142,10 @@ const BookingPage = () => {
 
         // Find consultant and slot data
         const consultant = consultants.find(c => c.id_consultant === consultantId);
-        const slot = slots.find(s => s.slot_id === slotId);
+        const slot = databaseSlots.find(s => s.slot_id === slotId);
 
         if (consultant && slot) {
-            const consultantName = consultant.profile?.name !== 'N/A' ? consultant.profile?.name : 'Consultant';
+            const consultantName = consultant.name !== 'N/A' ? consultant.name : 'Consultant';
             setBookingStatus({
                 type: 'success',
                 message: `Consultation request submitted for ${consultantName} on ${selectedDate} at ${formatTime(slot.start_time)}. Status: Pending approval.`
@@ -175,31 +171,9 @@ const BookingPage = () => {
         { value: 'Rehabilitation', label: 'Rehabilitation' }
     ];
 
-    const timeSlots = [
-        { value: 'all', label: 'Any Time' },
-        { value: 'morning', label: 'Morning (9 AM - 12 PM)' },
-        { value: 'afternoon', label: 'Afternoon (12 PM - 5 PM)' }
-    ];
-
     const filteredConsultants = consultants.filter(consultant => {
         const specialization = getSpecializationFromSpeciality(consultant.speciality);
-        const specializationMatch = selectedSpecialization === 'all' || specialization === selectedSpecialization;
-
-        // Time slot filtering based on database slots (9 AM - 5 PM)
-        let timeMatch = true;
-        if (selectedTimeSlot === 'morning') {
-            timeMatch = slots.some(slot => {
-                const hour = parseInt(slot.start_time.split(':')[0]);
-                return hour >= 9 && hour < 12;
-            });
-        } else if (selectedTimeSlot === 'afternoon') {
-            timeMatch = slots.some(slot => {
-                const hour = parseInt(slot.start_time.split(':')[0]);
-                return hour >= 12 && hour < 17;
-            });
-        }
-
-        return specializationMatch && timeMatch;
+        return selectedSpecialization === 'all' || specialization === selectedSpecialization;
     });
 
     if (loading) {
@@ -265,18 +239,6 @@ const BookingPage = () => {
                                 >
                                     {specializations.map(spec => (
                                         <option key={spec.value} value={spec.value}>{spec.label}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="col-lg-3 col-md-6 mb-3">
-                                <label className="filter-label">Availability</label>
-                                <select
-                                    className="form-select filter-select"
-                                    value={selectedTimeSlot}
-                                    onChange={(e) => setSelectedTimeSlot(e.target.value)}
-                                >
-                                    {timeSlots.map(slot => (
-                                        <option key={slot.value} value={slot.value}>{slot.label}</option>
                                     ))}
                                 </select>
                             </div>
@@ -355,91 +317,23 @@ const BookingPage = () => {
                                         </div>
 
                                         <div className="consultant-details">
-                                            <div className="detail-item">
+                                            <div className="detail-item" style={{ padding: '10px 0', marginBottom: '15px' }}>
                                                 <i className="bi bi-currency-dollar me-2"></i>
-                                                <span>{consultant.cost !== 'N/A' ? `$${consultant.cost} per session` : 'Price N/A'}</span>
+                                                <span style={{ fontSize: '1.1rem', fontWeight: '500' }}>
+                                                    {consultant.cost !== 'N/A' ? `$${consultant.cost} per session` : 'Price N/A'}
+                                                </span>
                                             </div>
                                         </div>
 
-                                        {/* Available Time Slots */}
-                                        <div className="available-slots mt-3">
-                                            <h6><i className="bi bi-clock me-2"></i>Available Time Slots:</h6>
-
-                                            {/* Morning Slots */}
-                                            {slots.filter(slot => {
-                                                const hour = parseInt(slot.start_time.split(':')[0]);
-                                                return hour >= 9 && hour < 12;
-                                            }).length > 0 && (
-                                                    <div className="slot-group mb-2">
-                                                        <small className="slot-group-label">Morning</small>
-                                                        <div className="slots-grid">
-                                                            {slots
-                                                                .filter(slot => {
-                                                                    const hour = parseInt(slot.start_time.split(':')[0]);
-                                                                    return hour >= 9 && hour < 12;
-                                                                })
-                                                                .map((slot) => (
-                                                                    <button
-                                                                        key={slot.slot_id}
-                                                                        className="btn btn-outline-primary btn-sm slot-btn me-2 mb-1"
-                                                                        onClick={() => bookConsultation(consultant.id_consultant, slot.slot_id)}
-                                                                        disabled={!selectedDate}
-                                                                        title={!selectedDate ? "Please select a date first" : `Book ${formatTime(slot.start_time)} - ${formatTime(slot.end_time)}`}
-                                                                    >
-                                                                        {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
-                                                                    </button>
-                                                                ))}
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                            {/* Afternoon Slots */}
-                                            {slots.filter(slot => {
-                                                const hour = parseInt(slot.start_time.split(':')[0]);
-                                                return hour >= 12 && hour < 17;
-                                            }).length > 0 && (
-                                                    <div className="slot-group mb-2">
-                                                        <small className="slot-group-label">Afternoon</small>
-                                                        <div className="slots-grid">
-                                                            {slots
-                                                                .filter(slot => {
-                                                                    const hour = parseInt(slot.start_time.split(':')[0]);
-                                                                    return hour >= 12 && hour < 17;
-                                                                })
-                                                                .map((slot) => (
-                                                                    <button
-                                                                        key={slot.slot_id}
-                                                                        className="btn btn-outline-warning btn-sm slot-btn me-2 mb-1"
-                                                                        onClick={() => bookConsultation(consultant.id_consultant, slot.slot_id)}
-                                                                        disabled={!selectedDate}
-                                                                        title={!selectedDate ? "Please select a date first" : `Book ${formatTime(slot.start_time)} - ${formatTime(slot.end_time)}`}
-                                                                    >
-                                                                        {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
-                                                                    </button>
-                                                                ))}
-                                                        </div>
-                                                    </div>
-                                                )}
-
-
-
-                                            {!selectedDate && (
-                                                <small className="text-muted">
-                                                    <i className="bi bi-info-circle me-1"></i>
-                                                    Please select a date above to book a time slot
-                                                </small>
-                                            )}
+                                        <div className="consultant-footer">
+                                            <Link
+                                                to={`/consultant/${consultant.id_consultant}`}
+                                                className="btn btn-outline-primary"
+                                            >
+                                                <i className="bi bi-person me-2"></i>
+                                                View Profile
+                                            </Link>
                                         </div>
-                                    </div>
-
-                                    <div className="consultant-footer">
-                                        <Link
-                                            to={`/consultant/${consultant.id_consultant}`}
-                                            className="btn btn-outline-primary"
-                                        >
-                                            <i className="bi bi-person me-2"></i>
-                                            View Profile
-                                        </Link>
                                     </div>
                                 </div>
                             </div>
@@ -456,7 +350,6 @@ const BookingPage = () => {
                                     className="btn btn-outline-primary"
                                     onClick={() => {
                                         setSelectedSpecialization('all');
-                                        setSelectedTimeSlot('all');
                                     }}
                                 >
                                     Clear Filters
