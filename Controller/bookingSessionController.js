@@ -544,6 +544,12 @@ class BookingSessionController {
             );
 
             if (!bookings || bookings.length === 0) {
+                console.log('Scheduled bookings response:', {
+                    success: true,
+                    data: [],
+                    count: 0,
+                    message: 'Không tìm thấy lịch hẹn đã lên lịch nào'
+                });
                 return res.status(200).json({
                     success: true,
                     data: [],
@@ -552,6 +558,12 @@ class BookingSessionController {
                 });
             }
 
+            console.log('Scheduled bookings response:', {
+                success: true,
+                data: bookings,
+                count: bookings.length,
+                message: 'Lấy danh sách lịch hẹn đã lên lịch thành công'
+            });
             res.status(200).json({
                 success: true,
                 data: bookings,
