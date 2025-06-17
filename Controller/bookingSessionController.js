@@ -532,7 +532,7 @@ class BookingSessionController {
                 INNER JOIN Consultant_Slot cs ON (b.consultant_id = cs.consultant_id AND b.slot_id = cs.slot_id)
                 WHERE b.member_id = @0
                 AND b.status = @1
-                ORDER BY b.booking_date ASC, s.start_time ASC
+                ORDER BY booking_date ASC, start_time ASC
             `;
 
             console.log('Scheduled bookings query:', bookingQuery);
