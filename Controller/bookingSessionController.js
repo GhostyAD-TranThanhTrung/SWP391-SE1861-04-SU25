@@ -17,13 +17,13 @@ class BookingSessionController {
             res.status(200).json({
                 success: true,
                 data: bookings,
-                message: 'Booking sessions retrieved successfully'
+                message: 'Lấy danh sách lịch hẹn thành công'
             });
         } catch (error) {
             console.error('Error getting booking sessions:', error);
             res.status(500).json({
                 success: false,
-                message: 'Failed to retrieve booking sessions',
+                message: 'Không thể lấy danh sách lịch hẹn',
                 error: error.message
             });
         }
@@ -43,20 +43,20 @@ class BookingSessionController {
             if (!booking) {
                 return res.status(404).json({
                     success: false,
-                    message: 'Booking session not found'
+                    message: 'Không tìm thấy lịch hẹn'
                 });
             }
 
             res.status(200).json({
                 success: true,
                 data: booking,
-                message: 'Booking session retrieved successfully'
+                message: 'Lấy thông tin lịch hẹn thành công'
             });
         } catch (error) {
             console.error('Error getting booking session:', error);
             res.status(500).json({
                 success: false,
-                message: 'Failed to retrieve booking session',
+                message: 'Không thể lấy thông tin lịch hẹn',
                 error: error.message
             });
         }
@@ -76,13 +76,13 @@ class BookingSessionController {
             res.status(200).json({
                 success: true,
                 data: bookings,
-                message: 'Booking sessions retrieved successfully'
+                message: 'Lấy danh sách lịch hẹn thành công'
             });
         } catch (error) {
             console.error('Error getting booking sessions by consultant:', error);
             res.status(500).json({
                 success: false,
-                message: 'Failed to retrieve booking sessions',
+                message: 'Không thể lấy danh sách lịch hẹn',
                 error: error.message
             });
         }
@@ -132,7 +132,7 @@ class BookingSessionController {
                     success: true,
                     data: [],
                     count: 0,
-                    message: 'No booking sessions exist for this member'
+                    message: 'Không có lịch hẹn nào cho thành viên này'
                 });
             }
 
@@ -140,7 +140,7 @@ class BookingSessionController {
                 success: true,
                 data: bookings,
                 count: bookings.length,
-                message: 'Booking sessions retrieved successfully'
+                message: 'Lấy danh sách lịch hẹn thành công'
             });
         } catch (error) {
             console.error('Error getting booking sessions by member:', error);
@@ -148,7 +148,7 @@ class BookingSessionController {
                 success: false,
                 data: [],
                 count: 0,
-                message: error.message || 'Failed to retrieve booking sessions'
+                message: error.message || 'Không thể lấy danh sách lịch hẹn'
             });
         }
     }
@@ -176,7 +176,7 @@ class BookingSessionController {
                     success: false,
                     data: [],
                     count: 0,
-                    message: 'Missing required fields: consultant_id, slot_id, and booking_date are required'
+                    message: 'Thiếu thông tin bắt buộc: consultant_id, slot_id, và booking_date là bắt buộc'
                 });
             }
 
@@ -188,7 +188,7 @@ class BookingSessionController {
                     success: false,
                     data: [],
                     count: 0,
-                    message: 'Invalid date format. Use YYYY-MM-DD'
+                    message: 'Định dạng ngày không hợp lệ. Sử dụng định dạng YYYY-MM-DD'
                 });
             }
 
@@ -218,18 +218,18 @@ class BookingSessionController {
                 'scheduled'
             ]);
 
-            const [existingBooking] = await AppDataSource.query(
+            const existingBookings = await AppDataSource.query(
                 existingBookingQuery,
                 [parseInt(consultant_id), parseInt(slot_id), booking_date, 'scheduled']
             );
 
-            if (existingBooking) {
-                console.log('Found existing booking:', existingBooking);
+            if (existingBookings && existingBookings.length > 0) {
+                console.log('Found existing booking:', existingBookings[0]);
                 return res.status(409).json({
                     success: false,
                     data: [],
                     count: 0,
-                    message: 'This time slot is already booked'
+                    message: 'Chuyên gia này đã được đặt cho khung giờ này vào ngày đã chọn'
                 });
             }
 
@@ -260,7 +260,7 @@ class BookingSessionController {
                     success: false,
                     data: [],
                     count: 0,
-                    message: 'You already have a booking scheduled for this date'
+                    message: 'Bạn đã có một cuộc hẹn được lên lịch cho ngày này'
                 });
             }
 
@@ -334,7 +334,7 @@ class BookingSessionController {
                 success: true,
                 data: [completeBooking],
                 count: 1,
-                message: 'Booking session created successfully'
+                message: 'Đặt lịch hẹn thành công'
             });
         } catch (error) {
             console.error('Detailed error in createBookingSession:', {
@@ -346,7 +346,7 @@ class BookingSessionController {
                 success: false,
                 data: [],
                 count: 0,
-                message: error.message || 'Failed to create booking session'
+                message: error.message || 'Không thể tạo lịch hẹn'
             });
         }
     }
@@ -369,7 +369,7 @@ class BookingSessionController {
             if (!booking) {
                 return res.status(404).json({
                     success: false,
-                    message: 'Booking session not found'
+                    message: 'Không tìm thấy lịch hẹn'
                 });
             }
 
@@ -391,13 +391,13 @@ class BookingSessionController {
             res.status(200).json({
                 success: true,
                 data: updatedBooking,
-                message: 'Booking session updated successfully'
+                message: 'Cập nhật lịch hẹn thành công'
             });
         } catch (error) {
             console.error('Error updating booking session:', error);
             res.status(500).json({
                 success: false,
-                message: 'Failed to update booking session',
+                message: 'Không thể cập nhật lịch hẹn',
                 error: error.message
             });
         }
@@ -419,7 +419,7 @@ class BookingSessionController {
             if (!booking) {
                 return res.status(404).json({
                     success: false,
-                    message: 'Booking session not found'
+                    message: 'Không tìm thấy lịch hẹn'
                 });
             }
 
@@ -427,13 +427,13 @@ class BookingSessionController {
 
             res.status(200).json({
                 success: true,
-                message: 'Booking session deleted successfully'
+                message: 'Xóa lịch hẹn thành công'
             });
         } catch (error) {
             console.error('Error deleting booking session:', error);
             res.status(500).json({
                 success: false,
-                message: 'Failed to delete booking session',
+                message: 'Không thể xóa lịch hẹn',
                 error: error.message
             });
         }
@@ -453,13 +453,13 @@ class BookingSessionController {
             res.status(200).json({
                 success: true,
                 data: bookings,
-                message: 'Booking sessions retrieved successfully'
+                message: 'Lấy danh sách lịch hẹn thành công'
             });
         } catch (error) {
             console.error('Error getting booking sessions by status:', error);
             res.status(500).json({
                 success: false,
-                message: 'Failed to retrieve booking sessions',
+                message: 'Không thể lấy danh sách lịch hẹn',
                 error: error.message
             });
         }
@@ -492,13 +492,13 @@ class BookingSessionController {
             res.status(200).json({
                 success: true,
                 data: bookings,
-                message: 'Booking sessions retrieved successfully'
+                message: 'Lấy danh sách lịch hẹn thành công'
             });
         } catch (error) {
             console.error('Error getting booking sessions by date range:', error);
             res.status(500).json({
                 success: false,
-                message: 'Failed to retrieve booking sessions',
+                message: 'Không thể lấy danh sách lịch hẹn',
                 error: error.message
             });
         }
@@ -547,7 +547,7 @@ class BookingSessionController {
                     success: true,
                     data: [],
                     count: 0,
-                    message: 'No scheduled booking sessions found'
+                    message: 'Không tìm thấy lịch hẹn đã lên lịch nào'
                 });
             }
 
@@ -555,7 +555,7 @@ class BookingSessionController {
                 success: true,
                 data: bookings,
                 count: bookings.length,
-                message: 'Scheduled booking sessions retrieved successfully'
+                message: 'Lấy danh sách lịch hẹn đã lên lịch thành công'
             });
         } catch (error) {
             console.error('Error getting scheduled booking sessions:', error);
@@ -563,7 +563,7 @@ class BookingSessionController {
                 success: false,
                 data: [],
                 count: 0,
-                message: error.message || 'Failed to retrieve scheduled booking sessions'
+                message: error.message || 'Không thể lấy danh sách lịch hẹn đã lên lịch'
             });
         }
     }
