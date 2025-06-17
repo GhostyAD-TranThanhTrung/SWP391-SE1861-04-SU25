@@ -511,35 +511,39 @@ class BookingSessionController {
         try {
             const memberId = req.user.userId;
 
-            const bookingQuery = `
+            const scheduledBookingQuery = `
                 SELECT DISTINCT
                     b.booking_id,
                     b.consultant_id,
                     b.member_id,
                     b.slot_id,
-                    CONVERT(varchar(10), b.booking_date, 120) as booking_date,
+                    b.booking_date,
                     b.status,
                     b.notes,
                     cs.day_of_week,
-                    CONVERT(varchar(8), s.start_time, 108) as start_time,
-                    CONVERT(varchar(8), s.end_time, 108) as end_time,
+                    s.start_time,
+                    s.end_time,
                     p.name as consultant_name
                 FROM Booking_Session b
                 INNER JOIN Consultant c ON b.consultant_id = c.id_consultant
                 INNER JOIN [Users] u ON c.user_id = u.user_id
                 INNER JOIN Profile p ON u.user_id = p.user_id
                 INNER JOIN Slot s ON b.slot_id = s.slot_id
-                INNER JOIN Consultant_Slot cs ON (b.consultant_id = cs.consultant_id AND b.slot_id = cs.slot_id)
+                INNER JOIN Consultant_Slot cs ON (
+                    b.consultant_id = cs.consultant_id 
+                    AND b.slot_id = cs.slot_id
+                    AND DATENAME(WEEKDAY, b.booking_date) = cs.day_of_week
+                )
                 WHERE b.member_id = @0
                 AND b.status = @1
                 ORDER BY booking_date ASC, start_time ASC
             `;
 
-            console.log('Scheduled bookings query:', bookingQuery);
+            console.log('Scheduled bookings query:', scheduledBookingQuery);
             console.log('Scheduled bookings parameters:', [memberId, 'scheduled']);
 
             const bookings = await AppDataSource.query(
-                bookingQuery,
+                scheduledBookingQuery,
                 [parseInt(memberId), 'scheduled']
             );
 
