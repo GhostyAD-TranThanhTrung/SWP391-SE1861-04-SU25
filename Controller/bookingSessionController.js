@@ -102,17 +102,17 @@ class BookingSessionController {
                     b.consultant_id,
                     b.member_id,
                     b.slot_id,
-                    b.booking_date,
+                    CONVERT(varchar(10), b.booking_date, 120) as booking_date,
                     b.status,
                     b.notes,
-                    c.id_consultant,
-                    cu.email,
-                    s.start_time,
-                    s.end_time,
-                    cs.day_of_week
+                    cs.day_of_week,
+                    CONVERT(varchar(8), s.start_time, 108) as start_time,
+                    CONVERT(varchar(8), s.end_time, 108) as end_time,
+                    p.name as consultant_name
                 FROM Booking_Session b
                 LEFT JOIN Consultant c ON b.consultant_id = c.id_consultant
-                LEFT JOIN [Users] cu ON c.user_id = cu.user_id
+                LEFT JOIN [Users] u ON c.user_id = u.user_id
+                LEFT JOIN Profile p ON u.user_id = p.user_id
                 LEFT JOIN Slot s ON b.slot_id = s.slot_id
                 LEFT JOIN Consultant_Slot cs ON (b.consultant_id = cs.consultant_id AND b.slot_id = cs.slot_id)
                 WHERE b.member_id = @0
@@ -233,6 +233,37 @@ class BookingSessionController {
                 });
             }
 
+            // Check if member already has a booking on this date
+            const memberBookingQuery = `
+                SELECT booking_id, consultant_id, member_id, slot_id, booking_date, status
+                FROM Booking_Session
+                WHERE member_id = @0
+                AND booking_date = @1
+                AND status = @2
+            `;
+
+            console.log('Member booking check - SQL Query:', memberBookingQuery);
+            console.log('Member booking check - Parameters:', [
+                parseInt(member_id),
+                booking_date,
+                'scheduled'
+            ]);
+
+            const [memberBooking] = await AppDataSource.query(
+                memberBookingQuery,
+                [parseInt(member_id), booking_date, 'scheduled']
+            );
+
+            if (memberBooking) {
+                console.log('Found existing member booking:', memberBooking);
+                return res.status(409).json({
+                    success: false,
+                    data: [],
+                    count: 0,
+                    message: 'You already have a booking scheduled for this date'
+                });
+            }
+
             // Create new booking session
             console.log('Creating new booking with data:', {
                 consultant_id: parseInt(consultant_id),
@@ -273,17 +304,19 @@ class BookingSessionController {
                     b.consultant_id,
                     b.member_id,
                     b.slot_id,
-                    b.booking_date,
+                    CONVERT(varchar(10), b.booking_date, 120) as booking_date,
                     b.status,
                     b.notes,
-                    c.id_consultant,
-                    cu.email,
-                    s.start_time,
-                    s.end_time
+                    cs.day_of_week,
+                    CONVERT(varchar(8), s.start_time, 108) as start_time,
+                    CONVERT(varchar(8), s.end_time, 108) as end_time,
+                    p.name as consultant_name
                 FROM Booking_Session b
                 LEFT JOIN Consultant c ON b.consultant_id = c.id_consultant
-                LEFT JOIN [Users] cu ON c.user_id = cu.user_id
+                LEFT JOIN [Users] u ON c.user_id = u.user_id
+                LEFT JOIN Profile p ON u.user_id = p.user_id
                 LEFT JOIN Slot s ON b.slot_id = s.slot_id
+                LEFT JOIN Consultant_Slot cs ON (b.consultant_id = cs.consultant_id AND b.slot_id = cs.slot_id)
                 WHERE b.booking_id = @0
             `;
 
@@ -297,31 +330,9 @@ class BookingSessionController {
 
             console.log('Complete booking data:', completeBooking);
 
-            // Get day of week using raw SQL
-            console.log('Fetching day of week for consultant_id:', consultant_id, 'slot_id:', slot_id);
-            const dayOfWeekQuery = `
-                SELECT day_of_week 
-                FROM Consultant_Slot 
-                WHERE consultant_id = @0 AND slot_id = @1
-            `;
-            console.log('Day of week - Raw SQL Query:', dayOfWeekQuery);
-            console.log('Day of week - Parameters:', [parseInt(consultant_id), parseInt(slot_id)]);
-
-            const [dayOfWeekResult] = await AppDataSource.query(
-                dayOfWeekQuery,
-                [parseInt(consultant_id), parseInt(slot_id)]
-            );
-            console.log('Day of week result:', dayOfWeekResult);
-
-            const responseData = {
-                ...completeBooking,
-                day_of_week: dayOfWeekResult ? dayOfWeekResult.day_of_week : null
-            };
-            console.log('Final response data:', responseData);
-
             res.status(201).json({
                 success: true,
-                data: [responseData],
+                data: [completeBooking],
                 count: 1,
                 message: 'Booking session created successfully'
             });
@@ -498,33 +509,45 @@ class BookingSessionController {
      */
     static async getScheduledBookingSessions(req, res) {
         try {
-            const memberId = req.user.id;
+            const memberId = req.user.userId;
 
-            const bookingRepository = AppDataSource.getRepository(BookingSession);
-            const bookings = await bookingRepository
-                .createQueryBuilder('booking')
-                .leftJoinAndSelect('booking.consultant', 'consultant')
-                .leftJoinAndSelect('consultant.user', 'user')
-                .leftJoinAndSelect('booking.slot', 'slot')
-                .leftJoinAndSelect('booking.consultant_slot', 'consultant_slot')
-                .where('booking.member_id = :memberId', { memberId })
-                .andWhere('booking.status = :status', { status: 'scheduled' })
-                .select([
-                    'booking',
-                    'consultant.id_consultant',
-                    'user.fullname',
-                    'slot.start_time',
-                    'slot.end_time',
-                    'consultant_slot.day_of_week'
-                ])
-                .getMany();
+            const bookingQuery = `
+                SELECT 
+                    b.booking_id,
+                    b.consultant_id,
+                    b.member_id,
+                    b.slot_id,
+                    CONVERT(varchar(10), b.booking_date, 120) as booking_date,
+                    b.status,
+                    b.notes,
+                    cs.day_of_week,
+                    CONVERT(varchar(8), s.start_time, 108) as start_time,
+                    CONVERT(varchar(8), s.end_time, 108) as end_time,
+                    p.name as consultant_name
+                FROM Booking_Session b
+                LEFT JOIN Consultant c ON b.consultant_id = c.id_consultant
+                LEFT JOIN [Users] u ON c.user_id = u.user_id
+                LEFT JOIN Profile p ON u.user_id = p.user_id
+                LEFT JOIN Slot s ON b.slot_id = s.slot_id
+                LEFT JOIN Consultant_Slot cs ON (b.consultant_id = cs.consultant_id AND b.slot_id = cs.slot_id)
+                WHERE b.member_id = @0
+                AND b.status = @1
+            `;
+
+            console.log('Scheduled bookings query:', bookingQuery);
+            console.log('Scheduled bookings parameters:', [memberId, 'scheduled']);
+
+            const bookings = await AppDataSource.query(
+                bookingQuery,
+                [parseInt(memberId), 'scheduled']
+            );
 
             if (!bookings || bookings.length === 0) {
                 return res.status(200).json({
                     success: true,
                     data: [],
                     count: 0,
-                    message: 'Booking sessions retrieved successfully'
+                    message: 'No scheduled booking sessions found'
                 });
             }
 
@@ -532,14 +555,15 @@ class BookingSessionController {
                 success: true,
                 data: bookings,
                 count: bookings.length,
-                message: 'Booking sessions retrieved successfully'
+                message: 'Scheduled booking sessions retrieved successfully'
             });
         } catch (error) {
-            console.error('Error getting booking sessions by member:', error);
+            console.error('Error getting scheduled booking sessions:', error);
             res.status(500).json({
                 success: false,
-                message: 'Failed to retrieve booking sessions',
-                error: error.message
+                data: [],
+                count: 0,
+                message: error.message || 'Failed to retrieve scheduled booking sessions'
             });
         }
     }
