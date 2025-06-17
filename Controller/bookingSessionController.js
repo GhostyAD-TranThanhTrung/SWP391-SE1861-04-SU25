@@ -512,7 +512,7 @@ class BookingSessionController {
             const memberId = req.user.userId;
 
             const bookingQuery = `
-                SELECT 
+                SELECT DISTINCT
                     b.booking_id,
                     b.consultant_id,
                     b.member_id,
@@ -525,13 +525,14 @@ class BookingSessionController {
                     CONVERT(varchar(8), s.end_time, 108) as end_time,
                     p.name as consultant_name
                 FROM Booking_Session b
-                LEFT JOIN Consultant c ON b.consultant_id = c.id_consultant
-                LEFT JOIN [Users] u ON c.user_id = u.user_id
-                LEFT JOIN Profile p ON u.user_id = p.user_id
-                LEFT JOIN Slot s ON b.slot_id = s.slot_id
-                LEFT JOIN Consultant_Slot cs ON (b.consultant_id = cs.consultant_id AND b.slot_id = cs.slot_id)
+                INNER JOIN Consultant c ON b.consultant_id = c.id_consultant
+                INNER JOIN [Users] u ON c.user_id = u.user_id
+                INNER JOIN Profile p ON u.user_id = p.user_id
+                INNER JOIN Slot s ON b.slot_id = s.slot_id
+                INNER JOIN Consultant_Slot cs ON (b.consultant_id = cs.consultant_id AND b.slot_id = cs.slot_id)
                 WHERE b.member_id = @0
                 AND b.status = @1
+                ORDER BY b.booking_date ASC, s.start_time ASC
             `;
 
             console.log('Scheduled bookings query:', bookingQuery);
