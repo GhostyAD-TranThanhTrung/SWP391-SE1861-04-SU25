@@ -13,12 +13,16 @@ class ProgramController {
         try {
             const programRepository = AppDataSource.getRepository(Program);
             const programs = await programRepository.find({
-                relations: ['creator', 'category', 'enrollments', 'contents']
+                relations: ['creator', 'category', 'enrollments', 'contents'],
+                order: {
+                    create_at: 'DESC'
+                }
             });
 
             res.status(200).json({
                 success: true,
                 data: programs,
+                count: programs.length,
                 message: 'Programs retrieved successfully'
             });
         } catch (error) {
@@ -74,12 +78,16 @@ class ProgramController {
             const programRepository = AppDataSource.getRepository(Program);
             const programs = await programRepository.find({
                 where: { create_by: parseInt(creatorId) },
-                relations: ['creator', 'category', 'enrollments']
+                relations: ['creator', 'category', 'enrollments', 'contents'],
+                order: {
+                    create_at: 'DESC'
+                }
             });
 
             res.status(200).json({
                 success: true,
                 data: programs,
+                count: programs.length,
                 message: 'Programs retrieved successfully'
             });
         } catch (error) {
@@ -101,19 +109,23 @@ class ProgramController {
             const programRepository = AppDataSource.getRepository(Program);
             const programs = await programRepository.find({
                 where: { category_id: parseInt(categoryId) },
-                relations: ['creator', 'category', 'enrollments']
+                relations: ['creator', 'category', 'enrollments', 'contents'],
+                order: {
+                    create_at: 'DESC'
+                }
             });
 
             res.status(200).json({
                 success: true,
                 data: programs,
-                message: 'Programs retrieved successfully'
+                count: programs.length,
+                message: `Programs in category ${categoryId} retrieved successfully`
             });
         } catch (error) {
             console.error('Error getting programs by category:', error);
             res.status(500).json({
                 success: false,
-                message: 'Failed to retrieve programs',
+                message: 'Failed to retrieve programs by category',
                 error: error.message
             });
         }
@@ -128,13 +140,17 @@ class ProgramController {
             const programRepository = AppDataSource.getRepository(Program);
             const programs = await programRepository.find({
                 where: { status },
-                relations: ['creator', 'category', 'enrollments']
+                relations: ['creator', 'category', 'enrollments', 'contents'],
+                order: {
+                    create_at: 'DESC'
+                }
             });
 
             res.status(200).json({
                 success: true,
                 data: programs,
-                message: 'Programs retrieved successfully'
+                count: programs.length,
+                message: `Programs with status ${status} retrieved successfully`
             });
         } catch (error) {
             console.error('Error getting programs by status:', error);
@@ -155,13 +171,17 @@ class ProgramController {
             const programRepository = AppDataSource.getRepository(Program);
             const programs = await programRepository.find({
                 where: { age_group: ageGroup },
-                relations: ['creator', 'category', 'enrollments']
+                relations: ['creator', 'category', 'enrollments', 'contents'],
+                order: {
+                    create_at: 'DESC'
+                }
             });
 
             res.status(200).json({
                 success: true,
                 data: programs,
-                message: 'Programs retrieved successfully'
+                count: programs.length,
+                message: `Programs for age group ${ageGroup} retrieved successfully`
             });
         } catch (error) {
             console.error('Error getting programs by age group:', error);
@@ -178,13 +198,13 @@ class ProgramController {
      */
     static async createProgram(req, res) {
         try {
-            const { title, description, create_by, status, age_group, category_id } = req.body;
+            const { title, description, create_by, status, age_group, category_id, img_link } = req.body;
 
             // Validate required fields
-            if (!title || !create_by) {
+            if (!title || !create_by || !category_id) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Missing required fields: title, create_by'
+                    message: 'Missing required fields: title, create_by, and category_id are required'
                 });
             }
 
@@ -198,7 +218,8 @@ class ProgramController {
                 status: status || 'draft',
                 age_group,
                 create_at: new Date(),
-                category_id: category_id ? parseInt(category_id) : null
+                category_id: parseInt(category_id),
+                img_link
             });
 
             const savedProgram = await programRepository.save(newProgram);
@@ -206,7 +227,7 @@ class ProgramController {
             // Fetch the complete program with relations
             const completeProgram = await programRepository.findOne({
                 where: { program_id: savedProgram.program_id },
-                relations: ['creator', 'category']
+                relations: ['creator', 'category', 'contents']
             });
 
             res.status(201).json({
@@ -230,7 +251,7 @@ class ProgramController {
     static async updateProgram(req, res) {
         try {
             const { id } = req.params;
-            const { title, description, status, age_group, category_id } = req.body;
+            const { title, description, status, age_group, category_id, img_link } = req.body;
 
             const programRepository = AppDataSource.getRepository(Program);
 
@@ -252,13 +273,14 @@ class ProgramController {
                 description: description !== undefined ? description : program.description,
                 status: status || program.status,
                 age_group: age_group !== undefined ? age_group : program.age_group,
-                category_id: category_id !== undefined ? (category_id ? parseInt(category_id) : null) : program.category_id
+                category_id: category_id !== undefined ? parseInt(category_id) : program.category_id,
+                img_link: img_link !== undefined ? img_link : program.img_link
             });
 
             // Fetch updated program with relations
             const updatedProgram = await programRepository.findOne({
                 where: { program_id: parseInt(id) },
-                relations: ['creator', 'category', 'enrollments']
+                relations: ['creator', 'category', 'enrollments', 'contents']
             });
 
             res.status(200).json({
@@ -331,6 +353,7 @@ class ProgramController {
                 .leftJoinAndSelect('program.creator', 'creator')
                 .leftJoinAndSelect('program.category', 'category')
                 .leftJoinAndSelect('program.enrollments', 'enrollments')
+                .leftJoinAndSelect('program.contents', 'contents')
                 .where('program.title LIKE :query', { query: `%${query}%` })
                 .orWhere('program.description LIKE :query', { query: `%${query}%` })
                 .orderBy('program.create_at', 'DESC')
@@ -339,6 +362,7 @@ class ProgramController {
             res.status(200).json({
                 success: true,
                 data: programs,
+                count: programs.length,
                 message: 'Programs retrieved successfully'
             });
         } catch (error) {
@@ -361,7 +385,7 @@ class ProgramController {
 
             const program = await programRepository.findOne({
                 where: { program_id: parseInt(id) },
-                relations: ['enrollments']
+                relations: ['enrollments', 'contents']
             });
 
             if (!program) {
@@ -388,7 +412,8 @@ class ProgramController {
                 in_progress_enrollments: inProgressEnrollments,
                 not_started_enrollments: notStartedEnrollments,
                 completion_rate: totalEnrollments > 0 ? (completedEnrollments / totalEnrollments) * 100 : 0,
-                average_progress: averageProgress * 100
+                average_progress: averageProgress * 100,
+                total_contents: program.contents.length
             };
 
             res.status(200).json({
@@ -415,7 +440,7 @@ class ProgramController {
             const programRepository = AppDataSource.getRepository(Program);
 
             const programs = await programRepository.find({
-                relations: ['creator', 'category', 'enrollments'],
+                relations: ['creator', 'category', 'enrollments', 'contents'],
                 order: { create_at: 'DESC' },
                 take: parseInt(limit)
             });
@@ -423,6 +448,7 @@ class ProgramController {
             res.status(200).json({
                 success: true,
                 data: programs,
+                count: programs.length,
                 message: 'Recent programs retrieved successfully'
             });
         } catch (error) {
@@ -447,6 +473,7 @@ class ProgramController {
                 .leftJoinAndSelect('program.creator', 'creator')
                 .leftJoinAndSelect('program.category', 'category')
                 .leftJoinAndSelect('program.enrollments', 'enrollments')
+                .leftJoinAndSelect('program.contents', 'contents')
                 .addSelect('COUNT(enrollments.user_id)', 'enrollment_count')
                 .groupBy('program.program_id')
                 .addGroupBy('creator.user_id')
@@ -458,6 +485,7 @@ class ProgramController {
             res.status(200).json({
                 success: true,
                 data: programs,
+                count: programs.length,
                 message: 'Popular programs retrieved successfully'
             });
         } catch (error) {

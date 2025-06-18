@@ -89,24 +89,17 @@ INSERT INTO Booking_Session (consultant_id, member_id, slot_id, booking_date, st
 (4, 7, 1, '2024-01-23', 'cancelled', 'Parent cancelled due to scheduling conflict.', NULL),
 (3, 8, 9, '2024-01-17', 'completed', 'Group therapy preparation session completed successfully.', 'https://meet.google.com/456-789-012');
 
--- Insert Categories for Programs
+-- Insert Categories
 INSERT INTO Category (description) VALUES
-('Youth Prevention'),
-('Adult Recovery'),
-('Family Support'),
-('Professional Training'),
-('Community Outreach'),
-('Educational Resources');
+('Article'),
+('Video'),
+('Podcast');
 
--- Insert Prevention Programs
-INSERT INTO Programs (title, description, create_by, status, age_group, category_id, img_link) VALUES
-('Teen SMART Choices', 'Comprehensive substance abuse prevention program for teenagers focusing on decision-making skills, peer pressure resistance, and healthy lifestyle choices.', 1, 'active', '13-18', 1, '/uploads/program-images/default-youth.png'),
-('Recovery Foundations', 'Evidence-based recovery program for adults struggling with substance addiction. Includes cognitive behavioral therapy modules and peer support components.', 1, 'active', '18+', 2, '/uploads/program-images/default-adult.png'),
-('Family Resilience Building', 'Support program for families affected by substance abuse. Focuses on communication, boundary setting, and healing family relationships.', 1, 'active', 'All Ages', 3, '/uploads/program-images/default-family.png'),
-('Campus Prevention Initiative', 'Substance abuse prevention program designed specifically for college students, addressing binge drinking and drug experimentation.', 1, 'active', '18-25', 1, '/uploads/program-images/default-campus.png'),
-('Professional Helper Training', 'Training program for healthcare workers, teachers, and counselors to identify and respond to substance abuse issues.', 1, 'active', 'Adult', 4, '/uploads/program-images/default-training.png'),
-('Community Action Program', 'Community-wide prevention initiative involving local organizations, schools, and families in substance abuse prevention efforts.', 1, 'draft', 'All Ages', 5, '/uploads/program-images/default-community.png'),
-('Digital Wellness for Teens', 'Modern approach to prevention education using digital tools and social media awareness for healthy choices.', 1, 'active', '13-18', 6, '/uploads/program-images/default-digital.png');
+-- Insert Programs
+INSERT INTO Programs (img_link, title, description, create_by, status, age_group, create_at, category_id) VALUES
+('https://example.com/img1.jpg', 'Mental Health Basics', 'Introduction to mental health concepts', 1, 'active', '18-25', GETDATE(), 1),
+('https://example.com/img2.jpg', 'Stress Management', 'Learn how to manage stress effectively', 1, 'active', '18-25', GETDATE(), 2),
+('https://example.com/img3.jpg', 'Mindfulness Meditation', 'Guided meditation sessions', 1, 'active', '18-25', GETDATE(), 3);
 
 -- Insert User Enrollments
 INSERT INTO Enroll (user_id, program_id, start_at, progress) VALUES
@@ -135,12 +128,9 @@ INSERT INTO Assessments (user_id, type, result_json, create_at, action_id) VALUE
 
 -- Insert Content
 INSERT INTO Content (program_id, title, type, orders, content_file_link, content_type, content_metadata_json) VALUES
-(1, 'Understanding Substance Abuse', 'module', 1, '/markdown/substance-abuse-intro.md', 'text', '{"duration": "45 minutes", "content_type": "Video", "activity": "lecture"}'),
-(1, 'Brain Chemistry and Addiction', 'module', 2, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "60 minutes", "content_type": "Video", "activity": "demonstration"}'),
-(1, 'Risk Factors and Prevention', 'module', 3, '/markdown/risk-factors-prevention.md', 'text', '{"duration": "45 minutes", "content_type": "Article", "activity": "reading"}'),
-(2, 'Understanding Addiction as a Disease', 'module', 1, '/markdown/addiction-disease.md', 'text', '{"duration": "90 minutes", "content_type": "Article", "activity": "reading"}'),
-(2, 'Cognitive Behavioral Techniques', 'module', 2, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "120 minutes", "content_type": "Video", "activity": "tutorial"}'),
-(2, 'Relapse Prevention Planning', 'module', 3, '/markdown/relapse-prevention.md', 'text', '{"duration": "90 minutes", "content_type": "Article", "activity": "planning"}');
+(1, 'Understanding Mental Health', 'article', 1, 'https://example.com/article1.md', 'markdown', '{"author": "Dr. Smith", "readingTime": "5 min"}'),
+(2, 'Stress Relief Techniques', 'video', 1, 'https://example.com/video1.mp4', 'video', '{"duration": "15:30", "format": "mp4"}'),
+(3, 'Morning Meditation', 'podcast', 1, 'https://example.com/podcast1.mp3', 'audio', '{"duration": "20:00", "format": "mp3"}');
 
 -- Insert Surveys
 INSERT INTO Surveys (program_id, type, questions_json) VALUES

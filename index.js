@@ -38,6 +38,7 @@ const AssessmentController = require("./Controller/assessmentController");
 const ActionController = require("./Controller/actionController");
 const ConsultantSlotController = require("./Controller/consultantSlotController");
 const BookingSessionController = require("./Controller/bookingSessionController");
+const ProgramController = require("./Controller/programController");
 
 // ==================== APP SETUP ====================
 const app = express();
@@ -160,6 +161,21 @@ app.get('/api/actions/with-assessments', authController.verifyToken, ActionContr
 app.post('/api/actions', authController.verifyToken, ActionController.createAction);
 app.put('/api/actions/:id', authController.verifyToken, ActionController.updateAction);
 app.delete('/api/actions/:id', authController.verifyToken, ActionController.deleteAction);
+
+// Program Routes
+app.get("/api/programs", ProgramController.getAllPrograms);
+app.get("/api/programs/:id", ProgramController.getProgramById);
+app.get("/api/programs/category/:categoryId", ProgramController.getProgramsByCategory);
+app.get("/api/programs/creator/:creatorId", authController.verifyToken, ProgramController.getProgramsByCreator);
+app.get("/api/programs/status/:status", ProgramController.getProgramsByStatus);
+app.get("/api/programs/age-group/:ageGroup", ProgramController.getProgramsByAgeGroup);
+app.post("/api/programs", authController.verifyToken, ProgramController.createProgram);
+app.put("/api/programs/:id", authController.verifyToken, ProgramController.updateProgram);
+app.delete("/api/programs/:id", authController.verifyToken, ProgramController.deleteProgram);
+app.get("/api/programs/search", ProgramController.searchPrograms);
+app.get("/api/programs/:id/statistics", ProgramController.getProgramStatistics);
+app.get("/api/programs/recent", ProgramController.getRecentPrograms);
+app.get("/api/programs/popular", ProgramController.getPopularPrograms);
 
 // Test Route
 app.get("/api/test-profile", authController.verifyToken, (req, res) => {
