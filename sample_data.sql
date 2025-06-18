@@ -106,8 +106,8 @@ INSERT INTO Enroll (user_id, program_id, start_at, progress) VALUES
 (6, 2, '2024-01-10 10:00:00', 0.75),
 (7, 3, '2024-01-12 14:00:00', 0.40),
 (8, 1, '2024-01-08 09:00:00', 0.90),
-(8, 4, '2024-01-15 16:00:00', 0.25),
-(9, 5, '2024-01-05 11:00:00', 1.0);
+(8, 3, '2024-01-15 16:00:00', 0.25),
+(9, 2, '2024-01-05 11:00:00', 1.0);
 
 -- Insert Actions for Assessments
 INSERT INTO Action (description, range, type) VALUES
