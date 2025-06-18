@@ -38,6 +38,11 @@ const BookingSession = new EntitySchema({
             type: "nvarchar",
             length: "MAX",
             nullable: true
+        },
+        google_meet_link: {
+            type: "nvarchar",
+            length: "MAX",
+            nullable: true
         }
     },
     relations: {

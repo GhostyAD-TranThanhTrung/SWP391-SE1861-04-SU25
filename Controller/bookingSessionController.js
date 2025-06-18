@@ -159,14 +159,15 @@ class BookingSessionController {
     static async createBookingSession(req, res) {
         try {
             console.log('Request body:', req.body);
-            const { consultant_id, slot_id, booking_date } = req.body;
+            const { consultant_id, slot_id, booking_date, google_meet_link } = req.body;
             const member_id = req.user.userId;
 
             console.log('Parsed input data:', {
                 consultant_id,
                 slot_id,
                 booking_date,
-                member_id
+                member_id,
+                google_meet_link
             });
 
             // Validate all required fields
@@ -202,7 +203,7 @@ class BookingSessionController {
             });
 
             const existingBookingQuery = `
-                SELECT booking_id, consultant_id, member_id, slot_id, booking_date, status, notes
+                SELECT booking_id, consultant_id, member_id, slot_id, booking_date, status, notes, google_meet_link
                 FROM Booking_Session
                 WHERE consultant_id = @0
                 AND slot_id = @1
@@ -235,7 +236,7 @@ class BookingSessionController {
 
             // Check if member already has a booking on this date
             const memberBookingQuery = `
-                SELECT booking_id, consultant_id, member_id, slot_id, booking_date, status
+                SELECT booking_id, consultant_id, member_id, slot_id, booking_date, status, google_meet_link
                 FROM Booking_Session
                 WHERE member_id = @0
                 AND booking_date = @1
@@ -270,13 +271,14 @@ class BookingSessionController {
                 member_id: parseInt(member_id),
                 slot_id: parseInt(slot_id),
                 booking_date,
-                status: 'scheduled'
+                status: 'scheduled',
+                google_meet_link
             });
 
             const insertBookingQuery = `
-                INSERT INTO Booking_Session (consultant_id, member_id, slot_id, booking_date, status, notes)
+                INSERT INTO Booking_Session (consultant_id, member_id, slot_id, booking_date, status, notes, google_meet_link)
                 OUTPUT INSERTED.*
-                VALUES (@0, @1, @2, CAST(@3 AS DATE), @4, @5)
+                VALUES (@0, @1, @2, CAST(@3 AS DATE), @4, @5, @6)
             `;
 
             console.log('Insert booking - SQL Query:', insertBookingQuery);
@@ -286,12 +288,13 @@ class BookingSessionController {
                 parseInt(slot_id),
                 booking_date,
                 'scheduled',
-                null
+                null,
+                google_meet_link
             ]);
 
             const [savedBooking] = await AppDataSource.query(
                 insertBookingQuery,
-                [parseInt(consultant_id), parseInt(member_id), parseInt(slot_id), booking_date, 'scheduled', null]
+                [parseInt(consultant_id), parseInt(member_id), parseInt(slot_id), booking_date, 'scheduled', null, google_meet_link]
             );
 
             console.log('Saved new booking:', savedBooking);
@@ -307,6 +310,7 @@ class BookingSessionController {
                     CONVERT(varchar(10), b.booking_date, 120) as booking_date,
                     b.status,
                     b.notes,
+                    b.google_meet_link,
                     cs.day_of_week,
                     CONVERT(varchar(8), s.start_time, 108) as start_time,
                     CONVERT(varchar(8), s.end_time, 108) as end_time,
@@ -357,7 +361,7 @@ class BookingSessionController {
     static async updateBookingSession(req, res) {
         try {
             const { id } = req.params;
-            const { consultant_id, member_id, slot_id, booking_date, status, notes } = req.body;
+            const { consultant_id, member_id, slot_id, booking_date, status, notes, google_meet_link } = req.body;
 
             const bookingRepository = AppDataSource.getRepository(BookingSession);
 
@@ -380,7 +384,8 @@ class BookingSessionController {
                 slot_id: slot_id !== undefined ? parseInt(slot_id) : booking.slot_id,
                 booking_date: booking_date || booking.booking_date,
                 status: status || booking.status,
-                notes: notes !== undefined ? notes : booking.notes
+                notes: notes !== undefined ? notes : booking.notes,
+                google_meet_link: google_meet_link !== undefined ? google_meet_link : booking.google_meet_link
             });
 
             // Fetch updated booking with relations

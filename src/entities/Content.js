@@ -17,9 +17,9 @@ const Content = new EntitySchema({
             type: "int",
             nullable: true
         },
-        content_json: {
+        title: {
             type: "nvarchar",
-            length: "MAX",
+            length: 255,
             nullable: true
         },
         type: {
@@ -29,6 +29,21 @@ const Content = new EntitySchema({
         },
         orders: {
             type: "int",
+            nullable: true
+        },
+        content_file_link: {
+            type: "nvarchar",
+            length: "MAX",
+            nullable: true
+        },
+        content_type: {
+            type: "varchar",
+            length: 50,
+            nullable: true
+        },
+        content_metadata_json: {
+            type: "nvarchar",
+            length: "MAX",
             nullable: true
         }
     },

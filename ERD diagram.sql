@@ -65,6 +65,7 @@ CREATE TABLE Booking_Session (
   booking_date DATE NOT NULL,
   status VARCHAR(20),
   notes NVARCHAR(MAX),
+  google_meet_link NVARCHAR(MAX),
   FOREIGN KEY (consultant_id) REFERENCES Consultant(id_consultant),
   FOREIGN KEY (member_id) REFERENCES Users(user_id),
   FOREIGN KEY (slot_id) REFERENCES Slot(slot_id)
@@ -88,6 +89,7 @@ CREATE TABLE Blogs (
   body NVARCHAR(MAX),
   created_at DATETIME,
   status VARCHAR(50),
+  img_link NVARCHAR(MAX),
   FOREIGN KEY (author_id) REFERENCES Users(user_id)
 );
 
@@ -104,21 +106,13 @@ CREATE TABLE Flags (
 
 
 -- CONSOLE LOG
-CREATE TABLE console_log (
-  log_id INT IDENTITY(1,1) PRIMARY KEY,
-  user_id INT,
-  action VARCHAR(100),
-  status VARCHAR(50),
-  error_log NVARCHAR(MAX),
-  date DATETIME,
-  FOREIGN KEY (user_id) REFERENCES Users(user_id)
-);
+
 
 -- ACTION
 CREATE TABLE Action (
   action_id INT IDENTITY(1,1) PRIMARY KEY,
-  description NVARCHAR(255),
-  range VARCHAR(50),
+  description NVARCHAR(MAX),
+  range INT,
   type VARCHAR(50)
 );
 
@@ -155,6 +149,19 @@ CREATE TABLE Programs (
   FOREIGN KEY (category_id) REFERENCES Category(category_id)
 );
 
+CREATE TABLE Content (
+    content_id INT IDENTITY(1,1) PRIMARY KEY,
+    program_id INT,
+    title NVARCHAR(255),
+    type VARCHAR(50),
+    orders INT,
+    content_file_link NVARCHAR(MAX),
+    content_type VARCHAR(50),
+    content_metadata_json NVARCHAR(MAX),
+    FOREIGN KEY (program_id) REFERENCES Programs(program_id)
+);
+
+
 -- ENROLL
 CREATE TABLE Enroll (
   user_id INT,
@@ -164,16 +171,6 @@ CREATE TABLE Enroll (
   progress FLOAT,
   PRIMARY KEY (user_id, program_id),
   FOREIGN KEY (user_id) REFERENCES Users(user_id),
-  FOREIGN KEY (program_id) REFERENCES Programs(program_id)
-);
-
--- CONTENT
-CREATE TABLE Content (
-  content_id INT IDENTITY(1,1) PRIMARY KEY,
-  program_id INT,
-  content_json NVARCHAR(MAX),
-  type VARCHAR(50),
-  orders INT,
   FOREIGN KEY (program_id) REFERENCES Programs(program_id)
 );
 

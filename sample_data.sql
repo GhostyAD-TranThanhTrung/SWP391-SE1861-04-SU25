@@ -52,7 +52,7 @@ INSERT INTO Consultant_Slot (consultant_id, slot_id, day_of_week) VALUES
 -- Dr. Smith (Consultant 1) - Monday to Friday, morning and afternoon
 (1, 1, 'Monday'), (1, 2, 'Monday'), (1, 5, 'Monday'), (1, 6, 'Monday'),
 (1, 1, 'Tuesday'), (1, 2, 'Tuesday'), (1, 5, 'Tuesday'), (1, 6, 'Tuesday'),
-(1, 3, 'Wednesday'), (1, 2, 'Wednesday'), (1, 5, 'Wednesday'), (1, 6, 'Wednesday'),
+(1, 1, 'Wednesday'), (1, 2, 'Wednesday'), (1, 5, 'Wednesday'), (1, 6, 'Wednesday'),
 (1, 1, 'Thursday'), (1, 2, 'Thursday'), (1, 5, 'Thursday'), (1, 6, 'Thursday'),
 (1, 1, 'Friday'), (1, 2, 'Friday'), (1, 5, 'Friday'), (1, 6, 'Friday'),
 
@@ -79,15 +79,15 @@ INSERT INTO Consultant_Slot (consultant_id, slot_id, day_of_week) VALUES
 (4, 1, 'Saturday'), (4, 2, 'Saturday'), (4, 3, 'Saturday'), (4, 5, 'Saturday');
 
 -- Insert Booking Sessions
-INSERT INTO Booking_Session (consultant_id, member_id, slot_id, booking_date, status, notes) VALUES
-(1, 6, 1, '2024-01-15', 'completed', 'Initial consultation for addiction assessment. Patient showed good engagement.'),
-(1, 6, 5, '2024-01-22', 'completed', 'Follow-up session. Discussed treatment options and medication considerations.'),
-(2, 7, 7, '2024-01-18', 'completed', 'Parent consultation regarding teenage substance use prevention strategies.'),
-(3, 8, 6, '2024-01-20', 'scheduled', 'College prevention education session scheduled.'),
-(2, 9, 3, '2024-01-25', 'scheduled', 'Professional development consultation for healthcare worker.'),
-(1, 6, 2, '2024-01-29', 'scheduled', 'Ongoing treatment planning session.'),
-(4, 7, 1, '2024-01-23', 'cancelled', 'Parent cancelled due to scheduling conflict.'),
-(3, 8, 9, '2024-01-17', 'completed', 'Group therapy preparation session completed successfully.');
+INSERT INTO Booking_Session (consultant_id, member_id, slot_id, booking_date, status, notes, google_meet_link) VALUES
+(1, 6, 1, '2024-01-15', 'completed', 'Initial consultation for addiction assessment. Patient showed good engagement.', 'https://meet.google.com/abc-defg-hij'),
+(1, 6, 5, '2024-01-22', 'completed', 'Follow-up session. Discussed treatment options and medication considerations.', 'https://meet.google.com/klm-nopq-rst'),
+(2, 7, 7, '2024-01-18', 'completed', 'Parent consultation regarding teenage substance use prevention strategies.', 'https://meet.google.com/uvw-xyz-123'),
+(3, 8, 6, '2024-01-20', 'scheduled', 'College prevention education session scheduled.', NULL),
+(2, 9, 3, '2024-01-25', 'scheduled', 'Professional development consultation for healthcare worker.', NULL),
+(1, 6, 2, '2024-01-29', 'scheduled', 'Ongoing treatment planning session.', NULL),
+(4, 7, 1, '2024-01-23', 'cancelled', 'Parent cancelled due to scheduling conflict.', NULL),
+(3, 8, 9, '2024-01-17', 'completed', 'Group therapy preparation session completed successfully.', 'https://meet.google.com/456-789-012');
 
 -- Insert Categories for Programs
 INSERT INTO Category (description) VALUES
@@ -118,38 +118,29 @@ INSERT INTO Enroll (user_id, program_id, start_at, progress) VALUES
 
 -- Insert Actions for Assessments
 INSERT INTO Action (description, range, type) VALUES
-('Đánh giá hoàn thành - Giới thiệu đến các nguồn hỗ trợ phù hợp', 10000000, 'Referral'),
-
--- ASSIST (Alcohol, Smoking and Substance Involvement Screening Test) Actions
-('Giáo dục ngắn gọn - Thông báo cho bệnh nhân về các rủi ro của việc sử dụng ma túy bất hợp pháp và các dấu hiệu của rối loạn sử dụng chất gây nghiện', 0, 'ASSIST'),
-
-('Can thiệp ngắn - Thảo luận tập trung vào bệnh nhân sử dụng các khái niệm Phỏng vấn Động viên để nâng cao nhận thức về việc sử dụng chất gây nghiện và tăng cường động lực thay đổi. Can thiệp ngắn thường được thực hiện trong 3-15 phút và nên được thực hiện trong cùng một buổi với việc sàng lọc. Các buổi lặp lại hiệu quả hơn can thiệp một lần.', 4, 'ASSIST'),
-
-('Can thiệp ngắn (cung cấp các lựa chọn bao gồm điều trị) - Nếu bệnh nhân sẵn sàng chấp nhận điều trị, quy trình chuyển tuyến chủ động sẽ tạo điều kiện tiếp cận dịch vụ chăm sóc chuyên biệt cho những người có khả năng đang gặp rối loạn sử dụng chất gây nghiện. Những bệnh nhân này được chuyển đến các chuyên gia điều trị rượu và ma túy để đánh giá chuyên sâu hơn và nếu được chỉ định, sẽ được điều trị. Tuy nhiên, điều trị cũng bao gồm kê đơn thuốc cho các rối loạn sử dụng chất gây nghiện như một phần của chăm sóc ban đầu thông thường của bệnh nhân.', 27, 'ASSIST'),
-
--- CRAFFT (Car, Relax, Alone, Forget, Friends, Trouble) Assessment Actions
-('Nguy cơ thấp - Cung cấp thông tin về rủi ro của việc sử dụng chất gây nghiện và lái xe/đi xe liên quan đến chất gây nghiện; đưa ra lời khen và khuyến khích. Cung cấp tài liệu Hợp đồng vì Cuộc sống hoặc Cam kết vì Cuộc sống.', 0, 'CRAFFT'),
-
-('Nguy cơ trung bình - Cung cấp thông tin về rủi ro của việc sử dụng chất gây nghiện và lái xe/đi xe liên quan đến chất gây nghiện; tư vấn ngắn gọn; có thể có buổi thăm khám tiếp theo. Thảo luận về các tác động sức khỏe bất lợi với khuyến nghị rõ ràng để dừng lại.', 1, 'CRAFFT'),
-
-('Nguy cơ cao - Cung cấp thông tin về rủi ro của việc sử dụng chất gây nghiện và lái xe/đi xe liên quan đến chất gây nghiện; tư vấn ngắn gọn; buổi thăm khám tiếp theo; có thể chuyển đến tư vấn/điều trị. Sử dụng khung 5R: Rà soát, Khuyến nghị, Tư vấn rủi ro lái xe/đi xe, Phản hồi (khơi gợi các phát biểu tự tạo động lực), Tăng cường tự tin.', 2, 'CRAFFT');
+('Assessment Complete - Refer to Appropriate Resources', 10000000, 'Referral'),
+('Brief education - Inform patients about the risks of illicit drug use and signs of a substance use disorder', 0, 'ASSIST'),
+('Brief intervention - Patient-centered discussion that employs Motivational Interviewing concepts to raise awareness of substance use and enhance motivation to change. Brief interventions are typically performed in 3-15 minutes, and should be done in the same session as the screening. Repeated sessions are more effective than a one-time intervention.', 4, 'ASSIST'),
+('Brief intervention (offer options that include treatment) - If a patient is ready to accept treatment, a referral is a proactive process that facilitates access to specialized care for individuals likely experiencing a substance use disorder. These patients are referred to alcohol and drug treatment experts for more definitive, in-depth assessment and, if warranted, treatment. However, treatment also includes prescribing medications for substance use disorders as part of a patient''s normal primary care.', 27, 'ASSIST'),
+('Low Risk - Provide information about risks of substance use and substance use-related riding/driving; offer praise and encouragement. Give Contract for Life or Pledge for Life handouts.', 0, 'CRAFFT'),
+('Medium Risk - Provide information about risks of substance use and substance use-related riding/driving; brief advice; possible follow-up visit. Engage in discussion about adverse health effects with clear recommendation to stop.', 1, 'CRAFFT'),
+('High Risk - Provide information about risks of substance use and substance use-related riding/driving; brief advice; follow-up visit; possible referral to counseling/treatment. Use 5 Rs framework: Review, Recommend, Riding/Driving risk counseling, Response (elicit self-motivational statements), Reinforce self-efficacy.', 2, 'CRAFFT');
 
 -- Insert Assessments
-INSERT INTO Assessments (user_id, type, result_json, action_id) VALUES
-(6, 'Substance Use Screening', '{"total_score": 15, "risk_level": "moderate", "areas_of_concern": ["alcohol use", "social pressure"], "recommendations": ["counseling", "peer support group"]}', 2),
-(7, 'Family Impact Assessment', '{"total_score": 8, "family_stress_level": "moderate", "support_needs": ["communication skills", "boundary setting"], "children_affected": 1}', 2),
-(8, 'College Risk Assessment', '{"total_score": 5, "risk_level": "low", "protective_factors": ["strong family support", "academic engagement"], "risk_factors": ["peer influence"]}', 1),
-(9, 'Professional Readiness Evaluation', '{"total_score": 22, "competency_areas": ["identification", "intervention", "referral"], "training_needs": ["motivational interviewing"]}', 5);
+INSERT INTO Assessments (user_id, type, result_json, create_at, action_id) VALUES
+(6, 'Substance Use Screening', '{"total_score": 15, "risk_level": "moderate", "areas_of_concern": ["alcohol use", "social pressure"], "recommendations": ["counseling", "peer support group"]}', '2024-01-15 10:00:00', 2),
+(7, 'Family Impact Assessment', '{"total_score": 8, "family_stress_level": "moderate", "support_needs": ["communication skills", "boundary setting"], "children_affected": 1}', '2024-01-18 14:00:00', 2),
+(8, 'College Risk Assessment', '{"total_score": 5, "risk_level": "low", "protective_factors": ["strong family support", "academic engagement"], "risk_factors": ["peer influence"]}', '2024-01-20 09:00:00', 1),
+(9, 'Professional Readiness Evaluation', '{"total_score": 22, "competency_areas": ["identification", "intervention", "referral"], "training_needs": ["motivational interviewing"]}', '2024-01-25 11:00:00', 5);
 
--- Insert Program Content
-INSERT INTO Content (program_id, content_json, type, orders) VALUES
-(1, '{"title": "Understanding Substance Abuse", "duration": "45 minutes", "content": "Interactive module covering types of substances, effects on the brain and body, and risk factors for addiction.", "activities": ["video", "quiz", "discussion"]}', 'module', 1),
-(1, '{"title": "Peer Pressure and Decision Making", "duration": "60 minutes", "content": "Role-playing exercises and strategies for resisting peer pressure and making healthy choices.", "activities": ["role-play", "scenarios", "reflection"]}', 'module', 2),
-(1, '{"title": "Building Healthy Relationships", "duration": "45 minutes", "content": "Communication skills and building supportive relationships that reinforce positive choices.", "activities": ["group work", "practice", "planning"]}', 'module', 3),
-
-(2, '{"title": "Understanding Addiction as a Disease", "duration": "90 minutes", "content": "Medical and psychological aspects of addiction, breaking down stigma and promoting self-compassion.", "activities": ["lecture", "discussion", "reflection"]}', 'module', 1),
-(2, '{"title": "Cognitive Behavioral Techniques", "duration": "120 minutes", "content": "Learning to identify and change negative thought patterns and behaviors related to substance use.", "activities": ["worksheets", "practice", "homework"]}', 'module', 2),
-(2, '{"title": "Relapse Prevention Planning", "duration": "90 minutes", "content": "Developing personalized strategies for preventing relapse and maintaining recovery.", "activities": ["planning", "tools", "support network"]}', 'module', 3);
+-- Insert Content
+INSERT INTO Content (program_id, title, type, orders, content_file_link, content_type, content_metadata_json) VALUES
+(1, 'Understanding Substance Abuse', 'module', 1, '/markdown/substance-abuse-intro.md', 'text', '{"duration": "45 minutes", "content_type": "Video", "activity": "lecture"}'),
+(1, 'Brain Chemistry and Addiction', 'module', 2, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "60 minutes", "content_type": "Video", "activity": "demonstration"}'),
+(1, 'Risk Factors and Prevention', 'module', 3, '/markdown/risk-factors-prevention.md', 'text', '{"duration": "45 minutes", "content_type": "Article", "activity": "reading"}'),
+(2, 'Understanding Addiction as a Disease', 'module', 1, '/markdown/addiction-disease.md', 'text', '{"duration": "90 minutes", "content_type": "Article", "activity": "reading"}'),
+(2, 'Cognitive Behavioral Techniques', 'module', 2, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "120 minutes", "content_type": "Video", "activity": "tutorial"}'),
+(2, 'Relapse Prevention Planning', 'module', 3, '/markdown/relapse-prevention.md', 'text', '{"duration": "90 minutes", "content_type": "Article", "activity": "planning"}');
 
 -- Insert Surveys
 INSERT INTO Surveys (program_id, type, questions_json) VALUES
@@ -158,29 +149,18 @@ INSERT INTO Surveys (program_id, type, questions_json) VALUES
 (2, 'weekly-checkin', '{"questions": [{"id": 1, "text": "How many days this week did you feel strong cravings?", "type": "number"}, {"id": 2, "text": "What coping strategies did you use this week?", "type": "multiple_choice", "options": ["breathing exercises", "support group", "physical activity", "journaling", "calling sponsor"]}, {"id": 3, "text": "Rate your overall mood this week", "type": "scale", "scale": "1-10"}]}');
 
 -- Insert Survey Responses
-INSERT INTO Survey_Responses (survey_id, user_id, answer_json) VALUES
-(1, 8, '{"answers": [{"question_id": 1, "answer": "7"}, {"question_id": 2, "answer": "yes"}, {"question_id": 3, "answer": ["parties", "peer pressure"]}]}'),
-(2, 8, '{"answers": [{"question_id": 1, "answer": "9"}, {"question_id": 2, "answer": ["role-playing", "communication skills"]}, {"question_id": 3, "answer": "10"}]}'),
-(3, 6, '{"answers": [{"question_id": 1, "answer": "2"}, {"question_id": 2, "answer": ["breathing exercises", "support group", "physical activity"]}, {"question_id": 3, "answer": "8"}]}');
+INSERT INTO Survey_Responses (survey_id, user_id, answer_json, submitted_at) VALUES
+(1, 8, '{"answers": [{"question_id": 1, "answer": "7"}, {"question_id": 2, "answer": "yes"}, {"question_id": 3, "answer": ["parties", "peer pressure"]}]}', '2024-01-08 09:30:00'),
+(2, 8, '{"answers": [{"question_id": 1, "answer": "9"}, {"question_id": 2, "answer": ["role-playing", "communication skills"]}, {"question_id": 3, "answer": "10"}]}', '2024-01-15 10:00:00'),
+(3, 6, '{"answers": [{"question_id": 1, "answer": "2"}, {"question_id": 2, "answer": ["breathing exercises", "support group", "physical activity"]}, {"question_id": 3, "answer": "8"}]}', '2024-01-17 14:30:00');
 
 -- Insert Blogs
-INSERT INTO Blogs (author_id, title, body, status) VALUES
-(2, 'Understanding the Science of Addiction', 'Addiction is a complex disease that affects the brain''s reward, motivation, and memory systems. In this article, we explore the neurobiological changes that occur with substance use and how understanding these changes can reduce stigma and improve treatment outcomes...', 'published'),
-(3, '5 Ways to Support a Loved One in Recovery', 'Supporting someone in recovery can be challenging but incredibly rewarding. Here are five evidence-based strategies that family members and friends can use to provide meaningful support: 1. Educate yourself about addiction, 2. Set healthy boundaries...', 'published'),
-(4, 'Prevention Strategies That Actually Work', 'Research shows that effective prevention programs share several key characteristics. This post examines evidence-based prevention strategies and how they can be implemented in schools, communities, and families...', 'published'),
-(1, 'New Research on Teen Brain Development and Substance Use', 'Recent neuroscience research reveals important insights about adolescent brain development and vulnerability to substance use. Understanding these developmental factors is crucial for designing effective prevention programs...', 'draft');
+INSERT INTO Blogs (author_id, title, body, created_at, status, img_link) VALUES
+(2, 'Understanding the Science of Addiction', 'Addiction is a complex disease that affects the brain''s reward, motivation, and memory systems. In this article, we explore the neurobiological changes that occur with substance use and how understanding these changes can reduce stigma and improve treatment outcomes...', '2024-01-10 09:00:00', 'published', '/uploads/blog-images/science-addiction.jpg'),
+(3, '5 Ways to Support a Loved One in Recovery', 'Supporting someone in recovery can be challenging but incredibly rewarding. Here are five evidence-based strategies that family members and friends can use to provide meaningful support: 1. Educate yourself about addiction, 2. Set healthy boundaries...', '2024-01-12 14:00:00', 'published', '/uploads/blog-images/support-recovery.jpg'),
+(4, 'Prevention Strategies That Actually Work', 'Research shows that effective prevention programs share several key characteristics. This post examines evidence-based prevention strategies and how they can be implemented in schools, communities, and families...', '2024-01-15 11:00:00', 'published', '/uploads/blog-images/prevention-strategies.jpg'),
+(1, 'New Research on Teen Brain Development and Substance Use', 'Recent neuroscience research reveals important insights about adolescent brain development and vulnerability to substance use. Understanding these developmental factors is crucial for designing effective prevention programs...', '2024-01-18 16:00:00', 'draft', '/uploads/blog-images/teen-brain.jpg');
 
 -- Insert Flags for content moderation
-INSERT INTO Flags (blog_id, flagged_by, reason) VALUES
-(4, 7, 'Content contains medical information that should be reviewed by professionals before publication');
-
--- Insert Console Logs
-INSERT INTO console_log (user_id, action, status, error_log) VALUES
-(6, 'login', 'success', NULL),
-(6, 'enroll_program', 'success', NULL),
-(7, 'login', 'success', NULL),
-(8, 'complete_assessment', 'success', NULL),
-(9, 'book_consultation', 'success', NULL),
-(10, 'login', 'failed', 'Account banned - access denied'),
-(6, 'submit_survey', 'success', NULL),
-(2, 'create_blog', 'success', NULL); 
+INSERT INTO Flags (blog_id, flagged_by, reason, created_at) VALUES
+(4, 7, 'Content contains medical information that should be reviewed by professionals before publication', '2024-01-19 10:00:00');

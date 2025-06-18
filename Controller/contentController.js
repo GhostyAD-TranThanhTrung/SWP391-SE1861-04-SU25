@@ -140,19 +140,18 @@ class ContentController {
    */
   static async createContent(req, res) {
     try {
-      const { program_id, content_json, type, orders } = req.body;
+      const { program_id, title, type, orders, content_file_link, content_type, content_metadata_json } = req.body;
 
-      // Validate content_json
-      if (content_json) {
+      // Validate content_metadata_json
+      if (content_metadata_json) {
         try {
-          if (typeof content_json === "string") {
-            // Try to parse if it's a string to validate JSON format
-            JSON.parse(content_json);
+          if (typeof content_metadata_json === "string") {
+            JSON.parse(content_metadata_json);
           }
         } catch (jsonError) {
           return res.status(400).json({
             success: false,
-            message: "Invalid JSON format for content_json field",
+            message: "Invalid JSON format for content_metadata_json field",
           });
         }
       }
@@ -177,12 +176,14 @@ class ContentController {
       // Create new content
       const newContent = contentRepository.create({
         program_id: program_id ? parseInt(program_id) : null,
-        content_json:
-          typeof content_json === "object"
-            ? JSON.stringify(content_json)
-            : content_json,
+        title,
         type,
         orders: orders ? parseInt(orders) : null,
+        content_file_link,
+        content_type,
+        content_metadata_json: typeof content_metadata_json === "object" 
+          ? JSON.stringify(content_metadata_json) 
+          : content_metadata_json
       });
 
       const savedContent = await contentRepository.save(newContent);
@@ -208,7 +209,7 @@ class ContentController {
   static async updateContent(req, res) {
     try {
       const { id } = req.params;
-      const { program_id, content_json, type, orders } = req.body;
+      const { program_id, title, type, orders, content_file_link, content_type, content_metadata_json } = req.body;
 
       const contentRepository = AppDataSource.getRepository(Content);
 
@@ -224,17 +225,16 @@ class ContentController {
         });
       }
 
-      // Validate content_json if provided
-      if (content_json !== undefined) {
+      // Validate content_metadata_json if provided
+      if (content_metadata_json !== undefined) {
         try {
-          if (typeof content_json === "string") {
-            // Try to parse if it's a string to validate JSON format
-            JSON.parse(content_json);
+          if (typeof content_metadata_json === "string") {
+            JSON.parse(content_metadata_json);
           }
         } catch (jsonError) {
           return res.status(400).json({
             success: false,
-            message: "Invalid JSON format for content_json field",
+            message: "Invalid JSON format for content_metadata_json field",
           });
         }
       }
@@ -255,17 +255,17 @@ class ContentController {
       }
 
       // Update content fields
-      if (program_id !== undefined)
-        content.program_id = program_id ? parseInt(program_id) : null;
-      if (content_json !== undefined) {
-        content.content_json =
-          typeof content_json === "object"
-            ? JSON.stringify(content_json)
-            : content_json;
-      }
+      if (program_id !== undefined) content.program_id = program_id ? parseInt(program_id) : null;
+      if (title !== undefined) content.title = title;
       if (type !== undefined) content.type = type;
-      if (orders !== undefined)
-        content.orders = orders ? parseInt(orders) : null;
+      if (orders !== undefined) content.orders = orders ? parseInt(orders) : null;
+      if (content_file_link !== undefined) content.content_file_link = content_file_link;
+      if (content_type !== undefined) content.content_type = content_type;
+      if (content_metadata_json !== undefined) {
+        content.content_metadata_json = typeof content_metadata_json === "object"
+          ? JSON.stringify(content_metadata_json)
+          : content_metadata_json;
+      }
 
       const updatedContent = await contentRepository.save(content);
 
@@ -367,11 +367,7 @@ class ContentController {
     try {
       const { orderedIds } = req.body;
 
-      if (
-        !orderedIds ||
-        !Array.isArray(orderedIds) ||
-        orderedIds.length === 0
-      ) {
+      if (!orderedIds || !Array.isArray(orderedIds) || orderedIds.length === 0) {
         return res.status(400).json({
           success: false,
           message: "orderedIds array is required",
@@ -427,9 +423,9 @@ class ContentController {
   }
 
   /**
-   * Get parsed JSON content by ID
+   * Get parsed metadata content by ID
    */
-  static async getParsedContentById(req, res) {
+  static async getParsedMetadataContentById(req, res) {
     try {
       const { id } = req.params;
       const contentRepository = AppDataSource.getRepository(Content);
@@ -444,16 +440,16 @@ class ContentController {
         });
       }
 
-      // Try to parse the JSON content
-      let parsedContent;
+      // Try to parse the metadata JSON content
+      let parsedMetadata;
       try {
-        parsedContent = content.content_json
-          ? JSON.parse(content.content_json)
+        parsedMetadata = content.content_metadata_json
+          ? JSON.parse(content.content_metadata_json)
           : null;
       } catch (jsonError) {
         return res.status(422).json({
           success: false,
-          message: "Invalid JSON format in stored content",
+          message: "Invalid JSON format in stored metadata",
           error: jsonError.message,
         });
       }
@@ -462,15 +458,15 @@ class ContentController {
         success: true,
         data: {
           ...content,
-          parsed_content: parsedContent,
+          parsed_metadata: parsedMetadata,
         },
-        message: "Content retrieved and parsed successfully",
+        message: "Content metadata retrieved and parsed successfully",
       });
     } catch (error) {
-      console.error("Error getting parsed content:", error);
+      console.error("Error getting parsed metadata content:", error);
       res.status(500).json({
         success: false,
-        message: "Failed to retrieve and parse content",
+        message: "Failed to retrieve and parse content metadata",
         error: error.message,
       });
     }
