@@ -61,6 +61,45 @@
         padding: 1.5rem;
         position: relative;
 
+        .booking-info {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #007bff;
+
+            .booking-count {
+                margin: 0 0 0.5rem 0;
+                font-size: 1rem;
+                color: #333;
+
+                strong {
+                    color: #007bff;
+                    font-size: 1.1rem;
+                }
+            }
+
+            .alert {
+                margin: 0;
+                padding: 0.75rem;
+                border-radius: 4px;
+                font-size: 0.9rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+
+                &.alert-warning {
+                    background-color: #fff3cd;
+                    border: 1px solid #ffeaa7;
+                    color: #856404;
+
+                    i {
+                        color: #f39c12;
+                    }
+                }
+            }
+        }
+
         .date-picker-section {
             margin-bottom: 1.5rem;
             position: relative;
@@ -140,6 +179,19 @@
                 &:focus {
                     outline: none;
                     box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+                }
+
+                &:disabled {
+                    background: #e9ecef;
+                    border-color: #ced4da;
+                    color: #6c757d;
+                    cursor: not-allowed;
+                    opacity: 0.65;
+
+                    &:hover {
+                        background: #e9ecef;
+                        border-color: #ced4da;
+                    }
                 }
             }
 
@@ -257,4 +309,10 @@
         color: #6c757d;
         margin: 0.2rem;
     }
+}
+
+.react-datepicker__day--highlighted {
+    background-color: #ffc107 !important;
+    color: #fff !important;
+    border-radius: 50%;
 }

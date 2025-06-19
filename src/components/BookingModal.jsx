@@ -8,6 +8,9 @@ const BookingModal = ({ isOpen, onClose, consultantId }) => {
     const [availableSlots, setAvailableSlots] = useState([]);
     const [selectedSlot, setSelectedSlot] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [currentBookings, setCurrentBookings] = useState([]);
+    const [bookingCount, setBookingCount] = useState(0);
+    const MAX_BOOKINGS = 3;
 
     // Get day of week in English for database comparison
     const getEnglishDayOfWeek = (date) => {
@@ -32,6 +35,37 @@ const BookingModal = ({ isOpen, onClose, consultantId }) => {
             return null;
         }
         return token;
+    };
+
+    // Fetch current bookings count
+    const fetchCurrentBookings = async () => {
+        const token = getSessionToken();
+        if (!token) return;
+
+        try {
+            const response = await fetch('http://localhost:3000/api/booking-sessions/scheduled', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+            });
+
+            if (response.status === 401) {
+                alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch current bookings');
+            }
+
+            const data = await response.json();
+            setCurrentBookings(data.data || []);
+            setBookingCount(data.data ? data.data.length : 0);
+        } catch (error) {
+            console.error('Error fetching current bookings:', error);
+        }
     };
 
     // Fetch available slots for consultant
@@ -73,6 +107,7 @@ const BookingModal = ({ isOpen, onClose, consultantId }) => {
         };
 
         fetchAvailableSlots();
+        fetchCurrentBookings();
     }, [isOpen, consultantId]);
 
     // Filter slots for the selected day of week (using English day names for comparison)
@@ -88,10 +123,19 @@ const BookingModal = ({ isOpen, onClose, consultantId }) => {
             )
     );
 
+    // Tạo mảng các ngày đã đặt
+    const bookedDates = currentBookings.map(b => new Date(b.booking_date));
+
     // Handle booking
     const handleBooking = async () => {
         if (!selectedSlot || !selectedDate) {
             alert('Vui lòng chọn ngày và khung giờ tư vấn');
+            return;
+        }
+
+        // Check if user has reached the maximum number of bookings
+        if (bookingCount >= MAX_BOOKINGS) {
+            alert(`Bạn đã đặt đủ ${MAX_BOOKINGS} lịch tư vấn. Vui lòng hủy một lịch hiện tại để đặt lịch mới.`);
             return;
         }
 
@@ -166,6 +210,19 @@ const BookingModal = ({ isOpen, onClose, consultantId }) => {
                 </div>
 
                 <div className="modal-body">
+                    {/* Hiển thị thông tin số lượng booking hiện tại */}
+                    <div className="booking-info">
+                        <p className="booking-count">
+                            Bạn đã đặt: <strong>{bookingCount}/{MAX_BOOKINGS}</strong> lịch tư vấn
+                        </p>
+                        {bookingCount >= MAX_BOOKINGS && (
+                            <div className="alert alert-warning">
+                                <i className="bi bi-exclamation-triangle"></i>
+                                Bạn đã đặt đủ {MAX_BOOKINGS} lịch tư vấn. Vui lòng hủy một lịch hiện tại để đặt lịch mới.
+                            </div>
+                        )}
+                    </div>
+
                     <div className="date-picker-section">
                         <label>Chọn Ngày:</label>
                         <DatePicker
@@ -178,6 +235,8 @@ const BookingModal = ({ isOpen, onClose, consultantId }) => {
                             dateFormat="dd/MM/yyyy"
                             placeholderText="Chọn ngày tư vấn"
                             className="form-control"
+                            disabled={bookingCount >= MAX_BOOKINGS}
+                            highlightDates={bookedDates}
                         />
                         {selectedDate && (
                             <p className="selected-day">
@@ -202,6 +261,7 @@ const BookingModal = ({ isOpen, onClose, consultantId }) => {
                                             key={slot.slot_id}
                                             className={`slot-button ${selectedSlot?.slot_id === slot.slot_id ? 'selected' : ''}`}
                                             onClick={() => setSelectedSlot(slot)}
+                                            disabled={bookingCount >= MAX_BOOKINGS}
                                         >
                                             {slot.start_time.slice(0, 5)} - {slot.end_time.slice(0, 5)}
                                         </button>
@@ -225,7 +285,7 @@ const BookingModal = ({ isOpen, onClose, consultantId }) => {
                     <button
                         className="btn btn-primary"
                         onClick={handleBooking}
-                        disabled={!selectedSlot || loading}
+                        disabled={!selectedSlot || loading || bookingCount >= MAX_BOOKINGS}
                     >
                         {loading ? (
                             <>

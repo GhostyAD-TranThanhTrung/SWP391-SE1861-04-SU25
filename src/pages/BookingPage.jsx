@@ -258,19 +258,32 @@ const BookingPage = () => {
                             {scheduledBookings.map((booking) => {
                                 const consultant = consultants.find(c => c.id_consultant === booking.consultant_id);
                                 const slot = databaseSlots.find(s => s.slot_id === booking.slot_id);
-
+                                const hasMeetLink = !!booking.google_meet_link;
                                 return (
-                                    <div key={booking.id} className="col-md-6 mb-3">
+                                    <div key={booking.id || booking.booking_id} className="col-md-6 mb-3">
                                         <div className="card">
                                             <div className="card-body">
                                                 <h5 className="card-title">
-                                                    {consultant ? consultant.name : 'Consultant'}
+                                                    {consultant ? consultant.name : (booking.consultant_name || 'Consultant')}
                                                 </h5>
                                                 <p className="card-text">
                                                     <strong>Date:</strong> {booking.booking_date}<br />
-                                                    <strong>Time:</strong> {slot ? formatTime(slot.start_time) : 'N/A'}<br />
+                                                    <strong>Time:</strong> {slot ? formatTime(slot.start_time) : (booking.start_time ? formatTime(booking.start_time) : 'N/A')}<br />
                                                     <strong>Status:</strong> {booking.status}
                                                 </p>
+                                                {/* Luôn hiển thị nút Google Meet */}
+                                                {hasMeetLink ? (
+                                                    <a
+                                                        href={booking.google_meet_link}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="btn btn-success mt-2"
+                                                    >
+                                                        Vào Google Meet
+                                                    </a>
+                                                ) : (
+                                                    <button className="btn btn-secondary mt-2" disabled>Chưa có link</button>
+                                                )}
                                             </div>
                                         </div>
                                     </div>

@@ -230,14 +230,6 @@ const BookingProfile = () => {
                         </div>
                         <div className="hero-actions">
                             <button
-                                className="btn btn-primary btn-lg"
-                                disabled
-                                title="Consultation link not available"
-                            >
-                                <i className="bi bi-camera-video me-2"></i>
-                                Start Consultation
-                            </button>
-                            <button
                                 className="btn btn-outline-light btn-lg"
                                 onClick={() => setIsBookingModalOpen(true)}
                             >
