@@ -9,6 +9,8 @@ const BookingPage = () => {
     const [consultants, setConsultants] = useState([]);
     const [loading, setLoading] = useState(true);
     const [bookingStatus, setBookingStatus] = useState(null);
+    const [scheduledBookings, setScheduledBookings] = useState([]);
+    const [loadingBookings, setLoadingBookings] = useState(true);
 
     // Database slots based on sample.sql (9 AM - 5 PM hourly)
     const databaseSlots = [
@@ -107,23 +109,58 @@ const BookingPage = () => {
         };
     };
 
-    // Load consultants data from API
+    // Fetch scheduled bookings
+    const fetchScheduledBookings = async () => {
+        try {
+            const token = sessionStorage.getItem('token');
+            const response = await fetch('http://localhost:3000/api/booking-sessions/scheduled', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                },
+            });
+
+            const data = await response.json();
+            console.log('Dữ liệu booking lấy về:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to fetch scheduled bookings');
+            }
+
+            return data.data;
+        } catch (error) {
+            console.error('Error fetching scheduled bookings:', error);
+            return [];
+        }
+    };
+
+    // Load consultants and scheduled bookings data
     useEffect(() => {
-        const loadConsultants = async () => {
+        const loadData = async () => {
             try {
                 setLoading(true);
-                const apiConsultants = await fetchAllConsultants();
+                setLoadingBookings(true);
+
+                const [apiConsultants, bookings] = await Promise.all([
+                    fetchAllConsultants(),
+                    fetchScheduledBookings()
+                ]);
+
                 const transformedConsultants = transformConsultantsArray(apiConsultants);
                 setConsultants(transformedConsultants);
+                setScheduledBookings(bookings);
             } catch (error) {
-                console.error('Error loading consultants:', error);
-                setConsultants([]); // Fallback to empty array
+                console.error('Error loading data:', error);
+                setConsultants([]);
+                setScheduledBookings([]);
             } finally {
                 setLoading(false);
+                setLoadingBookings(false);
             }
         };
 
-        loadConsultants();
+        loadData();
     }, []);
 
     const bookConsultation = (consultantId, slotId) => {
@@ -209,6 +246,42 @@ const BookingPage = () => {
             </section>
 
             <div className="container" style={{ paddingTop: '5rem', paddingBottom: '5rem' }}>
+                {/* Scheduled Bookings Section */}
+                <section className="scheduled-bookings mb-5">
+                    <div className="section-header text-center mb-4">
+                        <h2 className="section-title">Your Scheduled Consultations</h2>
+                    </div>
+                    {loadingBookings ? (
+                        <div className="text-center text-muted">Đang tải lịch hẹn...</div>
+                    ) : scheduledBookings && scheduledBookings.length > 0 ? (
+                        <div className="row">
+                            {scheduledBookings.map((booking) => {
+                                const consultant = consultants.find(c => c.id_consultant === booking.consultant_id);
+                                const slot = databaseSlots.find(s => s.slot_id === booking.slot_id);
+
+                                return (
+                                    <div key={booking.id} className="col-md-6 mb-3">
+                                        <div className="card">
+                                            <div className="card-body">
+                                                <h5 className="card-title">
+                                                    {consultant ? consultant.name : 'Consultant'}
+                                                </h5>
+                                                <p className="card-text">
+                                                    <strong>Date:</strong> {booking.booking_date}<br />
+                                                    <strong>Time:</strong> {slot ? formatTime(slot.start_time) : 'N/A'}<br />
+                                                    <strong>Status:</strong> {booking.status}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        <div className="text-center text-muted">Bạn chưa có lịch hẹn nào.</div>
+                    )}
+                </section>
+
                 {/* Booking Status Alert */}
                 {bookingStatus && (
                     <div className={`alert alert-${bookingStatus.type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`}>

@@ -140,7 +140,7 @@ const BookingModal = ({ isOpen, onClose, consultantId }) => {
             }
 
             if (result.success) {
-                alert('Đặt lịch thành công!');
+                // alert('Đặt lịch thành công!');
                 onClose(true);
             } else {
                 throw new Error(result.message || 'Không thể đặt lịch');
