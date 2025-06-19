@@ -211,7 +211,7 @@ class BookingSessionController {
     /**
      * Create new booking session
      */
-    
+
     static async createBookingSession(req, res) {
         try {
             console.log('Request body:', req.body);
@@ -222,8 +222,8 @@ class BookingSessionController {
             const endTime = getSlot[0].end_time.toTimeString().split(' ')[0]; // Gets "02:00:00"
 
 
-            const startDateWithTime = `${booking_date}T${startTime.substring(0, 8)}`;
-            const endDateWithTime = `${booking_date}T${endTime.substring(0, 8)}`;
+            const startDateWithTime = `${booking_date}T${startTime}`;
+            const endDateWithTime = `${booking_date}T${endTime}`;
             const google_meet_link = await BookingSessionController.CreateLink(startDateWithTime, endDateWithTime);
             if (getSlot.length === 0) {
                 console.log('Slot not found:', slot_id);
@@ -605,6 +605,7 @@ class BookingSessionController {
                     b.consultant_id,
                     b.member_id,
                     b.slot_id,
+                    b.google_meet_link,
                     b.booking_date,
                     b.status,
                     b.notes,
