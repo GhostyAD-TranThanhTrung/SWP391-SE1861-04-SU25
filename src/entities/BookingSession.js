@@ -30,7 +30,7 @@ const BookingSession = new EntitySchema({
             nullable: false
         },
         status: {
-            type: "varchar",
+            type: "nvarchar",
             length: 20,
             nullable: true
         },

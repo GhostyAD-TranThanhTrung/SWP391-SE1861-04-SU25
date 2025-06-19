@@ -63,7 +63,7 @@ CREATE TABLE Booking_Session (
   member_id INT,
   slot_id INT,
   booking_date DATE NOT NULL,
-  status VARCHAR(20),
+  status NVARCHAR(20),
   notes NVARCHAR(MAX),
   google_meet_link NVARCHAR(MAX),
   
