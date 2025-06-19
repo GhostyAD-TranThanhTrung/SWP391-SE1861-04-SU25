@@ -1982,16 +1982,172 @@
                     }
                 }
             }
+        },
+        "/api/booking-sessions": {
+            "get": {
+                "summary": "Get all booking sessions",
+                "description": "Retrieve all booking sessions.",
+                "security": [{ "bearerAuth": [] }],
+                "responses": {
+                    "200": { "description": "Booking sessions retrieved successfully" },
+                    "500": { "description": "Internal server error" }
+                }
+            },
+            "post": {
+                "summary": "Create new booking session",
+                "description": "Create a new booking session.",
+                "security": [{ "bearerAuth": [] }],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "consultant_id": { "type": "integer" },
+                                    "slot_id": { "type": "integer" },
+                                    "booking_date": { "type": "string", "format": "date" }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": { "description": "Booking session created successfully" },
+                    "400": { "description": "Bad request" },
+                    "409": { "description": "Booking already exists" },
+                    "500": { "description": "Internal server error" }
+                }
+            }
+        },
+        "/api/booking-sessions/{id}": {
+            "get": {
+                "summary": "Get booking session by ID",
+                "description": "Retrieve a booking session by its ID.",
+                "security": [{ "bearerAuth": [] }],
+                "parameters": [
+                    { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+                ],
+                "responses": {
+                    "200": { "description": "Booking session retrieved successfully" },
+                    "404": { "description": "Booking session not found" },
+                    "500": { "description": "Internal server error" }
+                }
+            },
+            "put": {
+                "summary": "Update booking session",
+                "description": "Update a booking session by its ID.",
+                "security": [{ "bearerAuth": [] }],
+                "parameters": [
+                    { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "consultant_id": { "type": "integer" },
+                                    "member_id": { "type": "integer" },
+                                    "slot_id": { "type": "integer" },
+                                    "booking_date": { "type": "string", "format": "date" },
+                                    "status": { "type": "string" },
+                                    "notes": { "type": "string" },
+                                    "google_meet_link": { "type": "string" }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": { "description": "Booking session updated successfully" },
+                    "404": { "description": "Booking session not found" },
+                    "500": { "description": "Internal server error" }
+                }
+            },
+            "delete": {
+                "summary": "Delete booking session",
+                "description": "Delete a booking session by its ID.",
+                "security": [{ "bearerAuth": [] }],
+                "parameters": [
+                    { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+                ],
+                "responses": {
+                    "200": { "description": "Booking session deleted successfully" },
+                    "404": { "description": "Booking session not found" },
+                    "500": { "description": "Internal server error" }
+                }
+            }
+        },
+        "/api/booking-sessions/consultant/{consultantId}": {
+            "get": {
+                "summary": "Get booking sessions by consultant ID",
+                "description": "Retrieve all booking sessions for a specific consultant.",
+                "security": [{ "bearerAuth": [] }],
+                "parameters": [
+                    { "name": "consultantId", "in": "path", "required": true, "schema": { "type": "integer" } }
+                ],
+                "responses": {
+                    "200": { "description": "Booking sessions retrieved successfully" },
+                    "500": { "description": "Internal server error" }
+                }
+            }
+        },
+        "/api/booking-sessions/member": {
+            "get": {
+                "summary": "Get booking sessions by member (authenticated)",
+                "description": "Retrieve all booking sessions for the authenticated member.",
+                "security": [{ "bearerAuth": [] }],
+                "responses": {
+                    "200": { "description": "Booking sessions retrieved successfully" },
+                    "500": { "description": "Internal server error" }
+                }
+            }
+        },
+        "/api/booking-sessions/status/{status}": {
+            "get": {
+                "summary": "Get booking sessions by status",
+                "description": "Retrieve all booking sessions with a specific status.",
+                "security": [{ "bearerAuth": [] }],
+                "parameters": [
+                    { "name": "status", "in": "path", "required": true, "schema": { "type": "string" } }
+                ],
+                "responses": {
+                    "200": { "description": "Booking sessions retrieved successfully" },
+                    "500": { "description": "Internal server error" }
+                }
+            }
+        },
+        "/api/booking-sessions/date-range": {
+            "get": {
+                "summary": "Get booking sessions by date range",
+                "description": "Retrieve all booking sessions within a date range.",
+                "security": [{ "bearerAuth": [] }],
+                "parameters": [
+                    { "name": "startDate", "in": "query", "required": true, "schema": { "type": "string", "format": "date" } },
+                    { "name": "endDate", "in": "query", "required": true, "schema": { "type": "string", "format": "date" } }
+                ],
+                "responses": {
+                    "200": { "description": "Booking sessions retrieved successfully" },
+                    "400": { "description": "Bad request - Start date and end date are required" },
+                    "500": { "description": "Internal server error" }
+                }
+            }
+        },
+        "/api/booking-sessions/scheduled": {
+            "get": {
+                "summary": "Get scheduled booking sessions for authenticated member",
+                "description": "Retrieve all scheduled booking sessions for the authenticated member.",
+                "security": [{ "bearerAuth": [] }],
+                "responses": {
+                    "200": { "description": "Scheduled booking sessions retrieved successfully" },
+                    "500": { "description": "Internal server error" }
+                }
+            }
         }
     },
     "components": {
-        "securitySchemes": {
-            "bearerAuth": {
-                "type": "http",
-                "scheme": "bearer",
-                "bearerFormat": "JWT"
-            }
-        },
         "schemas": {
             "User": {
                 "type": "object",
@@ -2002,32 +2158,17 @@
                     },
                     "email": {
                         "type": "string",
-                        "example": "john@example.com"
+                        "example": "user@example.com"
                     },
                     "role": {
                         "type": "string",
-                        "enum": [
-                            "admin",
-                            "consultant",
-                            "Member"
-                        ],
-                        "example": "consultant"
+                        "example": "user"
                     },
                     "status": {
                         "type": "string",
-                        "enum": [
-                            "active",
-                            "inactive",
-                            "banned"
-                        ],
                         "example": "active"
                     },
                     "date_create": {
-                        "type": "string",
-                        "format": "date-time",
-                        "example": "2024-01-15T10:00:00.000Z"
-                    },
-                    "updated_at": {
                         "type": "string",
                         "format": "date-time",
                         "example": "2024-01-15T10:00:00.000Z"
@@ -2036,7 +2177,6 @@
             },
             "Profile": {
                 "type": "object",
-                "nullable": true,
                 "properties": {
                     "user_id": {
                         "type": "integer",
@@ -2046,6 +2186,18 @@
                         "type": "string",
                         "example": "John Doe"
                     },
+                    "certification": {
+                        "type": "string",
+                        "example": "Certified Life Coach"
+                    },
+                    "works_hours_json": {
+                        "type": "string",
+                        "example": "{\"monday\": \"9-17\"}"
+                    },
+                    "bio_json": {
+                        "type": "string",
+                        "example": "{\"intro\": \"Professional counselor\"}"
+                    },
                     "date_of_birth": {
                         "type": "string",
                         "format": "date",
@@ -2053,74 +2205,49 @@
                     },
                     "job": {
                         "type": "string",
-                        "example": "Counselor"
-                    },
-                    "bio_json": {
-                        "type": "object",
-                        "example": {
-                            "intro": "Professional counselor with 5 years experience",
-                            "specialties": [
-                                "anxiety",
-                                "depression"
-                            ]
-                        }
+                        "example": "Mental Health Counselor"
                     }
                 }
             },
             "StaffMember": {
                 "type": "object",
-                "allOf": [
-                    {
-                        "$ref": "#/components/schemas/User"
-                    },
-                    {
-                        "type": "object",
-                        "properties": {
-                            "profile": {
-                                "$ref": "#/components/schemas/Profile"
-                            }
-                        }
-                    }
-                ]
-            },
-            "CreateStaffRequest": {
-                "type": "object",
-                "required": [
-                    "email",
-                    "password"
-                ],
                 "properties": {
-                    "email": {
-                        "type": "string",
-                        "format": "email",
-                        "example": "john@company.com"
-                    },
-                    "password": {
-                        "type": "string",
-                        "example": "securePassword123"
-                    },
-                    "role": {
-                        "type": "string",
-                        "enum": [
-                            "admin",
-                            "consultant"
-                        ],
-                        "default": "consultant",
-                        "example": "consultant"
-                    },
-                    "status": {
-                        "type": "string",
-                        "enum": [
-                            "active",
-                            "inactive",
-                            "banned"
-                        ],
-                        "default": "active",
-                        "example": "active"
+                    "user_id": {
+                        "type": "integer",
+                        "example": 123
                     },
                     "name": {
                         "type": "string",
                         "example": "John Doe"
+                    },
+                    "email": {
+                        "type": "string",
+                        "example": "john.doe@example.com"
+                    },
+                    "role": {
+                        "type": "string",
+                        "example": "consultant"
+                    },
+                    "status": {
+                        "type": "string",
+                        "example": "active"
+                    },
+                    "date_create": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-01-15T10:00:00.000Z"
+                    },
+                    "certification": {
+                        "type": "string",
+                        "example": "Certified Life Coach"
+                    },
+                    "works_hours_json": {
+                        "type": "string",
+                        "example": "{\"monday\": \"9-17\"}"
+                    },
+                    "bio_json": {
+                        "type": "string",
+                        "example": "{\"intro\": \"Professional counselor\"}"
                     },
                     "date_of_birth": {
                         "type": "string",
@@ -2129,19 +2256,85 @@
                     },
                     "job": {
                         "type": "string",
-                        "example": "Counselor"
-                    },
-                    "bio_json": {
-                        "type": "object",
-                        "example": {
-                            "intro": "Professional counselor",
-                            "specialties": [
-                                "anxiety",
-                                "depression"
-                            ]
-                        }
+                        "example": "Mental Health Counselor"
                     }
                 }
+            },
+            "MemberWithProfile": {
+                "type": "object",
+                "properties": {
+                    "user_id": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "John Doe"
+                    },
+                    "email": {
+                        "type": "string",
+                        "example": "john.doe@example.com"
+                    },
+                    "role": {
+                        "type": "string",
+                        "example": "member"
+                    },
+                    "status": {
+                        "type": "string",
+                        "example": "active"
+                    },
+                    "date_create": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-01-15T10:00:00.000Z"
+                    },
+                    "certification": {
+                        "type": "string",
+                        "example": "Certified Life Coach"
+                    },
+                    "works_hours_json": {
+                        "type": "string",
+                        "example": "{\"monday\": \"9-17\"}"
+                    },
+                    "bio_json": {
+                        "type": "string",
+                        "example": "{\"intro\": \"Professional counselor\"}"
+                    },
+                    "date_of_birth": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "1990-01-15"
+                    },
+                    "job": {
+                        "type": "string",
+                        "example": "Mental Health Counselor"
+                    }
+                }
+            },
+            "CreateStaffRequest": {
+                "type": "object",
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "staff@example.com"
+                    },
+                    "password": {
+                        "type": "string",
+                        "minLength": 6,
+                        "example": "P@ssw0rd"
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "John Doe"
+                    },
+                    "role": {
+                        "type": "string",
+                        "enum": [ "admin", "consultant" ],
+                        "example": "consultant"
+                    }
+                },
+                "required": [ "email", "password", "name", "role" ]
             },
             "UpdateStaffRequest": {
                 "type": "object",
@@ -2149,112 +2342,49 @@
                     "email": {
                         "type": "string",
                         "format": "email",
-                        "example": "john.updated@company.com"
-                    },
-                    "password": {
-                        "type": "string",
-                        "example": "newSecurePassword123"
-                    },
-                    "role": {
-                        "type": "string",
-                        "enum": [
-                            "admin",
-                            "consultant"
-                        ],
-                        "example": "admin"
-                    },
-                    "status": {
-                        "type": "string",
-                        "enum": [
-                            "active",
-                            "inactive",
-                            "banned"
-                        ],
-                        "example": "active"
-                    },
-                    "name": {
-                        "type": "string",
-                        "example": "John Doe Updated"
-                    },
-                    "date_of_birth": {
-                        "type": "string",
-                        "format": "date",
-                        "example": "1990-01-15"
-                    },
-                    "job": {
-                        "type": "string",
-                        "example": "Senior Counselor"
-                    },
-                    "bio_json": {
-                        "type": "object",
-                        "example": {
-                            "intro": "Senior professional counselor",
-                            "specialties": [
-                                "anxiety",
-                                "depression",
-                                "trauma"
-                            ]
-                        }
-                    }
-                }
-            },
-            "MemberWithProfile": {
-                "type": "object",
-                "allOf": [
-                    {
-                        "$ref": "#/components/schemas/User"
-                    },
-                    {
-                        "type": "object",
-                        "properties": {
-                            "profile": {
-                                "$ref": "#/components/schemas/Profile"
-                            }
-                        }
-                    }
-                ]
-            },
-            "CreateMemberRequest": {
-                "type": "object",
-                "required": [
-                    "email",
-                    "password"
-                ],
-                "properties": {
-                    "email": {
-                        "type": "string",
-                        "format": "email",
-                        "example": "member@example.com",
-                        "description": "Member's email address"
+                        "example": "staff@example.com"
                     },
                     "password": {
                         "type": "string",
                         "minLength": 6,
-                        "example": "password123",
-                        "description": "Member's password"
+                        "example": "P@ssw0rd"
                     },
                     "name": {
                         "type": "string",
-                        "example": "John Smith",
-                        "description": "Member's full name"
+                        "example": "John Doe"
                     },
-                    "bio_json": {
+                    "role": {
                         "type": "string",
-                        "example": "{\"interests\": [\"mental health\", \"wellness\"]}",
-                        "description": "Member's biography in JSON string format"
+                        "enum": [ "admin", "consultant" ],
+                        "example": "consultant"
                     },
-                    "date_of_birth": {
+                    "status": {
                         "type": "string",
-                        "format": "date",
-                        "example": "1990-01-15",
-                        "description": "Member's date of birth"
-                    },
-                    "job": {
-                        "type": "string",
-                        "example": "Software Engineer",
-                        "description": "Member's job title"
+                        "enum": [ "active", "inactive" ],
+                        "example": "active"
                     }
-                }
+                },
+                "required": [ "email", "password", "name", "role", "status" ]
+            },
+            "CreateMemberRequest": {
+                "type": "object",
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "member@example.com"
+                    },
+                    "password": {
+                        "type": "string",
+                        "minLength": 6,
+                        "example": "P@ssw0rd"
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "John Doe"
+                    }
+                },
+                "required": [ "email", "password", "name" ]
             },
             "UpdateMemberRequest": {
                 "type": "object",
@@ -2262,45 +2392,160 @@
                     "email": {
                         "type": "string",
                         "format": "email",
-                        "example": "updated@example.com",
-                        "description": "Updated email address"
+                        "example": "member@example.com"
                     },
                     "password": {
                         "type": "string",
                         "minLength": 6,
-                        "example": "newpassword123",
-                        "description": "Updated password"
-                    },
-                    "status": {
-                        "type": "string",
-                        "enum": [
-                            "active",
-                            "inactive",
-                            "banned"
-                        ],
-                        "example": "active",
-                        "description": "Updated member status"
+                        "example": "P@ssw0rd"
                     },
                     "name": {
                         "type": "string",
-                        "example": "John Updated Smith",
-                        "description": "Updated full name"
+                        "example": "John Doe"
                     },
-                    "bio_json": {
+                    "status": {
                         "type": "string",
-                        "example": "{\"interests\": [\"updated interests\"]}",
-                        "description": "Updated biography in JSON string format"
+                        "enum": [ "active", "inactive" ],
+                        "example": "active"
+                    }
+                },
+                "required": [ "email", "password", "name", "status" ]
+            },
+            "CreateAssessmentRequest": {
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "example": "test"
                     },
-                    "date_of_birth": {
+                    "title": {
                         "type": "string",
-                        "format": "date",
-                        "example": "1990-01-15",
-                        "description": "Updated date of birth"
+                        "example": "Mental Health Test"
                     },
-                    "job": {
+                    "description": {
                         "type": "string",
-                        "example": "Senior Software Engineer",
-                        "description": "Updated job title"
+                        "example": "A test to assess mental health status"
+                    },
+                    "questions": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "question_id": {
+                                    "type": "integer",
+                                    "example": 1
+                                },
+                                "question_text": {
+                                    "type": "string",
+                                    "example": "How often do you feel sad?"
+                                },
+                                "question_type": {
+                                    "type": "string",
+                                    "example": "multiple-choice"
+                                },
+                                "options": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "option_id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "option_text": {
+                                                "type": "string",
+                                                "example": "Always"
+                                            },
+                                            "is_correct": {
+                                                "type": "boolean",
+                                                "example": false
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "required": [ "type", "title", "description", "questions" ]
+            },
+            "UpdateAssessmentRequest": {
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "example": "Mental Health Test - Revised"
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "An updated test to assess mental health status"
+                    },
+                    "questions": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "question_id": {
+                                    "type": "integer",
+                                    "example": 1
+                                },
+                                "question_text": {
+                                    "type": "string",
+                                    "example": "How often do you feel anxious?"
+                                },
+                                "question_type": {
+                                    "type": "string",
+                                    "example": "multiple-choice"
+                                },
+                                "options": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "option_id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "option_text": {
+                                                "type": "string",
+                                                "example": "Often"
+                                            },
+                                            "is_correct": {
+                                                "type": "boolean",
+                                                "example": false
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "TestResult": {
+                "type": "object",
+                "properties": {
+                    "user_id": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "assessment_id": {
+                        "type": "integer",
+                        "example": 456
+                    },
+                    "score": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 85.5
+                    },
+                    "date_taken": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-01-15T10:00:00.000Z"
+                    },
+                    "action_recommended": {
+                        "type": "string",
+                        "example": "Schedule a follow-up appointment"
                     }
                 }
             },
@@ -2313,227 +2558,125 @@
                     },
                     "user_id": {
                         "type": "integer",
-                        "example": 123
+                        "example": 456
+                    },
+                    "score": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 78.5
+                    },
+                    "date_taken": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-01-15T10:00:00.000Z"
                     },
                     "type": {
                         "type": "string",
                         "example": "test"
                     },
-                    "result_json": {
+                    "title": {
                         "type": "string",
-                        "example": "{\"score\": 85}"
-                    },
-                    "create_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "example": "2024-01-15T10:00:00.000Z"
-                    },
-                    "action_id": {
-                        "type": "integer",
-                        "example": 456
-                    }
-                }
-            },
-            "Action": {
-                "type": "object",
-                "properties": {
-                    "action_id": {
-                        "type": "integer",
-                        "example": 456
+                        "example": "Mental Health Test"
                     },
                     "description": {
                         "type": "string",
-                        "example": "Seek professional counseling"
-                    },
-                    "range": {
-                        "type": "string",
-                        "example": "80-100"
-                    },
-                    "type": {
-                        "type": "string",
-                        "example": "mental_health"
-                    }
-                }
-            },
-            "CreateAssessmentRequest": {
-                "type": "object",
-                "properties": {
-                    "user_id": {
-                        "type": "integer",
-                        "example": 123,
-                        "description": "ID of the user taking the assessment"
-                    },
-                    "type": {
-                        "type": "string",
-                        "example": "test",
-                        "description": "Type of assessment"
-                    },
-                    "result_json": {
-                        "type": "string",
-                        "example": "{\"score\": 85, \"answers\": [\"A\", \"B\", \"C\"]}",
-                        "description": "Assessment results in JSON format"
-                    },
-                    "action_id": {
-                        "type": "integer",
-                        "example": 456,
-                        "description": "ID of the recommended action"
-                    }
-                }
-            },
-            "UpdateAssessmentRequest": {
-                "type": "object",
-                "properties": {
-                    "user_id": {
-                        "type": "integer",
-                        "example": 123,
-                        "description": "ID of the user"
-                    },
-                    "type": {
-                        "type": "string",
-                        "example": "updated_test",
-                        "description": "Updated type of assessment"
-                    },
-                    "result_json": {
-                        "type": "string",
-                        "example": "{\"score\": 90, \"updated\": true}",
-                        "description": "Updated assessment results in JSON format"
-                    },
-                    "action_id": {
-                        "type": "integer",
-                        "example": 789,
-                        "description": "Updated ID of the recommended action"
-                    }
-                }
-            },
-            "TakeTestRequest": {
-                "type": "object",
-                "required": [
-                    "user_id",
-                    "score"
-                ],
-                "properties": {
-                    "user_id": {
-                        "type": "integer",
-                        "example": 123,
-                        "description": "ID of the member taking the test"
-                    },
-                    "score": {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 100,
-                        "example": 85,
-                        "description": "Test score (0-100)"
-                    },
-                    "type": {
-                        "type": "string",
-                        "example": "mental_health_test",
-                        "description": "Type of test (optional, defaults to 'test')"
-                    }
-                }
-            },
-            "TestResult": {
-                "type": "object",
-                "properties": {
-                    "user": {
-                        "type": "object",
-                        "properties": {
-                            "user_id": {
-                                "type": "integer",
-                                "example": 123
-                            },
-                            "email": {
-                                "type": "string",
-                                "example": "member@example.com"
-                            },
-                            "role": {
-                                "type": "string",
-                                "example": "member"
-                            },
-                            "status": {
-                                "type": "string",
-                                "example": "active"
-                            },
-                            "date_create": {
-                                "type": "string",
-                                "format": "date-time",
-                                "example": "2024-01-15T10:00:00.000Z"
-                            }
-                        }
-                    },
-                    "test_result": {
-                        "type": "object",
-                        "properties": {
-                            "score": {
-                                "type": "integer",
-                                "example": 85
-                            },
-                            "type": {
-                                "type": "string",
-                                "example": "mental_health_test"
-                            },
-                            "create_at": {
-                                "type": "string",
-                                "format": "date-time",
-                                "example": "2024-01-15T10:30:00.000Z"
-                            }
-                        }
-                    },
-                    "recommended_action": {
-                        "type": "object",
-                        "properties": {
-                            "description": {
-                                "type": "string",
-                                "example": "Seek professional counseling for stress management"
-                            },
-                            "range": {
-                                "type": "string",
-                                "example": "80-100"
-                            },
-                            "type": {
-                                "type": "string",
-                                "example": "mental_health"
-                            }
-                        }
+                        "example": "A test to assess mental health status"
                     }
                 }
             },
             "AssessmentWithRelations": {
                 "type": "object",
-                "allOf": [
-                    {
-                        "$ref": "#/components/schemas/Assessment"
+                "properties": {
+                    "assessment_id": {
+                        "type": "integer",
+                        "example": 123
                     },
-                    {
+                    "user_id": {
+                        "type": "integer",
+                        "example": 456
+                    },
+                    "score": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 78.5
+                    },
+                    "date_taken": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-01-15T10:00:00.000Z"
+                    },
+                    "type": {
+                        "type": "string",
+                        "example": "test"
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "Mental Health Test"
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "A test to assess mental health status"
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/User"
+                    },
+                    "action": {
                         "type": "object",
                         "properties": {
-                            "user": {
-                                "$ref": "#/components/schemas/User"
-                            },
-                            "action": {
-                                "$ref": "#/components/schemas/Action"
+                            "action_id": {
+                                "type": "integer",
+                                "example": 789
                             }
                         }
                     }
-                ]
+                }
             },
             "AssessmentWithActionDetails": {
                 "type": "object",
-                "allOf": [
-                    {
-                        "$ref": "#/components/schemas/Assessment"
+                "properties": {
+                    "assessment_id": {
+                        "type": "integer",
+                        "example": 123
                     },
-                    {
+                    "user_id": {
+                        "type": "integer",
+                        "example": 456
+                    },
+                    "score": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 78.5
+                    },
+                    "date_taken": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-01-15T10:00:00.000Z"
+                    },
+                    "type": {
+                        "type": "string",
+                        "example": "test"
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "Mental Health Test"
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "A test to assess mental health status"
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/User"
+                    },
+                    "action": {
                         "type": "object",
                         "properties": {
-                            "user": {
-                                "$ref": "#/components/schemas/User"
-                            },
-                            "action": {
-                                "$ref": "#/components/schemas/Action"
+                            "action_id": {
+                                "type": "integer",
+                                "example": 789
                             }
                         }
                     }
-                ]
+                }
             }
         }
     }
