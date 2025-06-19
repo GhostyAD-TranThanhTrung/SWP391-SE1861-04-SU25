@@ -2,8 +2,21 @@
  * BookingSession Controller using TypeORM
  * CRUD operations for Booking_Session table
  */
+require('dotenv').config();
 const AppDataSource = require('../src/data-source');
 const BookingSession = require('../src/entities/BookingSession');
+const google = require('googleapis').google;
+
+const oauth2Client = new google.auth.OAuth2(
+    process.env.CLIENT_ID,
+    process.env.CLIENT_SECRET,
+);
+
+oauth2Client.setCredentials({
+    refresh_token: process.env.REFRESH_TOKEN
+});
+
+const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
 
 class BookingSessionController {
     /**
@@ -153,13 +166,83 @@ class BookingSessionController {
         }
     }
 
+    static async CreateLink(startDate, endDate) {
+        if (!startDate) {
+            return { error: 'startDate and endDate are required' };
+        }
+
+
+        try {
+            const startDateTime = new Date(startDate).toISOString();
+            const endDateTime = new Date(endDate).toISOString(); // 30 minutes later
+            const event = {
+                summary: null,
+                description: null,
+                start: {
+                    dateTime: startDateTime,
+                },
+                end: {
+                    dateTime: endDateTime,
+                },
+                conferenceData: {
+                    createRequest: {
+                        requestId: `meet-${Date.now()}`,
+                        conferenceSolutionKey: { type: 'hangoutsMeet' }
+                    }
+                }
+            };
+
+            const response = await calendar.events.insert({
+                calendarId: 'primary',
+                resource: event,
+                conferenceDataVersion: 1
+            });
+
+            return response.data.hangoutLink;
+        } catch (error) {
+            return {
+                error: 'Failed to create Google Meet',
+                details: error.message
+            };
+        }
+    };
+
+
     /**
      * Create new booking session
      */
+    
     static async createBookingSession(req, res) {
         try {
             console.log('Request body:', req.body);
-            const { consultant_id, slot_id, booking_date, google_meet_link } = req.body;
+            const { consultant_id, slot_id, booking_date } = req.body;
+            console.log(process.env.CLIENT_SECRET)
+            const getSlot = await AppDataSource.query('select * from slot where slot_id = @0', [slot_id])
+            const startTime = getSlot[0].start_time.toTimeString().split(' ')[0]; // Gets "01:00:00"
+            const endTime = getSlot[0].end_time.toTimeString().split(' ')[0]; // Gets "02:00:00"
+
+
+            const startDateWithTime = `${booking_date}T${startTime.substring(0, 8)}`;
+            const endDateWithTime = `${booking_date}T${endTime.substring(0, 8)}`;
+            const google_meet_link = await BookingSessionController.CreateLink(startDateWithTime, endDateWithTime);
+            if (getSlot.length === 0) {
+                console.log('Slot not found:', slot_id);
+                return res.status(404).json({
+                    success: false,
+                    data: [],
+                    count: 0,
+                    message: 'Khung giờ không tồn tại'
+                });
+            }
+            if (google_meet_link.error) {
+                console.error('Failed to create Google Meet link');
+                return res.status(500).json({
+                    success: false,
+                    data: [],
+                    count: 0,
+                    message: 'Không thể tạo liên kết Google Meet'
+                });
+            }
             const member_id = req.user.userId;
 
             console.log('Parsed input data:', {
