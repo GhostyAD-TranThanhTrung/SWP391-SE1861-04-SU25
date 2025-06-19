@@ -657,16 +657,16 @@ class BookingSessionController {
                     AND DATENAME(WEEKDAY, b.booking_date) = cs.day_of_week
                 )
                 WHERE b.member_id = @0
-                AND b.status = @1
+                AND (b.status = @1 OR b.status = @2)
                 ORDER BY booking_date ASC, start_time ASC
             `;
 
             console.log('Scheduled bookings query:', scheduledBookingQuery);
-            console.log('Scheduled bookings parameters:', [memberId, 'scheduled']);
+            console.log('Scheduled bookings parameters:', [memberId, 'Đang chờ xác nhận', 'Đã xác nhận']);
 
             const bookings = await AppDataSource.query(
                 scheduledBookingQuery,
-                [parseInt(memberId), 'scheduled']
+                [parseInt(memberId), 'Đang chờ xác nhận', 'Đã xác nhận']
             );
 
             if (!bookings || bookings.length === 0) {
