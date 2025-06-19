@@ -66,6 +66,7 @@ CREATE TABLE Booking_Session (
   status VARCHAR(20),
   notes NVARCHAR(MAX),
   google_meet_link NVARCHAR(MAX),
+  
   FOREIGN KEY (consultant_id) REFERENCES Consultant(id_consultant),
   FOREIGN KEY (member_id) REFERENCES Users(user_id),
   FOREIGN KEY (slot_id) REFERENCES Slot(slot_id)

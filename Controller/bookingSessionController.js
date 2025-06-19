@@ -216,6 +216,41 @@ class BookingSessionController {
         try {
             console.log('Request body:', req.body);
             const { consultant_id, slot_id, booking_date } = req.body;
+            const member_id = req.user.userId;
+
+            // Check if user has reached the limit of 3 ongoing booking sessions
+            const ongoingBookingsQuery = `
+                SELECT COUNT(*) as ongoing_count
+                FROM Booking_Session
+                WHERE member_id = @0
+                AND status IN (@1, @2)
+            `;
+
+            console.log('Checking ongoing bookings - SQL Query:', ongoingBookingsQuery);
+            console.log('Checking ongoing bookings - Parameters:', [
+                parseInt(member_id),
+                'Đang chờ xác nhận',
+                'Đã xác nhận'
+            ]);
+
+            const [ongoingResult] = await AppDataSource.query(
+                ongoingBookingsQuery,
+                [parseInt(member_id), 'Đang chờ xác nhận', 'Đã xác nhận']
+            );
+
+            const ongoingCount = ongoingResult.ongoing_count;
+            console.log('Current ongoing bookings count:', ongoingCount);
+
+            if (ongoingCount >= 3) {
+                console.log('User has reached the limit of 3 ongoing booking sessions');
+                return res.status(400).json({
+                    success: false,
+                    data: [],
+                    count: 0,
+                    message: 'Bạn đã đạt giới hạn 3 cuộc hẹn đang diễn ra'
+                });
+            }
+
             console.log(process.env.CLIENT_SECRET)
             const getSlot = await AppDataSource.query('select * from slot where slot_id = @0', [slot_id])
             const startTime = getSlot[0].start_time.toTimeString().split(' ')[0]; // Gets "01:00:00"
@@ -243,7 +278,6 @@ class BookingSessionController {
                     message: 'Không thể tạo liên kết Google Meet'
                 });
             }
-            const member_id = req.user.userId;
 
             console.log('Parsed input data:', {
                 consultant_id,
@@ -291,7 +325,6 @@ class BookingSessionController {
                 WHERE consultant_id = @0
                 AND slot_id = @1
                 AND booking_date = @2
-                AND status = @3
             `;
 
             console.log('Existing booking check - SQL Query:', existingBookingQuery);
@@ -299,12 +332,11 @@ class BookingSessionController {
                 parseInt(consultant_id),
                 parseInt(slot_id),
                 booking_date,
-                'scheduled'
             ]);
 
             const existingBookings = await AppDataSource.query(
                 existingBookingQuery,
-                [parseInt(consultant_id), parseInt(slot_id), booking_date, 'scheduled']
+                [parseInt(consultant_id), parseInt(slot_id), booking_date]
             );
 
             if (existingBookings && existingBookings.length > 0) {
@@ -323,19 +355,20 @@ class BookingSessionController {
                 FROM Booking_Session
                 WHERE member_id = @0
                 AND booking_date = @1
-                AND status = @2
+                AND status IN (@2, @3)
             `;
 
             console.log('Member booking check - SQL Query:', memberBookingQuery);
             console.log('Member booking check - Parameters:', [
                 parseInt(member_id),
                 booking_date,
-                'scheduled'
+                'Đang chờ xác nhận',
+                'Đã xác nhận'
             ]);
 
             const [memberBooking] = await AppDataSource.query(
                 memberBookingQuery,
-                [parseInt(member_id), booking_date, 'scheduled']
+                [parseInt(member_id), booking_date, 'Đang chờ xác nhận', 'Đã xác nhận']
             );
 
             if (memberBooking) {
