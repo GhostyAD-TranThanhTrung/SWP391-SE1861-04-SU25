@@ -387,7 +387,7 @@ class BookingSessionController {
                 member_id: parseInt(member_id),
                 slot_id: parseInt(slot_id),
                 booking_date,
-                status: 'scheduled',
+                status: 'Đang chờ xác nhận',
                 google_meet_link
             });
 
@@ -403,14 +403,14 @@ class BookingSessionController {
                 parseInt(member_id),
                 parseInt(slot_id),
                 booking_date,
-                'scheduled',
+                'Đang chờ xác nhận',
                 null,
                 google_meet_link
             ]);
 
             const [savedBooking] = await AppDataSource.query(
                 insertBookingQuery,
-                [parseInt(consultant_id), parseInt(member_id), parseInt(slot_id), booking_date, 'scheduled', null, google_meet_link]
+                [parseInt(consultant_id), parseInt(member_id), parseInt(slot_id), booking_date, 'Đang chờ xác nhận', null, google_meet_link]
             );
 
             console.log('Saved new booking:', savedBooking);
