@@ -37,7 +37,7 @@ class BlogController {
     try {
       // Get user ID from the verified token (set by verifyToken middleware)
       const userId = req.user.userId;
-      
+
       if (!userId) {
         return res.status(401).json({
           success: false,
@@ -46,7 +46,7 @@ class BlogController {
       }
 
       const blogRepository = AppDataSource.getRepository(Blog);
-      
+
       const blogs = await blogRepository.find({
         where: { author_id: userId },
         order: {
@@ -410,26 +410,26 @@ class BlogController {
 
       // Store the previous status in metadata if needed
       const previousStatus = blog.status;
-      
+
       // Update blog status to hidden
       blog.status = "hidden";
-      
+
       // If we have metadata field, we could store the reason and previous status
-      // This assumes the Blog entity has a metadata_json field
+      // This assumes the Blog entity has a body field
       // If it doesn't, you would need to modify the entity or create a separate table
-      if (blog.metadata_json) {
+      if (blog.body) {
         let metadata = {};
         try {
-          metadata = JSON.parse(blog.metadata_json);
+          metadata = JSON.parse(blog.body);
         } catch (e) {
           metadata = {};
         }
-        
+
         metadata.hidden_reason = reason || "No reason provided";
         metadata.hidden_at = new Date().toISOString();
         metadata.previous_status = previousStatus;
-        
-        blog.metadata_json = JSON.stringify(metadata);
+
+        blog.body = JSON.stringify(metadata);
       }
 
       const updatedBlog = await blogRepository.save(blog);

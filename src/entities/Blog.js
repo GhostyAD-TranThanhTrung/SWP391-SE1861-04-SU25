@@ -41,7 +41,7 @@ const Blog = new EntitySchema({
             length: "MAX",
             nullable: true
         },
-        metadata_json: {
+        body: {
             type: "nvarchar",
             length: "MAX",
             nullable: true
