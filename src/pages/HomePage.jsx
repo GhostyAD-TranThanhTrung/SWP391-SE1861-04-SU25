@@ -56,7 +56,7 @@ const HomePage = () => {
     const cardData = (titles, images = []) =>
         titles.map((title, index) => ({
             title,
-            date: 'May 31, 2025',
+            date: '31 tháng 5, 2025',
             image: images[index] || Image,
             id: index + 1,
             excerpt: getExcerpt(title)
@@ -64,35 +64,35 @@ const HomePage = () => {
 
     const getExcerpt = (title) => {
         const excerpts = {
-            "Substance Abuse: Awareness & Prevention": "Learn about the latest prevention strategies and how to recognize early warning signs.",
-            "12 ways to prevent drug abuse": "Practical tips and evidence-based methods to prevent substance abuse in your community.",
-            "Drug Abuse Awareness": "Comprehensive guide to understanding and addressing drug abuse in today's society.",
-            "Effects of Long-Term Drug Use": "Detailed analysis of the physical and mental health impacts of prolonged substance use.",
-            "The Truth About Drugs": "Evidence-based information about various substances and their effects on the body and mind.",
-            "The Truth About Prescription Drug Abuse": "Understanding the risks and prevention of prescription medication misuse.",
-            "Recovery Pathways - Online Course": "Interactive course guiding you through the journey of recovery and healing.",
-            "Youth Drug Prevention Toolkit": "Resources and strategies specifically designed for preventing youth substance abuse."
+            "Lạm dụng chất: Nhận thức & Phòng ngừa": "Tìm hiểu về các chiến lược phòng ngừa mới nhất và cách nhận biết các dấu hiệu cảnh báo sớm.",
+            "12 cách phòng ngừa lạm dụng ma túy": "Các mẹo thực tế và phương pháp dựa trên bằng chứng để phòng ngừa lạm dụng chất trong cộng đồng.",
+            "Nhận thức về lạm dụng ma túy": "Hướng dẫn toàn diện về hiểu biết và giải quyết vấn đề lạm dụng ma túy trong xã hội ngày nay.",
+            "Tác động của việc sử dụng ma túy lâu dài": "Phân tích chi tiết về tác động sức khỏe thể chất và tinh thần của việc sử dụng chất kéo dài.",
+            "Sự thật về ma túy": "Thông tin dựa trên bằng chứng về các loại chất khác nhau và tác động của chúng đối với cơ thể và tâm trí.",
+            "Sự thật về lạm dụng thuốc kê đơn": "Hiểu về rủi ro và phòng ngừa việc sử dụng sai thuốc kê đơn.",
+            "Con đường phục hồi - Khóa học trực tuyến": "Khóa học tương tác hướng dẫn bạn qua hành trình phục hồi và chữa lành.",
+            "Bộ công cụ phòng ngừa ma túy cho thanh thiếu niên": "Tài nguyên và chiến lược được thiết kế đặc biệt để phòng ngừa lạm dụng chất ở thanh thiếu niên."
         };
-        return excerpts[title] || "Discover valuable insights and practical guidance in this comprehensive resource.";
+        return excerpts[title] || "Khám phá những hiểu biết có giá trị và hướng dẫn thực tế trong tài nguyên toàn diện này.";
     };
 
     const testimonials = [
         {
             name: "Sarah Johnson",
-            role: "Recovery Coach",
-            content: "SUBSTANCE has transformed how we approach addiction recovery. The resources are comprehensive and truly life-changing.",
+            role: "Huấn luyện viên phục hồi",
+            content: "SUBSTANCE đã thay đổi cách chúng ta tiếp cận phục hồi nghiện ngập. Các tài nguyên rất toàn diện và thực sự thay đổi cuộc sống.",
             avatar: "👩‍⚕️"
         },
         {
             name: "Michael Chen",
-            role: "Parent",
-            content: "The prevention courses helped me understand how to protect my children and support our family through difficult times.",
+            role: "Phụ huynh",
+            content: "Các khóa học phòng ngừa đã giúp tôi hiểu cách bảo vệ con cái và hỗ trợ gia đình chúng tôi vượt qua những thời điểm khó khăn.",
             avatar: "👨‍👦"
         },
         {
             name: "Dr. Emily Rodriguez",
-            role: "Addiction Specialist",
-            content: "I recommend SUBSTANCE to all my patients. The evidence-based approach and accessible format make recovery more achievable.",
+            role: "Chuyên gia nghiện ngập",
+            content: "Tôi khuyên dùng SUBSTANCE cho tất cả bệnh nhân của mình. Cách tiếp cận dựa trên bằng chứng và định dạng dễ tiếp cận giúp phục hồi dễ đạt được hơn.",
             avatar: "👩‍⚕️"
         }
     ];
@@ -115,7 +115,7 @@ const HomePage = () => {
                                 <span className="card-date">
                                     <i className="bi bi-calendar3"></i> {item.date}
                                 </span>
-                                <span className="read-more">Read More →</span>
+                                <span className="read-more">Đọc thêm →</span>
                             </div>
                         </div>
                     </div>
@@ -134,22 +134,22 @@ const HomePage = () => {
                             <div className="col-lg-6">
                                 <div className="hero-text">
                                     <h1 className="hero-title">
-                                        Your Journey to
-                                        <span className="highlight"> Recovery</span>
-                                        <br />Starts Here
+                                        Hành trình
+                                        <span className="highlight"> Phục hồi</span>
+                                        <br />của bạn bắt đầu từ đây
                                     </h1>
                                     <p className="hero-description">
-                                        Discover comprehensive resources, expert guidance, and a supportive community
-                                        dedicated to substance abuse prevention, recovery, and healing.
+                                        Khám phá tài nguyên toàn diện, hướng dẫn chuyên môn và cộng đồng hỗ trợ
+                                        dành riêng cho phòng ngừa, phục hồi và chữa lành lạm dụng chất.
                                     </p>
                                     <div className="hero-buttons">
                                         <Link to="/courses" className="btn btn-primary-custom btn-lg">
                                             <i className="bi bi-play-circle me-2"></i>
-                                            Start Learning
+                                            Bắt đầu học
                                         </Link>
                                         <Link to="/booking" className="btn btn-outline-custom btn-lg">
                                             <i className="bi bi-calendar-check me-2"></i>
-                                            Book Consultation
+                                            Đặt tư vấn
                                         </Link>
                                     </div>
                                 </div>
@@ -159,24 +159,24 @@ const HomePage = () => {
                                     <div id="heroCarousel" className="carousel slide" data-bs-ride="carousel">
                                         <div className="carousel-inner">
                                             <div className="carousel-item active">
-                                                <img src={GroupSessionImg} className="d-block w-100" alt="Group Support Session" />
+                                                <img src={GroupSessionImg} className="d-block w-100" alt="Phiên hỗ trợ nhóm" />
                                                 <div className="carousel-caption">
-                                                    <h5>Community Support</h5>
-                                                    <p>Join our supportive community on your recovery journey</p>
+                                                    <h5>Hỗ trợ cộng đồng</h5>
+                                                    <p>Tham gia cộng đồng hỗ trợ trong hành trình phục hồi của bạn</p>
                                                 </div>
                                             </div>
                                             <div className="carousel-item">
-                                                <img src={OutdoorsImg} className="d-block w-100" alt="Outdoor Recovery Activities" />
+                                                <img src={OutdoorsImg} className="d-block w-100" alt="Hoạt động phục hồi ngoài trời" />
                                                 <div className="carousel-caption">
-                                                    <h5>Holistic Healing</h5>
-                                                    <p>Discover nature-based recovery and wellness programs</p>
+                                                    <h5>Chữa lành toàn diện</h5>
+                                                    <p>Khám phá các chương trình phục hồi và sức khỏe dựa trên thiên nhiên</p>
                                                 </div>
                                             </div>
                                             <div className="carousel-item">
-                                                <img src={SupportImg} className="d-block w-100" alt="Professional Support" />
+                                                <img src={SupportImg} className="d-block w-100" alt="Hỗ trợ chuyên môn" />
                                                 <div className="carousel-caption">
-                                                    <h5>Expert Guidance</h5>
-                                                    <p>Access professional counseling and personalized care</p>
+                                                    <h5>Hướng dẫn chuyên môn</h5>
+                                                    <p>Truy cập tư vấn chuyên môn và chăm sóc cá nhân hóa</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -204,7 +204,7 @@ const HomePage = () => {
                                     <i className="bi bi-people-fill"></i>
                                 </div>
                                 <h3 className="stat-number">{Math.floor(stats.users).toLocaleString()}+</h3>
-                                <p className="stat-label">Lives Transformed</p>
+                                <p className="stat-label">Cuộc sống được thay đổi</p>
                             </div>
                         </div>
                         <div className="col-lg-3 col-md-6 mb-4">
@@ -213,7 +213,7 @@ const HomePage = () => {
                                     <i className="bi bi-book-fill"></i>
                                 </div>
                                 <h3 className="stat-number">{Math.floor(stats.courses)}+</h3>
-                                <p className="stat-label">Educational Resources</p>
+                                <p className="stat-label">Tài nguyên giáo dục</p>
                             </div>
                         </div>
                         <div className="col-lg-3 col-md-6 mb-4">
@@ -222,7 +222,7 @@ const HomePage = () => {
                                     <i className="bi bi-heart-fill"></i>
                                 </div>
                                 <h3 className="stat-number">{Math.floor(stats.consultations)}+</h3>
-                                <p className="stat-label">Support Sessions</p>
+                                <p className="stat-label">Phiên hỗ trợ</p>
                             </div>
                         </div>
                         <div className="col-lg-3 col-md-6 mb-4">
@@ -231,7 +231,7 @@ const HomePage = () => {
                                     <i className="bi bi-trophy-fill"></i>
                                 </div>
                                 <h3 className="stat-number">{Math.floor(stats.success)}%</h3>
-                                <p className="stat-label">Success Rate</p>
+                                <p className="stat-label">Tỷ lệ thành công</p>
                             </div>
                         </div>
                     </div>
@@ -242,21 +242,21 @@ const HomePage = () => {
                 {/* Featured Courses Section */}
                 <section className="section mb-5">
                     <div className="section-header-wrapper text-center mb-5">
-                        <h2 className="section-header">Featured Learning Paths</h2>
-                        <p className="section-subtitle">Start your journey with our most popular and effective courses</p>
+                        <h2 className="section-header">Lộ trình học tập nổi bật</h2>
+                        <p className="section-subtitle">Bắt đầu hành trình của bạn với các khóa học phổ biến và hiệu quả nhất</p>
                     </div>
                     <div className="row gx-3">
                         {renderCards(cardData([
-                            "The Truth About Drugs",
-                            "The Truth About Prescription Drug Abuse",
-                            "Recovery Pathways - Online Course",
-                            "Youth Drug Prevention Toolkit"
+                            "Sự thật về ma túy",
+                            "Sự thật về lạm dụng thuốc kê đơn",
+                            "Con đường phục hồi - Khóa học trực tuyến",
+                            "Bộ công cụ phòng ngừa ma túy cho thanh thiếu niên"
                         ], [PreventionImg, Image2, SupportImg, Image3]), "/course")}
                     </div>
                     <div className="text-center mt-4">
                         <Link to="/courses" className="btn btn-outline-primary btn-lg">
                             <i className="bi bi-collection me-2"></i>
-                            View All Courses
+                            Xem tất cả khóa học
                         </Link>
                     </div>
                 </section>
@@ -264,21 +264,21 @@ const HomePage = () => {
                 {/* Popular Blogs Section */}
                 <section className="section mb-5">
                     <div className="section-header-wrapper text-center mb-5">
-                        <h2 className="section-header">Knowledge Hub</h2>
-                        <p className="section-subtitle">Stay informed with the latest insights and research</p>
+                        <h2 className="section-header">Trung tâm kiến thức</h2>
+                        <p className="section-subtitle">Cập nhật với những hiểu biết và nghiên cứu mới nhất</p>
                     </div>
                     <div className="row gx-3">
                         {renderCards(cardData([
-                            "Substance Abuse: Awareness & Prevention",
-                            "12 ways to prevent drug abuse",
-                            "Drug Abuse Awareness",
-                            "Effects of Long-Term Drug Use"
+                            "Lạm dụng chất: Nhận thức & Phòng ngừa",
+                            "12 cách phòng ngừa lạm dụng ma túy",
+                            "Nhận thức về lạm dụng ma túy",
+                            "Tác động của việc sử dụng ma túy lâu dài"
                         ], [PreventionImg, Image1, Image2, Image3]), "/blog")}
                     </div>
                     <div className="text-center mt-4">
                         <Link to="/blog" className="btn btn-outline-primary btn-lg">
                             <i className="bi bi-journal-text me-2"></i>
-                            Read More Articles
+                            Đọc thêm bài viết
                         </Link>
                     </div>
                 </section>
@@ -288,8 +288,8 @@ const HomePage = () => {
             <section className="testimonials-section py-5">
                 <div className="container">
                     <div className="text-center mb-5">
-                        <h2 className="section-header">What Our Community Says</h2>
-                        <p className="section-subtitle">Real stories from real people on their recovery journey</p>
+                        <h2 className="section-header">Cộng đồng chúng tôi nói gì</h2>
+                        <p className="section-subtitle">Những câu chuyện thực từ những con người thực trên hành trình phục hồi của họ</p>
                     </div>
                     <div className="testimonial-container">
                         <div className="testimonial-card">
@@ -325,15 +325,15 @@ const HomePage = () => {
                 <div className="container">
                     <div className="row align-items-center">
                         <div className="col-lg-8">
-                            <h2 className="cta-title">Ready to Begin Your Recovery Journey?</h2>
+                            <h2 className="cta-title">Sẵn sàng bắt đầu hành trình phục hồi của bạn?</h2>
                             <p className="cta-description">
-                                Take the first step towards healing and transformation. Our expert team is here to support you every step of the way.
+                                Thực hiện bước đầu tiên hướng tới chữa lành và thay đổi. Đội ngũ chuyên môn của chúng tôi luôn sẵn sàng hỗ trợ bạn từng bước một.
                             </p>
                         </div>
                         <div className="col-lg-4 text-lg-end">
                             <Link to="/booking" className="btn btn-cta btn-lg">
                                 <i className="bi bi-calendar-heart me-2"></i>
-                                Schedule Free Consultation
+                                Đặt lịch tư vấn miễn phí
                             </Link>
                         </div>
                     </div>

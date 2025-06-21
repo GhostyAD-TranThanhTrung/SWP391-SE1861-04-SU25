@@ -5,52 +5,52 @@ import Image from '../images/Images.jpg';
 
 const BlogPage = () => {
     const posts = [
-        { 
-            title: 'Substance Abuse: Awareness & Prevention', 
-            date: 'May 31, 2025', 
-            author: 'Dr. Sarah Johnson', 
+        {
+            title: 'Lạm dụng chất kích thích: Nhận thức & Phòng ngừa',
+            date: '31/05/2025',
+            author: 'Bác sĩ Sarah Johnson',
             image: Image,
-            excerpt: 'Learn about the latest strategies and approaches for preventing substance abuse in communities.',
+            excerpt: 'Tìm hiểu về các chiến lược và phương pháp mới nhất để phòng ngừa lạm dụng chất kích thích trong cộng đồng.',
             id: 1
         },
-        { 
-            title: '12 Ways to Prevent Drug Abuse', 
-            date: 'May 28, 2025', 
-            author: 'Michael Chen', 
+        {
+            title: '12 cách phòng ngừa lạm dụng ma túy',
+            date: '28/05/2025',
+            author: 'Michael Chen',
             image: Image,
-            excerpt: 'Practical tips and evidence-based methods to help prevent drug abuse among youth and adults.',
+            excerpt: 'Những mẹo thực tế và phương pháp dựa trên bằng chứng để giúp phòng ngừa lạm dụng ma túy ở thanh thiếu niên và người lớn.',
             id: 2
         },
-        { 
-            title: 'Drug Abuse Awareness', 
-            date: 'May 25, 2025', 
-            author: 'Lisa Rodriguez', 
+        {
+            title: 'Nhận thức về lạm dụng ma túy',
+            date: '25/05/2025',
+            author: 'Lisa Rodriguez',
             image: Image,
-            excerpt: 'Understanding the signs, symptoms, and impact of drug abuse on individuals and families.',
+            excerpt: 'Hiểu về các dấu hiệu, triệu chứng và tác động của lạm dụng ma túy đối với cá nhân và gia đình.',
             id: 3
         },
-        { 
-            title: 'Effects of Long-Term Drug Use', 
-            date: 'May 22, 2025', 
-            author: 'Dr. Sarah Johnson', 
+        {
+            title: 'Tác động của việc sử dụng ma túy lâu dài',
+            date: '22/05/2025',
+            author: 'Bác sĩ Sarah Johnson',
             image: Image,
-            excerpt: 'Comprehensive analysis of the physical, mental, and social effects of prolonged substance use.',
+            excerpt: 'Phân tích toàn diện về các tác động thể chất, tinh thần và xã hội của việc sử dụng chất kích thích kéo dài.',
             id: 4
         },
-        { 
-            title: 'Building Resilience Against Addiction', 
-            date: 'May 19, 2025', 
-            author: 'Michael Chen', 
+        {
+            title: 'Xây dựng khả năng phục hồi chống lại nghiện ngập',
+            date: '19/05/2025',
+            author: 'Michael Chen',
             image: Image,
-            excerpt: 'Strategies for developing personal and community resilience to prevent addiction.',
+            excerpt: 'Chiến lược phát triển khả năng phục hồi cá nhân và cộng đồng để phòng ngừa nghiện ngập.',
             id: 5
         },
-        { 
-            title: 'Supporting Recovery Journeys', 
-            date: 'May 16, 2025', 
-            author: 'Lisa Rodriguez', 
+        {
+            title: 'Hỗ trợ hành trình phục hồi',
+            date: '16/05/2025',
+            author: 'Lisa Rodriguez',
             image: Image,
-            excerpt: 'How families and communities can provide effective support during recovery processes.',
+            excerpt: 'Cách gia đình và cộng đồng có thể cung cấp hỗ trợ hiệu quả trong quá trình phục hồi.',
             id: 6
         },
     ];
@@ -66,25 +66,25 @@ const BlogPage = () => {
                     <div className="row align-items-center">
                         <div className="col-lg-12 text-center">
                             <h1 className="hero-title">
-                                Knowledge & Insights
+                                Kiến thức & Thông tin chi tiết
                             </h1>
                             <p className="hero-subtitle">
-                                Explore our latest articles, research findings, and expert insights on 
-                                substance abuse prevention, awareness, and community support.
+                                Khám phá các bài viết mới nhất, phát hiện nghiên cứu và thông tin chi tiết từ chuyên gia về
+                                phòng ngừa lạm dụng chất kích thích, nhận thức và hỗ trợ cộng đồng.
                             </p>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <div className="container" style={{paddingTop: '5rem', paddingBottom: '5rem'}}>
+            <div className="container" style={{ paddingTop: '5rem', paddingBottom: '5rem' }}>
                 {/* Featured Article Section */}
                 <section className="featured-section mb-5">
                     <div className="section-header text-center mb-5">
-                        <h2 className="section-title">Featured Article</h2>
-                        <p className="section-subtitle">Our most recent and impactful content</p>
+                        <h2 className="section-title">Bài viết nổi bật</h2>
+                        <p className="section-subtitle">Nội dung mới nhất và có tác động mạnh mẽ nhất của chúng tôi</p>
                     </div>
-                    
+
                     <div className="featured-post">
                         <div className="row align-items-center">
                             <div className="col-lg-4">
@@ -105,7 +105,7 @@ const BlogPage = () => {
                                     <p className="featured-excerpt">{featuredPost.excerpt}</p>
                                     <Link to={`/blog/${featuredPost.id}`} className="btn btn-primary">
                                         <i className="bi bi-arrow-right me-2"></i>
-                                        Read More
+                                        Đọc thêm
                                     </Link>
                                 </div>
                             </div>
@@ -116,10 +116,10 @@ const BlogPage = () => {
                 {/* Latest Articles Section */}
                 <section className="articles-section mb-5">
                     <div className="section-header text-center mb-5">
-                        <h2 className="section-title">Latest Articles</h2>
-                        <p className="section-subtitle">Stay updated with our newest insights and research</p>
+                        <h2 className="section-title">Bài viết mới nhất</h2>
+                        <p className="section-subtitle">Cập nhật với những thông tin chi tiết và nghiên cứu mới nhất của chúng tôi</p>
                     </div>
-                    
+
                     <div className="row">
                         {regularPosts.map((post) => (
                             <div key={post.id} className="col-lg-4 col-md-6 mb-4">
@@ -138,7 +138,7 @@ const BlogPage = () => {
                                         </p>
                                         <p className="article-excerpt">{post.excerpt}</p>
                                         <Link to={`/blog/${post.id}`} className="btn btn-outline-primary">
-                                            Read Article
+                                            Đọc bài viết
                                         </Link>
                                     </div>
                                 </div>
@@ -149,10 +149,10 @@ const BlogPage = () => {
 
                 {/* Pagination */}
                 <section className="pagination-section">
-                    <nav aria-label="Blog pagination" className="d-flex justify-content-center">
+                    <nav aria-label="Phân trang blog" className="d-flex justify-content-center">
                         <ul className="pagination">
                             <li className="page-item">
-                                <a className="page-link" href="#" aria-label="Previous">
+                                <a className="page-link" href="#" aria-label="Trước">
                                     <i className="bi bi-chevron-left"></i>
                                 </a>
                             </li>
@@ -172,7 +172,7 @@ const BlogPage = () => {
                                 <a className="page-link" href="#">10</a>
                             </li>
                             <li className="page-item">
-                                <a className="page-link" href="#" aria-label="Next">
+                                <a className="page-link" href="#" aria-label="Tiếp">
                                     <i className="bi bi-chevron-right"></i>
                                 </a>
                             </li>
@@ -184,16 +184,16 @@ const BlogPage = () => {
                 <section className="newsletter-section py-5">
                     <div className="row align-items-center">
                         <div className="col-lg-8">
-                            <h3 className="newsletter-title">Stay Informed</h3>
+                            <h3 className="newsletter-title">Luôn cập nhật</h3>
                             <p className="newsletter-description">
-                                Subscribe to our newsletter to receive the latest articles and updates 
-                                directly in your inbox.
+                                Đăng ký nhận bản tin của chúng tôi để nhận các bài viết mới nhất và cập nhật
+                                trực tiếp vào hộp thư của bạn.
                             </p>
                         </div>
                         <div className="col-lg-4 text-lg-end">
                             <Link to="/newsletter" className="btn btn-cta btn-lg">
                                 <i className="bi bi-envelope me-2"></i>
-                                Subscribe Now
+                                Đăng ký ngay
                             </Link>
                         </div>
                     </div>

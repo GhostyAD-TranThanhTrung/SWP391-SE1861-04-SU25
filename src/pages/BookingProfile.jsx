@@ -26,7 +26,7 @@ const BookingProfile = () => {
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.message || 'Failed to fetch consultant');
+                throw new Error(data.message || 'Không thể tải thông tin tư vấn viên');
             }
 
             return data.data;
@@ -87,14 +87,14 @@ const BookingProfile = () => {
     // Helper functions to parse actual data structure from sample_data.sql
     const parseBioJson = (bioJson) => {
         if (!bioJson || bioJson === 'N/A') {
-            return { bio: 'No biography available', education: '' };
+            return { bio: 'Không có tiểu sử', education: '' };
         }
 
         if (typeof bioJson === 'string') {
             try {
                 const parsed = JSON.parse(bioJson);
                 return {
-                    bio: parsed.bio || 'No biography available',
+                    bio: parsed.bio || 'Không có tiểu sử',
                     education: parsed.education || ''
                 };
             } catch (e) {
@@ -103,21 +103,21 @@ const BookingProfile = () => {
         }
 
         return {
-            bio: bioJson.bio || 'No biography available',
+            bio: bioJson.bio || 'Không có tiểu sử',
             education: bioJson.education || ''
         };
     };
 
     // Format specialization - handle comma-separated values from sample data
     const formatSpecialization = (speciality) => {
-        if (!speciality || speciality === 'N/A') return 'General Consultation';
+        if (!speciality || speciality === 'N/A') return 'Tư vấn chung';
         return speciality;
     };
 
     // The only service offered is video consultation
     const getServices = () => {
         return [{
-            title: 'Video Consultation',
+            title: 'Tư vấn qua video',
             icon: 'bi-camera-video'
         }];
     };
@@ -131,8 +131,8 @@ const BookingProfile = () => {
 
     // Format cost with proper currency
     const formatCost = (cost) => {
-        if (!cost || cost === 'N/A') return 'Contact for pricing';
-        return `$${parseFloat(cost).toFixed(0)}`;
+        if (!cost || cost === 'N/A') return 'Liên hệ để biết giá';
+        return `${parseFloat(cost).toFixed(0)} VNĐ`;
     };
 
     // Thêm hàm xử lý đóng modal
@@ -152,11 +152,11 @@ const BookingProfile = () => {
                     <div className="error-content">
                         <div className="error-icon">
                             <div className="spinner-border text-primary" role="status">
-                                <span className="visually-hidden">Loading...</span>
+                                <span className="visually-hidden">Đang tải...</span>
                             </div>
                         </div>
-                        <h2>Loading Consultant Profile</h2>
-                        <p>Please wait while we fetch the consultant information...</p>
+                        <h2>Đang tải hồ sơ tư vấn viên</h2>
+                        <p>Vui lòng chờ trong khi chúng tôi tải thông tin tư vấn viên...</p>
                     </div>
                 </div>
             </div>
@@ -172,11 +172,11 @@ const BookingProfile = () => {
                         <div className="error-icon">
                             <i className="bi bi-person-x"></i>
                         </div>
-                        <h2>Consultant Not Found</h2>
-                        <p>{error || 'The consultant you\'re looking for doesn\'t exist or may have been removed.'}</p>
+                        <h2>Không tìm thấy tư vấn viên</h2>
+                        <p>{error || 'Tư vấn viên bạn đang tìm kiếm không tồn tại hoặc có thể đã bị xóa.'}</p>
                         <button className="btn btn-primary" onClick={() => navigate('/booking')}>
                             <i className="bi bi-arrow-left me-2"></i>
-                            Back to Booking
+                            Quay lại đặt lịch
                         </button>
                     </div>
                 </div>
@@ -187,8 +187,8 @@ const BookingProfile = () => {
     const specialization = formatSpecialization(consultant.speciality);
     const qualifications = [
         consultant.certification !== 'N/A' ? consultant.certification : null,
-        'Licensed Professional',
-        'Drug Prevention Specialist'
+        'Chuyên gia được cấp phép',
+        'Chuyên gia phòng chống ma túy'
     ].filter(Boolean);
 
     return (
@@ -208,7 +208,7 @@ const BookingProfile = () => {
                             <div className="consultant-image-wrapper">
                                 <img
                                     src={consultant.img_link ? `http://localhost:3000${consultant.img_link}` : Image}
-                                    alt={consultant.name !== 'N/A' ? consultant.name : 'Consultant'}
+                                    alt={consultant.name !== 'N/A' ? consultant.name : 'Tư vấn viên'}
                                     className="consultant-avatar"
                                     onError={(e) => {
                                         e.target.onerror = null; // Prevent infinite loop
@@ -234,7 +234,7 @@ const BookingProfile = () => {
                                 onClick={() => setIsBookingModalOpen(true)}
                             >
                                 <i className="bi bi-calendar-check me-2"></i>
-                                Book Session
+                                Đặt lịch tư vấn
                             </button>
                         </div>
                     </div>
@@ -250,28 +250,28 @@ const BookingProfile = () => {
                             onClick={() => setActiveTab('overview')}
                         >
                             <i className="bi bi-person-badge"></i>
-                            Overview
+                            Tổng quan
                         </button>
                         <button
                             className={`nav-tab ${activeTab === 'experience' ? 'active' : ''}`}
                             onClick={() => setActiveTab('experience')}
                         >
                             <i className="bi bi-award"></i>
-                            Experience
+                            Kinh nghiệm
                         </button>
                         <button
                             className={`nav-tab ${activeTab === 'services' ? 'active' : ''}`}
                             onClick={() => setActiveTab('services')}
                         >
                             <i className="bi bi-heart-pulse"></i>
-                            Services
+                            Dịch vụ
                         </button>
                         <button
                             className={`nav-tab ${activeTab === 'contact' ? 'active' : ''}`}
                             onClick={() => setActiveTab('contact')}
                         >
                             <i className="bi bi-telephone"></i>
-                            Contact
+                            Liên hệ
                         </button>
                     </div>
                 </div>
@@ -286,20 +286,20 @@ const BookingProfile = () => {
                                 <div className="col-lg-7 col-md-12 h-100">
                                     <div className="content-card about-card">
                                         <div className="card-header">
-                                            <h3><i className="bi bi-person-heart"></i> About {consultant.name !== 'N/A' ? consultant.name : 'Consultant'}</h3>
+                                            <h3><i className="bi bi-person-heart"></i> Về {consultant.name !== 'N/A' ? consultant.name : 'Tư vấn viên'}</h3>
                                         </div>
                                         <div className="card-body">
                                             <p className="bio-text">
                                                 {(() => {
                                                     if (!consultant.bio_json || consultant.bio_json === 'N/A') {
-                                                        return 'No biography available';
+                                                        return 'Không có tiểu sử';
                                                     }
 
                                                     // If it's a string that looks like JSON, parse it
                                                     if (typeof consultant.bio_json === 'string') {
                                                         try {
                                                             const parsed = JSON.parse(consultant.bio_json);
-                                                            return parsed.bio || 'No biography available';
+                                                            return parsed.bio || 'Không có tiểu sử';
                                                         } catch (e) {
                                                             // If JSON parsing fails, return the string as-is
                                                             return consultant.bio_json;
@@ -308,7 +308,7 @@ const BookingProfile = () => {
 
                                                     // If it's already an object
                                                     if (typeof consultant.bio_json === 'object') {
-                                                        return consultant.bio_json.bio || 'No biography available';
+                                                        return consultant.bio_json.bio || 'Không có tiểu sử';
                                                     }
 
                                                     return consultant.bio_json;
@@ -332,7 +332,7 @@ const BookingProfile = () => {
 
                                                 return education && (
                                                     <div className="education-section mb-3">
-                                                        <h5><i className="bi bi-mortarboard-fill me-2"></i>Education</h5>
+                                                        <h5><i className="bi bi-mortarboard-fill me-2"></i>Học vấn</h5>
                                                         <p className="education-text text-muted">{education}</p>
                                                     </div>
                                                 );
@@ -340,7 +340,7 @@ const BookingProfile = () => {
                                             <div className="key-stats">
                                                 <div className="stat-item">
                                                     <div className="stat-value">{formatCost(consultant.cost)}</div>
-                                                    <div className="stat-label">Per Session</div>
+                                                    <div className="stat-label">Mỗi buổi tư vấn</div>
                                                 </div>
                                                 <div className="stat-item">
                                                     <div className="stat-value">{(() => {
@@ -360,7 +360,7 @@ const BookingProfile = () => {
 
                                                         const match = bio.match(/(\d+)\s+years?\s+of\s+experience/i);
                                                         const years = match ? match[1] : null;
-                                                        return years ? `${years}+` : (consultant.status !== 'N/A' ? consultant.status.charAt(0).toUpperCase() + consultant.status.slice(1) : 'Available');
+                                                        return years ? `${years}+` : (consultant.status !== 'N/A' ? consultant.status.charAt(0).toUpperCase() + consultant.status.slice(1) : 'Có sẵn');
                                                     })()}</div>
                                                     <div className="stat-label">{(() => {
                                                         let bio = '';
@@ -379,7 +379,7 @@ const BookingProfile = () => {
 
                                                         const match = bio.match(/(\d+)\s+years?\s+of\s+experience/i);
                                                         const years = match ? match[1] : null;
-                                                        return years ? 'Years Experience' : 'Status';
+                                                        return years ? 'Năm kinh nghiệm' : 'Trạng thái';
                                                     })()}</div>
                                                 </div>
                                             </div>
@@ -389,7 +389,7 @@ const BookingProfile = () => {
                                 <div className="col-lg-5 col-md-12 h-100">
                                     <div className="content-card quick-info-card">
                                         <div className="card-header">
-                                            <h3><i className="bi bi-info-circle me-2"></i>Quick Info</h3>
+                                            <h3><i className="bi bi-info-circle me-2"></i>Thông tin nhanh</h3>
                                         </div>
                                         <div className="card-body p-0">
                                             <div className="info-list">
@@ -397,7 +397,7 @@ const BookingProfile = () => {
                                                     <div className="info-content">
                                                         <div className="info-label">
                                                             <i className="bi bi-award-fill me-2"></i>
-                                                            Specialization
+                                                            Chuyên môn
                                                         </div>
                                                         <div className="info-value specialization-value">
                                                             {specialization.includes(',') ? (
@@ -419,7 +419,7 @@ const BookingProfile = () => {
                                                     <div className="info-content">
                                                         <div className="info-label">
                                                             <i className="bi bi-person-badge me-2"></i>
-                                                            Role
+                                                            Vai trò
                                                         </div>
                                                         <div className="info-value">
                                                             {consultant.role !== 'N/A' ?
@@ -434,7 +434,7 @@ const BookingProfile = () => {
                                                     <div className="info-content">
                                                         <div className="info-label">
                                                             <i className="bi bi-currency-dollar me-2"></i>
-                                                            Session Cost
+                                                            Chi phí buổi tư vấn
                                                         </div>
                                                         <div className="info-value cost-value">
                                                             {formatCost(consultant.cost)}
@@ -449,7 +449,7 @@ const BookingProfile = () => {
                                                             Email
                                                         </div>
                                                         <div className="info-value email-value">
-                                                            {consultant.email !== 'N/A' ? consultant.email : 'Contact available upon booking'}
+                                                            {consultant.email !== 'N/A' ? consultant.email : 'Liên hệ khi đặt lịch'}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -467,7 +467,7 @@ const BookingProfile = () => {
                                 <div className="col-12">
                                     <div className="content-card">
                                         <div className="card-header">
-                                            <h3><i className="bi bi-trophy"></i> Certifications</h3>
+                                            <h3><i className="bi bi-trophy"></i> Chứng chỉ</h3>
                                         </div>
                                         <div className="card-body">
                                             <div className="certification-list">
@@ -488,7 +488,7 @@ const BookingProfile = () => {
                                                             <i className="bi bi-shield-check"></i>
                                                         </div>
                                                         <div className="cert-details">
-                                                            <h4>No Certifications Listed</h4>
+                                                            <h4>Không có chứng chỉ được liệt kê</h4>
                                                         </div>
                                                     </div>
                                                 )}
@@ -533,7 +533,7 @@ const BookingProfile = () => {
                         <div className="tab-content services-content">
                             <div className="content-card">
                                 <div className="card-header">
-                                    <h3><i className="bi bi-heart-pulse"></i> Available Services</h3>
+                                    <h3><i className="bi bi-heart-pulse"></i> Dịch vụ có sẵn</h3>
                                 </div>
                                 <div className="card-body">
                                     <div className="services-grid">
@@ -543,7 +543,7 @@ const BookingProfile = () => {
                                                     <i className={`bi ${service.icon}`}></i>
                                                 </div>
                                                 <h4>{service.title}</h4>
-                                                <div className="service-price">{formatCost(consultant.cost)}/session</div>
+                                                <div className="service-price">{formatCost(consultant.cost)}/buổi</div>
                                             </div>
                                         ))}
                                     </div>
@@ -558,7 +558,7 @@ const BookingProfile = () => {
                                 <div className="col-md-6">
                                     <div className="content-card">
                                         <div className="card-header">
-                                            <h3><i className="bi bi-envelope"></i> Get in Touch</h3>
+                                            <h3><i className="bi bi-envelope"></i> Liên hệ</h3>
                                         </div>
                                         <div className="card-body">
                                             <div className="contact-methods">
@@ -566,14 +566,14 @@ const BookingProfile = () => {
                                                     <i className="bi bi-envelope-fill"></i>
                                                     <div>
                                                         <strong>Email</strong>
-                                                        <p>{consultant.email !== 'N/A' ? consultant.email : 'Email not available'}</p>
+                                                        <p>{consultant.email !== 'N/A' ? consultant.email : 'Email không có sẵn'}</p>
                                                     </div>
                                                 </div>
                                                 <div className="contact-method">
                                                     <i className="bi bi-camera-video-fill"></i>
                                                     <div>
-                                                        <strong>Video Call</strong>
-                                                        <p>Available</p>
+                                                        <strong>Gọi video</strong>
+                                                        <p>Có sẵn</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -583,21 +583,21 @@ const BookingProfile = () => {
                                 <div className="col-md-6">
                                     <div className="content-card">
                                         <div className="card-header">
-                                            <h3><i className="bi bi-calendar-check"></i> Availability</h3>
+                                            <h3><i className="bi bi-calendar-check"></i> Lịch làm việc</h3>
                                         </div>
                                         <div className="card-body">
                                             <div className="availability-info">
                                                 <div className="availability-item">
-                                                    <span className="day">Monday - Friday</span>
+                                                    <span className="day">Thứ 2 - Thứ 6</span>
                                                     <span className="time">9:00 AM - 5:00 PM</span>
                                                 </div>
                                                 <div className="availability-item">
-                                                    <span className="day">Saturday</span>
+                                                    <span className="day">Thứ 7</span>
                                                     <span className="time">10:00 AM - 2:00 PM</span>
                                                 </div>
                                                 <div className="availability-item">
-                                                    <span className="day">Sunday</span>
-                                                    <span className="time">Emergency Only</span>
+                                                    <span className="day">Chủ nhật</span>
+                                                    <span className="time">Chỉ khẩn cấp</span>
                                                 </div>
                                             </div>
 

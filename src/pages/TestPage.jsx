@@ -21,24 +21,24 @@ const TestPage = () => {
             <div className="test-content">
                 <div className="test-card">
                     <div className="test-header">
-                        <h2>Substance Addiction Risk Assessment Survey</h2>
+                        <h2>Khảo sát Đánh giá Rủi ro Nghiện Chất</h2>
                         <p className="subtitle">
-                            Based on international surveys such as ASSIST, CRAFFT, and other validated assessment tools.
-                            This comprehensive evaluation helps identify potential substance use risks and provides personalized feedback.
+                            Dựa trên các khảo sát quốc tế như ASSIST, CRAFFT và các công cụ đánh giá được xác thực khác.
+                            Đánh giá toàn diện này giúp xác định các rủi ro sử dụng chất tiềm ẩn và cung cấp phản hồi cá nhân hóa.
                         </p>
                     </div>
 
                     <button className="start-button" onClick={handleStartExam}>
-                        Start Assessment
+                        Bắt đầu Đánh giá
                         <FaArrowRight className="arrow-icon" />
                     </button>
 
                     <div className="exam-result">
                         <div className="result-header">
                             <FaChartLine className="result-icon" />
-                            <h4>Previous Results</h4>
+                            <h4>Kết quả Trước đây</h4>
                         </div>
-                        <p className="no-results">No previous assessments found. Take your first assessment now!</p>
+                        <p className="no-results">Không tìm thấy đánh giá nào trước đây. Hãy thực hiện đánh giá đầu tiên của bạn ngay bây giờ!</p>
                     </div>
                 </div>
             </div>

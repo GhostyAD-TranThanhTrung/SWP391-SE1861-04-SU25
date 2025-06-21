@@ -12,39 +12,39 @@ const ForgetPassPage = () => {
 
             <div className="register-blur-box d-flex justify-content-center align-items-center">
                 <div className="register-form-container text-start">
-                    <h2 className="mb-4 fw-bold text-center">Reset Password</h2>
+                    <h2 className="mb-4 fw-bold text-center">Đặt Lại Mật Khẩu</h2>
 
                     <label>Email</label>
                     <input
                         type="email"
-                        placeholder="Email"
+                        placeholder="Nhập email của bạn"
                         className="form-control mb-3"
                     />
 
-                    <label>Password</label>
+                    <label>Mật Khẩu</label>
                     <input
                         type="password"
-                        placeholder="Password"
+                        placeholder="Nhập mật khẩu mới"
                         className="form-control mb-3"
                     />
 
-                    <label>Confirm Password</label>
+                    <label>Xác Nhận Mật Khẩu</label>
                     <input
                         type="password"
-                        placeholder="Confirm Password"
+                        placeholder="Nhập lại mật khẩu mới"
                         className="form-control mb-3"
                     />
 
                     <button className="btn btn-primary w-100 mb-3">
-                        Submit
+                        Gửi
                     </button>
 
                     <div className="mt-3 d-flex flex-column align-items-center text-center w-100">
                         <p className="small mb-1">
-                            Remember your password? <a href="/login">Login</a>
+                            Nhớ mật khẩu? <a href="/login">Đăng Nhập</a>
                         </p>
                         <p className="small">
-                            Don’t have an account? <a href="/signup">Register</a>
+                            Chưa có tài khoản? <a href="/signup">Đăng Ký</a>
                         </p>
                     </div>
                 </div>

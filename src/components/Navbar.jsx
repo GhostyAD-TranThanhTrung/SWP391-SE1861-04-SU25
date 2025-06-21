@@ -16,7 +16,7 @@ const Navbar = () => {
     const handleSearch = () => {
         const query = searchRef.current.value.trim();
         if (query) {
-            console.log("Searching for:", query);
+            console.log("Đang tìm kiếm:", query);
         }
     };
 
@@ -49,7 +49,7 @@ const Navbar = () => {
         <nav className="navbar fixed-top navbar-expand-lg custom-navbar">
             <div className="container-fluid">
                 {/* Logo */}
-                <Link className="navbar-brand d-flex align-items-center" to="/" aria-label="SUBSTANCE Home">
+                <Link className="navbar-brand d-flex align-items-center" to="/" aria-label="SUBSTANCE Trang chủ">
                     <img src={Logo} alt="SUBSTANCE Logo" className="navbar-logo" />
                 </Link>
 
@@ -61,7 +61,7 @@ const Navbar = () => {
                     data-bs-target="#navbarNav"
                     aria-controls="navbarNav"
                     aria-expanded="false"
-                    aria-label="Toggle navigation"
+                    aria-label="Chuyển đổi điều hướng"
                 >
                     <span className="navbar-toggler-icon"></span>
                 </button>
@@ -75,7 +75,7 @@ const Navbar = () => {
                                 to="/"
                                 aria-current={isActiveLink('/') ? 'page' : undefined}
                             >
-                                Home
+                                Trang chủ
                             </Link>
                         </li>
                         <li className="nav-item">
@@ -84,7 +84,7 @@ const Navbar = () => {
                                 to="/booking"
                                 aria-current={isActiveLink('/booking') ? 'page' : undefined}
                             >
-                                Booking
+                                Đặt lịch
                             </Link>
                         </li>
                         <li className="nav-item">
@@ -93,7 +93,7 @@ const Navbar = () => {
                                 to="/courses"
                                 aria-current={isActiveLink('/courses') ? 'page' : undefined}
                             >
-                                Courses
+                                Khóa học
                             </Link>
                         </li>
                         <li className="nav-item">
@@ -102,7 +102,7 @@ const Navbar = () => {
                                 to="/test"
                                 aria-current={isActiveLink('/test') ? 'page' : undefined}
                             >
-                                Test
+                                Kiểm tra
                             </Link>
                         </li>
                         <li className="nav-item">
@@ -120,7 +120,7 @@ const Navbar = () => {
                                 to="/about"
                                 aria-current={isActiveLink('/about') ? 'page' : undefined}
                             >
-                                About Us
+                                Về chúng tôi
                             </Link>
                         </li>
                     </ul>
@@ -132,15 +132,15 @@ const Navbar = () => {
                         <input
                             type="text"
                             className="form-control"
-                            placeholder="Search..."
+                            placeholder="Tìm kiếm..."
                             ref={searchRef}
                             onKeyPress={handleKeyPress}
-                            aria-label="Search"
+                            aria-label="Tìm kiếm"
                         />
                         <button
                             className="btn btn-search"
                             onClick={handleSearch}
-                            aria-label="Search button"
+                            aria-label="Nút tìm kiếm"
                             type="button"
                         >
                             <i className="bi bi-search text-white"></i>
@@ -155,7 +155,7 @@ const Navbar = () => {
                                 onClick={toggleDropdown}
                                 data-bs-toggle="dropdown"
                                 aria-expanded={dropdownOpen}
-                                aria-label={`User menu for ${email}`}
+                                aria-label={`Menu người dùng cho ${email}`}
                             >
                                 <i className="bi bi-person-circle me-2" style={{ fontSize: '1.5rem' }}></i>
                                 <span className="navbar-text email-truncate" title={email}>{email}</span>
@@ -166,29 +166,29 @@ const Navbar = () => {
                                     <button
                                         className="dropdown-item btn-settings"
                                         onClick={handleSettings}
-                                        aria-label="Account settings"
+                                        aria-label="Cài đặt tài khoản"
                                     >
-                                        <i className="bi bi-gear me-2"></i> Settings
+                                        <i className="bi bi-gear me-2"></i> Cài đặt
                                     </button>
                                 </li>
                                 <li>
                                     <button
                                         className="dropdown-item btn btn-logout"
                                         onClick={handleLogout}
-                                        aria-label="Logout"
+                                        aria-label="Đăng xuất"
                                     >
-                                        <i className="bi bi-box-arrow-right me-2"></i> Logout
+                                        <i className="bi bi-box-arrow-right me-2"></i> Đăng xuất
                                     </button>
                                 </li>
                             </ul>
                         </div>
                     ) : (
                         <>
-                            <Link to="/login" className="btn btn-login" aria-label="Login to your account">
-                                Login
+                            <Link to="/login" className="btn btn-login" aria-label="Đăng nhập vào tài khoản">
+                                Đăng nhập
                             </Link>
-                            <Link to="/signup" className="btn btn-signup" aria-label="Create new account">
-                                Sign Up
+                            <Link to="/signup" className="btn btn-signup" aria-label="Tạo tài khoản mới">
+                                Đăng ký
                             </Link>
                         </>
                     )}

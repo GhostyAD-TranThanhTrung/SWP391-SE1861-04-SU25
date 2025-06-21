@@ -12,7 +12,7 @@ const BookingPage = () => {
     const [scheduledBookings, setScheduledBookings] = useState([]);
     const [loadingBookings, setLoadingBookings] = useState(true);
 
-    // Database slots based on sample.sql (9 AM - 5 PM hourly)
+    // Các slot dựa trên database sample.sql (9 AM - 5 PM theo giờ)
     const databaseSlots = [
         { slot_id: 1, start_time: '09:00:00', end_time: '10:00:00' },
         { slot_id: 2, start_time: '10:00:00', end_time: '11:00:00' },
@@ -24,7 +24,7 @@ const BookingPage = () => {
         { slot_id: 8, start_time: '16:00:00', end_time: '17:00:00' }
     ];
 
-    // API call function to get all consultants
+    // Hàm gọi API để lấy tất cả consultants
     const fetchAllConsultants = async () => {
         try {
             const response = await fetch('http://localhost:3000/api/consultants', {
@@ -37,7 +37,7 @@ const BookingPage = () => {
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.message || 'Failed to fetch consultants');
+                throw new Error(data.message || 'Không thể lấy danh sách tư vấn viên');
             }
 
             return data.data.consultants;
@@ -46,19 +46,19 @@ const BookingPage = () => {
         }
     };
 
-    // Transform API data to component format based on updated controller structure
+    // Chuyển đổi dữ liệu API sang định dạng component dựa trên cấu trúc controller đã cập nhật
     const transformConsultantsArray = (apiConsultants) => {
         if (!apiConsultants || !Array.isArray(apiConsultants)) return [];
 
         return apiConsultants.map(apiConsultant => {
             return {
-                // Consultant table fields
+                // Các trường bảng Consultant
                 id_consultant: apiConsultant.id_consultant || 'N/A',
                 cost: apiConsultant.cost || 'N/A',
                 certification: apiConsultant.certification || 'N/A',
                 speciality: apiConsultant.speciality || 'N/A',
 
-                // Users table fields
+                // Các trường bảng Users
                 user_id: apiConsultant.user_id || 'N/A',
                 date_create: apiConsultant.date_create || 'N/A',
                 role: apiConsultant.role || 'N/A',
@@ -66,7 +66,7 @@ const BookingPage = () => {
                 status: apiConsultant.status || 'N/A',
                 img_link: apiConsultant.img_link || null,
 
-                // Profile table fields
+                // Các trường bảng Profile
                 name: apiConsultant.name || 'N/A',
                 bio_json: apiConsultant.bio_json || 'N/A',
                 date_of_birth: apiConsultant.date_of_birth || 'N/A',
@@ -75,13 +75,13 @@ const BookingPage = () => {
         });
     };
 
-    // Get specialization from the speciality field (no longer need to parse bios)
+    // Lấy chuyên môn từ trường speciality (không cần parse bios nữa)
     const getSpecializationFromSpeciality = (speciality) => {
-        if (!speciality || speciality === 'N/A') return 'General Consultation';
+        if (!speciality || speciality === 'N/A') return 'Tư vấn tổng quát';
         return speciality;
     };
 
-    // Format time from API time format
+    // Định dạng thời gian từ định dạng thời gian API
     const formatTime = (timeString) => {
         if (!timeString) return '12:00 PM';
 
@@ -93,23 +93,23 @@ const BookingPage = () => {
                 hour12: true
             });
         } catch (error) {
-            return timeString; // Return original if parsing fails
+            return timeString; // Trả về gốc nếu parse thất bại
         }
     };
 
-    // Create booking data structure based on database schema
+    // Tạo cấu trúc dữ liệu booking dựa trên database schema
     const createBookingData = (consultantId, slotId, selectedDate) => {
         return {
             consultant_id: consultantId,
-            member_id: null, // Will be set when user authentication is implemented
+            member_id: null, // Sẽ được set khi hệ thống xác thực người dùng được implement
             slot_id: slotId,
             booking_date: selectedDate,
             status: 'pending',
-            notes: 'Consultation booking via web app'
+            notes: 'Đặt lịch tư vấn qua ứng dụng web'
         };
     };
 
-    // Fetch scheduled bookings
+    // Lấy danh sách lịch hẹn đã lên lịch
     const fetchScheduledBookings = async () => {
         try {
             const token = sessionStorage.getItem('token');
@@ -125,17 +125,17 @@ const BookingPage = () => {
             console.log('Dữ liệu booking lấy về:', data);
 
             if (!response.ok) {
-                throw new Error(data.message || 'Failed to fetch scheduled bookings');
+                throw new Error(data.message || 'Không thể lấy danh sách lịch hẹn đã lên lịch');
             }
 
             return data.data;
         } catch (error) {
-            console.error('Error fetching scheduled bookings:', error);
+            console.error('Lỗi khi lấy danh sách lịch hẹn đã lên lịch:', error);
             return [];
         }
     };
 
-    // Load consultants and scheduled bookings data
+    // Load dữ liệu consultants và scheduled bookings
     useEffect(() => {
         const loadData = async () => {
             try {
@@ -151,7 +151,7 @@ const BookingPage = () => {
                 setConsultants(transformedConsultants);
                 setScheduledBookings(bookings);
             } catch (error) {
-                console.error('Error loading data:', error);
+                console.error('Lỗi khi load dữ liệu:', error);
                 setConsultants([]);
                 setScheduledBookings([]);
             } finally {
@@ -164,48 +164,48 @@ const BookingPage = () => {
     }, []);
 
     const bookConsultation = (consultantId, slotId) => {
-        // Check authentication status (placeholder until auth system is implemented)
+        // Kiểm tra trạng thái xác thực (placeholder cho đến khi hệ thống auth được implement)
         const isLoggedIn = localStorage.getItem('authToken') || false;
 
         if (!isLoggedIn) {
-            alert('Please login to book a consultation');
+            alert('Vui lòng đăng nhập để đặt lịch tư vấn');
             return;
         }
 
         if (!selectedDate) {
-            alert('Please select a date for your consultation');
+            alert('Vui lòng chọn ngày cho buổi tư vấn của bạn');
             return;
         }
 
-        // Find consultant and slot data
+        // Tìm dữ liệu consultant và slot
         const consultant = consultants.find(c => c.id_consultant === consultantId);
         const slot = databaseSlots.find(s => s.slot_id === slotId);
 
         if (consultant && slot) {
-            const consultantName = consultant.name !== 'N/A' ? consultant.name : 'Consultant';
+            const consultantName = consultant.name !== 'N/A' ? consultant.name : 'Tư vấn viên';
             setBookingStatus({
                 type: 'success',
-                message: `Consultation request submitted for ${consultantName} on ${selectedDate} at ${formatTime(slot.start_time)}. Status: Pending approval.`
+                message: `Yêu cầu tư vấn đã được gửi cho ${consultantName} vào ngày ${selectedDate} lúc ${formatTime(slot.start_time)}. Trạng thái: Đang chờ phê duyệt.`
             });
 
-            // Create booking data structure for future API implementation
+            // Tạo cấu trúc dữ liệu booking cho việc implement API trong tương lai
             const bookingData = createBookingData(consultantId, slotId, selectedDate);
-            console.log('Booking data prepared:', bookingData);
+            console.log('Dữ liệu booking đã chuẩn bị:', bookingData);
         } else {
             setBookingStatus({
                 type: 'error',
-                message: 'Failed to submit consultation request. Please try again.'
+                message: 'Không thể gửi yêu cầu tư vấn. Vui lòng thử lại.'
             });
         }
     };
 
     const specializations = [
-        { value: 'all', label: 'All Specializations' },
-        { value: 'Prevention Specialist', label: 'Prevention Specialist' },
-        { value: 'Counseling & Therapy', label: 'Counseling & Therapy' },
-        { value: 'Community Outreach', label: 'Community Outreach' },
-        { value: 'Clinical Psychology', label: 'Clinical Psychology' },
-        { value: 'Rehabilitation', label: 'Rehabilitation' }
+        { value: 'all', label: 'Tất cả chuyên môn' },
+        { value: 'Prevention Specialist', label: 'Chuyên gia phòng ngừa' },
+        { value: 'Counseling & Therapy', label: 'Tư vấn & Trị liệu' },
+        { value: 'Community Outreach', label: 'Tiếp cận cộng đồng' },
+        { value: 'Clinical Psychology', label: 'Tâm lý học lâm sàng' },
+        { value: 'Rehabilitation', label: 'Phục hồi chức năng' }
     ];
 
     const filteredConsultants = consultants.filter(consultant => {
@@ -218,9 +218,9 @@ const BookingPage = () => {
             <div className="booking-page">
                 <div className="container text-center py-5">
                     <div className="spinner-border" role="status">
-                        <span className="visually-hidden">Loading...</span>
+                        <span className="visually-hidden">Đang tải...</span>
                     </div>
-                    <p className="mt-3">Loading consultants...</p>
+                    <p className="mt-3">Đang tải danh sách tư vấn viên...</p>
                 </div>
             </div>
         );
@@ -228,17 +228,17 @@ const BookingPage = () => {
 
     return (
         <div className="booking-page">
-            {/* Hero Section */}
+            {/* Phần Hero */}
             <section className="booking-hero">
                 <div className="container">
                     <div className="row align-items-center">
                         <div className="col-lg-12 text-center">
                             <h1 className="hero-title">
-                                Book a Consultation
+                                Đặt lịch tư vấn
                             </h1>
                             <p className="hero-subtitle">
-                                Connect with our experienced specialists for personalized guidance and support.
-                                All consultations are free and completely confidential.
+                                Kết nối với các chuyên gia giàu kinh nghiệm của chúng tôi để được hướng dẫn và hỗ trợ cá nhân hóa.
+                                Tất cả các buổi tư vấn đều miễn phí và hoàn toàn bảo mật.
                             </p>
                         </div>
                     </div>
@@ -246,10 +246,10 @@ const BookingPage = () => {
             </section>
 
             <div className="container" style={{ paddingTop: '5rem', paddingBottom: '5rem' }}>
-                {/* Scheduled Bookings Section */}
+                {/* Phần lịch hẹn đã lên lịch */}
                 <section className="scheduled-bookings mb-5">
                     <div className="section-header text-center mb-4">
-                        <h2 className="section-title">Your Scheduled Consultations</h2>
+                        <h2 className="section-title">Lịch tư vấn đã đặt của bạn</h2>
                     </div>
                     {loadingBookings ? (
                         <div className="text-center text-muted">Đang tải lịch hẹn...</div>
@@ -264,12 +264,12 @@ const BookingPage = () => {
                                         <div className="card">
                                             <div className="card-body">
                                                 <h5 className="card-title">
-                                                    {consultant ? consultant.name : (booking.consultant_name || 'Consultant')}
+                                                    {consultant ? consultant.name : (booking.consultant_name || 'Tư vấn viên')}
                                                 </h5>
                                                 <p className="card-text">
-                                                    <strong>Date:</strong> {booking.booking_date}<br />
-                                                    <strong>Time:</strong> {slot ? formatTime(slot.start_time) : (booking.start_time ? formatTime(booking.start_time) : 'N/A')}<br />
-                                                    <strong>Status:</strong> {booking.status}
+                                                    <strong>Ngày:</strong> {booking.booking_date}<br />
+                                                    <strong>Thời gian:</strong> {slot ? formatTime(slot.start_time) : (booking.start_time ? formatTime(booking.start_time) : 'N/A')}<br />
+                                                    <strong>Trạng thái:</strong> {booking.status}
                                                 </p>
                                                 {/* Luôn hiển thị nút Google Meet */}
                                                 {hasMeetLink ? (
@@ -295,7 +295,7 @@ const BookingPage = () => {
                     )}
                 </section>
 
-                {/* Booking Status Alert */}
+                {/* Thông báo trạng thái đặt lịch */}
                 {bookingStatus && (
                     <div className={`alert alert-${bookingStatus.type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`}>
                         {bookingStatus.message}
@@ -307,17 +307,17 @@ const BookingPage = () => {
                     </div>
                 )}
 
-                {/* Filter Section */}
+                {/* Phần bộ lọc */}
                 <section className="filter-section mb-5">
                     <div className="section-header text-center mb-4">
-                        <h2 className="section-title">Find Your Specialist</h2>
-                        <p className="section-subtitle">Filter by specialization and availability to find the right consultant for you</p>
+                        <h2 className="section-title">Tìm chuyên gia của bạn</h2>
+                        <p className="section-subtitle">Lọc theo chuyên môn và lịch trống để tìm tư vấn viên phù hợp</p>
                     </div>
 
                     <div className="filter-controls">
                         <div className="row justify-content-center">
                             <div className="col-lg-3 col-md-6 mb-3">
-                                <label className="filter-label">Specialization</label>
+                                <label className="filter-label">Chuyên môn</label>
                                 <select
                                     className="form-select filter-select"
                                     value={selectedSpecialization}
@@ -329,7 +329,7 @@ const BookingPage = () => {
                                 </select>
                             </div>
                             <div className="col-lg-3 col-md-6 mb-3">
-                                <label className="filter-label">Select Date</label>
+                                <label className="filter-label">Chọn ngày</label>
                                 <input
                                     type="date"
                                     className="form-control filter-select"
@@ -342,12 +342,12 @@ const BookingPage = () => {
                     </div>
                 </section>
 
-                {/* Consultants Grid */}
+                {/* Lưới tư vấn viên */}
                 <section className="consultants-section mb-5">
                     <div className="section-header text-center mb-5">
-                        <h2 className="section-title">Our Specialists</h2>
+                        <h2 className="section-title">Các chuyên gia của chúng tôi</h2>
                         <p className="section-subtitle">
-                            {filteredConsultants.length} consultant{filteredConsultants.length !== 1 ? 's' : ''} available
+                            {filteredConsultants.length} tư vấn viên có sẵn
                         </p>
                     </div>
 
@@ -359,11 +359,11 @@ const BookingPage = () => {
                                         <div className="consultant-image">
                                             <img
                                                 src={consultant.img_link ? `http://localhost:3000${consultant.img_link}` : Image}
-                                                alt={consultant.name !== 'N/A' ? consultant.name : 'Consultant'}
+                                                alt={consultant.name !== 'N/A' ? consultant.name : 'Tư vấn viên'}
                                                 className="img-fluid"
                                                 onError={(e) => {
-                                                    e.target.onerror = null; // Prevent infinite loop
-                                                    e.target.src = Image; // Fallback to default image
+                                                    e.target.onerror = null; // Ngăn vòng lặp vô hạn
+                                                    e.target.src = Image; // Fallback về ảnh mặc định
                                                 }}
                                             />
                                         </div>
@@ -388,7 +388,7 @@ const BookingPage = () => {
                                                 } catch (error) {
                                                     return consultant.bio_json;
                                                 }
-                                            })() : 'No biography available'}
+                                            })() : 'Không có tiểu sử'}
                                         </p>
 
                                         <div className="consultant-qualifications">
@@ -398,7 +398,7 @@ const BookingPage = () => {
                                                 </span>
                                             )}
                                             <span className="qualification-badge">
-                                                Licensed Professional
+                                                Chuyên gia có giấy phép
                                             </span>
                                         </div>
 
@@ -406,7 +406,7 @@ const BookingPage = () => {
                                             <div className="detail-item" style={{ padding: '10px 0', marginBottom: '15px' }}>
                                                 <i className="bi bi-currency-dollar me-2"></i>
                                                 <span style={{ fontSize: '1.1rem', fontWeight: '500' }}>
-                                                    {consultant.cost !== 'N/A' ? `$${consultant.cost} per session` : 'Price N/A'}
+                                                    {consultant.cost !== 'N/A' ? `$${consultant.cost} mỗi buổi` : 'Giá N/A'}
                                                 </span>
                                             </div>
                                         </div>
@@ -417,7 +417,7 @@ const BookingPage = () => {
                                                 className="btn btn-outline-primary"
                                             >
                                                 <i className="bi bi-person me-2"></i>
-                                                View Profile
+                                                Xem hồ sơ
                                             </Link>
                                         </div>
                                     </div>
@@ -430,51 +430,51 @@ const BookingPage = () => {
                         <div className="no-results">
                             <div className="text-center">
                                 <i className="bi bi-search display-4 text-muted mb-3"></i>
-                                <h4>No consultants found</h4>
-                                <p className="text-muted">Try adjusting your filters to see more options.</p>
+                                <h4>Không tìm thấy tư vấn viên</h4>
+                                <p className="text-muted">Hãy thử điều chỉnh bộ lọc để xem thêm tùy chọn.</p>
                                 <button
                                     className="btn btn-outline-primary"
                                     onClick={() => {
                                         setSelectedSpecialization('all');
                                     }}
                                 >
-                                    Clear Filters
+                                    Xóa bộ lọc
                                 </button>
                             </div>
                         </div>
                     )}
                 </section>
 
-                {/* Information Section */}
+                {/* Phần thông tin */}
                 <section className="info-section">
                     <div className="row">
                         <div className="col-lg-8 mx-auto">
                             <div className="info-card">
                                 <h3 className="info-title">
                                     <i className="bi bi-shield-heart me-2"></i>
-                                    How It Works
+                                    Cách thức hoạt động
                                 </h3>
                                 <div className="row">
                                     <div className="col-md-4 text-center mb-3">
                                         <div className="step-icon">
                                             <i className="bi bi-1-circle-fill"></i>
                                         </div>
-                                        <h5>Choose Specialist</h5>
-                                        <p>Select a consultant based on their specialization and availability.</p>
+                                        <h5>Chọn chuyên gia</h5>
+                                        <p>Chọn tư vấn viên dựa trên chuyên môn và lịch trống của họ.</p>
                                     </div>
                                     <div className="col-md-4 text-center mb-3">
                                         <div className="step-icon">
                                             <i className="bi bi-2-circle-fill"></i>
                                         </div>
-                                        <h5>Book Session</h5>
-                                        <p>Select a time slot and submit your consultation request for approval.</p>
+                                        <h5>Đặt lịch</h5>
+                                        <p>Chọn khung giờ và gửi yêu cầu tư vấn để được phê duyệt.</p>
                                     </div>
                                     <div className="col-md-4 text-center mb-3">
                                         <div className="step-icon">
                                             <i className="bi bi-3-circle-fill"></i>
                                         </div>
-                                        <h5>Get Support</h5>
-                                        <p>Receive personalized guidance and support from our experienced professionals.</p>
+                                        <h5>Nhận hỗ trợ</h5>
+                                        <p>Nhận hướng dẫn và hỗ trợ cá nhân hóa từ các chuyên gia giàu kinh nghiệm.</p>
                                     </div>
                                 </div>
                             </div>

@@ -25,7 +25,7 @@ const RegisterPage = () => {
         }
 
         if (password !== confirmPassword) {
-            alert("Passwords do not match");
+            alert("Mật khẩu không khớp");
             return;
         }
 
@@ -41,7 +41,7 @@ const RegisterPage = () => {
             const data = await response.json();
 
             if (response.ok && !data.error) {
-                alert("Registration successful");
+                alert("Đăng ký thành công");
 
                 emailRef.current.value = '';
                 passwordRef.current.value = '';
@@ -49,11 +49,11 @@ const RegisterPage = () => {
 
                 navigate('/login');
             } else {
-                alert("Registration failed: " + (data.error || "Unknown error"));
+                alert("Đăng ký thất bại: " + (data.error || "Lỗi không xác định"));
             }
         } catch (error) {
             console.error("Registration error:", error);
-            alert("Registration failed: Server error");
+            alert("Đăng ký thất bại: Lỗi máy chủ");
         }
     }
 
@@ -68,15 +68,15 @@ const RegisterPage = () => {
             });
             const data = await response.json();
             if (data && data.user) {
-                alert(data.message || 'Google authentication successful!');
+                alert(data.message || 'Xác thực Google thành công!');
                 console.log('User info:', data.user);
                 navigate('/login');
             } else {
-                alert('Google authentication failed: ' + (data.error || 'Unknown error'));
+                alert('Xác thực Google thất bại: ' + (data.error || 'Lỗi không xác định'));
             }
         } catch (e) {
             console.error('Google auth error:', e);
-            alert('Google authentication failed');
+            alert('Xác thực Google thất bại');
         }
     }
 
@@ -89,7 +89,7 @@ const RegisterPage = () => {
 
             <div className="register-blur-box d-flex justify-content-center align-items-center">
                 <div className="register-form-container text-start">
-                    <h2 className="mb-4 fw-bold text-center">Register</h2>
+                    <h2 className="mb-4 fw-bold text-center">Đăng Ký</h2>
 
                     <label>Email</label>
                     <input
@@ -99,24 +99,24 @@ const RegisterPage = () => {
                         ref={emailRef}
                     />
 
-                    <label>Password</label>
+                    <label>Mật khẩu</label>
                     <input
                         type="password"
-                        placeholder="Password"
+                        placeholder="Mật khẩu"
                         className="form-control mb-3"
                         ref={passwordRef}
                     />
 
-                    <label>Confirm Password</label>
+                    <label>Xác nhận mật khẩu</label>
                     <input
                         type="password"
-                        placeholder="Confirm Password"
+                        placeholder="Xác nhận mật khẩu"
                         className="form-control mb-3"
                         ref={confirmPasswordRef}
                     />
 
                     <button onClick={handleRegister} className="btn btn-primary w-100 mb-3">
-                        Register
+                        Đăng Ký
                     </button>
 
                     <hr />
@@ -124,17 +124,17 @@ const RegisterPage = () => {
                     <div className="w-100 mb-3 d-flex justify-content-center">
                         <GoogleLogin
                             onSuccess={handleGoogleRegister}
-                            onError={() => alert('Google registration failed')}
+                            onError={() => alert('Đăng ký Google thất bại')}
                             theme="outline"
                             width="100%"
                         />
                     </div>
                     <div className="mt-3 d-flex flex-column align-items-center text-center w-100">
                         <p className="small mb-1">
-                            You already have an account? <a href="/login">Login</a>
+                            Bạn đã có tài khoản? <a href="/login">Đăng nhập</a>
                         </p>
                         <p className="small">
-                            You forgot password? <a href="/forget">Forget password</a>
+                            Bạn quên mật khẩu? <a href="/forget">Quên mật khẩu</a>
                         </p>
                     </div>
                 </div>

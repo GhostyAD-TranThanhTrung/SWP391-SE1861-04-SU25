@@ -62,7 +62,7 @@ const ChooseRolePage = () => {
 
             <div className="register-blur-box d-flex justify-content-center align-items-center">
                 <div className="register-form-container text-start">
-                    <h2 className="mb-4 fw-bold text-center">Choose Your Role</h2>
+                    <h2 className="mb-4 fw-bold text-center">Chọn Vai Trò Của Bạn</h2>
 
                     <label>Họ và Tên</label>
                     <input
@@ -73,7 +73,7 @@ const ChooseRolePage = () => {
                         onChange={(e) => setName(e.target.value)}
                     />
 
-                    <label>Date of Birth</label>
+                    <label>Ngày Sinh</label>
                     <input
                         type="date"
                         className="form-control mb-3"
@@ -81,17 +81,17 @@ const ChooseRolePage = () => {
                         onChange={(e) => setDateOfBirth(e.target.value)}
                     />
 
-                    <label>Your Job</label>
+                    <label>Nghề Nghiệp</label>
                     <select
                         className="form-select mb-3"
                         value={job}
                         onChange={(e) => setJob(e.target.value)}
                     >
-                        <option value="">Your Job</option>
-                        <option value="Student">Student</option>
-                        <option value="College Student">College Student</option>
-                        <option value="Parent">Parent</option>
-                        <option value="Teacher">Teacher</option>
+                        <option value="">Chọn nghề nghiệp</option>
+                        <option value="Student">Học sinh</option>
+                        <option value="College Student">Sinh viên</option>
+                        <option value="Parent">Phụ huynh</option>
+                        <option value="Teacher">Giáo viên</option>
                     </select>
 
                     <button
@@ -99,7 +99,7 @@ const ChooseRolePage = () => {
                         onClick={handleSubmit}
                         disabled={!name || !dateOfBirth || !job}
                     >
-                        Submit
+                        Gửi
                     </button>
                 </div>
             </div>

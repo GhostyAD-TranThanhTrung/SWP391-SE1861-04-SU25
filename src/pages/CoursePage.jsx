@@ -4,9 +4,9 @@ import '../styles/CoursePage.scss';
 import Image from '../images/Images.jpg';
 
 const CATEGORIES = [
-    { id: 1, label: 'Articles', icon: 'bi bi-book me-2' },
-    { id: 2, label: 'Videos', icon: 'bi bi-play-circle me-2' },
-    { id: 3, label: 'Podcasts', icon: 'bi bi-mic me-2' }
+    { id: 1, label: 'Bài viết', icon: 'bi bi-book me-2' },
+    { id: 2, label: 'Video', icon: 'bi bi-play-circle me-2' },
+    { id: 3, label: 'Podcast', icon: 'bi bi-mic me-2' }
 ];
 
 const CoursePage = () => {
@@ -36,7 +36,7 @@ const CoursePage = () => {
                 console.log('Parsed JSON for category', selectedCategory.id, res);
                 setPrograms(res.data || []);
             } catch (err) {
-                setError('Failed to fetch programs. Please try again later.');
+                setError('Không thể tải chương trình. Vui lòng thử lại sau.');
             } finally {
                 setLoading(false);
             }
@@ -58,9 +58,9 @@ const CoursePage = () => {
     };
 
     const renderCards = () => {
-        if (loading) return <div className="text-center">Loading...</div>;
+        if (loading) return <div className="text-center">Đang tải...</div>;
         if (error) return <div className="text-center text-danger">{error}</div>;
-        if (!programs.length) return <div className="text-center">No programs available</div>;
+        if (!programs.length) return <div className="text-center">Không có chương trình nào</div>;
         const visibleData = programs.slice(pageIndex, pageIndex + itemsPerPage);
         return (
             <div className="position-relative">
@@ -72,7 +72,7 @@ const CoursePage = () => {
                                     <div style={{ height: 160, width: '100%', background: '#f7f7f7', borderTopLeftRadius: 20, borderTopRightRadius: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                                         <img
                                             src={item.img_link || Image}
-                                            alt={item.title || 'Program image'}
+                                            alt={item.title || 'Hình ảnh chương trình'}
                                             style={{ maxHeight: 140, maxWidth: '90%', objectFit: 'cover', borderRadius: 12, margin: '0 auto', display: 'block' }}
                                             onError={e => { e.target.onerror = null; e.target.src = Image; }}
                                         />
@@ -82,8 +82,8 @@ const CoursePage = () => {
                                         <h5 className="card-title" style={{ fontWeight: 700, fontSize: 20, marginBottom: 8, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.title}</h5>
                                         <p className="card-description" style={{ marginBottom: 8, color: '#444', fontSize: 15, minHeight: 38, overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.description}</p>
                                         <p className="card-meta" style={{ fontSize: 14, marginBottom: 0 }}>
-                                            <strong>Creator:</strong> {item.creator?.name || item.creator?.email || 'Unknown'}<br />
-                                            <strong>Age Group:</strong> {item.age_group || 'N/A'}
+                                            <strong>Người tạo:</strong> {item.creator?.name || item.creator?.email || 'Không xác định'}<br />
+                                            <strong>Nhóm tuổi:</strong> {item.age_group || 'N/A'}
                                         </p>
                                     </div>
                                     <div style={{ padding: '0 1rem 1rem 1rem', display: 'flex', alignItems: 'center', color: '#6c63ff', fontSize: 15 }}>
@@ -151,11 +151,11 @@ const CoursePage = () => {
                     <div className="row align-items-center">
                         <div className="col-lg-8">
                             <h1 className="hero-title">
-                                Discover Learning Pathways
+                                Khám phá Lộ trình Học tập
                             </h1>
                             <p className="hero-subtitle">
-                                Explore our comprehensive collection of educational resources, courses, and latest updates
-                                designed to support your journey towards awareness and recovery.
+                                Khám phá bộ sưu tập toàn diện các tài nguyên giáo dục, khóa học và cập nhật mới nhất
+                                được thiết kế để hỗ trợ hành trình nhận thức và phục hồi của bạn.
                             </p>
                         </div>
                     </div>
@@ -180,7 +180,7 @@ const CoursePage = () => {
                 <section className="section mb-5">
                     <div className="section-header-wrapper text-center mb-5">
                         <h2 className="section-header">{selectedCategory.label}</h2>
-                        <p className="section-subtitle">Browse our {selectedCategory.label.toLowerCase()}</p>
+                        <p className="section-subtitle">Duyệt qua {selectedCategory.label.toLowerCase()} của chúng tôi</p>
                     </div>
                     {renderCards()}
                 </section>
@@ -189,15 +189,15 @@ const CoursePage = () => {
                 <section className="cta-section py-5">
                     <div className="row align-items-center">
                         <div className="col-lg-8">
-                            <h3 className="cta-title">Ready to Start Your Learning Journey?</h3>
+                            <h3 className="cta-title">Sẵn sàng Bắt đầu Hành trình Học tập?</h3>
                             <p className="cta-description">
-                                Join thousands of learners who have transformed their lives through education and awareness.
+                                Tham gia cùng hàng nghìn người học đã thay đổi cuộc sống của họ thông qua giáo dục và nhận thức.
                             </p>
                         </div>
                         <div className="col-lg-4 text-lg-end">
                             <Link to="/signup" className="btn btn-cta btn-lg">
                                 <i className="bi bi-person-plus me-2"></i>
-                                Get Started Today
+                                Bắt đầu Ngay hôm nay
                             </Link>
                         </div>
                     </div>

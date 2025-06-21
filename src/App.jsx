@@ -25,7 +25,7 @@ import StaffListPage from "./pages/admin/StaffListPage";
 import MemberListPage from "./pages/admin/MemberListPage";
 import ConsultantListPage from "./pages/admin/ConsultantListPage";
 import ScoreListPage from "./pages/admin/ScoreListPage";
-
+import DetailCoursePage from "./pages/DetailCoursePage";
 //Import layout
 import AdminLayout from "./layout/AdminLayout";
 
@@ -57,7 +57,7 @@ const AppLayout = () => {
           <Route path="/exam/:type" element={<ExamPage />} />
           <Route path="/consultant/:id" element={<BookingProfile />} />
           <Route path="/result" element={<ResultPage />} />
-
+          <Route path="/program/:id" element={<DetailCoursePage />} />
           {/* Admin */}
           <Route path="/admin/login" element={<AdminLoginPage />} />
           <Route

@@ -11,7 +11,7 @@ const ChooseTypeExam = () => {
             console.log('Confirmed exam type:', selectedType);
             navigate(`/exam/${selectedType.toLowerCase()}`);
         } else {
-            alert('Please select a type of exam first.');
+            alert('Vui lòng chọn loại bài kiểm tra trước.');
         }
     };
 
@@ -22,18 +22,18 @@ const ChooseTypeExam = () => {
     const examTypes = [
         {
             id: 'ASSIST',
-            title: 'ASSIST Assessment',
-            subtitle: 'WHO Screening Tool',
-            description: 'A comprehensive WHO-developed screening tool for identifying substance use patterns and related health risks.',
-            features: ['Quick 15-questions assessment', 'Evidence-based results', 'Risk level identification'],
+            title: 'Bài Đánh Giá ASSIST',
+            subtitle: 'Công Cụ Sàng Lọc WHO',
+            description: 'Một công cụ sàng lọc toàn diện được phát triển bởi WHO để xác định các mô hình sử dụng chất và rủi ro sức khỏe liên quan.',
+            features: ['Đánh giá nhanh 15 câu hỏi', 'Kết quả dựa trên bằng chứng', 'Xác định mức độ rủi ro'],
             icon: 'bi-clipboard-check'
         },
         {
             id: 'CRAFFT',
-            title: 'CRAFFT Assessment',
-            subtitle: 'Youth Behavioral Health',
-            description: 'A specialized behavioral health screening tool designed specifically for adolescents and young adults.',
-            features: ['Age-appropriate questions', 'Behavioral focus', 'Confidential screening'],
+            title: 'Bài Đánh Giá CRAFFT',
+            subtitle: 'Sức Khỏe Hành Vi Thanh Thiếu Niên',
+            description: 'Một công cụ sàng lọc sức khỏe hành vi chuyên biệt được thiết kế đặc biệt cho thanh thiếu niên và người trẻ tuổi.',
+            features: ['Câu hỏi phù hợp với độ tuổi', 'Tập trung vào hành vi', 'Sàng lọc bảo mật'],
             icon: 'bi-person-hearts'
         }
     ];
@@ -46,11 +46,11 @@ const ChooseTypeExam = () => {
                     <div className="row align-items-center">
                         <div className="col-lg-12 text-center">
                             <h1 className="hero-title">
-                                Choose Your Assessment Type
+                                Chọn Loại Bài Đánh Giá
                             </h1>
                             <p className="hero-subtitle">
-                                Select the most appropriate screening tool for your needs. Both assessments
-                                are professionally validated and provide valuable insights into substance use patterns.
+                                Chọn công cụ sàng lọc phù hợp nhất cho nhu cầu của bạn. Cả hai bài đánh giá
+                                đều được xác thực chuyên nghiệp và cung cấp thông tin có giá trị về các mô hình sử dụng chất.
                             </p>
                         </div>
                     </div>
@@ -61,8 +61,8 @@ const ChooseTypeExam = () => {
                 {/* Assessment Options Section */}
                 <section className="assessment-section">
                     <div className="section-header text-center mb-5">
-                        <h2 className="section-title">Available Assessments</h2>
-                        <p className="section-subtitle">Choose the assessment that best fits your situation</p>
+                        <h2 className="section-title">Các Bài Đánh Giá Có Sẵn</h2>
+                        <p className="section-subtitle">Chọn bài đánh giá phù hợp nhất với tình huống của bạn</p>
                     </div>
 
                     <div className="row justify-content-center">
@@ -114,17 +114,17 @@ const ChooseTypeExam = () => {
                                     disabled={!selectedType}
                                 >
                                     <i className="bi bi-arrow-right me-2"></i>
-                                    Start Assessment
+                                    Bắt Đầu Đánh Giá
                                 </button>
                                 <button className="btn btn-outline-secondary btn-lg" onClick={handleCancel}>
                                     <i className="bi bi-arrow-left me-2"></i>
-                                    Go Back
+                                    Quay Lại
                                 </button>
                             </div>
                             {!selectedType && (
                                 <p className="selection-hint mt-3">
                                     <i className="bi bi-info-circle me-2"></i>
-                                    Please select an assessment type to continue
+                                    Vui lòng chọn loại bài đánh giá để tiếp tục
                                 </p>
                             )}
                         </div>
@@ -138,25 +138,25 @@ const ChooseTypeExam = () => {
                             <div className="info-card">
                                 <h3 className="info-title">
                                     <i className="bi bi-shield-check me-2"></i>
-                                    Privacy & Confidentiality
+                                    Quyền Riêng Tư & Bảo Mật
                                 </h3>
                                 <p className="info-description">
-                                    Your assessment results are completely confidential and are used solely
-                                    for providing you with personalized recommendations. We do not store or
-                                    share your personal information without your explicit consent.
+                                    Kết quả đánh giá của bạn hoàn toàn bảo mật và chỉ được sử dụng để
+                                    cung cấp cho bạn các khuyến nghị cá nhân hóa. Chúng tôi không lưu trữ hoặc
+                                    chia sẻ thông tin cá nhân của bạn mà không có sự đồng ý rõ ràng.
                                 </p>
                                 <div className="info-features">
                                     <div className="feature-item">
                                         <i className="bi bi-lock-fill"></i>
-                                        <span>Secure & Private</span>
+                                        <span>An Toàn & Riêng Tư</span>
                                     </div>
                                     <div className="feature-item">
                                         <i className="bi bi-clock-fill"></i>
-                                        <span>5-10 Minutes</span>
+                                        <span>5-10 Phút</span>
                                     </div>
                                     <div className="feature-item">
                                         <i className="bi bi-award-fill"></i>
-                                        <span>Professional Validated</span>
+                                        <span>Được Xác Thực Chuyên Nghiệp</span>
                                     </div>
                                 </div>
                             </div>

@@ -12,48 +12,48 @@ import CommunityImg from '../images/Image2.jpg';
 const AboutUsPage = () => {
     const teamMembers = [
         {
-            name: "Dr. Sarah Johnson",
-            role: "Chief Medical Officer",
-            specialization: "Addiction Medicine",
+            name: "Bác sĩ Sarah Johnson",
+            role: "Giám đốc Y tế",
+            specialization: "Y học Nghiện chất",
             image: groupSessImg,
-            description: "Over 15 years of experience in addiction treatment and prevention programs."
+            description: "Hơn 15 năm kinh nghiệm trong điều trị nghiện và các chương trình phòng ngừa."
         },
         {
             name: "Michael Chen",
-            role: "Program Director",
-            specialization: "Community Outreach",
+            role: "Giám đốc Chương trình",
+            specialization: "Tiếp cận Cộng đồng",
             image: OutImg,
-            description: "Leading community-based prevention initiatives and educational programs."
+            description: "Lãnh đạo các sáng kiến phòng ngừa dựa trên cộng đồng và chương trình giáo dục."
         },
         {
             name: "Lisa Rodriguez",
-            role: "Clinical Supervisor",
-            specialization: "Counseling & Therapy",
+            role: "Giám sát Lâm sàng",
+            specialization: "Tư vấn & Trị liệu",
             image: SupportHugImg,
-            description: "Licensed clinical social worker specializing in substance abuse counseling."
+            description: "Nhân viên xã hội lâm sàng được cấp phép chuyên về tư vấn lạm dụng chất."
         }
     ];
 
     const values = [
         {
             icon: "bi-shield-check",
-            title: "Prevention First",
-            description: "We believe in the power of education and early intervention to prevent substance abuse before it starts."
+            title: "Phòng ngừa Trước tiên",
+            description: "Chúng tôi tin vào sức mạnh của giáo dục và can thiệp sớm để ngăn chặn lạm dụng chất trước khi nó bắt đầu."
         },
         {
             icon: "bi-people-fill",
-            title: "Community Focus",
-            description: "Building strong, supportive communities that work together to address substance abuse challenges."
+            title: "Tập trung Cộng đồng",
+            description: "Xây dựng cộng đồng mạnh mẽ, hỗ trợ lẫn nhau để giải quyết các thách thức lạm dụng chất."
         },
         {
             icon: "bi-lightbulb",
-            title: "Evidence-Based",
-            description: "Our programs are grounded in scientific research and proven methodologies for maximum effectiveness."
+            title: "Dựa trên Bằng chứng",
+            description: "Các chương trình của chúng tôi được xây dựng trên nghiên cứu khoa học và phương pháp đã được chứng minh để đạt hiệu quả tối đa."
         },
         {
             icon: "bi-heart-pulse",
-            title: "Holistic Wellness",
-            description: "Addressing not just substance use, but overall mental, physical, and social well-being."
+            title: "Sức khỏe Toàn diện",
+            description: "Không chỉ giải quyết việc sử dụng chất mà còn quan tâm đến sức khỏe tinh thần, thể chất và xã hội tổng thể."
         }
     ];
 
@@ -65,26 +65,26 @@ const AboutUsPage = () => {
                     <div className="row align-items-center">
                         <div className="col-lg-6 mb-4 mb-lg-0">
                             <div className="hero-image">
-                                <img src={RecoveryImg} alt="Community Support" className="img-fluid rounded-3" />
+                                <img src={RecoveryImg} alt="Hỗ trợ Cộng đồng" className="img-fluid rounded-3" />
                             </div>
                         </div>
                         <div className="col-lg-6">
                             <h1 className="hero-title">
-                                Building Healthier Communities Together
+                                Xây dựng Cộng đồng Khỏe mạnh Cùng nhau
                             </h1>
                             <p className="hero-subtitle">
-                                Through innovative prevention strategies, comprehensive education, and unwavering 
-                                community support, we're creating lasting change that protects families and 
-                                strengthens neighborhoods across our region.
+                                Thông qua các chiến lược phòng ngừa sáng tạo, giáo dục toàn diện và
+                                hỗ trợ cộng đồng không ngừng, chúng tôi đang tạo ra sự thay đổi lâu dài
+                                để bảo vệ gia đình và củng cố các khu phố trên toàn khu vực.
                             </p>
                             <div className="hero-buttons">
                                 <Link to="/courses" className="btn btn-primary btn-lg me-3">
                                     <i className="bi bi-graduation-cap me-2"></i>
-                                    Start Learning
+                                    Bắt đầu Học tập
                                 </Link>
                                 <Link to="/booking" className="btn btn-outline-light btn-lg">
                                     <i className="bi bi-heart me-2"></i>
-                                    Find Support
+                                    Tìm Hỗ trợ
                                 </Link>
                             </div>
                         </div>
@@ -98,24 +98,24 @@ const AboutUsPage = () => {
                     <div className="row align-items-center">
                         <div className="col-lg-6">
                             <div className="mission-content">
-                                <h2 className="section-title">Our Mission</h2>
+                                <h2 className="section-title">Sứ mệnh của Chúng tôi</h2>
                                 <p className="section-description">
-                                    At Substance, we are committed to building drug-free communities through comprehensive 
-                                    prevention education, early intervention programs, and ongoing support services. Our 
-                                    evidence-based approach combines cutting-edge research with compassionate care to 
-                                    address the root causes of substance abuse.
+                                    Tại Substance, chúng tôi cam kết xây dựng cộng đồng không ma túy thông qua
+                                    giáo dục phòng ngừa toàn diện, chương trình can thiệp sớm và dịch vụ hỗ trợ
+                                    liên tục. Cách tiếp cận dựa trên bằng chứng của chúng tôi kết hợp nghiên cứu
+                                    tiên tiến với sự chăm sóc nhân ái để giải quyết nguyên nhân gốc rễ của lạm dụng chất.
                                 </p>
                                 <p className="section-description">
-                                    We believe that prevention is the most powerful tool in the fight against substance 
-                                    abuse. By educating individuals, families, and communities about the risks and 
-                                    providing them with the tools they need to make informed decisions, we can create 
-                                    lasting change that saves lives and strengthens communities.
+                                    Chúng tôi tin rằng phòng ngừa là công cụ mạnh mẽ nhất trong cuộc chiến chống
+                                    lạm dụng chất. Bằng cách giáo dục cá nhân, gia đình và cộng đồng về các rủi ro
+                                    và cung cấp cho họ những công cụ cần thiết để đưa ra quyết định sáng suốt,
+                                    chúng tôi có thể tạo ra sự thay đổi lâu dài cứu sống và củng cố cộng đồng.
                                 </p>
                             </div>
                         </div>
                         <div className="col-lg-6">
                             <div className="mission-image">
-                                <img src={CommunityImg} alt="Our Mission" className="img-fluid rounded-3" />
+                                <img src={CommunityImg} alt="Sứ mệnh của Chúng tôi" className="img-fluid rounded-3" />
                             </div>
                         </div>
                     </div>
@@ -124,26 +124,26 @@ const AboutUsPage = () => {
                 {/* Services Section */}
                 <section className="services-section mb-5">
                     <div className="section-header text-center mb-5">
-                        <h2 className="section-title">What We Offer</h2>
-                        <p className="section-subtitle">Comprehensive solutions for prevention, education, and support</p>
+                        <h2 className="section-title">Những gì Chúng tôi Cung cấp</h2>
+                        <p className="section-subtitle">Giải pháp toàn diện cho phòng ngừa, giáo dục và hỗ trợ</p>
                     </div>
-                    
+
                     <div className="row">
                         {/* Service 1 */}
                         <div className="col-lg-4 col-md-6 mb-4">
                             <div className="service-card">
                                 <div className="service-image">
-                                    <img src={PreventionImg} alt="Prevention Courses" className="img-fluid" />
+                                    <img src={PreventionImg} alt="Khóa học Phòng ngừa" className="img-fluid" />
                                 </div>
                                 <div className="service-content">
-                                    <h4 className="service-title">Prevention Education Courses</h4>
+                                    <h4 className="service-title">Khóa học Giáo dục Phòng ngừa</h4>
                                     <p className="service-description">
-                                        Comprehensive educational programs designed to increase awareness and provide 
-                                        essential knowledge about substance abuse prevention. Our courses offer 
-                                        convenient, fast, and reliable learning experiences.
+                                        Chương trình giáo dục toàn diện được thiết kế để tăng cường nhận thức và
+                                        cung cấp kiến thức cần thiết về phòng ngừa lạm dụng chất. Các khóa học của
+                                        chúng tôi mang đến trải nghiệm học tập thuận tiện, nhanh chóng và đáng tin cậy.
                                     </p>
                                     <Link to="/courses" className="btn btn-outline-primary">
-                                        Learn More
+                                        Tìm hiểu Thêm
                                     </Link>
                                 </div>
                             </div>
@@ -153,17 +153,17 @@ const AboutUsPage = () => {
                         <div className="col-lg-4 col-md-6 mb-4">
                             <div className="service-card">
                                 <div className="service-image">
-                                    <img src={OutImg} alt="Risk Assessment" className="img-fluid" />
+                                    <img src={OutImg} alt="Đánh giá Rủi ro" className="img-fluid" />
                                 </div>
                                 <div className="service-content">
-                                    <h4 className="service-title">Risk Assessment Tools</h4>
+                                    <h4 className="service-title">Công cụ Đánh giá Rủi ro</h4>
                                     <p className="service-description">
-                                        Advanced assessment tools that help identify risk factors and provide personalized 
-                                        prevention strategies. Through self-assessment, users can better understand their 
-                                        behaviors and seek appropriate support.
+                                        Công cụ đánh giá tiên tiến giúp xác định các yếu tố rủi ro và cung cấp
+                                        chiến lược phòng ngừa cá nhân hóa. Thông qua tự đánh giá, người dùng có
+                                        thể hiểu rõ hơn về hành vi của mình và tìm kiếm hỗ trợ phù hợp.
                                     </p>
                                     <Link to="/test" className="btn btn-outline-primary">
-                                        Take Assessment
+                                        Làm Đánh giá
                                     </Link>
                                 </div>
                             </div>
@@ -173,17 +173,17 @@ const AboutUsPage = () => {
                         <div className="col-lg-4 col-md-6 mb-4">
                             <div className="service-card">
                                 <div className="service-image">
-                                    <img src={SupportHugImg} alt="Counseling Services" className="img-fluid" />
+                                    <img src={SupportHugImg} alt="Dịch vụ Tư vấn" className="img-fluid" />
                                 </div>
                                 <div className="service-content">
-                                    <h4 className="service-title">Professional Counseling</h4>
+                                    <h4 className="service-title">Tư vấn Chuyên nghiệp</h4>
                                     <p className="service-description">
-                                        Easy-to-use scheduling system for booking appointments with specialized prevention 
-                                        counselors. Our user-friendly interface and automatic reminders help you access 
-                                        quality counseling and support services.
+                                        Hệ thống đặt lịch dễ sử dụng để đặt lịch hẹn với các chuyên gia tư vấn
+                                        phòng ngừa chuyên biệt. Giao diện thân thiện và nhắc nhở tự động giúp
+                                        bạn tiếp cận dịch vụ tư vấn và hỗ trợ chất lượng.
                                     </p>
                                     <Link to="/booking" className="btn btn-outline-primary">
-                                        Book Appointment
+                                        Đặt Lịch hẹn
                                     </Link>
                                 </div>
                             </div>
@@ -194,10 +194,10 @@ const AboutUsPage = () => {
                 {/* Values Section */}
                 <section className="values-section mb-5">
                     <div className="section-header text-center mb-5">
-                        <h2 className="section-title">Our Core Values</h2>
-                        <p className="section-subtitle">The principles that guide everything we do</p>
+                        <h2 className="section-title">Giá trị Cốt lõi của Chúng tôi</h2>
+                        <p className="section-subtitle">Những nguyên tắc hướng dẫn mọi việc chúng tôi làm</p>
                     </div>
-                    
+
                     <div className="row">
                         {values.map((value, index) => (
                             <div className="col-lg-3 col-md-6 mb-4" key={index}>
@@ -216,10 +216,10 @@ const AboutUsPage = () => {
                 {/* Team Section */}
                 <section className="team-section mb-5">
                     <div className="section-header text-center mb-5">
-                        <h2 className="section-title">Meet Our Team</h2>
-                        <p className="section-subtitle">Dedicated professionals committed to your success</p>
+                        <h2 className="section-title">Gặp gỡ Đội ngũ của Chúng tôi</h2>
+                        <p className="section-subtitle">Các chuyên gia tận tâm cam kết với thành công của bạn</p>
                     </div>
-                    
+
                     <div className="row">
                         {teamMembers.map((member, index) => (
                             <div className="col-lg-4 col-md-6 mb-4" key={index}>
@@ -243,16 +243,17 @@ const AboutUsPage = () => {
                 <section className="cta-section py-5">
                     <div className="row align-items-center">
                         <div className="col-lg-8">
-                            <h3 className="cta-title">Ready to Make a Difference?</h3>
+                            <h3 className="cta-title">Sẵn sàng Tạo ra Sự khác biệt?</h3>
                             <p className="cta-description">
-                                Join our community of individuals, families, and organizations working together 
-                                to create substance-free communities. Start your journey with us today.
+                                Tham gia cộng đồng của chúng tôi gồm các cá nhân, gia đình và tổ chức
+                                làm việc cùng nhau để tạo ra cộng đồng không chất. Bắt đầu hành trình
+                                của bạn với chúng tôi ngay hôm nay.
                             </p>
                         </div>
                         <div className="col-lg-4 text-lg-end">
                             <Link to="/signup" className="btn btn-cta btn-lg">
                                 <i className="bi bi-arrow-right me-2"></i>
-                                Get Started Now
+                                Bắt đầu Ngay
                             </Link>
                         </div>
                     </div>
