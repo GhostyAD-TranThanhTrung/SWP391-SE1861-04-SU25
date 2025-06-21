@@ -30,6 +30,50 @@ class BlogController {
   }
 
   /**
+   * Get blogs authored by the currently authenticated user
+   * Uses the user ID from the JWT token
+   */
+  static async getMyBlogs(req, res) {
+    try {
+      // Get user ID from the verified token (set by verifyToken middleware)
+      const userId = req.user.userId;
+      
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: "Authentication required",
+        });
+      }
+
+      const blogRepository = AppDataSource.getRepository(Blog);
+      
+      const blogs = await blogRepository.find({
+        where: { author_id: userId },
+        order: {
+          created_at: "DESC",
+        },
+        relations: {
+          flags: true,
+        },
+      });
+
+      res.status(200).json({
+        success: true,
+        data: blogs,
+        count: blogs.length,
+        message: "Your blogs retrieved successfully",
+      });
+    } catch (error) {
+      console.error("Error getting user blogs:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to retrieve your blogs",
+        error: error.message,
+      });
+    }
+  }
+
+  /**
    * Get blog by ID
    */
   static async getBlogById(req, res) {

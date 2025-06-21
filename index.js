@@ -202,12 +202,13 @@ app.get("/api/content/:id/parsed-metadata", ContentController.getParsedMetadataC
 
 // Blog Routes
 app.get("/api/blogs", BlogController.getAllBlogs);
-app.get("/api/blogs/:id", BlogController.getBlogById);
-app.get("/api/blogs/author/:authorId", BlogController.getBlogsByAuthorId);
-app.get("/api/blogs/relations/:id", BlogController.getBlogWithRelations);
+app.get("/api/blogs/my", authController.verifyToken, BlogController.getMyBlogs);
 app.get("/api/blogs/published", BlogController.getPublishedBlogs);
 app.get("/api/blogs/hidden", authController.verifyToken, BlogController.getHiddenBlogs);
 app.get("/api/blogs/search", BlogController.searchBlogs);
+app.get("/api/blogs/author/:authorId", BlogController.getBlogsByAuthorId);
+app.get("/api/blogs/relations/:id", BlogController.getBlogWithRelations);
+app.get("/api/blogs/:id", BlogController.getBlogById);
 app.post("/api/blogs", authController.verifyToken, BlogController.createBlog);
 app.put("/api/blogs/:id", authController.verifyToken, BlogController.updateBlog);
 app.delete("/api/blogs/:id", authController.verifyToken, BlogController.deleteBlog);
