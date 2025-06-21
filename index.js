@@ -40,6 +40,8 @@ const ConsultantSlotController = require("./Controller/consultantSlotController"
 const BookingSessionController = require("./Controller/bookingSessionController");
 const ProgramController = require("./Controller/programController");
 const ContentController = require("./Controller/contentController");
+const BlogController = require("./Controller/blogController");
+const FlagController = require("./Controller/flagController");
 
 // ==================== APP SETUP ====================
 const app = express();
@@ -197,6 +199,34 @@ app.put("/api/content/:id", authController.verifyToken, ContentController.update
 app.delete("/api/content/:id", authController.verifyToken, ContentController.deleteContent);
 app.put("/api/content/order", authController.verifyToken, ContentController.updateContentOrder);
 app.get("/api/content/:id/parsed-metadata", ContentController.getParsedMetadataContentById);
+
+// Blog Routes
+app.get("/api/blogs", BlogController.getAllBlogs);
+app.get("/api/blogs/:id", BlogController.getBlogById);
+app.get("/api/blogs/author/:authorId", BlogController.getBlogsByAuthorId);
+app.get("/api/blogs/relations/:id", BlogController.getBlogWithRelations);
+app.get("/api/blogs/published", BlogController.getPublishedBlogs);
+app.get("/api/blogs/hidden", authController.verifyToken, BlogController.getHiddenBlogs);
+app.get("/api/blogs/search", BlogController.searchBlogs);
+app.post("/api/blogs", authController.verifyToken, BlogController.createBlog);
+app.put("/api/blogs/:id", authController.verifyToken, BlogController.updateBlog);
+app.delete("/api/blogs/:id", authController.verifyToken, BlogController.deleteBlog);
+app.patch("/api/blogs/:id/status", authController.verifyToken, BlogController.updateBlogStatus);
+app.patch("/api/blogs/:id/hide", authController.verifyToken, BlogController.hideBlog);
+
+// Flag Routes
+app.get("/api/flags", authController.verifyStaffOrAdmin, FlagController.getAllFlags);
+app.get("/api/flags/:id", authController.verifyStaffOrAdmin, FlagController.getFlagById);
+app.get("/api/flags/blog/:blogId", authController.verifyStaffOrAdmin, FlagController.getFlagsByBlogId);
+app.get("/api/flags/user/:userId", authController.verifyStaffOrAdmin, FlagController.getFlagsByUser);
+app.get("/api/flags/relations/:id", authController.verifyStaffOrAdmin, FlagController.getFlagWithRelations);
+app.get("/api/flags/most-flagged", authController.verifyStaffOrAdmin, FlagController.getMostFlaggedBlogs);
+app.get("/api/flags/banned-users", authController.verifyStaffOrAdmin, FlagController.getBannedUsers);
+app.post("/api/flags", authController.verifyStaffOrAdmin, FlagController.createFlag);
+app.put("/api/flags/:id", authController.verifyStaffOrAdmin, FlagController.updateFlag);
+app.delete("/api/flags/:id", authController.verifyStaffOrAdmin, FlagController.deleteFlag);
+app.delete("/api/flags/blog/:blogId", authController.verifyStaffOrAdmin, FlagController.clearBlogFlags);
+app.patch("/api/flags/unban/:userId", authController.verifyStaffOrAdmin, FlagController.unbanUser);
 
 // Test Route
 app.get("/api/test-profile", authController.verifyToken, (req, res) => {

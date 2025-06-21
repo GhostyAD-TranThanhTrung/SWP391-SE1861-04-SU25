@@ -179,13 +179,15 @@ class FlagController {
    */
   static async createFlag(req, res) {
     try {
-      const { blog_id, flagged_by, reason } = req.body;
+      const { blog_id, reason } = req.body;
+      // Get flagged_by from the authenticated user token
+      const flagged_by = req.user.userId;
 
       // Validate required fields
-      if (!blog_id || !flagged_by) {
+      if (!blog_id) {
         return res.status(400).json({
           success: false,
-          message: "Blog ID and flagged_by user ID are required",
+          message: "Blog ID is required",
         });
       }
 
@@ -205,7 +207,7 @@ class FlagController {
       // Check if user exists
       const userRepository = AppDataSource.getRepository(User);
       const user = await userRepository.findOne({
-        where: { user_id: parseInt(flagged_by) },
+        where: { user_id: flagged_by },
       });
 
       if (!user) {
@@ -220,7 +222,7 @@ class FlagController {
       const existingFlag = await flagRepository.findOne({
         where: {
           blog_id: parseInt(blog_id),
-          flagged_by: parseInt(flagged_by),
+          flagged_by: flagged_by,
         },
       });
 
@@ -234,12 +236,55 @@ class FlagController {
       // Create new flag with current date
       const newFlag = flagRepository.create({
         blog_id: parseInt(blog_id),
-        flagged_by: parseInt(flagged_by),
+        flagged_by: flagged_by,
         reason,
         created_at: new Date(),
       });
 
       const savedFlag = await flagRepository.save(newFlag);
+
+      // Check if the blog author has more than 5 flagged posts
+      if (blog.author_id) {
+        // Count flagged posts by this author
+        const query = `
+          SELECT COUNT(DISTINCT b.blog_id) as flagged_count
+          FROM Blogs b
+          JOIN Flags f ON b.blog_id = f.blog_id
+          WHERE b.author_id = @0
+        `;
+        
+        const [result] = await AppDataSource.query(query, [blog.author_id]);
+        const flaggedCount = result ? result.flagged_count : 0;
+        
+        console.log(`Author ${blog.author_id} has ${flaggedCount} flagged posts`);
+        
+        // If author has more than 5 flagged posts, ban the user
+        if (flaggedCount >= 5) {
+          // Get the author user
+          const author = await userRepository.findOne({
+            where: { user_id: blog.author_id }
+          });
+          
+          if (author) {
+            // Update user status to banned
+            author.status = 'banned';
+            await userRepository.save(author);
+            
+            console.log(`User ${blog.author_id} has been banned for having ${flaggedCount} flagged posts`);
+            
+            // Return success with additional info about the ban
+            return res.status(201).json({
+              success: true,
+              data: savedFlag,
+              message: "Blog flagged successfully",
+              authorBanned: true,
+              authorId: blog.author_id,
+              flaggedPostsCount: flaggedCount,
+              banMessage: `Author (ID: ${blog.author_id}) has been banned for having ${flaggedCount} flagged posts`
+            });
+          }
+        }
+      }
 
       res.status(201).json({
         success: true,
@@ -430,6 +475,115 @@ class FlagController {
       res.status(500).json({
         success: false,
         message: "Failed to clear blog flags",
+        error: error.message,
+      });
+    }
+  }
+
+  /**
+   * Get users banned due to flags
+   */
+  static async getBannedUsers(req, res) {
+    try {
+      // Query to get users who are banned and have at least 5 flagged posts
+      const query = `
+        SELECT 
+          u.user_id,
+          u.email,
+          u.role,
+          u.status,
+          p.name,
+          COUNT(DISTINCT b.blog_id) as flagged_posts_count
+        FROM 
+          Users u
+        LEFT JOIN 
+          Profile p ON u.user_id = p.user_id
+        LEFT JOIN 
+          Blogs b ON u.user_id = b.author_id
+        LEFT JOIN 
+          Flags f ON b.blog_id = f.blog_id
+        WHERE 
+          u.status = 'banned'
+        GROUP BY 
+          u.user_id, u.email, u.role, u.status, p.name
+        HAVING 
+          COUNT(DISTINCT b.blog_id) >= 5
+        ORDER BY 
+          flagged_posts_count DESC
+      `;
+
+      const bannedUsers = await AppDataSource.query(query);
+
+      res.status(200).json({
+        success: true,
+        data: bannedUsers,
+        count: bannedUsers.length,
+        message: "Banned users retrieved successfully",
+      });
+    } catch (error) {
+      console.error("Error getting banned users:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to retrieve banned users",
+        error: error.message,
+      });
+    }
+  }
+
+  /**
+   * Unban a user
+   */
+  static async unbanUser(req, res) {
+    try {
+      const { userId } = req.params;
+      
+      if (!userId || isNaN(parseInt(userId))) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid user ID provided",
+        });
+      }
+
+      const userRepository = AppDataSource.getRepository(User);
+      
+      // Check if user exists
+      const user = await userRepository.findOne({
+        where: { user_id: parseInt(userId) }
+      });
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      // Check if user is actually banned
+      if (user.status !== 'banned') {
+        return res.status(400).json({
+          success: false,
+          message: "User is not currently banned",
+        });
+      }
+
+      // Update user status to active
+      user.status = 'active';
+      await userRepository.save(user);
+
+      res.status(200).json({
+        success: true,
+        data: {
+          user_id: user.user_id,
+          email: user.email,
+          status: user.status,
+        },
+        message: `User ${userId} has been unbanned successfully`,
+      });
+    } catch (error) {
+      console.error("Error unbanning user:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to unban user",
         error: error.message,
       });
     }

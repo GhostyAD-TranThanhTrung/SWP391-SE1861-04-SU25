@@ -302,10 +302,10 @@ class BlogController {
       const { id } = req.params;
       const { status } = req.body;
 
-      if (!status || !["draft", "published", "archived"].includes(status)) {
+      if (!status || !["draft", "published", "archived", "hidden"].includes(status)) {
         return res.status(400).json({
           success: false,
-          message: "Valid status is required (draft, published, archived)",
+          message: "Valid status is required (draft, published, archived, hidden)",
         });
       }
 
@@ -343,11 +343,105 @@ class BlogController {
   }
 
   /**
+   * Hide blog
+   */
+  static async hideBlog(req, res) {
+    try {
+      const { id } = req.params;
+      const { reason } = req.body;
+
+      const blogRepository = AppDataSource.getRepository(Blog);
+
+      // Check if blog exists
+      const blog = await blogRepository.findOne({
+        where: { blog_id: parseInt(id) },
+      });
+
+      if (!blog) {
+        return res.status(404).json({
+          success: false,
+          message: "Blog not found",
+        });
+      }
+
+      // Store the previous status in metadata if needed
+      const previousStatus = blog.status;
+      
+      // Update blog status to hidden
+      blog.status = "hidden";
+      
+      // If we have metadata field, we could store the reason and previous status
+      // This assumes the Blog entity has a metadata_json field
+      // If it doesn't, you would need to modify the entity or create a separate table
+      if (blog.metadata_json) {
+        let metadata = {};
+        try {
+          metadata = JSON.parse(blog.metadata_json);
+        } catch (e) {
+          metadata = {};
+        }
+        
+        metadata.hidden_reason = reason || "No reason provided";
+        metadata.hidden_at = new Date().toISOString();
+        metadata.previous_status = previousStatus;
+        
+        blog.metadata_json = JSON.stringify(metadata);
+      }
+
+      const updatedBlog = await blogRepository.save(blog);
+
+      res.status(200).json({
+        success: true,
+        data: updatedBlog,
+        message: "Blog hidden successfully",
+        previousStatus,
+      });
+    } catch (error) {
+      console.error("Error hiding blog:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to hide blog",
+        error: error.message,
+      });
+    }
+  }
+
+  /**
+   * Get hidden blogs
+   */
+  static async getHiddenBlogs(req, res) {
+    try {
+      const blogRepository = AppDataSource.getRepository(Blog);
+
+      const blogs = await blogRepository.find({
+        where: { status: "hidden" },
+        order: {
+          created_at: "DESC",
+        },
+      });
+
+      res.status(200).json({
+        success: true,
+        data: blogs,
+        count: blogs.length,
+        message: "Hidden blogs retrieved successfully",
+      });
+    } catch (error) {
+      console.error("Error getting hidden blogs:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to retrieve hidden blogs",
+        error: error.message,
+      });
+    }
+  }
+
+  /**
    * Search blogs by title or content
    */
   static async searchBlogs(req, res) {
     try {
-      const { query } = req.query;
+      const { query, includeHidden } = req.query;
 
       if (!query) {
         return res.status(400).json({
@@ -357,12 +451,17 @@ class BlogController {
       }
 
       const blogRepository = AppDataSource.getRepository(Blog);
-
-      const blogs = await blogRepository
+      let queryBuilder = blogRepository
         .createQueryBuilder("blog")
         .where("blog.title LIKE :query", { query: `%${query}%` })
-        .orWhere("blog.body LIKE :query", { query: `%${query}%` })
-        .getMany();
+        .orWhere("blog.body LIKE :query", { query: `%${query}%` });
+
+      // Exclude hidden blogs by default unless explicitly requested
+      if (includeHidden !== 'true') {
+        queryBuilder = queryBuilder.andWhere("blog.status != :status", { status: "hidden" });
+      }
+
+      const blogs = await queryBuilder.getMany();
 
       res.status(200).json({
         success: true,

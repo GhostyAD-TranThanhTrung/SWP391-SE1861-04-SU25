@@ -35,6 +35,16 @@ const Blog = new EntitySchema({
             type: "varchar",
             length: 50,
             nullable: true
+        },
+        img_link: {
+            type: "nvarchar",
+            length: "MAX",
+            nullable: true
+        },
+        metadata_json: {
+            type: "nvarchar",
+            length: "MAX",
+            nullable: true
         }
     },
     relations: {

@@ -240,6 +240,30 @@ class AuthController {
   }
 
   /**
+   * Middleware to verify if user is staff, manager, or admin
+   */
+  static verifyStaffOrAdmin(req, res, next) {
+    // First verify the token
+    AuthController.verifyToken(req, res, () => {
+      // Check if user role is staff, manager, or admin
+      const role = req.user.role ? req.user.role.toLowerCase() : '';
+      
+      if (role === 'staff' || role === 'manager' || role === 'admin') {
+        // User is authorized, proceed to the next middleware
+        next();
+      } else {
+        // User is not authorized
+        return res.status(403).json({
+          success: false,
+          error: "Access denied. You do not have permission to perform this action.",
+          requiredRole: "staff, manager, or admin",
+          yourRole: req.user.role
+        });
+      }
+    });
+  }
+
+  /**
    * Get authenticated user profile
    */
   static async getUserProfile(req, res) {
