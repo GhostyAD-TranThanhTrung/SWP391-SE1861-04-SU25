@@ -39,6 +39,7 @@ const ActionController = require("./Controller/actionController");
 const ConsultantSlotController = require("./Controller/consultantSlotController");
 const BookingSessionController = require("./Controller/bookingSessionController");
 const ProgramController = require("./Controller/programController");
+const ContentController = require("./Controller/contentController");
 
 // ==================== APP SETUP ====================
 const app = express();
@@ -46,6 +47,10 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Static file serving
+app.use('/content', express.static('SWP391-SE1861-04-SU25/content'));
+app.use('/uploads', express.static('SWP391-SE1861-04-SU25/public/uploads'));
 
 // Swagger Documentation
 app.use(
@@ -139,6 +144,7 @@ app.get("/api/consultant-slots/:consultantId", ConsultantSlotController.getSlots
 app.get("/api/booking-sessions/me", authController.verifyToken, BookingSessionController.getBookingSessionsByMember); // toàn bộ booking session
 app.get("/api/booking-sessions/scheduled", authController.verifyToken, BookingSessionController.getScheduledBookingSessions);// chỉ lấy đang có lịch lịch hạn trong tương lailai
 app.post("/api/booking-sessions", authController.verifyToken, BookingSessionController.createBookingSession);
+app.patch("/api/booking-sessions/confirm/:id", authController.verifyToken, BookingSessionController.confirmBookingSession);
 
 // Assessment Routes
 app.get('/api/assessments', authController.verifyToken, AssessmentController.getAllAssessments);
@@ -176,6 +182,21 @@ app.get("/api/programs/search", ProgramController.searchPrograms);
 app.get("/api/programs/:id/statistics", ProgramController.getProgramStatistics);
 app.get("/api/programs/recent", ProgramController.getRecentPrograms);
 app.get("/api/programs/popular", ProgramController.getPopularPrograms);
+
+// Content Routes
+app.get("/api/content", ContentController.getAllContent);
+app.get("/api/content/:id", ContentController.getContentById);
+app.get("/api/content/program/:programId", ContentController.getContentByProgramId);
+app.get("/api/content/type/:type", ContentController.getContentByType);
+app.get("/api/content/content-type/:contentType", ContentController.getContentByContentType);
+app.get("/api/content/file/:id", ContentController.getContentFile);
+app.get("/api/content/program-details/:programId", ContentController.getContentWithProgramDetails);
+app.get("/api/content/search/filter", ContentController.getContentByTitleTypeAndOrder);
+app.post("/api/content", authController.verifyToken, ContentController.createContent);
+app.put("/api/content/:id", authController.verifyToken, ContentController.updateContent);
+app.delete("/api/content/:id", authController.verifyToken, ContentController.deleteContent);
+app.put("/api/content/order", authController.verifyToken, ContentController.updateContentOrder);
+app.get("/api/content/:id/parsed-metadata", ContentController.getParsedMetadataContentById);
 
 // Test Route
 app.get("/api/test-profile", authController.verifyToken, (req, res) => {

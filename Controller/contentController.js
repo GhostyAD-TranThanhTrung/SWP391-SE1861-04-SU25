@@ -5,6 +5,8 @@
 const AppDataSource = require("../src/data-source");
 const Content = require("../src/entities/Content");
 const Program = require("../src/entities/Program");
+const fs = require('fs');
+const path = require('path');
 
 class ContentController {
   /**
@@ -467,6 +469,271 @@ class ContentController {
       res.status(500).json({
         success: false,
         message: "Failed to retrieve and parse content metadata",
+        error: error.message,
+      });
+    }
+  }
+
+  /**
+   * Get content by content_type
+   */
+  static async getContentByContentType(req, res) {
+    try {
+      const { contentType } = req.params;
+      const contentRepository = AppDataSource.getRepository(Content);
+
+      const content = await contentRepository.find({
+        where: { content_type: contentType },
+        order: {
+          orders: "ASC",
+        },
+      });
+
+      res.status(200).json({
+        success: true,
+        data: content,
+        count: content.length,
+        message: `Content with content_type '${contentType}' retrieved successfully`,
+      });
+    } catch (error) {
+      console.error("Error getting content by content_type:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to retrieve content by content_type",
+        error: error.message,
+      });
+    }
+  }
+
+  /**
+   * Get content file based on content_file_link
+   */
+  static async getContentFile(req, res) {
+    try {
+      const { id } = req.params;
+      const contentRepository = AppDataSource.getRepository(Content);
+      
+      const content = await contentRepository.findOne({
+        where: { content_id: parseInt(id) }
+      });
+
+      if (!content) {
+        return res.status(404).json({
+          success: false,
+          message: "Content not found"
+        });
+      }
+
+      const fileLink = content.content_file_link;
+      
+      // Handle different types of links
+      if (fileLink.startsWith('http://') || fileLink.startsWith('https://')) {
+        // For external links, redirect
+        return res.redirect(fileLink);
+      } else {
+        // For local files
+        try {
+          // Remove leading slash if present
+          const normalizedPath = fileLink.startsWith('/') ? fileLink.substring(1) : fileLink;
+          const filePath = path.join(process.cwd(), normalizedPath);
+          
+          // Check if file exists
+          if (!fs.existsSync(filePath)) {
+            return res.status(404).json({
+              success: false,
+              message: "Content file not found on server"
+            });
+          }
+
+          // For markdown files, send the content
+          if (content.content_type === 'markdown') {
+            const fileContent = fs.readFileSync(filePath, 'utf8');
+            return res.status(200).json({
+              success: true,
+              data: {
+                content: fileContent,
+                metadata: content.content_metadata_json ? JSON.parse(content.content_metadata_json) : null
+              },
+              message: "Content file retrieved successfully"
+            });
+          }
+          
+          // For other file types, send the file
+          res.sendFile(filePath);
+        } catch (fileError) {
+          console.error("Error reading content file:", fileError);
+          res.status(500).json({
+            success: false,
+            message: "Failed to retrieve content file",
+            error: fileError.message
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error getting content file:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to retrieve content file",
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Get content with program details
+   */
+  static async getContentWithProgramDetails(req, res) {
+    try {
+      const { programId } = req.params;
+      
+      const contentQuery = `
+        SELECT 
+          c.content_id,
+          c.program_id,
+          c.title,
+          c.type,
+          c.orders,
+          c.content_file_link,
+          c.content_type,
+          c.content_metadata_json,
+          p.title as program_title,
+          p.description as program_description,
+          p.img_link as program_img_link,
+          p.status as program_status,
+          p.age_group as program_age_group,
+          cat.description as category_description
+        FROM Content c
+        JOIN Programs p ON c.program_id = p.program_id
+        LEFT JOIN Category cat ON p.category_id = cat.category_id
+        WHERE c.program_id = @0
+        ORDER BY c.orders ASC
+      `;
+
+      const contentItems = await AppDataSource.query(contentQuery, [parseInt(programId)]);
+
+      if (!contentItems || contentItems.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: `No content found for program ID ${programId}`
+        });
+      }
+
+      // Group content by program
+      const programDetails = {
+        program_id: contentItems[0].program_id,
+        title: contentItems[0].program_title,
+        description: contentItems[0].program_description,
+        img_link: contentItems[0].program_img_link,
+        status: contentItems[0].program_status,
+        age_group: contentItems[0].program_age_group,
+        category: contentItems[0].category_description,
+        content: contentItems.map(item => ({
+          content_id: item.content_id,
+          title: item.title,
+          type: item.type,
+          orders: item.orders,
+          content_file_link: item.content_file_link,
+          content_type: item.content_type,
+          content_metadata_json: item.content_metadata_json ? JSON.parse(item.content_metadata_json) : null
+        }))
+      };
+
+      res.status(200).json({
+        success: true,
+        data: programDetails,
+        message: `Content with program details for program ID ${programId} retrieved successfully`
+      });
+    } catch (error) {
+      console.error("Error getting content with program details:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to retrieve content with program details",
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Get content by title, type, and order
+   */
+  static async getContentByTitleTypeAndOrder(req, res) {
+    try {
+      const { title, type, orderBy, direction } = req.query;
+      const contentRepository = AppDataSource.getRepository(Content);
+      
+      // Build query conditions
+      const whereConditions = {};
+      const queryParams = [];
+      let whereClause = '';
+      let index = 0;
+      
+      if (title) {
+        whereClause += `${index > 0 ? ' AND ' : ''}c.title LIKE @${index}`;
+        queryParams.push(`%${title}%`);
+        index++;
+      }
+      
+      if (type) {
+        whereClause += `${index > 0 ? ' AND ' : ''}c.type = @${index}`;
+        queryParams.push(type);
+        index++;
+      }
+      
+      // Set default order if not provided
+      const validOrderColumns = ['title', 'type', 'orders', 'content_type'];
+      const orderColumn = validOrderColumns.includes(orderBy) ? orderBy : 'orders';
+      const orderDirection = direction === 'DESC' ? 'DESC' : 'ASC';
+      
+      // Build the SQL query
+      let query = `
+        SELECT 
+          c.content_id,
+          c.program_id,
+          c.title,
+          c.type,
+          c.orders,
+          c.content_file_link,
+          c.content_type,
+          c.content_metadata_json,
+          p.title as program_title
+        FROM Content c
+        LEFT JOIN Programs p ON c.program_id = p.program_id
+      `;
+      
+      if (whereClause) {
+        query += ` WHERE ${whereClause}`;
+      }
+      
+      query += ` ORDER BY c.${orderColumn} ${orderDirection}`;
+      
+      console.log('Query:', query);
+      console.log('Params:', queryParams);
+      
+      const content = await AppDataSource.query(query, queryParams);
+      
+      // Process content_metadata_json for each item
+      const processedContent = content.map(item => ({
+        ...item,
+        content_metadata_json: item.content_metadata_json ? JSON.parse(item.content_metadata_json) : null
+      }));
+      
+      res.status(200).json({
+        success: true,
+        data: processedContent,
+        count: processedContent.length,
+        message: 'Content retrieved successfully',
+        filters: {
+          title: title || null,
+          type: type || null,
+          orderBy: orderColumn,
+          direction: orderDirection
+        }
+      });
+    } catch (error) {
+      console.error("Error getting filtered content:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to retrieve filtered content",
         error: error.message,
       });
     }

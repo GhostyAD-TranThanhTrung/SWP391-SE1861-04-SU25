@@ -128,9 +128,9 @@ INSERT INTO Assessments (user_id, type, result_json, create_at, action_id) VALUE
 
 -- Insert Content
 INSERT INTO Content (program_id, title, type, orders, content_file_link, content_type, content_metadata_json) VALUES
-(1, 'Understanding Mental Health', 'article', 1, 'https://example.com/article1.md', 'markdown', '{"author": "Dr. Smith", "readingTime": "5 min"}'),
-(2, 'Stress Relief Techniques', 'video', 1, 'https://example.com/video1.mp4', 'video', '{"duration": "15:30", "format": "mp4"}'),
-(3, 'Morning Meditation', 'podcast', 1, 'https://example.com/podcast1.mp3', 'audio', '{"duration": "20:00", "format": "mp3"}');
+(1, 'Understanding Mental Health', 'article', 1, '/content/markdown/article1.md', 'markdown', '{"author": "Dr. Smith", "readingTime": "5 min"}'),
+(2, 'Stress Relief Techniques', 'video', 1, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "15:30", "format": "mp4"}'),
+(3, 'Morning Meditation', 'podcast', 1, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'audio', '{"duration": "20:00", "format": "mp3"}');
 
 -- Insert Surveys
 INSERT INTO Surveys (program_id, type, questions_json) VALUES
