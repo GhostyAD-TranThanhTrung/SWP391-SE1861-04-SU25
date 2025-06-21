@@ -193,7 +193,7 @@ app.get("/api/content/type/:type", ContentController.getContentByType);
 app.get("/api/content/content-type/:contentType", ContentController.getContentByContentType);
 app.get("/api/content/file/:id", ContentController.getContentFile);
 app.get("/api/content/program-details/:programId", ContentController.getContentWithProgramDetails);
-app.get("/api/content/search/filter", ContentController.getContentByTitleTypeAndOrder);
+app.get("/api/content/search/filter", ContentController.getContentByTitleTypeAndOrder); // lấy tất cả content theo title, type, và order
 app.post("/api/content", authController.verifyToken, ContentController.createContent);
 app.put("/api/content/:id", authController.verifyToken, ContentController.updateContent);
 app.delete("/api/content/:id", authController.verifyToken, ContentController.deleteContent);
@@ -202,7 +202,7 @@ app.get("/api/content/:id/parsed-metadata", ContentController.getParsedMetadataC
 
 // Blog Routes
 app.get("/api/blogs", BlogController.getAllBlogs);
-app.get("/api/blogs/my", authController.verifyToken, BlogController.getMyBlogs);
+app.get("/api/blogs/my", authController.verifyToken, BlogController.getMyBlogs); // lấy tất cả blog của user đang đăng nhập
 app.get("/api/blogs/published", BlogController.getPublishedBlogs);
 app.get("/api/blogs/hidden", authController.verifyToken, BlogController.getHiddenBlogs);
 app.get("/api/blogs/search", BlogController.searchBlogs);
