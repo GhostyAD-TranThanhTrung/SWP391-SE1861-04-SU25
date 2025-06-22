@@ -9,6 +9,7 @@
 const express = require("express");
 const cors = require("cors");
 const sql = require("mssql");
+const path = require("path");
 const swaggerUi = require("swagger-ui-express");
 const swaggerDocument = require("./swagger.json");
 
@@ -193,7 +194,7 @@ app.get("/api/content/type/:type", ContentController.getContentByType);
 app.get("/api/content/content-type/:contentType", ContentController.getContentByContentType);
 app.get("/api/content/file/:id", ContentController.getContentFile);
 app.get("/api/content/program-details/:programId", ContentController.getContentWithProgramDetails);
-app.get("/api/content/search/filter", ContentController.getContentByTitleTypeAndOrder); // lấy tất cả content theo title, type, và order
+app.get("/api/content/preview/:program_id", ContentController.getPreviewContent); // lấy preview content theo program_id (chỉ title, type, orders)
 app.post("/api/content", authController.verifyToken, ContentController.createContent);
 app.put("/api/content/:id", authController.verifyToken, ContentController.updateContent);
 app.delete("/api/content/:id", authController.verifyToken, ContentController.deleteContent);
@@ -212,6 +213,8 @@ app.get("/api/blogs/author/:authorId", BlogController.getBlogsByAuthorId);
 app.get("/api/blogs/relations/:id", BlogController.getBlogWithRelations);
 app.get("/api/blogs/:id", BlogController.getBlogById);
 app.post("/api/blogs", authController.verifyToken, BlogController.createBlog);
+app.post("/api/blogs/with-image", authController.verifyToken, ...BlogController.createBlogWithImage); // New route for blogs with images
+app.get("/api/blog/image/:filename", BlogController.getBlogImage); // Route to serve blog images with fallback
 app.put("/api/blogs/:id", authController.verifyToken, BlogController.updateBlog);
 app.delete("/api/blogs/:id", authController.verifyToken, BlogController.deleteBlog);
 app.patch("/api/blogs/:id/status", authController.verifyToken, BlogController.updateBlogStatus);

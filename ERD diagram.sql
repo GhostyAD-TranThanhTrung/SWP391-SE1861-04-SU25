@@ -23,9 +23,9 @@ CREATE TABLE Users (
   user_id INT IDENTITY(1,1) PRIMARY KEY,
   img_link NVARCHAR(MAX),
   date_create DATETIME NOT NULL DEFAULT GETDATE(),
-  role VARCHAR(50) NOT NULL,
+  role NVARCHAR(50) NOT NULL,
   password NVARCHAR(255) NOT NULL,
-  status VARCHAR(20) NOT NULL CHECK (status IN ('active', 'inactive', 'banned')),
+  status NVARCHAR(20) NOT NULL CHECK (status IN ('active', 'inactive', 'banned')),
   email NVARCHAR(255) NOT NULL UNIQUE
 );
 
@@ -50,7 +50,7 @@ CREATE TABLE Slot (
 CREATE TABLE Consultant_Slot (
   consultant_id INT NOT NULL,
   slot_id INT NOT NULL,
-  day_of_week VARCHAR(20) NOT NULL,
+  day_of_week NVARCHAR(20) NOT NULL,
   PRIMARY KEY (consultant_id, slot_id, day_of_week),
   FOREIGN KEY (consultant_id) REFERENCES Consultant(id_consultant),
   FOREIGN KEY (slot_id) REFERENCES Slot(slot_id)
@@ -89,7 +89,7 @@ CREATE TABLE Blogs (
   title NVARCHAR(255),
   body NVARCHAR(MAX),
   created_at DATETIME,
-  status VARCHAR(50),
+  status NVARCHAR(50),
   img_link NVARCHAR(MAX),
   FOREIGN KEY (author_id) REFERENCES Users(user_id)
 );
@@ -114,14 +114,14 @@ CREATE TABLE Action (
   action_id INT IDENTITY(1,1) PRIMARY KEY,
   description NVARCHAR(MAX),
   range INT,
-  type VARCHAR(50)
+  type NVARCHAR(50)
 );
 
 -- ASSESSMENTS
 CREATE TABLE Assessments (
   assessment_id INT IDENTITY(1,1) PRIMARY KEY,
   user_id INT,
-  type VARCHAR(50),
+  type NVARCHAR(50),
   result_json NVARCHAR(MAX),
   create_at DATETIME,
   action_id INT,
@@ -142,8 +142,8 @@ CREATE TABLE Programs (
   title NVARCHAR(255),
   description NVARCHAR(MAX),
   create_by INT,
-  status VARCHAR(50),
-  age_group VARCHAR(50),
+  status NVARCHAR(50),
+  age_group NVARCHAR(50),
   create_at DATETIME,
   category_id INT,
   FOREIGN KEY (create_by) REFERENCES Users(user_id),
@@ -154,10 +154,10 @@ CREATE TABLE Content (
     content_id INT IDENTITY(1,1) PRIMARY KEY,
     program_id INT,
     title NVARCHAR(255),
-    type VARCHAR(50),
+    type NVARCHAR(50),
     orders INT,
     content_file_link NVARCHAR(MAX),
-    content_type VARCHAR(50),
+    content_type NVARCHAR(50),
     content_metadata_json NVARCHAR(MAX),
     FOREIGN KEY (program_id) REFERENCES Programs(program_id)
 );
@@ -179,7 +179,7 @@ CREATE TABLE Enroll (
 CREATE TABLE Surveys (
   survey_id INT IDENTITY(1,1) PRIMARY KEY,
   program_id INT,
-  type VARCHAR(50),
+  type NVARCHAR(50),
   questions_json NVARCHAR(MAX),
   FOREIGN KEY (program_id) REFERENCES Programs(program_id)
 );

@@ -4,26 +4,69 @@
  */
 const AppDataSource = require("../src/data-source");
 const Blog = require("../src/entities/Blog");
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// Configure multer for image uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadPath = 'SWP391-SE1861-04-SU25/public/uploads/blog-images/';
+    // Create directory if it doesn't exist
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    cb(null, uploadPath);
+  },
+  filename: function (req, file, cb) {
+    // Generate unique filename with timestamp
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'blog-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+// File filter for images only
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith('image/')) {
+    cb(null, true);
+  } else {
+    cb(new Error('Only image files are allowed!'), false);
+  }
+};
+
+const upload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  }
+});
 
 class BlogController {
   /**
-   * Get all blogs
+   * Get all published blogs
    */
   static async getAllBlogs(req, res) {
     try {
       const blogRepository = AppDataSource.getRepository(Blog);
-      const blogs = await blogRepository.find();
+      const blogs = await blogRepository.find({
+        where: { status: "published" },
+        order: {
+          created_at: "DESC",
+        },
+      });
 
       res.status(200).json({
         success: true,
         data: blogs,
-        message: "Blogs retrieved successfully",
+        count: blogs.length,
+        message: "Published blogs retrieved successfully",
       });
     } catch (error) {
-      console.error("Error getting blogs:", error);
+      console.error("Error getting published blogs:", error);
       res.status(500).json({
         success: false,
-        message: "Failed to retrieve blogs",
+        message: "Failed to retrieve published blogs",
         error: error.message,
       });
     }
@@ -173,11 +216,95 @@ class BlogController {
   }
 
   /**
-   * Create new blog
+   * Create new blog with optional image upload
+   */
+  static createBlogWithImage = [
+    upload.single('image'),
+    async (req, res) => {
+      try {
+        const { title, body, status = "draft" } = req.body;
+
+        // Get user ID from the verified token (set by verifyToken middleware)
+        const userId = req.user.userId;
+
+        if (!userId) {
+          return res.status(401).json({
+            success: false,
+            message: "Authentication required",
+          });
+        }
+
+        // Validate required fields
+        if (!title || !body) {
+          return res.status(400).json({
+            success: false,
+            message: "Title and body are required",
+          });
+        }
+
+        const blogRepository = AppDataSource.getRepository(Blog);
+
+        // Handle image upload
+        let imgLink = null;
+        if (req.file) {
+          // Store relative path for database
+          imgLink = `/uploads/blog-images/${req.file.filename}`;
+        }
+
+        // Create new blog with current date and authenticated user as author
+        const newBlog = blogRepository.create({
+          author_id: parseInt(userId),
+          title,
+          body,
+          created_at: new Date(),
+          status,
+          img_link: imgLink,
+        });
+
+        const savedBlog = await blogRepository.save(newBlog);
+
+        res.status(201).json({
+          success: true,
+          data: savedBlog,
+          message: "Blog created successfully",
+        });
+      } catch (error) {
+        console.error("Error creating blog:", error);
+
+        // Clean up uploaded file if blog creation failed
+        if (req.file) {
+          try {
+            fs.unlinkSync(req.file.path);
+          } catch (unlinkError) {
+            console.error("Error deleting uploaded file:", unlinkError);
+          }
+        }
+
+        res.status(500).json({
+          success: false,
+          message: "Failed to create blog",
+          error: error.message,
+        });
+      }
+    }
+  ];
+
+  /**
+   * Create new blog (legacy method for backward compatibility)
    */
   static async createBlog(req, res) {
     try {
-      const { author_id, title, body, status = "draft" } = req.body;
+      const { title, body, status = "draft" } = req.body;
+
+      // Get user ID from the verified token (set by verifyToken middleware)
+      const userId = req.user.userId;
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: "Authentication required",
+        });
+      }
 
       // Validate required fields
       if (!title || !body) {
@@ -189,13 +316,14 @@ class BlogController {
 
       const blogRepository = AppDataSource.getRepository(Blog);
 
-      // Create new blog with current date
+      // Create new blog with current date and authenticated user as author
       const newBlog = blogRepository.create({
-        author_id: author_id ? parseInt(author_id) : null,
+        author_id: parseInt(userId),
         title,
         body,
         created_at: new Date(),
         status,
+        img_link: null,
       });
 
       const savedBlog = await blogRepository.save(newBlog);
@@ -266,6 +394,16 @@ class BlogController {
     try {
       const { id } = req.params;
 
+      // Get user ID from the verified token (set by verifyToken middleware)
+      const userId = req.user.userId;
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: "Authentication required",
+        });
+      }
+
       if (!id || isNaN(parseInt(id))) {
         return res.status(400).json({
           success: false,
@@ -284,6 +422,14 @@ class BlogController {
         return res.status(404).json({
           success: false,
           message: "Blog not found",
+        });
+      }
+
+      // Check if user is the author of the blog
+      if (blog.author_id !== parseInt(userId)) {
+        return res.status(403).json({
+          success: false,
+          message: "You can only delete your own blogs",
         });
       }
 
@@ -346,6 +492,16 @@ class BlogController {
       const { id } = req.params;
       const { status } = req.body;
 
+      // Get user ID from the verified token (set by verifyToken middleware)
+      const userId = req.user.userId;
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: "Authentication required",
+        });
+      }
+
       if (!status || !["draft", "published", "archived", "hidden"].includes(status)) {
         return res.status(400).json({
           success: false,
@@ -364,6 +520,14 @@ class BlogController {
         return res.status(404).json({
           success: false,
           message: "Blog not found",
+        });
+      }
+
+      // Check if user is the author of the blog
+      if (blog.author_id !== parseInt(userId)) {
+        return res.status(403).json({
+          success: false,
+          message: "You can only update your own blogs",
         });
       }
 
@@ -543,6 +707,47 @@ class BlogController {
         error: error.message,
       });
     }
+  }
+
+  /**
+   * Get blog image with fallback to placeholder
+   */
+  static async getBlogImage(req, res) {
+    try {
+      const { filename } = req.params;
+      const imagePath = path.join(__dirname, '../SWP391-SE1861-04-SU25/public/uploads/blog-images/', filename);
+      const placeholderPath = path.join(__dirname, '../SWP391-SE1861-04-SU25/public/uploads/blog-images/placeholder.jpg');
+
+      // Check if image exists
+      if (fs.existsSync(imagePath)) {
+        res.sendFile(imagePath);
+      } else {
+        // Send placeholder if image doesn't exist
+        if (fs.existsSync(placeholderPath)) {
+          res.sendFile(placeholderPath);
+        } else {
+          // Create a simple placeholder response if no placeholder file exists
+          res.status(404).json({
+            success: false,
+            message: "Image not found",
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error serving blog image:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to serve image",
+        error: error.message,
+      });
+    }
+  }
+
+  /**
+   * Middleware function to export
+   */
+  static getUploadMiddleware() {
+    return upload.single('image');
   }
 }
 

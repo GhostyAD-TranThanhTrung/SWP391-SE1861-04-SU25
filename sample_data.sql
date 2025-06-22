@@ -97,9 +97,15 @@ INSERT INTO Category (description) VALUES
 
 -- Insert Programs
 INSERT INTO Programs (img_link, title, description, create_by, status, age_group, create_at, category_id) VALUES
-('https://example.com/img1.jpg', 'Mental Health Basics', 'Introduction to mental health concepts', 1, 'active', '18-25', GETDATE(), 1),
-('https://example.com/img2.jpg', 'Stress Management', 'Learn how to manage stress effectively', 1, 'active', '18-25', GETDATE(), 2),
-('https://example.com/img3.jpg', 'Mindfulness Meditation', 'Guided meditation sessions', 1, 'active', '18-25', GETDATE(), 3);
+('https://example.com/img1.jpg', 'Mental Health Basics', 'Introduction to mental health concepts and understanding psychological wellbeing', 1, 'active', '18-25', GETDATE(), 1),
+('https://example.com/img2.jpg', 'Stress Management', 'Learn how to manage stress effectively through proven techniques and strategies', 1, 'active', '18-25', GETDATE(), 2),
+('https://example.com/img3.jpg', 'Mindfulness Meditation', 'Guided meditation sessions for inner peace and mental clarity', 1, 'active', '18-25', GETDATE(), 3),
+('https://example.com/img4.jpg', 'Addiction Recovery Fundamentals', 'Comprehensive guide to understanding and overcoming addiction', 1, 'active', '18+', GETDATE(), 1),
+('https://example.com/img5.jpg', 'Youth Prevention Program', 'Evidence-based prevention strategies for teenagers and young adults', 1, 'active', '13-18', GETDATE(), 2),
+('https://example.com/img6.jpg', 'Family Support System', 'Building strong family bonds and communication skills', 1, 'active', 'All Ages', GETDATE(), 3),
+('https://example.com/img7.jpg', 'Cognitive Behavioral Therapy', 'Learn CBT techniques for managing thoughts and behaviors', 1, 'active', '18+', GETDATE(), 1),
+('https://example.com/img8.jpg', 'Workplace Wellness', 'Creating healthy work environments and managing professional stress', 1, 'active', '22-65', GETDATE(), 2),
+('https://example.com/img9.jpg', 'Crisis Intervention Training', 'Essential skills for handling mental health emergencies', 1, 'active', '18+', GETDATE(), 3);
 
 -- Insert User Enrollments
 INSERT INTO Enroll (user_id, program_id, start_at, progress) VALUES
@@ -128,9 +134,68 @@ INSERT INTO Assessments (user_id, type, result_json, create_at, action_id) VALUE
 
 -- Insert Content
 INSERT INTO Content (program_id, title, type, orders, content_file_link, content_type, content_metadata_json) VALUES
-(1, 'Understanding Mental Health', 'article', 1, '/content/markdown/article1.md', 'markdown', '{"author": "Dr. Smith", "readingTime": "5 min"}'),
-(2, 'Stress Relief Techniques', 'video', 1, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "15:30", "format": "mp4"}'),
-(3, 'Morning Meditation', 'podcast', 1, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'audio', '{"duration": "20:00", "format": "mp3"}');
+-- Program 1: Mental Health Basics (5 content items)
+(1, 'Understanding Mental Health', 'article', 1, '/content/markdown/mental-health-intro.md', 'markdown', '{"author": "Dr. Smith", "readingTime": "8 min", "difficulty": "beginner"}'),
+(1, 'Common Mental Health Conditions', 'video', 2, 'https://example.com/videos/mental-conditions.mp4', 'video', '{"duration": "12:45", "format": "mp4", "instructor": "Dr. Johnson"}'),
+(1, 'Building Emotional Resilience', 'article', 3, '/content/markdown/emotional-resilience.md', 'markdown', '{"author": "Dr. Williams", "readingTime": "10 min", "difficulty": "intermediate"}'),
+(1, 'Mental Health Self-Assessment Quiz', 'article', 4, '/content/markdown/self-assessment-quiz.md', 'markdown', '{"author": "Dr. Assessment", "readingTime": "15 min", "questions": 20, "type": "quiz"}'),
+(1, 'Daily Mental Wellness Practices', 'podcast', 5, 'https://example.com/podcasts/daily-wellness.mp3', 'audio', '{"duration": "18:30", "format": "mp3", "host": "Sarah Chen"}'),
+
+-- Program 2: Stress Management (5 content items)
+(2, 'Understanding Stress and Its Impact', 'article', 1, '/content/markdown/stress-impact.md', 'markdown', '{"author": "Dr. Brown", "readingTime": "7 min", "difficulty": "beginner"}'),
+(2, 'Breathing Techniques for Stress Relief', 'video', 2, 'https://example.com/videos/breathing-techniques.mp4', 'video', '{"duration": "10:20", "format": "mp4", "instructor": "Maria Lopez"}'),
+(2, 'Progressive Muscle Relaxation', 'video', 3, 'https://example.com/videos/muscle-relaxation.mp4', 'video', '{"duration": "25:15", "format": "mp4", "instructor": "Dr. Taylor"}'),
+(2, 'Stress Management Workbook Guide', 'article', 4, '/content/markdown/stress-workbook.md', 'markdown', '{"author": "Stress Coach Emma", "readingTime": "25 min", "exercises": 12, "type": "workbook"}'),
+(2, 'Expert Interview: Managing Chronic Stress', 'podcast', 5, 'https://example.com/podcasts/chronic-stress.mp3', 'audio', '{"duration": "45:00", "format": "mp3", "guest": "Dr. Anderson"}'),
+
+-- Program 3: Mindfulness Meditation (5 content items)
+(3, 'Introduction to Mindfulness', 'article', 1, '/content/markdown/mindfulness-intro.md', 'markdown', '{"author": "Zen Master Kim", "readingTime": "6 min", "difficulty": "beginner"}'),
+(3, 'Basic Breathing Meditation', 'video', 2, 'https://example.com/videos/breathing-meditation.mp4', 'video', '{"duration": "15:00", "format": "mp4", "instructor": "Master Chen"}'),
+(3, 'Body Scan Meditation', 'podcast', 3, 'https://example.com/podcasts/body-scan.mp3', 'audio', '{"duration": "20:00", "format": "mp3", "guide": "Lisa Park"}'),
+(3, 'Walking Meditation Practice', 'video', 4, 'https://example.com/videos/walking-meditation.mp4', 'video', '{"duration": "18:30", "format": "mp4", "location": "outdoor"}'),
+(3, 'Advanced Mindfulness Techniques', 'video', 5, 'https://example.com/videos/advanced-mindfulness.mp4', 'video', '{"duration": "40:00", "format": "mp4", "techniques": 8, "level": "advanced"}'),
+
+-- Program 4: Addiction Recovery Fundamentals (5 content items)
+(4, 'Understanding Addiction Science', 'article', 1, '/content/markdown/addiction-science.md', 'markdown', '{"author": "Dr. Martinez", "readingTime": "12 min", "difficulty": "intermediate"}'),
+(4, 'The Recovery Process: What to Expect', 'video', 2, 'https://example.com/videos/recovery-process.mp4', 'video', '{"duration": "22:15", "format": "mp4", "expert": "Dr. Wilson"}'),
+(4, 'Building a Support Network', 'article', 3, '/content/markdown/support-network.md', 'markdown', '{"author": "Recovery Coach Tom", "readingTime": "9 min", "difficulty": "beginner"}'),
+(4, 'Relapse Prevention Strategies Training', 'video', 4, 'https://example.com/videos/relapse-prevention.mp4', 'video', '{"duration": "35:00", "format": "mp4", "strategies": 15, "type": "training"}'),
+(4, 'Recovery Stories: Real Experiences', 'podcast', 5, 'https://example.com/podcasts/recovery-stories.mp3', 'audio', '{"duration": "55:00", "format": "mp3", "stories": 3}'),
+
+-- Program 5: Youth Prevention Program (5 content items)
+(5, 'Teen Brain Development and Risk', 'article', 1, '/content/markdown/teen-brain.md', 'markdown', '{"author": "Dr. Youth", "readingTime": "8 min", "ageGroup": "13-18"}'),
+(5, 'Peer Pressure: How to Say No', 'video', 2, 'https://example.com/videos/peer-pressure.mp4', 'video', '{"duration": "14:20", "format": "mp4", "scenarios": 5}'),
+(5, 'Healthy Coping Mechanisms for Teens', 'article', 3, '/content/markdown/teen-coping.md', 'markdown', '{"author": "Teen Counselor Alex", "readingTime": "7 min", "tips": 10}'),
+(5, 'Decision-Making Scenarios Workshop', 'video', 4, 'https://example.com/videos/decision-scenarios.mp4', 'video', '{"duration": "25:00", "format": "mp4", "scenarios": 12, "type": "workshop"}'),
+(5, 'Parent-Teen Communication Tips', 'podcast', 5, 'https://example.com/podcasts/parent-teen.mp3', 'audio', '{"duration": "30:00", "format": "mp3", "tips": 8}'),
+
+-- Program 6: Family Support System (5 content items)
+(6, 'Understanding Family Dynamics', 'article', 1, '/content/markdown/family-dynamics.md', 'markdown', '{"author": "Family Therapist Jane", "readingTime": "10 min", "focus": "communication"}'),
+(6, 'Effective Communication Techniques', 'video', 2, 'https://example.com/videos/family-communication.mp4', 'video', '{"duration": "18:45", "format": "mp4", "techniques": 6}'),
+(6, 'Setting Healthy Boundaries', 'article', 3, '/content/markdown/healthy-boundaries.md', 'markdown', '{"author": "Dr. Boundaries", "readingTime": "9 min", "examples": 5}'),
+(6, 'Family Meeting Facilitation Guide', 'article', 4, '/content/markdown/family-meetings.md', 'markdown', '{"author": "Family Guide Pro", "readingTime": "20 min", "steps": 8, "type": "guide"}'),
+(6, 'Healing Family Relationships', 'podcast', 5, 'https://example.com/podcasts/family-healing.mp3', 'audio', '{"duration": "40:00", "format": "mp3", "cases": 4}'),
+
+-- Program 7: Cognitive Behavioral Therapy (5 content items)
+(7, 'CBT Fundamentals and Principles', 'article', 1, '/content/markdown/cbt-fundamentals.md', 'markdown', '{"author": "Dr. CBT Expert", "readingTime": "11 min", "principles": 6}'),
+(7, 'Identifying Thought Patterns', 'video', 2, 'https://example.com/videos/thought-patterns.mp4', 'video', '{"duration": "16:30", "format": "mp4", "exercises": 4}'),
+(7, 'Challenging Negative Thoughts Workshop', 'video', 3, 'https://example.com/videos/thought-challenging.mp4', 'video', '{"duration": "28:00", "format": "mp4", "worksheets": 6, "type": "workshop"}'),
+(7, 'Behavioral Activation Techniques', 'video', 4, 'https://example.com/videos/behavioral-activation.mp4', 'video', '{"duration": "20:15", "format": "mp4", "activities": 8}'),
+(7, 'CBT Success Stories and Case Studies', 'podcast', 5, 'https://example.com/podcasts/cbt-success.mp3', 'audio', '{"duration": "35:00", "format": "mp3", "cases": 5}'),
+
+-- Program 8: Workplace Wellness (5 content items)
+(8, 'Creating a Healthy Work Environment', 'article', 1, '/content/markdown/workplace-health.md', 'markdown', '{"author": "HR Specialist Lisa", "readingTime": "9 min", "strategies": 7}'),
+(8, 'Managing Work-Related Stress', 'video', 2, 'https://example.com/videos/work-stress.mp4', 'video', '{"duration": "19:20", "format": "mp4", "techniques": 5}'),
+(8, 'Work-Life Balance Strategies', 'article', 3, '/content/markdown/work-life-balance.md', 'markdown', '{"author": "Balance Coach Mike", "readingTime": "8 min", "tips": 12}'),
+(8, 'Workplace Wellness Assessment Guide', 'article', 4, '/content/markdown/wellness-assessment.md', 'markdown', '{"author": "Wellness Expert Kate", "readingTime": "15 min", "questions": 25, "type": "assessment"}'),
+(8, 'Building Resilient Teams', 'podcast', 5, 'https://example.com/podcasts/resilient-teams.mp3', 'audio', '{"duration": "42:00", "format": "mp3", "strategies": 10}'),
+
+-- Program 9: Crisis Intervention Training (5 content items)
+(9, 'Recognizing Mental Health Crises', 'article', 1, '/content/markdown/crisis-recognition.md', 'markdown', '{"author": "Crisis Expert Dr. Red", "readingTime": "10 min", "signs": 15}'),
+(9, 'De-escalation Techniques', 'video', 2, 'https://example.com/videos/de-escalation.mp4', 'video', '{"duration": "24:30", "format": "mp4", "scenarios": 6}'),
+(9, 'Safety Planning and Risk Assessment Training', 'video', 3, 'https://example.com/videos/safety-planning.mp4', 'video', '{"duration": "30:00", "format": "mp4", "tools": 4, "type": "training"}'),
+(9, 'Emergency Response Protocols', 'video', 4, 'https://example.com/videos/emergency-protocols.mp4', 'video', '{"duration": "17:45", "format": "mp4", "protocols": 8}'),
+(9, 'Post-Crisis Support and Follow-up', 'podcast', 5, 'https://example.com/podcasts/post-crisis.mp3', 'audio', '{"duration": "38:00", "format": "mp3", "approaches": 6}');
 
 -- Insert Surveys
 INSERT INTO Surveys (program_id, type, questions_json) VALUES

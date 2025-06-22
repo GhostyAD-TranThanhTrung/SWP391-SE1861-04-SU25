@@ -183,8 +183,8 @@ class ContentController {
         orders: orders ? parseInt(orders) : null,
         content_file_link,
         content_type,
-        content_metadata_json: typeof content_metadata_json === "object" 
-          ? JSON.stringify(content_metadata_json) 
+        content_metadata_json: typeof content_metadata_json === "object"
+          ? JSON.stringify(content_metadata_json)
           : content_metadata_json
       });
 
@@ -512,7 +512,7 @@ class ContentController {
     try {
       const { id } = req.params;
       const contentRepository = AppDataSource.getRepository(Content);
-      
+
       const content = await contentRepository.findOne({
         where: { content_id: parseInt(id) }
       });
@@ -525,7 +525,7 @@ class ContentController {
       }
 
       const fileLink = content.content_file_link;
-      
+
       // Handle different types of links
       if (fileLink.startsWith('http://') || fileLink.startsWith('https://')) {
         // For external links, redirect
@@ -536,7 +536,7 @@ class ContentController {
           // Remove leading slash if present
           const normalizedPath = fileLink.startsWith('/') ? fileLink.substring(1) : fileLink;
           const filePath = path.join(process.cwd(), normalizedPath);
-          
+
           // Check if file exists
           if (!fs.existsSync(filePath)) {
             return res.status(404).json({
@@ -557,7 +557,7 @@ class ContentController {
               message: "Content file retrieved successfully"
             });
           }
-          
+
           // For other file types, send the file
           res.sendFile(filePath);
         } catch (fileError) {
@@ -585,7 +585,7 @@ class ContentController {
   static async getContentWithProgramDetails(req, res) {
     try {
       const { programId } = req.params;
-      
+
       const contentQuery = `
         SELECT 
           c.content_id,
@@ -654,86 +654,42 @@ class ContentController {
   }
 
   /**
-   * Get content by title, type, and order
-   */
-  static async getContentByTitleTypeAndOrder(req, res) {
+ * Get preview content by program_id - returns only Title, Type, and Order
+ */
+  static async getPreviewContent(req, res) {
     try {
-      const { title, type, orderBy, direction } = req.query;
+      const { program_id } = req.params;
+
+      if (!program_id) {
+        return res.status(400).json({
+          success: false,
+          message: "Program ID is required"
+        });
+      }
+
       const contentRepository = AppDataSource.getRepository(Content);
-      
-      // Build query conditions
-      const whereConditions = {};
-      const queryParams = [];
-      let whereClause = '';
-      let index = 0;
-      
-      if (title) {
-        whereClause += `${index > 0 ? ' AND ' : ''}c.title LIKE @${index}`;
-        queryParams.push(`%${title}%`);
-        index++;
-      }
-      
-      if (type) {
-        whereClause += `${index > 0 ? ' AND ' : ''}c.type = @${index}`;
-        queryParams.push(type);
-        index++;
-      }
-      
-      // Set default order if not provided
-      const validOrderColumns = ['title', 'type', 'orders', 'content_type'];
-      const orderColumn = validOrderColumns.includes(orderBy) ? orderBy : 'orders';
-      const orderDirection = direction === 'DESC' ? 'DESC' : 'ASC';
-      
-      // Build the SQL query
-      let query = `
-        SELECT 
-          c.content_id,
-          c.program_id,
-          c.title,
-          c.type,
-          c.orders,
-          c.content_file_link,
-          c.content_type,
-          c.content_metadata_json,
-          p.title as program_title
-        FROM Content c
-        LEFT JOIN Programs p ON c.program_id = p.program_id
-      `;
-      
-      if (whereClause) {
-        query += ` WHERE ${whereClause}`;
-      }
-      
-      query += ` ORDER BY c.${orderColumn} ${orderDirection}`;
-      
-      console.log('Query:', query);
-      console.log('Params:', queryParams);
-      
-      const content = await AppDataSource.query(query, queryParams);
-      
-      // Process content_metadata_json for each item
-      const processedContent = content.map(item => ({
-        ...item,
-        content_metadata_json: item.content_metadata_json ? JSON.parse(item.content_metadata_json) : null
-      }));
-      
+
+      // Get content for the specified program, ordered by 'orders' field
+      const content = await contentRepository.find({
+        where: { program_id: parseInt(program_id) },
+        select: ["title", "type", "orders"],
+        order: { orders: "ASC" }
+      });
+
+      console.log(`Retrieved ${content.length} content items for program ${program_id}`);
+
       res.status(200).json({
         success: true,
-        data: processedContent,
-        count: processedContent.length,
-        message: 'Content retrieved successfully',
-        filters: {
-          title: title || null,
-          type: type || null,
-          orderBy: orderColumn,
-          direction: orderDirection
-        }
+        data: content,
+        count: content.length,
+        message: 'Content preview retrieved successfully',
+        program_id: parseInt(program_id)
       });
     } catch (error) {
-      console.error("Error getting filtered content:", error);
+      console.error("Error getting preview content:", error);
       res.status(500).json({
         success: false,
-        message: "Failed to retrieve filtered content",
+        message: "Failed to retrieve preview content",
         error: error.message,
       });
     }
