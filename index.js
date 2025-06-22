@@ -201,6 +201,8 @@ app.put("/api/content/order", authController.verifyToken, ContentController.upda
 app.get("/api/content/:id/parsed-metadata", ContentController.getParsedMetadataContentById);
 
 // Blog Routes
+app.get("/api/blogs/page/:page", BlogController.BlogPagination)
+
 app.get("/api/blogs", BlogController.getAllBlogs);
 app.get("/api/blogs/my", authController.verifyToken, BlogController.getMyBlogs); // lấy tất cả blog của user đang đăng nhập
 app.get("/api/blogs/published", BlogController.getPublishedBlogs);

@@ -449,7 +449,29 @@ class BlogController {
       });
     }
   }
-
+  static async BlogPagination(req, res) {
+    try {
+      const { page = 1 } = req.params;
+      const blogRepository = AppDataSource.getRepository(Blog);
+      const result = await blogRepository.createQueryBuilder("blog")
+        .orderBy("blog.created_at", "DESC")
+        .offset((page - 1) * 6)
+        .limit(6)
+        .getMany()
+      return res.status(200).json({
+        success: true,
+        data: result,
+        message: "Blogs paginated successfully"
+      })
+    } catch (error) {
+      console.error("Error in BlogPagination:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to paginate blogs",
+        error: error.message,
+      })
+    }
+  }
   /**
    * Get hidden blogs
    */
