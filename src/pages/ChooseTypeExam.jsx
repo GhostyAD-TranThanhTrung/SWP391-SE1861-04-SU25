@@ -26,15 +26,19 @@ const ChooseTypeExam = () => {
             subtitle: 'Công Cụ Sàng Lọc WHO',
             description: 'Một công cụ sàng lọc toàn diện được phát triển bởi WHO để xác định các mô hình sử dụng chất và rủi ro sức khỏe liên quan.',
             features: ['Đánh giá nhanh 15 câu hỏi', 'Kết quả dựa trên bằng chứng', 'Xác định mức độ rủi ro'],
-            icon: 'bi-clipboard-check'
+            icon: 'bi-clipboard-check',
+            resourceLink: 'https://www.sbirtoregon.org/wp-content/uploads/Modified-ASSIST-English-pdf.pdf',
+            resourceTitle: 'Hướng dẫn ASSIST chính thức'
         },
         {
             id: 'CRAFFT',
-            title: 'Bài Đánh Giá CRAFFT',
+            title: 'Bài Đánh Giá CRAFFT 2.1',
             subtitle: 'Sức Khỏe Hành Vi Thanh Thiếu Niên',
             description: 'Một công cụ sàng lọc sức khỏe hành vi chuyên biệt được thiết kế đặc biệt cho thanh thiếu niên và người trẻ tuổi.',
             features: ['Câu hỏi phù hợp với độ tuổi', 'Tập trung vào hành vi', 'Sàng lọc bảo mật'],
-            icon: 'bi-person-hearts'
+            icon: 'bi-person-hearts',
+            resourceLink: 'https://crafft.org/wp-content/uploads/2021/10/CRAFFT_2.1_Provider-Manual_2021.10.28.pdf',
+            resourceTitle: 'Hướng dẫn CRAFFT 2.1 chính thức'
         }
     ];
 
@@ -96,6 +100,22 @@ const ChooseTypeExam = () => {
                                                 </li>
                                             ))}
                                         </ul>
+                                        {exam.resourceLink && (
+                                            <div className="resource-section mt-3">
+                                                <div className="resource-divider"></div>
+                                                <a
+                                                    href={exam.resourceLink}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="resource-link"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    <i className="bi bi-file-pdf me-2"></i>
+                                                    {exam.resourceTitle}
+                                                    <i className="bi bi-box-arrow-up-right ms-2"></i>
+                                                </a>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>

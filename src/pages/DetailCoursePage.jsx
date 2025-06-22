@@ -7,7 +7,9 @@ const DetailCoursePage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [program, setProgram] = useState(null);
+    const [contentPreview, setContentPreview] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [contentLoading, setContentLoading] = useState(true);
     const [error, setError] = useState(null);
     const [enrolling, setEnrolling] = useState(false);
 
@@ -25,7 +27,28 @@ const DetailCoursePage = () => {
                 setLoading(false);
             }
         };
+
+        const fetchContentPreview = async () => {
+            setContentLoading(true);
+            try {
+                const res = await fetch(`http://localhost:3000/api/content/preview/${id}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setContentPreview(data.data || []);
+                } else {
+                    console.warn('Không thể tải nội dung preview');
+                    setContentPreview([]);
+                }
+            } catch (err) {
+                console.error('Lỗi khi tải content preview:', err);
+                setContentPreview([]);
+            } finally {
+                setContentLoading(false);
+            }
+        };
+
         fetchProgram();
+        fetchContentPreview();
     }, [id]);
 
     const handleEnroll = async () => {
@@ -183,8 +206,43 @@ const DetailCoursePage = () => {
                 </div>
                 <div className="detailcourse-content-card">
                     <div className="detailcourse-content">
-                        {program.content ? (
-                            <div dangerouslySetInnerHTML={{ __html: program.content }} />
+                        {contentLoading ? (
+                            <div className="content-loading">
+                                <div className="loading-spinner"></div>
+                                <p>Đang tải nội dung khóa học...</p>
+                            </div>
+                        ) : contentPreview.length > 0 ? (
+                            <div className="content-preview-list">
+                                <div className="preview-header">
+                                    <h3>Danh sách nội dung ({contentPreview.length} mục)</h3>
+                                </div>
+                                {contentPreview.map((content, index) => (
+                                    <div key={index} className="content-preview-item">
+                                        <div className="content-order">
+                                            <span className="order-number">{content.orders}</span>
+                                        </div>
+                                        <div className="content-info">
+                                            <h4 className="content-title">{content.title}</h4>
+                                            <div className="content-type-badge">
+                                                <span className={`type-badge ${content.type}`}>
+                                                    {content.type === 'article' && '📄'}
+                                                    {content.type === 'video' && '🎥'}
+                                                    {content.type === 'podcast' && '🎧'}
+                                                    {content.type === 'module' && '📚'}
+                                                    {!['article', 'video', 'podcast', 'module'].includes(content.type) && '📝'}
+                                                    {content.type}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="content-actions">
+                                            <button className="preview-btn" disabled>
+                                                <span className="preview-icon">👁️</span>
+                                                Xem trước
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         ) : (
                             <div className="no-content">
                                 <span className="no-content-icon">📝</span>

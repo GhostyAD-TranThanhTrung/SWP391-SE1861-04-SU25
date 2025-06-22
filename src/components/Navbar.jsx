@@ -45,6 +45,23 @@ const Navbar = () => {
         return location.pathname === path;
     };
 
+    // Helper function to truncate email
+    const truncateEmail = (email, maxLength = 20) => {
+        if (!email) return '';
+        if (email.length <= maxLength) return email;
+
+        const [localPart, domain] = email.split('@');
+        if (!domain) return email;
+
+        // If local part is too long, truncate it
+        if (localPart.length > maxLength - domain.length - 4) { // -4 for '@' and '...'
+            const truncatedLocal = localPart.substring(0, Math.max(1, maxLength - domain.length - 4));
+            return `${truncatedLocal}...@${domain}`;
+        }
+
+        return email;
+    };
+
     return (
         <nav className="navbar fixed-top navbar-expand-lg custom-navbar">
             <div className="container-fluid">
@@ -158,7 +175,7 @@ const Navbar = () => {
                                 aria-label={`Menu người dùng cho ${email}`}
                             >
                                 <i className="bi bi-person-circle me-2" style={{ fontSize: '1.5rem' }}></i>
-                                <span className="navbar-text email-truncate" title={email}>{email}</span>
+                                <span className="navbar-text email-truncate" title={email}>{truncateEmail(email)}</span>
                                 <i className="bi bi-chevron-down ms-1"></i>
                             </button>
                             <ul className="dropdown-menu dropdown-menu-end custom-dropdown">

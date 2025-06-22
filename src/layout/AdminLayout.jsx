@@ -1,4 +1,4 @@
-import HeaderAdmin from "../components/HeaderAdmin";
+import Navbar from "../components/Navbar";
 import SidebarAdmin from "../components/SidebarAdmin";
 import "../styles/AdminLayout.scss";
 import { useState } from "react";
@@ -8,7 +8,7 @@ const AdminLayout = ({ children }) => {
 
   return (
     <div className="layout-main">
-      <HeaderAdmin toggleSidebar={() => setIsSidebarOpen((prev) => !prev)} />
+      <Navbar />
 
       <div className="main-content">
         <div className={`sidebar ${isSidebarOpen ? "open" : "closed"}`}>
