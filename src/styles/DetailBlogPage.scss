@@ -1,0 +1,40 @@
+.detail-blog-page {
+    .blog-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+
+    .blog-meta {
+        font-size: 1rem;
+        color: #6c757d;
+    }
+
+    .blog-image img {
+        max-height: 450px;
+        object-fit: cover;
+        border-radius: 12px;
+    }
+
+    .blog-content {
+        font-size: 1.1rem;
+        line-height: 1.7;
+        color: #333;
+
+        p {
+            margin-bottom: 1rem;
+        }
+
+        h2,
+        h3 {
+            margin-top: 2rem;
+            font-weight: 600;
+        }
+
+        ul,
+        ol {
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+    }
+}

@@ -1,60 +1,92 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/BlogPage.scss';
 import Image from '../images/Images.jpg';
 
 const BlogPage = () => {
-    const posts = [
-        {
-            title: 'Lạm dụng chất kích thích: Nhận thức & Phòng ngừa',
-            date: '31/05/2025',
-            author: 'Bác sĩ Sarah Johnson',
-            image: Image,
-            excerpt: 'Tìm hiểu về các chiến lược và phương pháp mới nhất để phòng ngừa lạm dụng chất kích thích trong cộng đồng.',
-            id: 1
-        },
-        {
-            title: '12 cách phòng ngừa lạm dụng ma túy',
-            date: '28/05/2025',
-            author: 'Michael Chen',
-            image: Image,
-            excerpt: 'Những mẹo thực tế và phương pháp dựa trên bằng chứng để giúp phòng ngừa lạm dụng ma túy ở thanh thiếu niên và người lớn.',
-            id: 2
-        },
-        {
-            title: 'Nhận thức về lạm dụng ma túy',
-            date: '25/05/2025',
-            author: 'Lisa Rodriguez',
-            image: Image,
-            excerpt: 'Hiểu về các dấu hiệu, triệu chứng và tác động của lạm dụng ma túy đối với cá nhân và gia đình.',
-            id: 3
-        },
-        {
-            title: 'Tác động của việc sử dụng ma túy lâu dài',
-            date: '22/05/2025',
-            author: 'Bác sĩ Sarah Johnson',
-            image: Image,
-            excerpt: 'Phân tích toàn diện về các tác động thể chất, tinh thần và xã hội của việc sử dụng chất kích thích kéo dài.',
-            id: 4
-        },
-        {
-            title: 'Xây dựng khả năng phục hồi chống lại nghiện ngập',
-            date: '19/05/2025',
-            author: 'Michael Chen',
-            image: Image,
-            excerpt: 'Chiến lược phát triển khả năng phục hồi cá nhân và cộng đồng để phòng ngừa nghiện ngập.',
-            id: 5
-        },
-        {
-            title: 'Hỗ trợ hành trình phục hồi',
-            date: '16/05/2025',
-            author: 'Lisa Rodriguez',
-            image: Image,
-            excerpt: 'Cách gia đình và cộng đồng có thể cung cấp hỗ trợ hiệu quả trong quá trình phục hồi.',
-            id: 6
-        },
-    ];
+    const [posts, setPosts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
+    useEffect(() => {
+        const fetchBlogs = async () => {
+            try {
+                setLoading(true);
+                const response = await fetch('http://localhost:3000/api/blogs', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (!response.ok) {
+
+                    throw new Error('Không thể tải dữ liệu blog');
+                }
+
+                const data = await response.json();
+                setPosts(data.data);
+                setError(null);
+            } catch (err) {
+                console.error('Lỗi khi tải dữ liệu blog:', err);
+                setError('Có lỗi xảy ra khi tải dữ liệu blog');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchBlogs();
+    }, []);
+
+    // Loading state
+    if (loading) {
+        return (
+            <div className="blog-page">
+                <div className="container" style={{ paddingTop: '5rem', paddingBottom: '5rem' }}>
+                    <div className="text-center">
+                        <div className="spinner-border text-primary" role="status">
+                            <span className="visually-hidden">Đang tải...</span>
+                        </div>
+                        <p className="mt-3">Đang tải dữ liệu blog...</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Error state
+    if (error) {
+        return (
+            <div className="blog-page">
+                <div className="container" style={{ paddingTop: '5rem', paddingBottom: '5rem' }}>
+                    <div className="text-center">
+                        <div className="alert alert-warning" role="alert">
+                            <i className="bi bi-exclamation-triangle me-2"></i>
+                            {error}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Empty state
+    if (!posts.length) {
+        return (
+            <div className="blog-page">
+                <div className="container" style={{ paddingTop: '5rem', paddingBottom: '5rem' }}>
+                    <div className="text-center">
+                        <div className="alert alert-info" role="alert">
+                            <i className="bi bi-info-circle me-2"></i>
+                            Hiện tại chưa có bài viết nào.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Data available
     const featuredPost = posts[0];
     const regularPosts = posts.slice(1);
 
@@ -89,7 +121,7 @@ const BlogPage = () => {
                         <div className="row align-items-center">
                             <div className="col-lg-4">
                                 <div className="featured-image">
-                                    <img src={featuredPost.image} alt={featuredPost.title} className="img-fluid rounded-3" />
+                                    <img src={featuredPost.image || Image} alt={featuredPost.title} className="img-fluid rounded-3" />
                                 </div>
                             </div>
                             <div className="col-lg-8">
@@ -97,13 +129,13 @@ const BlogPage = () => {
                                     <h3 className="featured-title">{featuredPost.title}</h3>
                                     <p className="featured-meta">
                                         <i className="bi bi-calendar me-2"></i>
-                                        {featuredPost.date}
+                                        {featuredPost.date || featuredPost.createdAt}
                                         <span className="mx-2">|</span>
                                         <i className="bi bi-person me-2"></i>
-                                        {featuredPost.author}
+                                        {featuredPost.author || 'Tác giả'}
                                     </p>
-                                    <p className="featured-excerpt">{featuredPost.excerpt}</p>
-                                    <Link to={`/blog/${featuredPost.id}`} className="btn btn-primary">
+                                    <p className="featured-excerpt">{featuredPost.excerpt || featuredPost.content}</p>
+                                    <Link to={`/blog/${featuredPost.blog_id}`} className="btn btn-primary">
                                         <i className="bi bi-arrow-right me-2"></i>
                                         Đọc thêm
                                     </Link>
@@ -114,38 +146,40 @@ const BlogPage = () => {
                 </section>
 
                 {/* Latest Articles Section */}
-                <section className="articles-section mb-5">
-                    <div className="section-header text-center mb-5">
-                        <h2 className="section-title">Bài viết mới nhất</h2>
-                        <p className="section-subtitle">Cập nhật với những thông tin chi tiết và nghiên cứu mới nhất của chúng tôi</p>
-                    </div>
+                {regularPosts.length > 0 && (
+                    <section className="articles-section mb-5">
+                        <div className="section-header text-center mb-5">
+                            <h2 className="section-title">Bài viết mới nhất</h2>
+                            <p className="section-subtitle">Cập nhật với những thông tin chi tiết và nghiên cứu mới nhất của chúng tôi</p>
+                        </div>
 
-                    <div className="row">
-                        {regularPosts.map((post) => (
-                            <div key={post.id} className="col-lg-4 col-md-6 mb-4">
-                                <div className="article-card">
-                                    <div className="article-image">
-                                        <img src={post.image} alt={post.title} className="img-fluid" />
-                                    </div>
-                                    <div className="article-content">
-                                        <h4 className="article-title">{post.title}</h4>
-                                        <p className="article-meta">
-                                            <i className="bi bi-calendar me-2"></i>
-                                            {post.date}
-                                            <span className="mx-2">|</span>
-                                            <i className="bi bi-person me-2"></i>
-                                            {post.author}
-                                        </p>
-                                        <p className="article-excerpt">{post.excerpt}</p>
-                                        <Link to={`/blog/${post.id}`} className="btn btn-outline-primary">
-                                            Đọc bài viết
-                                        </Link>
+                        <div className="row">
+                            {regularPosts.map((post) => (
+                                <div key={post.id} className="col-lg-4 col-md-6 mb-4">
+                                    <div className="article-card">
+                                        <div className="article-image">
+                                            <img src={post.image || Image} alt={post.title} className="img-fluid" />
+                                        </div>
+                                        <div className="article-content">
+                                            <h4 className="article-title">{post.title}</h4>
+                                            <p className="article-meta">
+                                                <i className="bi bi-calendar me-2"></i>
+                                                {post.date || post.createdAt}
+                                                <span className="mx-2">|</span>
+                                                <i className="bi bi-person me-2"></i>
+                                                {post.author || 'Tác giả'}
+                                            </p>
+                                            <p className="article-excerpt">{post.excerpt || post.content}</p>
+                                            <Link to={`/blog/${post.blog_id}`} className="btn btn-outline-primary">
+                                                Đọc bài viết
+                                            </Link>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
-                </section>
+                            ))}
+                        </div>
+                    </section>
+                )}
 
                 {/* Pagination */}
                 <section className="pagination-section">
