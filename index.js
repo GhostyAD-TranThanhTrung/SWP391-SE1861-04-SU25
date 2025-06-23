@@ -43,6 +43,7 @@ const ProgramController = require("./Controller/programController");
 const ContentController = require("./Controller/contentController");
 const BlogController = require("./Controller/blogController");
 const FlagController = require("./Controller/flagController");
+const EnrollController = require("./Controller/enrollController");
 
 // ==================== APP SETUP ====================
 const app = express();
@@ -233,6 +234,32 @@ app.put("/api/flags/:id", authController.verifyStaffOrAdmin, FlagController.upda
 app.delete("/api/flags/:id", authController.verifyStaffOrAdmin, FlagController.deleteFlag);
 app.delete("/api/flags/blog/:blogId", authController.verifyStaffOrAdmin, FlagController.clearBlogFlags);
 app.patch("/api/flags/unban/:userId", authController.verifyStaffOrAdmin, FlagController.unbanUser);
+
+// ==================== ENROLLMENT ROUTES ====================
+// Enrollment management for tracking user progress in programs
+
+// GET Routes - Retrieve enrollment data
+app.get("/api/enrollments", EnrollController.getAllEnrollments); // Get all enrollments (admin/staff only) (use this to check)
+app.get("/api/enrollments/my", authController.verifyToken, EnrollController.getMyEnrollment); // Get current user's enrollments
+app.get("/api/enrollments/user/:userId", authController.verifyToken, EnrollController.getEnrollmentsByUser); // Get enrollments by specific user ID
+app.get("/api/enrollments/program/:programId", authController.verifyToken, EnrollController.getEnrollmentsByProgram); // Get all enrollments for a specific program
+app.get("/api/enrollments/:userId/:programId", authController.verifyToken, EnrollController.getEnrollmentById); // Get specific enrollment by user and program ID
+app.get("/api/enrollments/check/:programId", authController.verifyToken, EnrollController.getCheckMyEnrollment); // Check if current user is enrolled in a specific program
+
+// GET Routes - Filtered enrollment data
+app.get("/api/enrollments/completed", authController.verifyToken, EnrollController.getCompletedEnrollments); // Get all completed enrollments (progress = 100%)
+app.get("/api/enrollments/in-progress", authController.verifyToken, EnrollController.getInProgressEnrollments); // Get all in-progress enrollments (0% < progress < 100%)
+app.get("/api/enrollments/progress-range", authController.verifyToken, EnrollController.getEnrollmentsByProgressRange); // Get enrollments within a progress range (query params: minProgress, maxProgress)
+
+// POST Routes - Create new enrollments
+app.post("/api/enrollments", authController.verifyToken, EnrollController.createEnrollment); // Create new enrollment (requires: user_id, program_id, optional: progress)
+
+// PUT Routes - Update existing enrollments
+app.put("/api/enrollments/:userId/:programId", authController.verifyToken, EnrollController.updateEnrollment); // Update enrollment progress and dates
+app.put("/api/enrollments/:userId/:programId/end-date", authController.verifyToken, EnrollController.updateEnrollmentEndDate); // Mark enrollment as completed and set end date
+
+// DELETE Routes - Remove enrollments
+app.delete("/api/enrollments/:userId/:programId", authController.verifyToken, EnrollController.deleteEnrollment); // Delete specific enrollment
 
 // Test Route
 app.get("/api/test-profile", authController.verifyToken, (req, res) => {
