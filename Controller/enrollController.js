@@ -92,38 +92,58 @@ class EnrollController {
         }
     }
 
-    /**
-     * Get enrollments by program ID
-     */
-    static async getEnrollmentsByProgram(req, res) {
+    static async getMyEnrollment(req, res) {
         try {
-            const { programId } = req.params;
+            const userId = req.user.userId;
             const enrollRepository = AppDataSource.getRepository(Enroll);
             const enrollments = await enrollRepository.find({
-                where: { program_id: parseInt(programId) }
+                where: { user_id: parseInt(userId) }
             });
 
             res.status(200).json({
                 success: true,
                 data: enrollments,
-                message: 'Program enrollments retrieved successfully'
+                message: 'User enrollments retrieved successfully'
             });
         } catch (error) {
-            console.error('Error getting program enrollments:', error);
+            console.error('Error getting user enrollments:', error);
             res.status(500).json({
                 success: false,
-                message: 'Failed to retrieve program enrollments',
+                message: 'Failed to retrieve user enrollments',
                 error: error.message
             });
         }
     }
 
-    /**
-     * Create new enrollment
-     */
+    static async getCheckMyEnrollment(req, res) {
+        try {
+            const userId = req.user.userId;
+            const programId = req.params.programId;
+            const enrollRepository = AppDataSource.getRepository(Enroll);
+            const enrollments = await enrollRepository.find({
+                where: { user_id: parseInt(userId), program_id: parseInt(programId) }
+            });
+
+            res.status(200).json({
+                success: true,
+                data: enrollments,
+                message: 'User enrollments retrieved successfully'
+            });
+        } catch (error) {
+            console.error('Error getting user enrollments:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to retrieve user enrollments',
+                error: error.message
+            });
+        }
+    }
+
     static async createEnrollment(req, res) {
         try {
-            const { user_id, program_id, start_at, complete_at, progress } = req.body;
+            const { user_id, program_id, progress } = req.body;
+            const start_at = new Date();
+            const complete_at = null;
 
             // Validate required fields
             if (!user_id || !program_id) {
@@ -183,6 +203,102 @@ class EnrollController {
             });
         }
     }
+
+    static async updateEnrollmentEndDate(req, res) {
+        try {
+            const { userId, programId } = req.params;
+            const { complete_at } = req.body;
+
+            // Validate required fields
+            if (!userId || !programId) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Missing required fields: userId, programId'
+                });
+            }
+
+            const enrollRepository = AppDataSource.getRepository(Enroll);
+
+            // Check if enrollment exists
+            const enrollment = await enrollRepository.findOne({
+                where: {
+                    user_id: parseInt(userId),
+                    program_id: parseInt(programId)
+                }
+            });
+
+            if (!enrollment) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Enrollment not found'
+                });
+            }
+
+            // Update enrollment end date
+            await enrollRepository.update(
+                {
+                    user_id: parseInt(userId),
+                    program_id: parseInt(programId)
+                },
+                {
+                    complete_at: complete_at ? new Date(complete_at) : new Date(),
+                    progress: complete_at ? 1.0 : enrollment.progress // Set progress to 100% if completion date is set
+                }
+            );
+
+            // Fetch updated enrollment
+            const updatedEnrollment = await enrollRepository.findOne({
+                where: {
+                    user_id: parseInt(userId),
+                    program_id: parseInt(programId)
+                }
+            });
+
+            res.status(200).json({
+                success: true,
+                data: updatedEnrollment,
+                message: 'Enrollment end date updated successfully'
+            });
+        } catch (error) {
+            console.error('Error updating enrollment end date:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to update enrollment end date',
+                error: error.message
+            });
+        }
+    }
+
+    /**
+     * Get enrollments by program ID
+     */
+    static async getEnrollmentsByProgram(req, res) {
+        try {
+            const { programId } = req.params;
+            const enrollRepository = AppDataSource.getRepository(Enroll);
+            const enrollments = await enrollRepository.find({
+                where: { program_id: parseInt(programId) }
+            });
+
+            res.status(200).json({
+                success: true,
+                data: enrollments,
+                message: 'Program enrollments retrieved successfully'
+            });
+        } catch (error) {
+            console.error('Error getting program enrollments:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to retrieve program enrollments',
+                error: error.message
+            });
+        }
+    }
+
+    /**
+     * Create new enrollment
+     */
+
 
     /**
      * Update enrollment progress

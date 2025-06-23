@@ -9,6 +9,7 @@
 const express = require("express");
 const cors = require("cors");
 const sql = require("mssql");
+const path = require("path");
 const swaggerUi = require("swagger-ui-express");
 const swaggerDocument = require("./swagger.json");
 
@@ -42,6 +43,7 @@ const ProgramController = require("./Controller/programController");
 const ContentController = require("./Controller/contentController");
 const BlogController = require("./Controller/blogController");
 const FlagController = require("./Controller/flagController");
+const EnrollController = require("./Controller/enrollController");
 
 // ==================== APP SETUP ====================
 const app = express();
@@ -193,7 +195,7 @@ app.get("/api/content/type/:type", ContentController.getContentByType);
 app.get("/api/content/content-type/:contentType", ContentController.getContentByContentType);
 app.get("/api/content/file/:id", ContentController.getContentFile);
 app.get("/api/content/program-details/:programId", ContentController.getContentWithProgramDetails);
-app.get("/api/content/search/filter", ContentController.getContentByTitleTypeAndOrder); // lấy tất cả content theo title, type, và order
+app.get("/api/content/preview/:program_id", ContentController.getPreviewContent); // lấy preview content theo program_id (chỉ title, type, orders)
 app.post("/api/content", authController.verifyToken, ContentController.createContent);
 app.put("/api/content/:id", authController.verifyToken, ContentController.updateContent);
 app.delete("/api/content/:id", authController.verifyToken, ContentController.deleteContent);
@@ -212,6 +214,8 @@ app.get("/api/blogs/author/:authorId", BlogController.getBlogsByAuthorId);
 app.get("/api/blogs/relations/:id", BlogController.getBlogWithRelations);
 app.get("/api/blogs/:id", BlogController.getBlogById);
 app.post("/api/blogs", authController.verifyToken, BlogController.createBlog);
+app.post("/api/blogs/with-image", authController.verifyToken, ...BlogController.createBlogWithImage); // New route for blogs with images
+app.get("/api/blog/image/:filename", BlogController.getBlogImage); // Route to serve blog images with fallback
 app.put("/api/blogs/:id", authController.verifyToken, BlogController.updateBlog);
 app.delete("/api/blogs/:id", authController.verifyToken, BlogController.deleteBlog);
 app.patch("/api/blogs/:id/status", authController.verifyToken, BlogController.updateBlogStatus);
@@ -230,6 +234,32 @@ app.put("/api/flags/:id", authController.verifyStaffOrAdmin, FlagController.upda
 app.delete("/api/flags/:id", authController.verifyStaffOrAdmin, FlagController.deleteFlag);
 app.delete("/api/flags/blog/:blogId", authController.verifyStaffOrAdmin, FlagController.clearBlogFlags);
 app.patch("/api/flags/unban/:userId", authController.verifyStaffOrAdmin, FlagController.unbanUser);
+
+// ==================== ENROLLMENT ROUTES ====================
+// Enrollment management for tracking user progress in programs
+
+// GET Routes - Retrieve enrollment data
+app.get("/api/enrollments", EnrollController.getAllEnrollments); // Get all enrollments (admin/staff only) (use this to check)
+app.get("/api/enrollments/my", authController.verifyToken, EnrollController.getMyEnrollment); // Get current user's enrollments
+app.get("/api/enrollments/user/:userId", authController.verifyToken, EnrollController.getEnrollmentsByUser); // Get enrollments by specific user ID
+app.get("/api/enrollments/program/:programId", authController.verifyToken, EnrollController.getEnrollmentsByProgram); // Get all enrollments for a specific program
+app.get("/api/enrollments/:userId/:programId", authController.verifyToken, EnrollController.getEnrollmentById); // Get specific enrollment by user and program ID
+app.get("/api/enrollments/check/:programId", authController.verifyToken, EnrollController.getCheckMyEnrollment); // Check if current user is enrolled in a specific program
+
+// GET Routes - Filtered enrollment data
+app.get("/api/enrollments/completed", authController.verifyToken, EnrollController.getCompletedEnrollments); // Get all completed enrollments (progress = 100%)
+app.get("/api/enrollments/in-progress", authController.verifyToken, EnrollController.getInProgressEnrollments); // Get all in-progress enrollments (0% < progress < 100%)
+app.get("/api/enrollments/progress-range", authController.verifyToken, EnrollController.getEnrollmentsByProgressRange); // Get enrollments within a progress range (query params: minProgress, maxProgress)
+
+// POST Routes - Create new enrollments
+app.post("/api/enrollments", authController.verifyToken, EnrollController.createEnrollment); // Create new enrollment (requires: user_id, program_id, optional: progress)
+
+// PUT Routes - Update existing enrollments
+app.put("/api/enrollments/:userId/:programId", authController.verifyToken, EnrollController.updateEnrollment); // Update enrollment progress and dates
+app.put("/api/enrollments/:userId/:programId/end-date", authController.verifyToken, EnrollController.updateEnrollmentEndDate); // Mark enrollment as completed and set end date
+
+// DELETE Routes - Remove enrollments
+app.delete("/api/enrollments/:userId/:programId", authController.verifyToken, EnrollController.deleteEnrollment); // Delete specific enrollment
 
 // Test Route
 app.get("/api/test-profile", authController.verifyToken, (req, res) => {
