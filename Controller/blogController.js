@@ -344,12 +344,30 @@ class BlogController {
   }
 
   /**
-   * Update blog
+   * Update blog with author verification
    */
   static async updateBlog(req, res) {
     try {
       const { id } = req.params;
       const { title, body, status } = req.body;
+
+      // Get user ID from the verified token (set by verifyToken middleware)
+      const userId = req.user.userId;
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: "Authentication required",
+        });
+      }
+
+      // Validate blog ID
+      if (!id || isNaN(parseInt(id))) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid blog ID provided",
+        });
+      }
 
       const blogRepository = AppDataSource.getRepository(Blog);
 
@@ -362,6 +380,30 @@ class BlogController {
         return res.status(404).json({
           success: false,
           message: "Blog not found",
+        });
+      }
+
+      // Check if user is the author of the blog
+      if (blog.author_id !== parseInt(userId)) {
+        return res.status(403).json({
+          success: false,
+          message: "You can only update your own blogs",
+        });
+      }
+
+      // Validate at least one field is provided for update
+      if (title === undefined && body === undefined && status === undefined) {
+        return res.status(400).json({
+          success: false,
+          message: "At least one field (title, body, or status) must be provided for update",
+        });
+      }
+
+      // Validate status if provided
+      if (status !== undefined && !["draft", "published", "archived", "hidden"].includes(status)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid status. Must be one of: draft, published, archived, hidden",
         });
       }
 
