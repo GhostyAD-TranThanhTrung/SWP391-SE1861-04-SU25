@@ -230,40 +230,68 @@ class DashboardController {
    * Returns extended dashboard data with additional statistics
    */
   static async getDetailedDashboard(req, res) {
+    let { startDate, endDate } = req.query;
     try {
       // Use service methods to get basic stats
-      const [
+
+      if (!startDate || !endDate) {
+        // If no dates provided, use current month
+        const currentDate = new Date();
+        startDate = new Date(
+          currentDate.getFullYear(),
+          currentDate.getMonth(),
+          1
+        ).toISOString();
+        endDate = new Date(
+          currentDate.getFullYear(),
+          currentDate.getMonth() + 1,
+          0,
+          23,
+          59,
+          59
+        ).toISOString();
+      }
+
+      let
         totalMonthlyCourseEnrollment,
         monthlyCreatedMember,
         memberActiveCount,
-        totalMonthlyBookingSession,
-        userStats,
-        bookingStats,
-      ] = await Promise.all([
-        DashboardService.getTotalMonthlyCourseEnrollment(),
-        DashboardService.getMonthlyCreatedMembers(),
-        DashboardService.getActiveMembers(),
-        DashboardService.getMonthlyBookingSessions(),
-        DashboardService.getUserStatistics(),
-        DashboardService.getBookingStatistics(),
-      ]);
+        totalMonthlyBookingSession
+      //dynamic data
+      totalMonthlyBookingSession = await AppDataSource.getRepository(BookingSession)
+        .createQueryBuilder("booking")
+        .where("booking.booking_date >= :startDate", { startDate })
+        .andWhere("booking.booking_date <= :endDate", { endDate })
+        .getCount();
+      totalMonthlyCourseEnrollment = await AppDataSource.getRepository(Enroll)
+        .createQueryBuilder("enroll")
+        .select("COUNT(DISTINCT enroll.user_id)", "count")
+        .where("enroll.start_at >= :startDate", { startDate })
+        .andWhere("enroll.start_at <= :endDate", { endDate })
+        .getCount()
+      monthlyCreatedMember = await AppDataSource.getRepository(User)
+        .createQueryBuilder("user")
+        .where("user.date_create >= :startDate", { startDate })
+        .andWhere("user.date_create <= :endDate", { endDate })
+        .andWhere("user.role = :role", { role: "member" })
+        .getCount();
+      memberActiveCount = await AppDataSource.getRepository(User)
+        .createQueryBuilder("user")
+        .where("user.status = :status", { status: "active" })
+        .andWhere("user.date_create >= :startDate", { startDate })
+        .andWhere("user.date_create <= :endDate", { endDate })
+        .andWhere("user.role = :role", { role: "member" })
+        .getCount();
+      //end dynamic data
+      const user = await AppDataSource.getRepository(User).createQueryBuilder("user")
+        .where('user.date_create >= :startDate', { startDate })
+        .andWhere('user.date_create <= :endDate', { endDate })
 
-      // Current month info
-      const currentDate = new Date();
-      const startOfMonth = new Date(
-        currentDate.getFullYear(),
-        currentDate.getMonth(),
-        1
-      );
-      const endOfMonth = new Date(
-        currentDate.getFullYear(),
-        currentDate.getMonth() + 1,
-        0,
-        23,
-        59,
-        59
-      );
+      const user_dis = await AppDataSource.query('select distinct role from Users')
 
+      const booking = await AppDataSource.getRepository(BookingSession).createQueryBuilder("booking")
+        .where("booking.booking_date >= :startDate", { startDate })
+        .andWhere("booking.booking_date <= :endDate", { endDate })
       const detailedData = {
         // Main dashboard metrics (matching the basic endpoint)
         totalMonthlyCourseEnrollment,
@@ -273,29 +301,26 @@ class DashboardController {
 
         // Additional user metrics
         userStats: {
-          total: userStats.totalUsers,
-          active: memberActiveCount,
-          inactive: userStats.inactiveUsers,
-          banned: userStats.bannedUsers,
-          roleDistribution: userStats.roleDistribution,
+          total: await user.getCount(),
+          active: await user.where('user.status = :status', { status: "active" }).getCount(),
+          inactive: await user.where('user.status = :status', { status: "inactive" }).getCount(),
+          banned: await user.where('user.status = :status', { status: "banned" }).getCount(),
+          roleDistribution: await user_dis,
         },
 
         // Booking metrics
         bookingStats: {
-          total: bookingStats.totalBookings,
-          monthly: totalMonthlyBookingSession,
-          pending: bookingStats.pendingBookings,
-          confirmed: bookingStats.confirmedBookings,
-          completed: bookingStats.completedBookings,
-          cancelled: bookingStats.cancelledBookings,
+          total: await booking.getCount(),
+          pending: await booking.where('booking.status = :status ', { status: 'pending' }).getCount(),
+          confirmed: await booking.where('booking.status = :status ', { status: 'confirmed' }).getCount({ where: { status: "confirmed" } }),
+          completed: await booking.where('booking.status = :status ', { status: 'completed' }).getCount({ where: { status: "completed" } }),
+          cancelled: await booking.where('booking.status = :status ', { status: 'cancelled' }).getCount(),
         },
 
-        // Current month info
-        currentMonth: {
-          name: currentDate.toLocaleString("default", { month: "long" }),
-          year: currentDate.getFullYear(),
-          startDate: startOfMonth.toISOString(),
-          endDate: endOfMonth.toISOString(),
+        // Date range info
+        dateRange: {
+          startDate: startDate,
+          endDate: endDate,
         },
       };
 
