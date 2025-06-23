@@ -12,6 +12,9 @@ const DetailCoursePage = () => {
     const [contentLoading, setContentLoading] = useState(true);
     const [error, setError] = useState(null);
     const [enrolling, setEnrolling] = useState(false);
+    const [isEnrolled, setIsEnrolled] = useState(false);
+    const [checkingEnrollment, setCheckingEnrollment] = useState(true);
+    const [userId, setUserId] = useState(null);
 
     useEffect(() => {
         const fetchProgram = async () => {
@@ -47,34 +50,70 @@ const DetailCoursePage = () => {
             }
         };
 
-        fetchProgram();
-        fetchContentPreview();
-    }, [id]);
-
-    const handleEnroll = async () => {
-        setEnrolling(true);
-        try {
-            // Thêm logic enroll ở đây
-            const token = localStorage.getItem('token');
+        const checkEnrollmentStatus = async () => {
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
             if (!token) {
-                navigate('/login');
+                setCheckingEnrollment(false);
                 return;
             }
 
-            const res = await fetch(`http://localhost:3000/api/enroll`, {
+            try {
+                // Decode token to get user ID
+                const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+                setUserId(tokenPayload.userId);
+
+                // Check enrollment status by fetching user's enrollments for this program
+                const res = await fetch(`http://localhost:3000/api/enrollments/user/${tokenPayload.userId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    // Check if user is enrolled in this specific program
+                    const isEnrolledInProgram = data.data && data.data.some(enrollment =>
+                        enrollment.program_id === parseInt(id)
+                    );
+                    setIsEnrolled(isEnrolledInProgram);
+                }
+            } catch (err) {
+                console.error('Lỗi khi kiểm tra trạng thái đăng ký:', err);
+                setIsEnrolled(false);
+            } finally {
+                setCheckingEnrollment(false);
+            }
+        };
+
+        fetchProgram();
+        fetchContentPreview();
+        checkEnrollmentStatus();
+    }, [id]);
+
+    const handleEnroll = async () => {
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        if (!token) {
+            navigate('/login');
+            return;
+        }
+
+        setEnrolling(true);
+        try {
+            const res = await fetch(`http://localhost:3000/api/enrollments`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    program_id: id
+                    user_id: userId,
+                    program_id: parseInt(id)
                 })
             });
 
             if (res.ok) {
                 alert('Đăng ký khóa học thành công!');
-                navigate('/dashboard');
+                setIsEnrolled(true);
             } else {
                 const errorData = await res.json();
                 alert(errorData.message || 'Có lỗi xảy ra khi đăng ký');
@@ -84,6 +123,11 @@ const DetailCoursePage = () => {
         } finally {
             setEnrolling(false);
         }
+    };
+
+    const handleViewContent = (contentId) => {
+        // Navigate to content page in same tab
+        navigate(`/content/${contentId}`);
     };
 
     if (loading) return (
@@ -169,30 +213,57 @@ const DetailCoursePage = () => {
                         <p>{program.description}</p>
                     </div>
 
-                    {/* Enroll section */}
+                    {/* Enroll/Status section */}
                     <div className="enroll-section">
                         <div className="enroll-card">
-                            <div className="enroll-info">
-                                <h3>Đăng ký khóa học</h3>
-                                <p>Tham gia khóa học này để nâng cao kiến thức và kỹ năng của bạn</p>
-                            </div>
-                            <button
-                                className={`enroll-btn ${enrolling ? 'enrolling' : ''}`}
-                                onClick={handleEnroll}
-                                disabled={enrolling}
-                            >
-                                {enrolling ? (
-                                    <>
-                                        <span className="enroll-spinner"></span>
-                                        Đang đăng ký...
-                                    </>
-                                ) : (
-                                    <>
-                                        <span className="enroll-icon">📚</span>
-                                        Đăng ký ngay
-                                    </>
-                                )}
-                            </button>
+                            {checkingEnrollment ? (
+                                <div className="enrollment-checking">
+                                    <div className="loading-spinner"></div>
+                                    <p>Đang kiểm tra trạng thái đăng ký...</p>
+                                </div>
+                            ) : isEnrolled ? (
+                                <div className="enrolled-info">
+                                    <div className="enrolled-status">
+                                        <span className="enrolled-icon">✅</span>
+                                        <h3>Bạn đã đăng ký khóa học này</h3>
+                                        <p>Bạn có thể xem tất cả nội dung khóa học bên dưới. Chúc bạn học tập hiệu quả!</p>
+                                    </div>
+                                </div>
+                            ) : userId ? (
+                                <div className="enroll-info">
+                                    <h3>Đăng ký khóa học</h3>
+                                    <p>Tham gia khóa học này để nâng cao kiến thức và kỹ năng của bạn</p>
+                                    <button
+                                        className={`enroll-btn ${enrolling ? 'enrolling' : ''}`}
+                                        onClick={handleEnroll}
+                                        disabled={enrolling}
+                                    >
+                                        {enrolling ? (
+                                            <>
+                                                <span className="enroll-spinner"></span>
+                                                Đang đăng ký...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span className="enroll-icon">📚</span>
+                                                Đăng ký ngay
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="login-required">
+                                    <h3>Cần đăng nhập để đăng ký</h3>
+                                    <p>Vui lòng đăng nhập để có thể đăng ký khóa học này</p>
+                                    <button
+                                        className="login-btn"
+                                        onClick={() => navigate('/login')}
+                                    >
+                                        <span className="login-icon">🔐</span>
+                                        Đăng nhập ngay
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -202,7 +273,6 @@ const DetailCoursePage = () => {
             <div className="detailcourse-content-section">
                 <div className="content-header">
                     <h2>Nội dung chi tiết khóa học</h2>
-                    <div className="content-badge">Chi tiết</div>
                 </div>
                 <div className="detailcourse-content-card">
                     <div className="detailcourse-content">
@@ -234,12 +304,17 @@ const DetailCoursePage = () => {
                                                 </span>
                                             </div>
                                         </div>
-                                        <div className="content-actions">
-                                            <button className="preview-btn" disabled>
-                                                <span className="preview-icon">👁️</span>
-                                                Xem trước
-                                            </button>
-                                        </div>
+                                        {isEnrolled && (
+                                            <div className="content-actions">
+                                                <button
+                                                    className="view-content-btn"
+                                                    onClick={() => handleViewContent(content.content_id)}
+                                                >
+                                                    <span className="view-icon">👁️</span>
+                                                    Xem nội dung
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                             </div>

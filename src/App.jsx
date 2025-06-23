@@ -27,6 +27,7 @@ import ConsultantListPage from "./pages/admin/ConsultantListPage";
 import ScoreListPage from "./pages/admin/ScoreListPage";
 import DetailCoursePage from "./pages/DetailCoursePage";
 import DetailBlogPage from "./pages/DetailBlogPage";
+import ContentViewPage from "./pages/ContentViewPage";
 //Import layout
 import AdminLayout from "./layout/AdminLayout";
 
@@ -60,6 +61,7 @@ const AppLayout = () => {
           <Route path="/result" element={<ResultPage />} />
           <Route path="/program/:id" element={<DetailCoursePage />} />
           <Route path="/blog/:id" element={<DetailBlogPage />} />
+          <Route path="/content/:contentId" element={<ContentViewPage />} />
           {/* Admin */}
           <Route path="/admin/login" element={<AdminLoginPage />} />
           <Route
