@@ -8,6 +8,15 @@ const Program = require("../src/entities/Program");
 const fs = require('fs');
 const path = require('path');
 
+/**
+ * Helper function to extract YouTube video ID from URL
+ */
+function extractYouTubeVideoId(url) {
+  const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+  const match = url.match(regex);
+  return match ? match[1] : null;
+}
+
 class ContentController {
   /**
    * Get all content
@@ -525,49 +534,87 @@ class ContentController {
       }
 
       const fileLink = content.content_file_link;
+      const contentType = content.content_type;
 
-      // Handle different types of links
+      // Handle YouTube videos
+      if (contentType === 'video' && fileLink.includes('youtube.com')) {
+        return res.status(200).json({
+          success: true,
+          data: {
+            type: 'youtube',
+            url: fileLink,
+            videoId: extractYouTubeVideoId(fileLink),
+            metadata: content.content_metadata_json ? JSON.parse(content.content_metadata_json) : null
+          },
+          message: "YouTube video link retrieved successfully"
+        });
+      }
+
+      // Handle audio/podcast content (also YouTube links in our case)
+      if (contentType === 'audio' && fileLink.includes('youtube.com')) {
+        return res.status(200).json({
+          success: true,
+          data: {
+            type: 'youtube_audio',
+            url: fileLink,
+            videoId: extractYouTubeVideoId(fileLink),
+            metadata: content.content_metadata_json ? JSON.parse(content.content_metadata_json) : null
+          },
+          message: "YouTube audio link retrieved successfully"
+        });
+      }
+
+      // Handle external links (non-YouTube)
       if (fileLink.startsWith('http://') || fileLink.startsWith('https://')) {
-        // For external links, redirect
-        return res.redirect(fileLink);
-      } else {
-        // For local files
-        try {
-          // Remove leading slash if present
-          const normalizedPath = fileLink.startsWith('/') ? fileLink.substring(1) : fileLink;
-          const filePath = path.join(process.cwd(), normalizedPath);
+        return res.status(200).json({
+          success: true,
+          data: {
+            type: 'external_link',
+            url: fileLink,
+            metadata: content.content_metadata_json ? JSON.parse(content.content_metadata_json) : null
+          },
+          message: "External link retrieved successfully"
+        });
+      }
 
-          // Check if file exists
-          if (!fs.existsSync(filePath)) {
-            return res.status(404).json({
-              success: false,
-              message: "Content file not found on server"
-            });
-          }
+      // Handle local files
+      try {
+        // Remove leading slash if present
+        const normalizedPath = fileLink.startsWith('/') ? fileLink.substring(1) : fileLink;
+        const filePath = path.join(process.cwd(), normalizedPath);
 
-          // For markdown files, send the content
-          if (content.content_type === 'markdown') {
-            const fileContent = fs.readFileSync(filePath, 'utf8');
-            return res.status(200).json({
-              success: true,
-              data: {
-                content: fileContent,
-                metadata: content.content_metadata_json ? JSON.parse(content.content_metadata_json) : null
-              },
-              message: "Content file retrieved successfully"
-            });
-          }
-
-          // For other file types, send the file
-          res.sendFile(filePath);
-        } catch (fileError) {
-          console.error("Error reading content file:", fileError);
-          res.status(500).json({
+        // Check if file exists
+        if (!fs.existsSync(filePath)) {
+          return res.status(404).json({
             success: false,
-            message: "Failed to retrieve content file",
-            error: fileError.message
+            message: "Content file not found on server",
+            filePath: normalizedPath
           });
         }
+
+        // For markdown files, send the content
+        if (contentType === 'markdown') {
+          const fileContent = fs.readFileSync(filePath, 'utf8');
+          return res.status(200).json({
+            success: true,
+            data: {
+              type: 'markdown',
+              content: fileContent,
+              metadata: content.content_metadata_json ? JSON.parse(content.content_metadata_json) : null
+            },
+            message: "Markdown content retrieved successfully"
+          });
+        }
+
+        // For other file types, send the file directly
+        res.sendFile(filePath);
+      } catch (fileError) {
+        console.error("Error reading content file:", fileError);
+        res.status(500).json({
+          success: false,
+          message: "Failed to retrieve content file",
+          error: fileError.message
+        });
       }
     } catch (error) {
       console.error("Error getting content file:", error);
@@ -672,7 +719,7 @@ class ContentController {
       // Get content for the specified program, ordered by 'orders' field
       const content = await contentRepository.find({
         where: { program_id: parseInt(program_id) },
-        select: ["title", "type", "orders"],
+        select: ["content_id", "title", "type", "orders"],
         order: { orders: "ASC" }
       });
 
