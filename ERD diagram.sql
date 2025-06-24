@@ -169,7 +169,7 @@ CREATE TABLE Enroll (
   program_id INT,
   start_at DATETIME,
   complete_at DATETIME,
-  progress FLOAT,
+  progress NVARCHAR(MAX), -- JSON array of {content_id, complete} objects
   PRIMARY KEY (user_id, program_id),
   FOREIGN KEY (user_id) REFERENCES Users(user_id),
   FOREIGN KEY (program_id) REFERENCES Programs(program_id)

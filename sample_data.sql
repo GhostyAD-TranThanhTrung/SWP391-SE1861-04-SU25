@@ -107,13 +107,22 @@ INSERT INTO Programs (img_link, title, description, create_by, status, age_group
 ('https://example.com/img8.jpg', 'Workplace Wellness', 'Creating healthy work environments and managing professional stress', 1, 'active', '22-65', GETDATE(), 2),
 ('https://example.com/img9.jpg', 'Crisis Intervention Training', 'Essential skills for handling mental health emergencies', 1, 'active', '18+', GETDATE(), 3);
 
--- Insert User Enrollments
+-- Insert User Enrollments with JSON progress tracking
 INSERT INTO Enroll (user_id, program_id, start_at, progress) VALUES
-(6, 2, '2024-01-10 10:00:00', 0.75),
-(7, 3, '2024-01-12 14:00:00', 0.40),
-(8, 1, '2024-01-08 09:00:00', 0.90),
-(8, 3, '2024-01-15 16:00:00', 0.25),
-(9, 2, '2024-01-05 11:00:00', 1.0);
+-- User 6 enrolled in Program 2 (Stress Management) - 5 out of 7 content items completed (71% progress)
+(6, 2, '2024-01-10 10:00:00', '[{"content_id":8,"complete":true},{"content_id":9,"complete":true},{"content_id":10,"complete":true},{"content_id":11,"complete":true},{"content_id":12,"complete":true},{"content_id":13,"complete":false},{"content_id":14,"complete":false}]'),
+
+-- User 7 enrolled in Program 3 (Mindfulness Meditation) - 3 out of 7 content items completed (43% progress)
+(7, 3, '2024-01-12 14:00:00', '[{"content_id":15,"complete":true},{"content_id":16,"complete":true},{"content_id":17,"complete":true},{"content_id":18,"complete":false},{"content_id":19,"complete":false},{"content_id":20,"complete":false},{"content_id":21,"complete":false}]'),
+
+-- User 8 enrolled in Program 1 (Mental Health Basics) - 6 out of 7 content items completed (86% progress)
+(8, 1, '2024-01-08 09:00:00', '[{"content_id":1,"complete":true},{"content_id":2,"complete":true},{"content_id":3,"complete":true},{"content_id":4,"complete":true},{"content_id":5,"complete":true},{"content_id":6,"complete":true},{"content_id":7,"complete":false}]'),
+
+-- User 8 also enrolled in Program 3 (Mindfulness Meditation) - 2 out of 7 content items completed (29% progress)
+(8, 3, '2024-01-15 16:00:00', '[{"content_id":15,"complete":true},{"content_id":16,"complete":true},{"content_id":17,"complete":false},{"content_id":18,"complete":false},{"content_id":19,"complete":false},{"content_id":20,"complete":false},{"content_id":21,"complete":false}]'),
+
+-- User 9 enrolled in Program 2 (Stress Management) - All 7 content items completed (100% progress)
+(9, 2, '2024-01-05 11:00:00', '[{"content_id":8,"complete":true},{"content_id":9,"complete":true},{"content_id":10,"complete":true},{"content_id":11,"complete":true},{"content_id":12,"complete":true},{"content_id":13,"complete":true},{"content_id":14,"complete":true}]');
 
 -- Insert Actions for Assessments
 INSERT INTO Action (description, range, type) VALUES

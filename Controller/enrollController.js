@@ -4,6 +4,7 @@
  */
 const AppDataSource = require('../src/data-source');
 const Enroll = require('../src/entities/Enroll');
+const Content = require('../src/entities/Content');
 
 class EnrollController {
     /**
@@ -15,9 +16,15 @@ class EnrollController {
             const enrollments = await enrollRepository.find({
             });
 
+            // Parse progress JSON for each enrollment
+            const parsedEnrollments = enrollments.map(enrollment => ({
+                ...enrollment,
+                progress: enrollment.progress ? JSON.parse(enrollment.progress) : []
+            }));
+
             res.status(200).json({
                 success: true,
-                data: enrollments,
+                data: parsedEnrollments,
                 message: 'Enrollments retrieved successfully'
             });
         } catch (error) {
@@ -51,9 +58,15 @@ class EnrollController {
                 });
             }
 
+            // Parse progress JSON
+            const parsedEnrollment = {
+                ...enrollment,
+                progress: enrollment.progress ? JSON.parse(enrollment.progress) : []
+            };
+
             res.status(200).json({
                 success: true,
-                data: enrollment,
+                data: parsedEnrollment,
                 message: 'Enrollment retrieved successfully'
             });
         } catch (error) {
@@ -77,9 +90,15 @@ class EnrollController {
                 where: { user_id: parseInt(userId) }
             });
 
+            // Parse progress JSON for each enrollment
+            const parsedEnrollments = enrollments.map(enrollment => ({
+                ...enrollment,
+                progress: enrollment.progress ? JSON.parse(enrollment.progress) : []
+            }));
+
             res.status(200).json({
                 success: true,
-                data: enrollments,
+                data: parsedEnrollments,
                 message: 'User enrollments retrieved successfully'
             });
         } catch (error) {
@@ -100,9 +119,15 @@ class EnrollController {
                 where: { user_id: parseInt(userId) }
             });
 
+            // Parse progress JSON for each enrollment
+            const parsedEnrollments = enrollments.map(enrollment => ({
+                ...enrollment,
+                progress: enrollment.progress ? JSON.parse(enrollment.progress) : []
+            }));
+
             res.status(200).json({
                 success: true,
-                data: enrollments,
+                data: parsedEnrollments,
                 message: 'User enrollments retrieved successfully'
             });
         } catch (error) {
@@ -124,9 +149,15 @@ class EnrollController {
                 where: { user_id: parseInt(userId), program_id: parseInt(programId) }
             });
 
+            // Parse progress JSON for each enrollment
+            const parsedEnrollments = enrollments.map(enrollment => ({
+                ...enrollment,
+                progress: enrollment.progress ? JSON.parse(enrollment.progress) : []
+            }));
+
             res.status(200).json({
                 success: true,
-                data: enrollments,
+                data: parsedEnrollments,
                 message: 'User enrollments retrieved successfully'
             });
         } catch (error) {
@@ -141,7 +172,7 @@ class EnrollController {
 
     static async createEnrollment(req, res) {
         try {
-            const { user_id, program_id, progress } = req.body;
+            const { user_id, program_id } = req.body;
             const start_at = new Date();
             const complete_at = null;
 
@@ -154,6 +185,7 @@ class EnrollController {
             }
 
             const enrollRepository = AppDataSource.getRepository(Enroll);
+            const contentRepository = AppDataSource.getRepository(Content);
 
             // Check if enrollment already exists
             const existingEnrollment = await enrollRepository.findOne({
@@ -170,13 +202,25 @@ class EnrollController {
                 });
             }
 
+            // Get all content for this program to create progress array
+            const programContents = await contentRepository.find({
+                where: { program_id: parseInt(program_id) },
+                order: { orders: 'ASC' }
+            });
+
+            // Create progress array with all content items set to not completed
+            const progressArray = programContents.map(content => ({
+                content_id: content.content_id,
+                complete: false
+            }));
+
             // Create new enrollment
             const newEnrollment = enrollRepository.create({
                 user_id: parseInt(user_id),
                 program_id: parseInt(program_id),
                 start_at: start_at || new Date(),
                 complete_at: complete_at || null,
-                progress: progress || 0.0
+                progress: JSON.stringify(progressArray)
             });
 
             const savedEnrollment = await enrollRepository.save(newEnrollment);
@@ -189,9 +233,15 @@ class EnrollController {
                 },
             });
 
+            // Parse progress JSON before returning
+            const parsedEnrollment = {
+                ...completeEnrollment,
+                progress: completeEnrollment.progress ? JSON.parse(completeEnrollment.progress) : []
+            };
+
             res.status(201).json({
                 success: true,
-                data: completeEnrollment,
+                data: parsedEnrollment,
                 message: 'Enrollment created successfully'
             });
         } catch (error) {
@@ -234,6 +284,18 @@ class EnrollController {
                 });
             }
 
+            // Parse current progress
+            const currentProgress = enrollment.progress ? JSON.parse(enrollment.progress) : [];
+            
+            // If completion date is being set, mark all content as complete
+            let updatedProgress = currentProgress;
+            if (complete_at) {
+                updatedProgress = currentProgress.map(item => ({
+                    ...item,
+                    complete: true
+                }));
+            }
+
             // Update enrollment end date
             await enrollRepository.update(
                 {
@@ -242,7 +304,7 @@ class EnrollController {
                 },
                 {
                     complete_at: complete_at ? new Date(complete_at) : new Date(),
-                    progress: complete_at ? 1.0 : enrollment.progress // Set progress to 100% if completion date is set
+                    progress: JSON.stringify(updatedProgress)
                 }
             );
 
@@ -254,9 +316,15 @@ class EnrollController {
                 }
             });
 
+            // Parse progress JSON before returning
+            const parsedEnrollment = {
+                ...updatedEnrollment,
+                progress: updatedEnrollment.progress ? JSON.parse(updatedEnrollment.progress) : []
+            };
+
             res.status(200).json({
                 success: true,
-                data: updatedEnrollment,
+                data: parsedEnrollment,
                 message: 'Enrollment end date updated successfully'
             });
         } catch (error) {
@@ -280,9 +348,15 @@ class EnrollController {
                 where: { program_id: parseInt(programId) }
             });
 
+            // Parse progress JSON for each enrollment
+            const parsedEnrollments = enrollments.map(enrollment => ({
+                ...enrollment,
+                progress: enrollment.progress ? JSON.parse(enrollment.progress) : []
+            }));
+
             res.status(200).json({
                 success: true,
-                data: enrollments,
+                data: parsedEnrollments,
                 message: 'Program enrollments retrieved successfully'
             });
         } catch (error) {
@@ -296,9 +370,89 @@ class EnrollController {
     }
 
     /**
-     * Create new enrollment
+     * Update content completion status
      */
+    static async updateContentProgress(req, res) {
+        try {
+            const { userId, programId, contentId } = req.params;
+            const { complete } = req.body;
 
+            const enrollRepository = AppDataSource.getRepository(Enroll);
+
+            // Check if enrollment exists
+            const enrollment = await enrollRepository.findOne({
+                where: {
+                    user_id: parseInt(userId),
+                    program_id: parseInt(programId)
+                }
+            });
+
+            if (!enrollment) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Enrollment not found'
+                });
+            }
+
+            // Parse current progress
+            const currentProgress = enrollment.progress ? JSON.parse(enrollment.progress) : [];
+            
+            // Update the specific content item
+            const updatedProgress = currentProgress.map(item => {
+                if (item.content_id === parseInt(contentId)) {
+                    return { ...item, complete: complete };
+                }
+                return item;
+            });
+
+            // Check if all content is completed
+            const allCompleted = updatedProgress.every(item => item.complete);
+            const updateData = {
+                progress: JSON.stringify(updatedProgress)
+            };
+
+            // If all content is completed, set completion date
+            if (allCompleted && !enrollment.complete_at) {
+                updateData.complete_at = new Date();
+            }
+
+            // Update enrollment
+            await enrollRepository.update(
+                {
+                    user_id: parseInt(userId),
+                    program_id: parseInt(programId)
+                },
+                updateData
+            );
+
+            // Fetch updated enrollment
+            const updatedEnrollment = await enrollRepository.findOne({
+                where: {
+                    user_id: parseInt(userId),
+                    program_id: parseInt(programId)
+                }
+            });
+
+            // Parse progress JSON before returning
+            const parsedEnrollment = {
+                ...updatedEnrollment,
+                progress: updatedEnrollment.progress ? JSON.parse(updatedEnrollment.progress) : []
+            };
+
+            res.status(200).json({
+                success: true,
+                data: parsedEnrollment,
+                message: 'Content progress updated successfully'
+            });
+        } catch (error) {
+            console.error('Error updating content progress:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to update content progress',
+                error: error.message
+            });
+        }
+    }
 
     /**
      * Update enrollment progress
@@ -326,16 +480,22 @@ class EnrollController {
             }
 
             // Update enrollment
+            const updateData = {
+                start_at: start_at || enrollment.start_at,
+                complete_at: complete_at !== undefined ? complete_at : enrollment.complete_at
+            };
+
+            // Handle progress update
+            if (progress !== undefined) {
+                updateData.progress = typeof progress === 'string' ? progress : JSON.stringify(progress);
+            }
+
             await enrollRepository.update(
                 {
                     user_id: parseInt(userId),
                     program_id: parseInt(programId)
                 },
-                {
-                    start_at: start_at || enrollment.start_at,
-                    complete_at: complete_at !== undefined ? complete_at : enrollment.complete_at,
-                    progress: progress !== undefined ? progress : enrollment.progress
-                }
+                updateData
             );
 
             // Fetch updated enrollment with relations
@@ -346,9 +506,15 @@ class EnrollController {
                 },
             });
 
+            // Parse progress JSON before returning
+            const parsedEnrollment = {
+                ...updatedEnrollment,
+                progress: updatedEnrollment.progress ? JSON.parse(updatedEnrollment.progress) : []
+            };
+
             res.status(200).json({
                 success: true,
-                data: updatedEnrollment,
+                data: parsedEnrollment,
                 message: 'Enrollment updated successfully'
             });
         } catch (error) {
@@ -404,7 +570,7 @@ class EnrollController {
     }
 
     /**
-     * Get enrollments by progress range
+     * Get enrollments by progress range (now calculates completion percentage)
      */
     static async getEnrollmentsByProgressRange(req, res) {
         try {
@@ -418,17 +584,37 @@ class EnrollController {
             }
 
             const enrollRepository = AppDataSource.getRepository(Enroll);
-            const enrollments = await enrollRepository.createQueryBuilder('enroll')
-                .leftJoinAndSelect('enroll.user', 'user')
-                .leftJoinAndSelect('enroll.program', 'program')
-                .where('enroll.progress >= :minProgress', { minProgress: parseFloat(minProgress) })
-                .andWhere('enroll.progress <= :maxProgress', { maxProgress: parseFloat(maxProgress) })
-                .orderBy('enroll.progress', 'DESC')
-                .getMany();
+            const enrollments = await enrollRepository.find();
+
+            // Filter enrollments by calculated progress percentage
+            const filteredEnrollments = enrollments.filter(enrollment => {
+                if (!enrollment.progress) return false;
+                
+                const progressArray = JSON.parse(enrollment.progress);
+                const completedCount = progressArray.filter(item => item.complete).length;
+                const totalCount = progressArray.length;
+                const progressPercentage = totalCount > 0 ? (completedCount / totalCount) : 0;
+
+                return progressPercentage >= parseFloat(minProgress) && progressPercentage <= parseFloat(maxProgress);
+            });
+
+            // Parse progress and add percentage calculation
+            const parsedEnrollments = filteredEnrollments.map(enrollment => {
+                const progressArray = JSON.parse(enrollment.progress);
+                const completedCount = progressArray.filter(item => item.complete).length;
+                const totalCount = progressArray.length;
+                const progressPercentage = totalCount > 0 ? (completedCount / totalCount) : 0;
+
+                return {
+                    ...enrollment,
+                    progress: progressArray,
+                    progressPercentage: progressPercentage
+                };
+            }).sort((a, b) => b.progressPercentage - a.progressPercentage);
 
             res.status(200).json({
                 success: true,
-                data: enrollments,
+                data: parsedEnrollments,
                 message: 'Enrollments retrieved successfully'
             });
         } catch (error) {
@@ -448,12 +634,25 @@ class EnrollController {
         try {
             const enrollRepository = AppDataSource.getRepository(Enroll);
             const enrollments = await enrollRepository.find({
-                where: { progress: 1.0 },
+                where: { complete_at: AppDataSource.createQueryBuilder().where('complete_at IS NOT NULL') },
             });
+
+            // Filter to only include truly completed enrollments (all content completed)
+            const completedEnrollments = enrollments.filter(enrollment => {
+                if (!enrollment.progress) return false;
+                const progressArray = JSON.parse(enrollment.progress);
+                return progressArray.every(item => item.complete);
+            });
+
+            // Parse progress JSON for each enrollment
+            const parsedEnrollments = completedEnrollments.map(enrollment => ({
+                ...enrollment,
+                progress: JSON.parse(enrollment.progress)
+            }));
 
             res.status(200).json({
                 success: true,
-                data: enrollments,
+                data: parsedEnrollments,
                 message: 'Completed enrollments retrieved successfully'
             });
         } catch (error) {
@@ -472,16 +671,33 @@ class EnrollController {
     static async getInProgressEnrollments(req, res) {
         try {
             const enrollRepository = AppDataSource.getRepository(Enroll);
-            const enrollments = await enrollRepository.createQueryBuilder('enroll')
-                .leftJoinAndSelect('enroll.user', 'user')
-                .leftJoinAndSelect('enroll.program', 'program')
-                .where('enroll.progress > 0 AND enroll.progress < 1')
-                .orderBy('enroll.progress', 'DESC')
-                .getMany();
+            const enrollments = await enrollRepository.find();
+
+            // Filter to only include in-progress enrollments (some but not all content completed)
+            const inProgressEnrollments = enrollments.filter(enrollment => {
+                if (!enrollment.progress) return false;
+                const progressArray = JSON.parse(enrollment.progress);
+                const completedCount = progressArray.filter(item => item.complete).length;
+                return completedCount > 0 && completedCount < progressArray.length;
+            });
+
+            // Parse progress and add percentage calculation
+            const parsedEnrollments = inProgressEnrollments.map(enrollment => {
+                const progressArray = JSON.parse(enrollment.progress);
+                const completedCount = progressArray.filter(item => item.complete).length;
+                const totalCount = progressArray.length;
+                const progressPercentage = totalCount > 0 ? (completedCount / totalCount) : 0;
+
+                return {
+                    ...enrollment,
+                    progress: progressArray,
+                    progressPercentage: progressPercentage
+                };
+            }).sort((a, b) => b.progressPercentage - a.progressPercentage);
 
             res.status(200).json({
                 success: true,
-                data: enrollments,
+                data: parsedEnrollments,
                 message: 'In-progress enrollments retrieved successfully'
             });
         } catch (error) {

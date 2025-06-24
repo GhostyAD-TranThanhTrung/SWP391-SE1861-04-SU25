@@ -25,7 +25,8 @@ const Enroll = new EntitySchema({
             nullable: true
         },
         progress: {
-            type: "float",
+            type: "nvarchar",
+            length: "MAX",
             nullable: true
         }
     },
