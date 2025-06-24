@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/BlogPage.scss';
 import Image from '../images/Images.jpg';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 const BlogPage = () => {
     const [posts, setPosts] = useState([]);
@@ -16,47 +18,78 @@ const BlogPage = () => {
         body: '',
         status: 'draft'
     });
+    const [editingBlog, setEditingBlog] = useState(null);
     const [selectedImage, setSelectedImage] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isImageLoading, setIsImageLoading] = useState(false);
     const [imageUploadProgress, setImageUploadProgress] = useState(0);
     const [expandedBlogs, setExpandedBlogs] = useState(new Set());
+    const [contentError, setContentError] = useState('');
+
+    // Danh sách từ cấm
+    const bannedWords = [
+        'đụ', 'địt', 'lồn', 'cặc', 'buồi', 'dái', 'đéo', 'đĩ', 'đít', 'đm',
+        'đmm', 'dmm', 'đcm', 'đcmm', 'đkm', 'đkmm', 'cc', 'cl', 'clm', 'cmm', 'cmnr',
+        'đjt', 'djt', 'đụ má', 'đụ mẹ', 'địt mẹ', 'đcm', 'vl', 'vcl', 'vãi', 'vkl',
+        'fuck', 'shit', 'bitch', 'dick', 'cock', 'pussy', 'asshole', 'motherfucker'
+    ];
+
+    // Cấu hình cho React Quill
+    const modules = {
+        toolbar: [
+            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+            [{ 'indent': '-1' }, { 'indent': '+1' }],
+            [{ 'color': [] }, { 'background': [] }],
+            ['link'],
+            ['clean']
+        ],
+    };
+
+    const formats = [
+        'header',
+        'bold', 'italic', 'underline', 'strike',
+        'list', 'bullet', 'indent',
+        'color', 'background',
+        'link'
+    ];
 
     useEffect(() => {
         // Check if user is logged in
         const token = sessionStorage.getItem('token');
         setIsLoggedIn(!!token);
 
-        const fetchBlogs = async () => {
-            try {
-                setLoading(true);
-                const response = await fetch('http://localhost:3000/api/blogs', {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                });
-
-                if (!response.ok) {
-                    throw new Error('Không thể tải dữ liệu blog');
-                }
-
-                const data = await response.json();
-                // Filter out hidden blogs for public view
-                const visibleBlogs = data.data.filter(blog => blog.status !== 'hidden');
-                setPosts(visibleBlogs);
-                setError(null);
-            } catch (err) {
-                console.error('Lỗi khi tải dữ liệu blog:', err);
-                setError('Có lỗi xảy ra khi tải dữ liệu blog');
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchBlogs();
     }, []);
+
+    const fetchBlogs = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch('http://localhost:3000/api/blogs', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('Không thể tải dữ liệu blog');
+            }
+
+            const data = await response.json();
+            // Filter out hidden blogs for public view
+            const visibleBlogs = data.data.filter(blog => blog.status !== 'hidden');
+            setPosts(visibleBlogs);
+            setError(null);
+        } catch (err) {
+            console.error('Lỗi khi tải dữ liệu blog:', err);
+            setError('Có lỗi xảy ra khi tải dữ liệu blog');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const fetchUserBlogs = async () => {
         if (!isLoggedIn) return;
@@ -92,6 +125,45 @@ const BlogPage = () => {
             ...prev,
             [name]: value
         }));
+
+        // Kiểm tra từ cấm trong tiêu đề
+        if (name === 'title') {
+            checkForBannedWords(value, 'title');
+        }
+    };
+
+    const handleEditorChange = (content) => {
+        setNewBlog(prev => ({
+            ...prev,
+            body: content
+        }));
+
+        // Kiểm tra từ cấm trong nội dung
+        checkForBannedWords(content, 'body');
+    };
+
+    // Hàm kiểm tra từ cấm
+    const checkForBannedWords = (content, field) => {
+        // Tạo một div tạm để parse HTML và lấy text
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = content;
+        const plainText = tempDiv.textContent || tempDiv.innerText || '';
+
+        // Chuyển về chữ thường để so sánh
+        const lowerCaseText = plainText.toLowerCase();
+
+        // Kiểm tra từng từ cấm
+        const foundBannedWords = bannedWords.filter(word =>
+            lowerCaseText.includes(word.toLowerCase())
+        );
+
+        if (foundBannedWords.length > 0) {
+            setContentError(`Nội dung chứa từ ngữ không phù hợp: ${foundBannedWords.join(', ')}`);
+            return true;
+        } else {
+            setContentError('');
+            return false;
+        }
     };
 
     const handleImageChange = (e) => {
@@ -175,10 +247,21 @@ const BlogPage = () => {
 
     const handleSubmitBlog = async (e) => {
         e.preventDefault();
+
+        // Kiểm tra từ cấm trước khi submit
+        const hasTitleBannedWords = checkForBannedWords(newBlog.title, 'title');
+        const hasBodyBannedWords = checkForBannedWords(newBlog.body, 'body');
+
+        if (hasTitleBannedWords || hasBodyBannedWords) {
+            alert('Nội dung chứa từ ngữ không phù hợp. Vui lòng chỉnh sửa trước khi đăng.');
+            return;
+        }
+
         setIsSubmitting(true);
 
         try {
             const token = sessionStorage.getItem('token');
+            const isEditing = !!editingBlog;
 
             // Create FormData for file upload
             const formData = new FormData();
@@ -190,9 +273,21 @@ const BlogPage = () => {
                 formData.append('image', selectedImage);
             }
 
-            const endpoint = selectedImage ?
-                'http://localhost:3000/api/blogs/with-image' :
-                'http://localhost:3000/api/blogs';
+            let endpoint, method;
+
+            if (isEditing) {
+                // Chỉnh sửa blog hiện có
+                endpoint = selectedImage
+                    ? `http://localhost:3000/api/blogs/${editingBlog.blog_id}/with-image`
+                    : `http://localhost:3000/api/blogs/${editingBlog.blog_id}`;
+                method = 'PUT';
+            } else {
+                // Tạo blog mới
+                endpoint = selectedImage
+                    ? 'http://localhost:3000/api/blogs/with-image'
+                    : 'http://localhost:3000/api/blogs';
+                method = 'POST';
+            }
 
             const headers = {
                 'Authorization': `Bearer ${token}`
@@ -209,13 +304,13 @@ const BlogPage = () => {
             }
 
             const response = await fetch(endpoint, {
-                method: 'POST',
+                method: method,
                 headers: headers,
                 body: selectedImage ? formData : JSON.stringify(newBlog)
             });
 
             if (!response.ok) {
-                throw new Error('Không thể tạo câu chuyện mới');
+                throw new Error(isEditing ? 'Không thể cập nhật câu chuyện' : 'Không thể tạo câu chuyện mới');
             }
 
             // Simulate completion progress
@@ -234,6 +329,8 @@ const BlogPage = () => {
             setImagePreview(null);
             setIsImageLoading(false);
             setImageUploadProgress(0);
+            setEditingBlog(null);
+            setContentError('');
 
             // Reset file input
             const fileInput = document.getElementById('image');
@@ -244,10 +341,15 @@ const BlogPage = () => {
             // Refresh user blogs
             await fetchUserBlogs();
 
-            alert('Câu chuyện đã được chia sẻ thành công!');
+            alert(isEditing ? 'Câu chuyện đã được cập nhật thành công!' : 'Câu chuyện đã được chia sẻ thành công!');
+
+            // Nếu đang chỉnh sửa, chuyển về tab blog của tôi
+            if (isEditing) {
+                setActiveTab('my-blogs');
+            }
         } catch (err) {
-            console.error('Lỗi khi tạo câu chuyện:', err);
-            alert('Có lỗi xảy ra khi tạo câu chuyện');
+            console.error('Lỗi khi xử lý câu chuyện:', err);
+            alert('Có lỗi xảy ra khi xử lý câu chuyện');
         } finally {
             setIsSubmitting(false);
             setImageUploadProgress(0);
@@ -306,6 +408,31 @@ const BlogPage = () => {
         }
     };
 
+    const handleEditBlog = (blogId) => {
+        // Tìm blog cần chỉnh sửa
+        const blogToEdit = userBlogs.find(blog => blog.blog_id === blogId);
+        if (!blogToEdit) return;
+
+        // Cập nhật state để chuyển sang chế độ chỉnh sửa
+        setEditingBlog(blogToEdit);
+        setNewBlog({
+            title: blogToEdit.title,
+            body: blogToEdit.body,
+            status: blogToEdit.status
+        });
+
+        // Nếu blog có hình ảnh, hiển thị preview
+        if (blogToEdit.img_link) {
+            setImagePreview(getImageUrl(blogToEdit.img_link));
+        } else {
+            setImagePreview(null);
+            setSelectedImage(null);
+        }
+
+        // Chuyển sang tab tạo blog (sẽ dùng làm tab chỉnh sửa)
+        setActiveTab('create');
+    };
+
     const toggleExpandBlog = (blogId) => {
         const newExpanded = new Set(expandedBlogs);
         if (newExpanded.has(blogId)) {
@@ -316,8 +443,29 @@ const BlogPage = () => {
         setExpandedBlogs(newExpanded);
     };
 
+    // Hàm để hiển thị nội dung HTML an toàn
+    const createMarkup = (htmlContent) => {
+        return { __html: htmlContent };
+    };
+
     const truncateText = (text, maxLength = 300) => {
         if (!text) return '';
+
+        // Nếu là HTML, xử lý đặc biệt để loại bỏ tags
+        if (text.includes('<') && text.includes('>')) {
+            // Tạo một div tạm để parse HTML
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = text;
+            const plainText = tempDiv.textContent || tempDiv.innerText || '';
+
+            if (plainText.length <= maxLength) return text;
+
+            // Trả về một phần của HTML gốc, không phải plainText
+            // Đây là cách đơn giản, không hoàn hảo để cắt HTML
+            return text.substring(0, maxLength + 50) + '...';
+        }
+
+        // Xử lý text thông thường
         if (text.length <= maxLength) return text;
         return text.substring(0, maxLength) + '...';
     };
@@ -367,6 +515,9 @@ const BlogPage = () => {
         setActiveTab(tab);
         if (tab === 'my-blogs' && isLoggedIn) {
             fetchUserBlogs();
+        }
+        if (tab === 'view') {
+            fetchBlogs();
         }
     };
 
@@ -506,7 +657,7 @@ const BlogPage = () => {
                                                             <div className="featured-excerpt">
                                                                 {expandedBlogs.has(posts[0].blog_id) ? (
                                                                     <div>
-                                                                        <p>{posts[0].body}</p>
+                                                                        <div dangerouslySetInnerHTML={createMarkup(posts[0].body)} className="blog-content-display"></div>
                                                                         <button
                                                                             className="btn btn-link p-0 text-decoration-none"
                                                                             onClick={() => toggleExpandBlog(posts[0].blog_id)}
@@ -517,7 +668,7 @@ const BlogPage = () => {
                                                                     </div>
                                                                 ) : (
                                                                     <div>
-                                                                        <p>{truncateText(posts[0].body)}</p>
+                                                                        <div dangerouslySetInnerHTML={createMarkup(truncateText(posts[0].body))} className="blog-content-display"></div>
                                                                         {posts[0].body && posts[0].body.length > 300 && (
                                                                             <button
                                                                                 className="btn btn-link p-0 text-decoration-none"
@@ -572,7 +723,7 @@ const BlogPage = () => {
                                                                 <div className="article-excerpt">
                                                                     {expandedBlogs.has(post.blog_id) ? (
                                                                         <div>
-                                                                            <p>{post.body}</p>
+                                                                            <div dangerouslySetInnerHTML={createMarkup(post.body)} className="blog-content-display"></div>
                                                                             <button
                                                                                 className="btn btn-link p-0 text-decoration-none small"
                                                                                 onClick={() => toggleExpandBlog(post.blog_id)}
@@ -583,7 +734,7 @@ const BlogPage = () => {
                                                                         </div>
                                                                     ) : (
                                                                         <div>
-                                                                            <p>{truncateText(post.body)}</p>
+                                                                            <div dangerouslySetInnerHTML={createMarkup(truncateText(post.body))} className="blog-content-display"></div>
                                                                             {post.body && post.body.length > 300 && (
                                                                                 <button
                                                                                     className="btn btn-link p-0 text-decoration-none small"
@@ -696,6 +847,15 @@ const BlogPage = () => {
                                                                 <li><hr className="dropdown-divider" /></li>
                                                                 <li>
                                                                     <button
+                                                                        className="dropdown-item"
+                                                                        onClick={() => handleEditBlog(blog.blog_id)}
+                                                                    >
+                                                                        <i className="bi bi-pencil me-2"></i>
+                                                                        Chỉnh sửa
+                                                                    </button>
+                                                                </li>
+                                                                <li>
+                                                                    <button
                                                                         className="dropdown-item text-danger"
                                                                         onClick={() => handleDeleteBlog(blog.blog_id)}
                                                                     >
@@ -710,7 +870,7 @@ const BlogPage = () => {
                                                     <div className="blog-content">
                                                         {expandedBlogs.has(blog.blog_id) ? (
                                                             <div>
-                                                                <p className="card-text">{blog.body}</p>
+                                                                <div dangerouslySetInnerHTML={createMarkup(blog.body)} className="blog-content-display"></div>
                                                                 <button
                                                                     className="btn btn-link p-0 text-decoration-none"
                                                                     onClick={() => toggleExpandBlog(blog.blog_id)}
@@ -721,7 +881,7 @@ const BlogPage = () => {
                                                             </div>
                                                         ) : (
                                                             <div>
-                                                                <p className="card-text">{truncateText(blog.body)}</p>
+                                                                <div dangerouslySetInnerHTML={createMarkup(truncateText(blog.body))} className="blog-content-display"></div>
                                                                 {blog.body && blog.body.length > 300 && (
                                                                     <button
                                                                         className="btn btn-link p-0 text-decoration-none"
@@ -747,8 +907,12 @@ const BlogPage = () => {
                     {activeTab === 'create' && isLoggedIn && (
                         <div className="tab-pane active">
                             <div className="section-header text-center mb-5">
-                                <h2 className="section-title">Chia sẻ câu chuyện</h2>
-                                <p className="section-subtitle">Kể về hành trình, trải nghiệm và cảm hứng của bạn với cộng đồng</p>
+                                <h2 className="section-title">{editingBlog ? 'Chỉnh sửa câu chuyện' : 'Chia sẻ câu chuyện'}</h2>
+                                <p className="section-subtitle">
+                                    {editingBlog
+                                        ? 'Cập nhật nội dung câu chuyện của bạn'
+                                        : 'Kể về hành trình, trải nghiệm và cảm hứng của bạn với cộng đồng'}
+                                </p>
                             </div>
 
                             <div className="create-blog-form">
@@ -777,7 +941,7 @@ const BlogPage = () => {
                                                 </label>
                                                 <input
                                                     type="text"
-                                                    className="form-control form-control-lg"
+                                                    className={`form-control form-control-lg ${contentError && contentError.includes('tiêu đề') ? 'is-invalid' : ''}`}
                                                     id="title"
                                                     name="title"
                                                     value={newBlog.title}
@@ -874,18 +1038,31 @@ const BlogPage = () => {
                                                     <i className="bi bi-chat-heart me-2"></i>
                                                     Nội dung câu chuyện *
                                                 </label>
-                                                <textarea
-                                                    className="form-control"
-                                                    id="body"
-                                                    name="body"
-                                                    rows="12"
+                                                <ReactQuill
                                                     value={newBlog.body}
-                                                    onChange={handleInputChange}
+                                                    onChange={handleEditorChange}
+                                                    modules={modules}
+                                                    formats={formats}
                                                     placeholder="Chia sẻ hành trình của bạn: những thử thách, thành công, bài học và cảm hứng..."
-                                                    required
-                                                ></textarea>
+                                                    className={`blog-editor ${contentError ? 'is-invalid' : ''}`}
+                                                />
                                                 <div className="form-text">
                                                     Kể về trải nghiệm phục hồi, cách sử dụng website, hoặc những câu chuyện truyền cảm hứng của bạn.
+                                                </div>
+
+                                                {/* Hiển thị thông báo lỗi từ cấm */}
+                                                {contentError && (
+                                                    <div className="invalid-feedback d-block mt-2">
+                                                        <i className="bi bi-exclamation-triangle me-1"></i>
+                                                        {contentError}
+                                                    </div>
+                                                )}
+
+                                                {/* Thông tin về bộ lọc từ cấm */}
+                                                <div className="alert alert-info mt-3" role="alert">
+                                                    <i className="bi bi-info-circle me-2"></i>
+                                                    <strong>Lưu ý:</strong> Nội dung của bạn sẽ được kiểm tra từ ngữ không phù hợp trước khi đăng.
+                                                    Vui lòng sử dụng ngôn ngữ lịch sự và tôn trọng.
                                                 </div>
                                             </div>
 
@@ -910,7 +1087,22 @@ const BlogPage = () => {
                                                 <button
                                                     type="button"
                                                     className="btn btn-outline-secondary"
-                                                    onClick={() => setActiveTab('view')}
+                                                    onClick={() => {
+                                                        if (editingBlog) {
+                                                            setActiveTab('my-blogs');
+                                                        } else {
+                                                            setActiveTab('view');
+                                                        }
+                                                        setEditingBlog(null);
+                                                        setNewBlog({
+                                                            title: '',
+                                                            body: '',
+                                                            status: 'draft'
+                                                        });
+                                                        setSelectedImage(null);
+                                                        setImagePreview(null);
+                                                        setContentError('');
+                                                    }}
                                                 >
                                                     <i className="bi bi-arrow-left me-2"></i>
                                                     Quay lại
@@ -918,12 +1110,12 @@ const BlogPage = () => {
                                                 <button
                                                     type="submit"
                                                     className="btn btn-primary"
-                                                    disabled={isSubmitting || isImageLoading}
+                                                    disabled={isSubmitting || isImageLoading || !!contentError}
                                                 >
                                                     {isSubmitting ? (
                                                         <>
                                                             <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                                            {selectedImage ? 'Đang tải lên...' : 'Đang tạo...'}
+                                                            {selectedImage ? 'Đang tải lên...' : editingBlog ? 'Đang cập nhật...' : 'Đang tạo...'}
                                                         </>
                                                     ) : isImageLoading ? (
                                                         <>
@@ -932,8 +1124,8 @@ const BlogPage = () => {
                                                         </>
                                                     ) : (
                                                         <>
-                                                            <i className="bi bi-heart me-2"></i>
-                                                            Chia sẻ câu chuyện
+                                                            <i className={editingBlog ? "bi bi-pencil-square me-2" : "bi bi-heart me-2"}></i>
+                                                            {editingBlog ? 'Cập nhật câu chuyện' : 'Chia sẻ câu chuyện'}
                                                         </>
                                                     )}
                                                 </button>

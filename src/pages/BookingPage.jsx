@@ -252,37 +252,76 @@ const BookingPage = () => {
                         <h2 className="section-title">Lịch tư vấn đã đặt của bạn</h2>
                     </div>
                     {loadingBookings ? (
-                        <div className="text-center text-muted">Đang tải lịch hẹn...</div>
+                        <div className="text-center py-4">
+                            <div className="spinner-border text-primary" role="status">
+                                <span className="visually-hidden">Đang tải...</span>
+                            </div>
+                            <p className="mt-2">Đang tải lịch hẹn...</p>
+                        </div>
                     ) : scheduledBookings && scheduledBookings.length > 0 ? (
-                        <div className="row">
+                        <div className="scheduled-bookings-container">
                             {scheduledBookings.map((booking) => {
                                 const consultant = consultants.find(c => c.id_consultant === booking.consultant_id);
                                 const slot = databaseSlots.find(s => s.slot_id === booking.slot_id);
                                 const hasMeetLink = !!booking.google_meet_link;
+                                const statusClass = booking.status === 'confirmed' ? 'status-confirmed' :
+                                    booking.status === 'pending' ? 'status-pending' :
+                                        booking.status === 'cancelled' ? 'status-cancelled' : 'status-default';
+
                                 return (
-                                    <div key={booking.id || booking.booking_id} className="col-md-6 mb-3">
-                                        <div className="card">
-                                            <div className="card-body">
-                                                <h5 className="card-title">
+                                    <div key={booking.id || booking.booking_id} className="booking-card">
+                                        <div className="booking-card-header">
+                                            <div className="consultant-avatar">
+                                                <img
+                                                    src={consultant && consultant.img_link ? `http://localhost:3000${consultant.img_link}` : Image}
+                                                    alt={consultant ? consultant.name : (booking.consultant_name || 'Tư vấn viên')}
+                                                    onError={(e) => {
+                                                        e.target.onerror = null;
+                                                        e.target.src = Image;
+                                                    }}
+                                                />
+                                            </div>
+                                            <div className="booking-info">
+                                                <h5 className="consultant-name">
                                                     {consultant ? consultant.name : (booking.consultant_name || 'Tư vấn viên')}
                                                 </h5>
-                                                <p className="card-text">
-                                                    <strong>Ngày:</strong> {booking.booking_date}<br />
-                                                    <strong>Thời gian:</strong> {slot ? formatTime(slot.start_time) : (booking.start_time ? formatTime(booking.start_time) : 'N/A')}<br />
-                                                    <strong>Trạng thái:</strong> {booking.status}
+                                                <p className="consultant-speciality">
+                                                    {consultant ? getSpecializationFromSpeciality(consultant.speciality) : 'Tư vấn viên chuyên nghiệp'}
                                                 </p>
-                                                {/* Luôn hiển thị nút Google Meet */}
+                                            </div>
+                                            <div className={`booking-status ${statusClass}`}>
+                                                {booking.status === 'confirmed' ? 'Đã xác nhận' :
+                                                    booking.status === 'pending' ? 'Đang chờ' :
+                                                        booking.status === 'cancelled' ? 'Đã hủy' : booking.status}
+                                            </div>
+                                        </div>
+                                        <div className="booking-card-body">
+                                            <div className="booking-details">
+                                                <div className="booking-detail-item">
+                                                    <i className="bi bi-calendar-date"></i>
+                                                    <span>{booking.booking_date}</span>
+                                                </div>
+                                                <div className="booking-detail-item">
+                                                    <i className="bi bi-clock"></i>
+                                                    <span>{slot ? formatTime(slot.start_time) : (booking.start_time ? formatTime(booking.start_time) : 'N/A')}</span>
+                                                </div>
+                                            </div>
+                                            <div className="booking-actions">
                                                 {hasMeetLink ? (
                                                     <a
                                                         href={booking.google_meet_link}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="btn btn-success mt-2"
+                                                        className="btn-meet"
                                                     >
+                                                        <i className="bi bi-camera-video-fill me-2"></i>
                                                         Vào Google Meet
                                                     </a>
                                                 ) : (
-                                                    <button className="btn btn-secondary mt-2" disabled>Chưa có link</button>
+                                                    <button className="btn-meet disabled" disabled>
+                                                        <i className="bi bi-camera-video me-2"></i>
+                                                        Chưa có link
+                                                    </button>
                                                 )}
                                             </div>
                                         </div>
@@ -291,7 +330,13 @@ const BookingPage = () => {
                             })}
                         </div>
                     ) : (
-                        <div className="text-center text-muted">Bạn chưa có lịch hẹn nào.</div>
+                        <div className="no-bookings">
+                            <div className="no-bookings-icon">
+                                <i className="bi bi-calendar-x"></i>
+                            </div>
+                            <h4>Bạn chưa có lịch hẹn nào</h4>
+                            <p>Hãy đặt lịch với các chuyên gia của chúng tôi để được tư vấn.</p>
+                        </div>
                     )}
                 </section>
 

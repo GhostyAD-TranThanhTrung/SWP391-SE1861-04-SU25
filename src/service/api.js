@@ -1,4 +1,3 @@
-
 import { jwtDecode } from "jwt-decode";
 
 const API_URL = 'http://localhost:3000';
@@ -155,4 +154,36 @@ export const updateUserProfile = async ({ email, name, dob, job }) => {
     }
 
     return data;
+};
+
+// API để lấy nội dung chapter theo ID
+export const getContentById = async (contentId) => {
+    try {
+        const response = await fetch(`${API_URL}/api/content/${contentId}`);
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || 'Không thể tải nội dung chapter');
+        }
+
+        return data;
+    } catch (error) {
+        throw error;
+    }
+};
+
+// API để lấy preview nội dung theo program ID
+export const getContentPreview = async (programId) => {
+    try {
+        const response = await fetch(`${API_URL}/api/content/preview/${programId}`);
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || 'Không thể tải preview nội dung');
+        }
+
+        return data;
+    } catch (error) {
+        throw error;
+    }
 };
