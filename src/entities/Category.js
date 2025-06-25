@@ -13,6 +13,11 @@ const Category = new EntitySchema({
             primary: true,
             generated: true
         },
+        name: {
+            type: "nvarchar",
+            length: 255,
+            nullable: true
+        },
         description: {
             type: "nvarchar",
             length: 255,

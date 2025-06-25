@@ -8,6 +8,35 @@ const Content = require('../src/entities/Content');
 
 class EnrollController {
     /**
+     * Helper function to safely parse progress JSON
+     */
+    static parseProgress(progressString) {
+        try {
+            return progressString ? JSON.parse(progressString) : [];
+        } catch (err) {
+            console.error('Error parsing progress JSON:', err);
+            return [];
+        }
+    }
+
+    /**
+     * Helper function to safely parse enrollment data
+     */
+    static parseEnrollment(enrollment) {
+        return {
+            ...enrollment,
+            progress: EnrollController.parseProgress(enrollment.progress)
+        };
+    }
+
+    /**
+     * Helper function to safely parse multiple enrollments
+     */
+    static parseEnrollments(enrollments) {
+        return enrollments.map(enrollment => EnrollController.parseEnrollment(enrollment));
+    }
+
+    /**
      * Get all enrollments
      */
     static async getAllEnrollments(req, res) {
@@ -17,10 +46,7 @@ class EnrollController {
             });
 
             // Parse progress JSON for each enrollment
-            const parsedEnrollments = enrollments.map(enrollment => ({
-                ...enrollment,
-                progress: enrollment.progress ? JSON.parse(enrollment.progress) : []
-            }));
+            const parsedEnrollments = EnrollController.parseEnrollments(enrollments);
 
             res.status(200).json({
                 success: true,
@@ -59,10 +85,7 @@ class EnrollController {
             }
 
             // Parse progress JSON
-            const parsedEnrollment = {
-                ...enrollment,
-                progress: enrollment.progress ? JSON.parse(enrollment.progress) : []
-            };
+            const parsedEnrollment = EnrollController.parseEnrollment(enrollment);
 
             res.status(200).json({
                 success: true,
@@ -91,10 +114,7 @@ class EnrollController {
             });
 
             // Parse progress JSON for each enrollment
-            const parsedEnrollments = enrollments.map(enrollment => ({
-                ...enrollment,
-                progress: enrollment.progress ? JSON.parse(enrollment.progress) : []
-            }));
+            const parsedEnrollments = EnrollController.parseEnrollments(enrollments);
 
             res.status(200).json({
                 success: true,
@@ -120,10 +140,7 @@ class EnrollController {
             });
 
             // Parse progress JSON for each enrollment
-            const parsedEnrollments = enrollments.map(enrollment => ({
-                ...enrollment,
-                progress: enrollment.progress ? JSON.parse(enrollment.progress) : []
-            }));
+            const parsedEnrollments = EnrollController.parseEnrollments(enrollments);
 
             res.status(200).json({
                 success: true,
@@ -150,10 +167,7 @@ class EnrollController {
             });
 
             // Parse progress JSON for each enrollment
-            const parsedEnrollments = enrollments.map(enrollment => ({
-                ...enrollment,
-                progress: enrollment.progress ? JSON.parse(enrollment.progress) : []
-            }));
+            const parsedEnrollments = EnrollController.parseEnrollments(enrollments);
 
             res.status(200).json({
                 success: true,
@@ -172,12 +186,13 @@ class EnrollController {
 
     static async createEnrollment(req, res) {
         try {
-            const { user_id, program_id } = req.body;
+            const { program_id } = req.body;
+            const userId = req.user.userId;
             const start_at = new Date();
             const complete_at = null;
 
             // Validate required fields
-            if (!user_id || !program_id) {
+            if (!userId || !program_id) {
                 return res.status(400).json({
                     success: false,
                     message: 'Missing required fields: user_id, program_id'
@@ -190,7 +205,7 @@ class EnrollController {
             // Check if enrollment already exists
             const existingEnrollment = await enrollRepository.findOne({
                 where: {
-                    user_id: parseInt(user_id),
+                    user_id: parseInt(userId),
                     program_id: parseInt(program_id)
                 }
             });
@@ -216,7 +231,7 @@ class EnrollController {
 
             // Create new enrollment
             const newEnrollment = enrollRepository.create({
-                user_id: parseInt(user_id),
+                user_id: parseInt(userId),
                 program_id: parseInt(program_id),
                 start_at: start_at || new Date(),
                 complete_at: complete_at || null,
@@ -234,10 +249,7 @@ class EnrollController {
             });
 
             // Parse progress JSON before returning
-            const parsedEnrollment = {
-                ...completeEnrollment,
-                progress: completeEnrollment.progress ? JSON.parse(completeEnrollment.progress) : []
-            };
+            const parsedEnrollment = EnrollController.parseEnrollment(completeEnrollment);
 
             res.status(201).json({
                 success: true,
@@ -285,7 +297,7 @@ class EnrollController {
             }
 
             // Parse current progress
-            const currentProgress = enrollment.progress ? JSON.parse(enrollment.progress) : [];
+            const currentProgress = EnrollController.parseProgress(enrollment.progress);
             
             // If completion date is being set, mark all content as complete
             let updatedProgress = currentProgress;
@@ -317,10 +329,7 @@ class EnrollController {
             });
 
             // Parse progress JSON before returning
-            const parsedEnrollment = {
-                ...updatedEnrollment,
-                progress: updatedEnrollment.progress ? JSON.parse(updatedEnrollment.progress) : []
-            };
+            const parsedEnrollment = EnrollController.parseEnrollment(updatedEnrollment);
 
             res.status(200).json({
                 success: true,
@@ -349,10 +358,7 @@ class EnrollController {
             });
 
             // Parse progress JSON for each enrollment
-            const parsedEnrollments = enrollments.map(enrollment => ({
-                ...enrollment,
-                progress: enrollment.progress ? JSON.parse(enrollment.progress) : []
-            }));
+            const parsedEnrollments = EnrollController.parseEnrollments(enrollments);
 
             res.status(200).json({
                 success: true,
@@ -395,7 +401,7 @@ class EnrollController {
             }
 
             // Parse current progress
-            const currentProgress = enrollment.progress ? JSON.parse(enrollment.progress) : [];
+            const currentProgress = EnrollController.parseProgress(enrollment.progress);
             
             // Update the specific content item
             const updatedProgress = currentProgress.map(item => {
@@ -434,10 +440,7 @@ class EnrollController {
             });
 
             // Parse progress JSON before returning
-            const parsedEnrollment = {
-                ...updatedEnrollment,
-                progress: updatedEnrollment.progress ? JSON.parse(updatedEnrollment.progress) : []
-            };
+            const parsedEnrollment = EnrollController.parseEnrollment(updatedEnrollment);
 
             res.status(200).json({
                 success: true,
@@ -449,6 +452,260 @@ class EnrollController {
             res.status(500).json({
                 success: false,
                 message: 'Failed to update content progress',
+                error: error.message
+            });
+        }
+    }
+
+    /**
+     * Update content completion status using content_id and composite enroll_id
+     * enroll_id format: "userId_programId" (e.g., "6_2" for user 6 in program 2)
+     */
+    static async updateContentCompletionById(req, res) {
+        try {
+            const { enrollId, contentId } = req.params;
+            const { complete } = req.body;
+
+            // Parse composite enroll_id (format: "userId_programId")
+            const enrollIdParts = enrollId.split('_');
+            if (enrollIdParts.length !== 2) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid enroll_id format. Expected format: "userId_programId" (e.g., "6_2")'
+                });
+            }
+
+            const userId = parseInt(enrollIdParts[0]);
+            const programId = parseInt(enrollIdParts[1]);
+
+            if (isNaN(userId) || isNaN(programId)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid enroll_id. Both userId and programId must be valid numbers'
+                });
+            }
+
+            const enrollRepository = AppDataSource.getRepository(Enroll);
+
+            // Check if enrollment exists
+            const enrollment = await enrollRepository.findOne({
+                where: {
+                    user_id: userId,
+                    program_id: programId
+                }
+            });
+
+            if (!enrollment) {
+                return res.status(404).json({
+                    success: false,
+                    message: `Enrollment not found for enroll_id: ${enrollId}`
+                });
+            }
+
+            // Parse current progress
+            const currentProgress = EnrollController.parseProgress(enrollment.progress);
+            
+            // Check if content_id exists in progress array
+            const contentExists = currentProgress.some(item => item.content_id === parseInt(contentId));
+            if (!contentExists) {
+                return res.status(404).json({
+                    success: false,
+                    message: `Content with ID ${contentId} not found in enrollment progress`
+                });
+            }
+
+            // Update the specific content item
+            const updatedProgress = currentProgress.map(item => {
+                if (item.content_id === parseInt(contentId)) {
+                    return { ...item, complete: complete !== undefined ? complete : !item.complete };
+                }
+                return item;
+            });
+
+            // Check if all content is completed
+            const allCompleted = updatedProgress.every(item => item.complete);
+            const updateData = {
+                progress: JSON.stringify(updatedProgress)
+            };
+
+            // If all content is completed, set completion date
+            if (allCompleted && !enrollment.complete_at) {
+                updateData.complete_at = new Date();
+            }
+            // If not all completed but was previously completed, remove completion date
+            else if (!allCompleted && enrollment.complete_at) {
+                updateData.complete_at = null;
+            }
+
+            // Update enrollment
+            await enrollRepository.update(
+                {
+                    user_id: userId,
+                    program_id: programId
+                },
+                updateData
+            );
+
+            // Fetch updated enrollment
+            const updatedEnrollment = await enrollRepository.findOne({
+                where: {
+                    user_id: userId,
+                    program_id: programId
+                }
+            });
+
+            // Parse progress JSON before returning
+            const parsedEnrollment = EnrollController.parseEnrollment(updatedEnrollment);
+
+            // Calculate progress percentage for response
+            const completedCount = parsedEnrollment.progress.filter(item => item.complete).length;
+            const totalCount = parsedEnrollment.progress.length;
+            const progressPercentage = totalCount > 0 ? (completedCount / totalCount) : 0;
+
+            res.status(200).json({
+                success: true,
+                data: {
+                    ...parsedEnrollment,
+                    enroll_id: enrollId,
+                    progressPercentage: Math.round(progressPercentage * 100),
+                    completedContent: completedCount,
+                    totalContent: totalCount
+                },
+                message: `Content ${contentId} completion status updated successfully`
+            });
+        } catch (error) {
+            console.error('Error updating content completion:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to update content completion status',
+                error: error.message
+            });
+        }
+    }
+
+    /**
+     * Toggle content completion status (flip from false to true or true to false)
+     * This is a convenience method for simple toggling
+     */
+    static async toggleContentCompletion(req, res) {
+        try {
+            const { enrollId, contentId } = req.params;
+
+            // Parse composite enroll_id (format: "userId_programId")
+            const enrollIdParts = enrollId.split('_');
+            if (enrollIdParts.length !== 2) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid enroll_id format. Expected format: "userId_programId" (e.g., "6_2")'
+                });
+            }
+
+            const userId = parseInt(enrollIdParts[0]);
+            const programId = parseInt(enrollIdParts[1]);
+
+            if (isNaN(userId) || isNaN(programId)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid enroll_id. Both userId and programId must be valid numbers'
+                });
+            }
+
+            const enrollRepository = AppDataSource.getRepository(Enroll);
+
+            // Check if enrollment exists
+            const enrollment = await enrollRepository.findOne({
+                where: {
+                    user_id: userId,
+                    program_id: programId
+                }
+            });
+
+            if (!enrollment) {
+                return res.status(404).json({
+                    success: false,
+                    message: `Enrollment not found for enroll_id: ${enrollId}`
+                });
+            }
+
+            // Parse current progress
+            const currentProgress = EnrollController.parseProgress(enrollment.progress);
+            
+            // Find the content item and toggle its completion status
+            let contentFound = false;
+            let newCompletionStatus = false;
+            
+            const updatedProgress = currentProgress.map(item => {
+                if (item.content_id === parseInt(contentId)) {
+                    contentFound = true;
+                    newCompletionStatus = !item.complete;
+                    return { ...item, complete: newCompletionStatus };
+                }
+                return item;
+            });
+
+            if (!contentFound) {
+                return res.status(404).json({
+                    success: false,
+                    message: `Content with ID ${contentId} not found in enrollment progress`
+                });
+            }
+
+            // Check if all content is completed
+            const allCompleted = updatedProgress.every(item => item.complete);
+            const updateData = {
+                progress: JSON.stringify(updatedProgress)
+            };
+
+            // If all content is completed, set completion date
+            if (allCompleted && !enrollment.complete_at) {
+                updateData.complete_at = new Date();
+            }
+            // If not all completed but was previously completed, remove completion date
+            else if (!allCompleted && enrollment.complete_at) {
+                updateData.complete_at = null;
+            }
+
+            // Update enrollment
+            await enrollRepository.update(
+                {
+                    user_id: userId,
+                    program_id: programId
+                },
+                updateData
+            );
+
+            // Fetch updated enrollment
+            const updatedEnrollment = await enrollRepository.findOne({
+                where: {
+                    user_id: userId,
+                    program_id: programId
+                }
+            });
+
+            // Parse progress JSON before returning
+            const parsedEnrollment = EnrollController.parseEnrollment(updatedEnrollment);
+
+            // Calculate progress percentage for response
+            const completedCount = parsedEnrollment.progress.filter(item => item.complete).length;
+            const totalCount = parsedEnrollment.progress.length;
+            const progressPercentage = totalCount > 0 ? (completedCount / totalCount) : 0;
+
+            res.status(200).json({
+                success: true,
+                data: {
+                    ...parsedEnrollment,
+                    enroll_id: enrollId,
+                    progressPercentage: Math.round(progressPercentage * 100),
+                    completedContent: completedCount,
+                    totalContent: totalCount
+                },
+                message: `Content ${contentId} toggled to ${newCompletionStatus ? 'completed' : 'incomplete'}`
+            });
+        } catch (error) {
+            console.error('Error toggling content completion:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to toggle content completion status',
                 error: error.message
             });
         }
@@ -479,7 +736,7 @@ class EnrollController {
                 });
             }
 
-            // Update enrollment
+            // Prepare update data
             const updateData = {
                 start_at: start_at || enrollment.start_at,
                 complete_at: complete_at !== undefined ? complete_at : enrollment.complete_at
@@ -490,6 +747,7 @@ class EnrollController {
                 updateData.progress = typeof progress === 'string' ? progress : JSON.stringify(progress);
             }
 
+            // Update enrollment
             await enrollRepository.update(
                 {
                     user_id: parseInt(userId),
@@ -507,10 +765,7 @@ class EnrollController {
             });
 
             // Parse progress JSON before returning
-            const parsedEnrollment = {
-                ...updatedEnrollment,
-                progress: updatedEnrollment.progress ? JSON.parse(updatedEnrollment.progress) : []
-            };
+            const parsedEnrollment = EnrollController.parseEnrollment(updatedEnrollment);
 
             res.status(200).json({
                 success: true,
@@ -570,7 +825,7 @@ class EnrollController {
     }
 
     /**
-     * Get enrollments by progress range (now calculates completion percentage)
+     * Get enrollments by progress range (calculated from JSON completion percentage)
      */
     static async getEnrollmentsByProgressRange(req, res) {
         try {
@@ -590,7 +845,7 @@ class EnrollController {
             const filteredEnrollments = enrollments.filter(enrollment => {
                 if (!enrollment.progress) return false;
                 
-                const progressArray = JSON.parse(enrollment.progress);
+                const progressArray = EnrollController.parseProgress(enrollment.progress);
                 const completedCount = progressArray.filter(item => item.complete).length;
                 const totalCount = progressArray.length;
                 const progressPercentage = totalCount > 0 ? (completedCount / totalCount) : 0;
@@ -600,7 +855,7 @@ class EnrollController {
 
             // Parse progress and add percentage calculation
             const parsedEnrollments = filteredEnrollments.map(enrollment => {
-                const progressArray = JSON.parse(enrollment.progress);
+                const progressArray = EnrollController.parseProgress(enrollment.progress);
                 const completedCount = progressArray.filter(item => item.complete).length;
                 const totalCount = progressArray.length;
                 const progressPercentage = totalCount > 0 ? (completedCount / totalCount) : 0;
@@ -628,27 +883,22 @@ class EnrollController {
     }
 
     /**
-     * Get completed enrollments
+     * Get completed enrollments (100% content completion)
      */
     static async getCompletedEnrollments(req, res) {
         try {
             const enrollRepository = AppDataSource.getRepository(Enroll);
-            const enrollments = await enrollRepository.find({
-                where: { complete_at: AppDataSource.createQueryBuilder().where('complete_at IS NOT NULL') },
-            });
+            const enrollments = await enrollRepository.find();
 
             // Filter to only include truly completed enrollments (all content completed)
             const completedEnrollments = enrollments.filter(enrollment => {
                 if (!enrollment.progress) return false;
-                const progressArray = JSON.parse(enrollment.progress);
-                return progressArray.every(item => item.complete);
+                const progressArray = EnrollController.parseProgress(enrollment.progress);
+                return progressArray.length > 0 && progressArray.every(item => item.complete);
             });
 
             // Parse progress JSON for each enrollment
-            const parsedEnrollments = completedEnrollments.map(enrollment => ({
-                ...enrollment,
-                progress: JSON.parse(enrollment.progress)
-            }));
+            const parsedEnrollments = EnrollController.parseEnrollments(completedEnrollments);
 
             res.status(200).json({
                 success: true,
@@ -666,7 +916,7 @@ class EnrollController {
     }
 
     /**
-     * Get in-progress enrollments
+     * Get in-progress enrollments (some but not all content completed)
      */
     static async getInProgressEnrollments(req, res) {
         try {
@@ -676,14 +926,14 @@ class EnrollController {
             // Filter to only include in-progress enrollments (some but not all content completed)
             const inProgressEnrollments = enrollments.filter(enrollment => {
                 if (!enrollment.progress) return false;
-                const progressArray = JSON.parse(enrollment.progress);
+                const progressArray = EnrollController.parseProgress(enrollment.progress);
                 const completedCount = progressArray.filter(item => item.complete).length;
                 return completedCount > 0 && completedCount < progressArray.length;
             });
 
             // Parse progress and add percentage calculation
             const parsedEnrollments = inProgressEnrollments.map(enrollment => {
-                const progressArray = JSON.parse(enrollment.progress);
+                const progressArray = EnrollController.parseProgress(enrollment.progress);
                 const completedCount = progressArray.filter(item => item.complete).length;
                 const totalCount = progressArray.length;
                 const progressPercentage = totalCount > 0 ? (completedCount / totalCount) : 0;

@@ -90,22 +90,90 @@ INSERT INTO Booking_Session (consultant_id, member_id, slot_id, booking_date, st
 (3, 8, 9, '2024-01-17', 'completed', 'Group therapy preparation session completed successfully.', 'https://meet.google.com/456-789-012');
 
 -- Insert Categories
-INSERT INTO Category (description) VALUES
-('Article'),
-('Video'),
-('Podcast');
+INSERT INTO Category (name, description) VALUES
+('Addiction Science', 'Educational content exploring the scientific foundations of addiction, brain chemistry, and neurological impacts'),
+('Cannabis (Marijuana)', 'Educational content about marijuana use, effects, risks, and legal considerations'),
+('Emerging Drug Trends', 'Information about new and emerging substances, synthetic drugs, and evolving drug patterns'),
+('Fentanyl', 'Critical education about fentanyl, its dangers, overdose prevention, and safety measures'),
+('Harm Reduction', 'Strategies and approaches to minimize health risks associated with drug use'),
+('Heroin', 'Educational content about heroin addiction, treatment options, and recovery resources'),
+('HIV', 'Information about HIV prevention, testing, and care related to substance use'),
+('Kratom', 'Educational content about kratom use, effects, and potential risks'),
+('Methamphetamine', 'Information about methamphetamine addiction, effects, and treatment approaches'),
+('Opioids', 'Comprehensive education about opioid addiction, prescription drug misuse, and treatment'),
+('Prevention', 'Evidence-based prevention strategies, programs, and educational initiatives'),
+('Psychedelic and Dissociative Drugs', 'Educational content about psychedelics, dissociatives, and their effects'),
+('Psilocybin (Magic Mushrooms)', 'Information about psilocybin mushrooms, effects, and safety considerations'),
+('Stigma and Discrimination', 'Addressing stigma, promoting understanding, and reducing discrimination in addiction'),
+('Syringe Services Programs', 'Information about needle exchange programs and harm reduction services'),
+('Tobacco/Nicotine and Vaping', 'Educational content about tobacco use, nicotine addiction, and vaping risks'),
+('Treatment', 'Comprehensive information about addiction treatment options, recovery programs, and support services');
 
 -- Insert Programs
 INSERT INTO Programs (img_link, title, description, create_by, status, age_group, create_at, category_id) VALUES
-('https://example.com/img1.jpg', 'Mental Health Basics', 'Introduction to mental health concepts and understanding psychological wellbeing', 1, 'active', '18-25', GETDATE(), 1),
-('https://example.com/img2.jpg', 'Stress Management', 'Learn how to manage stress effectively through proven techniques and strategies', 1, 'active', '18-25', GETDATE(), 2),
-('https://example.com/img3.jpg', 'Mindfulness Meditation', 'Guided meditation sessions for inner peace and mental clarity', 1, 'active', '18-25', GETDATE(), 3),
-('https://example.com/img4.jpg', 'Addiction Recovery Fundamentals', 'Comprehensive guide to understanding and overcoming addiction', 1, 'active', '18+', GETDATE(), 1),
-('https://example.com/img5.jpg', 'Youth Prevention Program', 'Evidence-based prevention strategies for teenagers and young adults', 1, 'active', '13-18', GETDATE(), 2),
-('https://example.com/img6.jpg', 'Family Support System', 'Building strong family bonds and communication skills', 1, 'active', 'All Ages', GETDATE(), 3),
-('https://example.com/img7.jpg', 'Cognitive Behavioral Therapy', 'Learn CBT techniques for managing thoughts and behaviors', 1, 'active', '18+', GETDATE(), 1),
-('https://example.com/img8.jpg', 'Workplace Wellness', 'Creating healthy work environments and managing professional stress', 1, 'active', '22-65', GETDATE(), 2),
-('https://example.com/img9.jpg', 'Crisis Intervention Training', 'Essential skills for handling mental health emergencies', 1, 'active', '18+', GETDATE(), 3);
+-- Addiction Science Programs
+('https://example.com/addiction-science.jpg', 'Understanding Addiction Science', 'Comprehensive exploration of the neuroscience behind addiction, brain changes, and recovery mechanisms', 1, 'active', '18+', GETDATE(), 1),
+('https://example.com/brain-addiction.jpg', 'Brain and Addiction: A Scientific Perspective', 'Deep dive into how substances affect brain chemistry and neural pathways', 1, 'active', '18+', GETDATE(), 1),
+
+-- Cannabis Programs
+('https://example.com/cannabis-education.jpg', 'Cannabis Education and Awareness', 'Evidence-based information about marijuana use, effects, and legal considerations', 1, 'active', '18+', GETDATE(), 2),
+('https://example.com/marijuana-youth.jpg', 'Marijuana and Youth Development', 'Understanding the impact of cannabis use on developing brains', 1, 'active', '13-25', GETDATE(), 2),
+
+-- Emerging Drug Trends Programs
+('https://example.com/emerging-drugs.jpg', 'New Psychoactive Substances Alert', 'Stay informed about emerging synthetic drugs and novel substances', 1, 'active', '18+', GETDATE(), 3),
+('https://example.com/synthetic-drugs.jpg', 'Synthetic Drug Awareness Program', 'Education about designer drugs, their risks, and identification', 1, 'active', '16+', GETDATE(), 3),
+
+-- Fentanyl Programs
+('https://example.com/fentanyl-crisis.jpg', 'Fentanyl Crisis Response', 'Critical education about fentanyl dangers, overdose prevention, and naloxone training', 1, 'active', '16+', GETDATE(), 4),
+('https://example.com/overdose-prevention.jpg', 'Overdose Prevention and Response', 'Life-saving techniques and emergency response for opioid overdoses', 1, 'active', '16+', GETDATE(), 4),
+
+-- Harm Reduction Programs
+('https://example.com/harm-reduction.jpg', 'Harm Reduction Strategies', 'Practical approaches to minimize health risks associated with substance use', 1, 'active', '18+', GETDATE(), 5),
+('https://example.com/safer-use.jpg', 'Safer Use Education', 'Evidence-based harm reduction techniques and safety protocols', 1, 'active', '18+', GETDATE(), 5),
+
+-- Heroin Programs
+('https://example.com/heroin-treatment.jpg', 'Heroin Addiction Treatment Options', 'Comprehensive guide to heroin addiction treatment and recovery pathways', 1, 'active', '18+', GETDATE(), 6),
+('https://example.com/opioid-substitution.jpg', 'Medication-Assisted Treatment for Heroin', 'Understanding methadone, buprenorphine, and other treatment medications', 1, 'active', '18+', GETDATE(), 6),
+
+-- HIV Programs
+('https://example.com/hiv-prevention.jpg', 'HIV Prevention in Substance Use', 'Preventing HIV transmission among people who use drugs', 1, 'active', '18+', GETDATE(), 7),
+('https://example.com/hiv-testing.jpg', 'HIV Testing and Care Services', 'Access to HIV testing, treatment, and support services', 1, 'active', '18+', GETDATE(), 7),
+
+-- Kratom Programs
+('https://example.com/kratom-education.jpg', 'Kratom: Facts and Risks', 'Educational content about kratom use, effects, and potential health risks', 1, 'active', '18+', GETDATE(), 8),
+
+-- Methamphetamine Programs
+('https://example.com/meth-addiction.jpg', 'Methamphetamine Addiction Recovery', 'Treatment approaches and recovery strategies for methamphetamine addiction', 1, 'active', '18+', GETDATE(), 9),
+('https://example.com/meth-effects.jpg', 'Understanding Methamphetamine Effects', 'Comprehensive education about meth use, health impacts, and risks', 1, 'active', '16+', GETDATE(), 9),
+
+-- Opioids Programs
+('https://example.com/opioid-crisis.jpg', 'Opioid Crisis Awareness', 'Understanding the opioid epidemic, prescription drug misuse, and solutions', 1, 'active', '16+', GETDATE(), 10),
+('https://example.com/prescription-safety.jpg', 'Prescription Opioid Safety', 'Safe use, storage, and disposal of prescription opioid medications', 1, 'active', 'All Ages', GETDATE(), 10),
+
+-- Prevention Programs
+('https://example.com/youth-prevention.jpg', 'Youth Drug Prevention Program', 'Evidence-based prevention strategies for teenagers and young adults', 1, 'active', '13-18', GETDATE(), 11),
+('https://example.com/community-prevention.jpg', 'Community Prevention Initiative', 'Building community resilience and prevention capacity', 1, 'active', 'All Ages', GETDATE(), 11),
+
+-- Psychedelic Programs
+('https://example.com/psychedelics-education.jpg', 'Psychedelic Substances Education', 'Educational content about psychedelics, dissociatives, and their effects', 1, 'active', '18+', GETDATE(), 12),
+
+-- Psilocybin Programs
+('https://example.com/psilocybin-safety.jpg', 'Psilocybin Safety and Effects', 'Information about magic mushrooms, effects, and safety considerations', 1, 'active', '18+', GETDATE(), 13),
+
+-- Stigma Programs
+('https://example.com/stigma-reduction.jpg', 'Reducing Addiction Stigma', 'Addressing stigma, promoting understanding, and reducing discrimination', 1, 'active', 'All Ages', GETDATE(), 14),
+('https://example.com/language-matters.jpg', 'Language Matters in Addiction', 'Using person-first language and reducing stigmatizing terminology', 1, 'active', '16+', GETDATE(), 14),
+
+-- Syringe Services Programs
+('https://example.com/syringe-services.jpg', 'Syringe Services Program Overview', 'Understanding needle exchange programs and harm reduction services', 1, 'active', '18+', GETDATE(), 15),
+
+-- Tobacco/Vaping Programs
+('https://example.com/tobacco-cessation.jpg', 'Tobacco Cessation Program', 'Comprehensive smoking cessation support and nicotine replacement therapy', 1, 'active', '16+', GETDATE(), 16),
+('https://example.com/vaping-risks.jpg', 'Vaping and E-cigarette Risks', 'Understanding the health risks of vaping and e-cigarette use', 1, 'active', '13+', GETDATE(), 16),
+
+-- Treatment Programs
+('https://example.com/addiction-treatment.jpg', 'Comprehensive Addiction Treatment', 'Overview of treatment options, recovery programs, and support services', 1, 'active', '18+', GETDATE(), 17),
+('https://example.com/recovery-support.jpg', 'Recovery Support Services', 'Peer support, counseling, and long-term recovery maintenance', 1, 'active', '18+', GETDATE(), 17);
 
 -- Insert User Enrollments with JSON progress tracking
 INSERT INTO Enroll (user_id, program_id, start_at, progress) VALUES
@@ -143,92 +211,83 @@ INSERT INTO Assessments (user_id, type, result_json, create_at, action_id) VALUE
 
 -- Insert Content
 INSERT INTO Content (program_id, title, type, orders, content_file_link, content_type, content_metadata_json) VALUES
--- Program 1: Mental Health Basics (7 content items)
-(1, 'Understanding Mental Health', 'article', 1, '/content/markdown/mental-health-intro.md', 'markdown', '{"author": "Dr. Smith", "readingTime": "8 min", "difficulty": "beginner"}'),
-(1, 'Common Mental Health Conditions', 'video', 2, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "12:45", "format": "youtube", "instructor": "Dr. Johnson"}'),
-(1, 'Building Emotional Resilience', 'article', 3, '/content/markdown/emotional-resilience.md', 'markdown', '{"author": "Dr. Williams", "readingTime": "10 min", "difficulty": "intermediate"}'),
-(1, 'Mental Health Self-Assessment Quiz', 'article', 4, '/content/markdown/self-assessment-quiz.md', 'markdown', '{"author": "Dr. Assessment", "readingTime": "15 min", "questions": 20, "type": "quiz"}'),
-(1, 'Daily Mental Wellness Practices', 'podcast', 5, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'audio', '{"duration": "18:30", "format": "youtube", "host": "Sarah Chen"}'),
-(1, 'Signs and Symptoms Guide', 'article', 6, '/content/markdown/signs-symptoms-guide.md', 'markdown', '{"author": "Dr. Mental Health", "readingTime": "12 min", "difficulty": "beginner"}'),
-(1, 'Mental Health First Aid Basics', 'article', 7, '/content/markdown/mental-health-first-aid.md', 'markdown', '{"author": "First Aid Expert", "readingTime": "15 min", "difficulty": "intermediate"}'),
+-- Program 1: Understanding Addiction Science (6 content items)
+(1, 'The Neuroscience of Addiction', 'article', 1, '/content/markdown/addiction-science.md', 'markdown', '{"author": "Dr. Smith", "readingTime": "12 min", "difficulty": "intermediate"}'),
+(1, 'How Drugs Change the Brain', 'video', 2, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "15:30", "format": "youtube", "instructor": "Dr. Johnson"}'),
+(1, 'Dopamine and Reward Pathways', 'article', 3, '/content/markdown/dopamine-reward.md', 'markdown', '{"author": "Dr. Williams", "readingTime": "10 min", "difficulty": "intermediate"}'),
+(1, 'Genetics and Addiction Risk', 'video', 4, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "12:45", "format": "youtube", "instructor": "Dr. Genetics"}'),
+(1, 'Brain Recovery in Sobriety', 'podcast', 5, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'audio', '{"duration": "25:00", "format": "youtube", "host": "Recovery Expert"}'),
+(1, 'Addiction Science Research Updates', 'article', 6, '/content/markdown/addiction-research.md', 'markdown', '{"author": "Research Team", "readingTime": "8 min", "difficulty": "advanced"}'),
 
--- Program 2: Stress Management (7 content items)
-(2, 'Understanding Stress and Its Impact', 'article', 1, '/content/markdown/stress-impact.md', 'markdown', '{"author": "Dr. Brown", "readingTime": "7 min", "difficulty": "beginner"}'),
-(2, 'Breathing Techniques for Stress Relief', 'video', 2, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "10:20", "format": "youtube", "instructor": "Maria Lopez"}'),
-(2, 'Progressive Muscle Relaxation', 'video', 3, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "25:15", "format": "youtube", "instructor": "Dr. Taylor"}'),
-(2, 'Stress Management Workbook Guide', 'article', 4, '/content/markdown/stress-workbook.md', 'markdown', '{"author": "Stress Coach Emma", "readingTime": "25 min", "exercises": 12, "type": "workbook"}'),
-(2, 'Expert Interview: Managing Chronic Stress', 'podcast', 5, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'audio', '{"duration": "45:00", "format": "youtube", "guest": "Dr. Anderson"}'),
-(2, 'Time Management for Stress Reduction', 'article', 6, '/content/markdown/time-management-stress.md', 'markdown', '{"author": "Time Management Pro", "readingTime": "10 min", "difficulty": "intermediate"}'),
-(2, 'Creating a Stress-Free Environment', 'article', 7, '/content/markdown/stress-free-environment.md', 'markdown', '{"author": "Environment Expert", "readingTime": "8 min", "difficulty": "beginner"}'),
+-- Program 2: Brain and Addiction: A Scientific Perspective (5 content items)
+(2, 'Brain Anatomy and Addiction', 'article', 1, '/content/markdown/brain-anatomy-addiction.md', 'markdown', '{"author": "Dr. Brain", "readingTime": "14 min", "difficulty": "intermediate"}'),
+(2, 'Neurotransmitters and Substance Use', 'video', 2, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "18:20", "format": "youtube", "instructor": "Dr. Neuro"}'),
+(2, 'Tolerance and Dependence Mechanisms', 'article', 3, '/content/markdown/tolerance-dependence.md', 'markdown', '{"author": "Dr. Mechanisms", "readingTime": "11 min", "difficulty": "advanced"}'),
+(2, 'Brain Imaging in Addiction Studies', 'video', 4, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "22:15", "format": "youtube", "instructor": "Dr. Imaging"}'),
+(2, 'Neuroplasticity and Recovery', 'podcast', 5, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'audio', '{"duration": "30:00", "format": "youtube", "host": "Plasticity Expert"}'),
 
--- Program 3: Mindfulness Meditation (7 content items)
-(3, 'Introduction to Mindfulness', 'article', 1, '/content/markdown/mindfulness-intro.md', 'markdown', '{"author": "Zen Master Kim", "readingTime": "6 min", "difficulty": "beginner"}'),
-(3, 'Basic Breathing Meditation', 'video', 2, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "15:00", "format": "youtube", "instructor": "Master Chen"}'),
-(3, 'Body Scan Meditation', 'podcast', 3, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'audio', '{"duration": "20:00", "format": "youtube", "guide": "Lisa Park"}'),
-(3, 'Walking Meditation Practice', 'video', 4, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "18:30", "format": "youtube", "location": "outdoor"}'),
-(3, 'Advanced Mindfulness Techniques', 'video', 5, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "40:00", "format": "youtube", "techniques": 8, "level": "advanced"}'),
-(3, 'Mindful Eating Practices', 'article', 6, '/content/markdown/mindful-eating.md', 'markdown', '{"author": "Mindful Chef", "readingTime": "9 min", "difficulty": "beginner"}'),
-(3, 'Mindfulness in Daily Activities', 'article', 7, '/content/markdown/mindfulness-daily-life.md', 'markdown', '{"author": "Daily Mindfulness Guide", "readingTime": "11 min", "difficulty": "intermediate"}'),
+-- Program 3: Cannabis Education and Awareness (7 content items)
+(3, 'Cannabis: Facts vs. Myths', 'article', 1, '/content/markdown/cannabis-facts.md', 'markdown', '{"author": "Cannabis Expert", "readingTime": "10 min", "difficulty": "beginner"}'),
+(3, 'THC and CBD: Understanding Cannabinoids', 'video', 2, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "14:30", "format": "youtube", "instructor": "Dr. Cannabinoid"}'),
+(3, 'Cannabis and Mental Health', 'article', 3, '/content/markdown/cannabis-mental-health.md', 'markdown', '{"author": "Mental Health Expert", "readingTime": "12 min", "difficulty": "intermediate"}'),
+(3, 'Legal Cannabis: What You Need to Know', 'video', 4, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "16:45", "format": "youtube", "instructor": "Legal Expert"}'),
+(3, 'Medical vs. Recreational Cannabis', 'article', 5, '/content/markdown/medical-recreational-cannabis.md', 'markdown', '{"author": "Medical Cannabis Expert", "readingTime": "9 min", "difficulty": "intermediate"}'),
+(3, 'Cannabis Use Disorders', 'podcast', 6, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'audio', '{"duration": "28:00", "format": "youtube", "host": "Addiction Specialist"}'),
+(3, 'Driving and Cannabis: Safety Concerns', 'article', 7, '/content/markdown/cannabis-driving-safety.md', 'markdown', '{"author": "Safety Expert", "readingTime": "7 min", "difficulty": "beginner"}'),
 
--- Program 4: Addiction Recovery Fundamentals (8 content items)
-(4, 'Understanding Addiction Science', 'article', 1, '/content/markdown/addiction-science.md', 'markdown', '{"author": "Dr. Martinez", "readingTime": "12 min", "difficulty": "intermediate"}'),
-(4, 'The Recovery Process: What to Expect', 'video', 2, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "22:15", "format": "youtube", "expert": "Dr. Wilson"}'),
-(4, 'Building a Support Network', 'article', 3, '/content/markdown/support-network.md', 'markdown', '{"author": "Recovery Coach Tom", "readingTime": "9 min", "difficulty": "beginner"}'),
-(4, 'Relapse Prevention Strategies Training', 'video', 4, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "35:00", "format": "youtube", "strategies": 15, "type": "training"}'),
-(4, 'Recovery Stories: Real Experiences', 'podcast', 5, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'audio', '{"duration": "55:00", "format": "youtube", "stories": 3}'),
-(4, 'Coping with Triggers and Cravings', 'article', 6, '/content/markdown/triggers-cravings.md', 'markdown', '{"author": "Trigger Management Expert", "readingTime": "14 min", "difficulty": "intermediate"}'),
-(4, 'Building Healthy Habits in Recovery', 'article', 7, '/content/markdown/healthy-habits-recovery.md', 'markdown', '{"author": "Habit Formation Coach", "readingTime": "13 min", "difficulty": "intermediate"}'),
-(4, 'Family Involvement in Recovery', 'article', 8, '/content/markdown/family-recovery-involvement.md', 'markdown', '{"author": "Family Recovery Specialist", "readingTime": "16 min", "difficulty": "advanced"}'),
+-- Program 4: Marijuana and Youth Development (6 content items)
+(4, 'Teen Brain Development and Cannabis', 'article', 1, '/content/markdown/teen-brain.md', 'markdown', '{"author": "Dr. Youth", "readingTime": "11 min", "difficulty": "intermediate"}'),
+(4, 'Cannabis Effects on Academic Performance', 'video', 2, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "13:20", "format": "youtube", "instructor": "Education Expert"}'),
+(4, 'Early Cannabis Use: Long-term Effects', 'article', 3, '/content/markdown/early-cannabis-effects.md', 'markdown', '{"author": "Development Expert", "readingTime": "10 min", "difficulty": "intermediate"}'),
+(4, 'Talking to Teens About Cannabis', 'video', 4, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "15:45", "format": "youtube", "instructor": "Parent Educator"}'),
+(4, 'Cannabis Prevention in Schools', 'podcast', 5, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'audio', '{"duration": "32:00", "format": "youtube", "host": "School Counselor"}'),
+(4, 'Youth Cannabis Treatment Options', 'article', 6, '/content/markdown/youth-cannabis-treatment.md', 'markdown', '{"author": "Youth Treatment Specialist", "readingTime": "13 min", "difficulty": "advanced"}'),
 
--- Program 5: Youth Prevention Program (8 content items)
-(5, 'Teen Brain Development and Risk', 'article', 1, '/content/markdown/teen-brain.md', 'markdown', '{"author": "Dr. Youth", "readingTime": "8 min", "ageGroup": "13-18"}'),
-(5, 'Peer Pressure: How to Say No', 'video', 2, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "14:20", "format": "youtube", "scenarios": 5}'),
-(5, 'Healthy Coping Mechanisms for Teens', 'article', 3, '/content/markdown/teen-coping.md', 'markdown', '{"author": "Teen Counselor Alex", "readingTime": "7 min", "tips": 10}'),
-(5, 'Decision-Making Scenarios Workshop', 'video', 4, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "25:00", "format": "youtube", "scenarios": 12, "type": "workshop"}'),
-(5, 'Parent-Teen Communication Tips', 'podcast', 5, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'audio', '{"duration": "30:00", "format": "youtube", "tips": 8}'),
-(5, 'Social Media and Mental Health for Teens', 'article', 6, '/content/markdown/social-media-teens.md', 'markdown', '{"author": "Digital Wellness Expert", "readingTime": "10 min", "ageGroup": "13-18"}'),
-(5, 'Building Self-Esteem in Adolescence', 'article', 7, '/content/markdown/teen-self-esteem.md', 'markdown', '{"author": "Teen Development Specialist", "readingTime": "12 min", "ageGroup": "13-18"}'),
-(5, 'Academic Stress Management for Students', 'article', 8, '/content/markdown/academic-stress-teens.md', 'markdown', '{"author": "Student Success Coach", "readingTime": "11 min", "ageGroup": "13-18"}'),
+-- Program 5: New Psychoactive Substances Alert (5 content items)
+(5, 'What Are New Psychoactive Substances?', 'article', 1, '/content/markdown/new-psychoactive-substances.md', 'markdown', '{"author": "Drug Alert Expert", "readingTime": "9 min", "difficulty": "beginner"}'),
+(5, 'Synthetic Drug Identification', 'video', 2, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "17:30", "format": "youtube", "instructor": "Forensic Expert"}'),
+(5, 'Designer Drug Risks and Effects', 'article', 3, '/content/markdown/designer-drug-risks.md', 'markdown', '{"author": "Risk Assessment Expert", "readingTime": "11 min", "difficulty": "intermediate"}'),
+(5, 'Online Drug Markets and Safety', 'video', 4, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "19:15", "format": "youtube", "instructor": "Cyber Safety Expert"}'),
+(5, 'Emerging Drug Trends Report', 'podcast', 5, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'audio', '{"duration": "35:00", "format": "youtube", "host": "Trend Analyst"}'),
 
--- Program 6: Family Support System (8 content items)
-(6, 'Understanding Family Dynamics', 'article', 1, '/content/markdown/family-dynamics.md', 'markdown', '{"author": "Family Therapist Jane", "readingTime": "10 min", "focus": "communication"}'),
-(6, 'Effective Communication Techniques', 'video', 2, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "18:45", "format": "youtube", "techniques": 6}'),
-(6, 'Setting Healthy Boundaries', 'article', 3, '/content/markdown/healthy-boundaries.md', 'markdown', '{"author": "Dr. Boundaries", "readingTime": "9 min", "examples": 5}'),
-(6, 'Family Meeting Facilitation Guide', 'article', 4, '/content/markdown/family-meetings.md', 'markdown', '{"author": "Family Guide Pro", "readingTime": "20 min", "steps": 8, "type": "guide"}'),
-(6, 'Healing Family Relationships', 'podcast', 5, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'audio', '{"duration": "40:00", "format": "youtube", "cases": 4}'),
-(6, 'Co-Parenting After Separation', 'article', 6, '/content/markdown/co-parenting-guide.md', 'markdown', '{"author": "Co-Parenting Expert", "readingTime": "15 min", "difficulty": "intermediate"}'),
-(6, 'Dealing with Family Conflict', 'article', 7, '/content/markdown/family-conflict-resolution.md', 'markdown', '{"author": "Conflict Resolution Specialist", "readingTime": "13 min", "difficulty": "intermediate"}'),
-(6, 'Supporting Family Members with Mental Health Issues', 'article', 8, '/content/markdown/supporting-family-mental-health.md', 'markdown', '{"author": "Family Mental Health Advocate", "readingTime": "18 min", "difficulty": "advanced"}'),
+-- Program 6: Synthetic Drug Awareness Program (6 content items)
+(6, 'Identifying Synthetic Drugs', 'article', 1, '/content/markdown/synthetic-drugs.md', 'markdown', '{"author": "Synthetic Drug Expert", "readingTime": "10 min", "difficulty": "intermediate"}'),
+(6, 'K2/Spice: Synthetic Cannabinoids', 'video', 2, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "16:30", "format": "youtube", "instructor": "Drug Safety Expert"}'),
+(6, 'Bath Salts and Synthetic Stimulants', 'article', 3, '/content/markdown/bath-salts-synthetics.md', 'markdown', '{"author": "Stimulant Expert", "readingTime": "12 min", "difficulty": "intermediate"}'),
+(6, 'Testing and Detection Methods', 'video', 4, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "14:45", "format": "youtube", "instructor": "Testing Expert"}'),
+(6, 'Emergency Response to Synthetic Overdose', 'podcast', 5, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'audio', '{"duration": "28:00", "format": "youtube", "host": "Emergency Response"}'),
+(6, 'Prevention Strategies for Synthetic Drugs', 'article', 6, '/content/markdown/synthetic-prevention.md', 'markdown', '{"author": "Prevention Specialist", "readingTime": "9 min", "difficulty": "beginner"}'),
 
--- Program 7: Cognitive Behavioral Therapy (8 content items)
-(7, 'CBT Fundamentals and Principles', 'article', 1, '/content/markdown/cbt-fundamentals.md', 'markdown', '{"author": "Dr. CBT Expert", "readingTime": "11 min", "principles": 6}'),
-(7, 'Identifying Thought Patterns', 'video', 2, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "16:30", "format": "youtube", "exercises": 4}'),
-(7, 'Challenging Negative Thoughts Workshop', 'video', 3, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "28:00", "format": "youtube", "worksheets": 6, "type": "workshop"}'),
-(7, 'Behavioral Activation Techniques', 'video', 4, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "20:15", "format": "youtube", "activities": 8}'),
-(7, 'CBT Success Stories and Case Studies', 'podcast', 5, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'audio', '{"duration": "35:00", "format": "youtube", "cases": 5}'),
-(7, 'Cognitive Distortions Guide', 'article', 6, '/content/markdown/cognitive-distortions.md', 'markdown', '{"author": "CBT Specialist", "readingTime": "14 min", "distortions": 12}'),
-(7, 'Homework Assignments and Practice', 'article', 7, '/content/markdown/cbt-homework-practice.md', 'markdown', '{"author": "CBT Practice Guide", "readingTime": "16 min", "exercises": 10}'),
-(7, 'Advanced CBT Techniques', 'article', 8, '/content/markdown/advanced-cbt-techniques.md', 'markdown', '{"author": "Advanced CBT Practitioner", "readingTime": "20 min", "difficulty": "advanced"}'),
+-- Program 7: Fentanyl Crisis Response (7 content items)
+(7, 'Understanding Fentanyl and Its Dangers', 'article', 1, '/content/markdown/fentanyl-dangers.md', 'markdown', '{"author": "Fentanyl Expert", "readingTime": "11 min", "difficulty": "beginner"}'),
+(7, 'Fentanyl Test Strips: How to Use', 'video', 2, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "8:30", "format": "youtube", "instructor": "Harm Reduction Specialist"}'),
+(7, 'Naloxone Administration Training', 'video', 3, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "12:15", "format": "youtube", "instructor": "EMT Trainer"}'),
+(7, 'Fentanyl in the Drug Supply', 'article', 4, '/content/markdown/fentanyl-drug-supply.md', 'markdown', '{"author": "Drug Supply Expert", "readingTime": "10 min", "difficulty": "intermediate"}'),
+(7, 'Supporting Families Affected by Fentanyl', 'podcast', 5, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'audio', '{"duration": "35:00", "format": "youtube", "host": "Family Support Counselor"}'),
+(7, 'Community Response to Fentanyl Crisis', 'video', 6, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "20:45", "format": "youtube", "instructor": "Community Leader"}'),
+(7, 'Fentanyl Prevention in Schools', 'article', 7, '/content/markdown/fentanyl-school-prevention.md', 'markdown', '{"author": "School Safety Expert", "readingTime": "13 min", "difficulty": "intermediate"}'),
 
--- Program 8: Workplace Wellness (8 content items)
-(8, 'Creating a Healthy Work Environment', 'article', 1, '/content/markdown/workplace-health.md', 'markdown', '{"author": "HR Specialist Lisa", "readingTime": "9 min", "strategies": 7}'),
-(8, 'Managing Work-Related Stress', 'video', 2, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "19:20", "format": "youtube", "techniques": 5}'),
-(8, 'Work-Life Balance Strategies', 'article', 3, '/content/markdown/work-life-balance.md', 'markdown', '{"author": "Balance Coach Mike", "readingTime": "8 min", "tips": 12}'),
-(8, 'Workplace Wellness Assessment Guide', 'article', 4, '/content/markdown/wellness-assessment.md', 'markdown', '{"author": "Wellness Expert Kate", "readingTime": "15 min", "questions": 25, "type": "assessment"}'),
-(8, 'Building Resilient Teams', 'podcast', 5, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'audio', '{"duration": "42:00", "format": "youtube", "strategies": 10}'),
-(8, 'Remote Work Mental Health', 'article', 6, '/content/markdown/remote-work-mental-health.md', 'markdown', '{"author": "Remote Work Expert", "readingTime": "12 min", "tips": 8}'),
-(8, 'Preventing Workplace Burnout', 'article', 7, '/content/markdown/workplace-burnout-prevention.md', 'markdown', '{"author": "Burnout Prevention Specialist", "readingTime": "14 min", "strategies": 9}'),
-(8, 'Leadership and Employee Mental Health', 'article', 8, '/content/markdown/leadership-mental-health.md', 'markdown', '{"author": "Leadership Mental Health Coach", "readingTime": "17 min", "difficulty": "advanced"}'),
+-- Program 8: Overdose Prevention and Response (5 content items)
+(8, 'Recognizing Overdose Signs', 'article', 1, '/content/markdown/overdose-signs.md', 'markdown', '{"author": "Overdose Prevention Expert", "readingTime": "8 min", "difficulty": "beginner"}'),
+(8, 'Emergency Response Steps', 'video', 2, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "10:30", "format": "youtube", "instructor": "Emergency Response Team"}'),
+(8, 'Naloxone: Life-Saving Medication', 'video', 3, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "15:20", "format": "youtube", "instructor": "Medical Professional"}'),
+(8, 'Post-Overdose Care and Support', 'article', 4, '/content/markdown/post-overdose-care.md', 'markdown', '{"author": "Recovery Specialist", "readingTime": "12 min", "difficulty": "intermediate"}'),
+(8, 'Building Overdose Response Networks', 'podcast', 5, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'audio', '{"duration": "30:00", "format": "youtube", "host": "Network Coordinator"}'),
 
--- Program 9: Crisis Intervention Training (8 content items)
-(9, 'Recognizing Mental Health Crises', 'article', 1, '/content/markdown/crisis-recognition.md', 'markdown', '{"author": "Crisis Expert Dr. Red", "readingTime": "10 min", "signs": 15}'),
-(9, 'De-escalation Techniques', 'video', 2, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "24:30", "format": "youtube", "scenarios": 6}'),
-(9, 'Safety Planning and Risk Assessment Training', 'video', 3, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "30:00", "format": "youtube", "tools": 4, "type": "training"}'),
-(9, 'Emergency Response Protocols', 'video', 4, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "17:45", "format": "youtube", "protocols": 8}'),
-(9, 'Post-Crisis Support and Follow-up', 'podcast', 5, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'audio', '{"duration": "38:00", "format": "youtube", "approaches": 6}'),
-(9, 'Suicide Risk Assessment and Prevention', 'article', 6, '/content/markdown/suicide-risk-assessment.md', 'markdown', '{"author": "Suicide Prevention Expert", "readingTime": "22 min", "difficulty": "advanced"}'),
-(9, 'Working with Law Enforcement in Crisis', 'article', 7, '/content/markdown/law-enforcement-crisis.md', 'markdown', '{"author": "Crisis Law Enforcement Liaison", "readingTime": "18 min", "difficulty": "advanced"}'),
-(9, 'Cultural Considerations in Crisis Intervention', 'article', 8, '/content/markdown/cultural-crisis-intervention.md', 'markdown', '{"author": "Cultural Competency Expert", "readingTime": "16 min", "difficulty": "intermediate"}')
+-- Program 9: Harm Reduction Strategies (6 content items)
+(9, 'Introduction to Harm Reduction', 'article', 1, '/content/markdown/harm-reduction-intro.md', 'markdown', '{"author": "Harm Reduction Expert", "readingTime": "9 min", "difficulty": "beginner"}'),
+(9, 'Safe Use Practices', 'video', 2, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "18:45", "format": "youtube", "instructor": "Safe Use Educator"}'),
+(9, 'Needle Exchange Programs', 'article', 3, '/content/markdown/needle-exchange.md', 'markdown', '{"author": "Needle Exchange Coordinator", "readingTime": "11 min", "difficulty": "intermediate"}'),
+(9, 'Safe Storage and Disposal', 'video', 4, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "13:30", "format": "youtube", "instructor": "Safety Coordinator"}'),
+(9, 'Harm Reduction in Communities', 'podcast', 5, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'audio', '{"duration": "40:00", "format": "youtube", "host": "Community Organizer"}'),
+(9, 'Evidence-Based Harm Reduction', 'article', 6, '/content/markdown/evidence-based-harm-reduction.md', 'markdown', '{"author": "Research Scientist", "readingTime": "14 min", "difficulty": "advanced"}'),
+
+-- Program 10: Safer Use Education (5 content items)
+(10, 'Risk Assessment and Reduction', 'article', 1, '/content/markdown/risk-assessment.md', 'markdown', '{"author": "Risk Assessment Expert", "readingTime": "10 min", "difficulty": "intermediate"}'),
+(10, 'Drug Testing and Adulterants', 'video', 2, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "16:20", "format": "youtube", "instructor": "Testing Specialist"}'),
+(10, 'Safer Injection Practices', 'video', 3, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video', '{"duration": "14:45", "format": "youtube", "instructor": "Injection Safety Expert"}'),
+(10, 'Preventing Infections and Disease', 'article', 4, '/content/markdown/infection-prevention.md', 'markdown', '{"author": "Infectious Disease Specialist", "readingTime": "12 min", "difficulty": "intermediate"}'),
+(10, 'When to Seek Medical Help', 'podcast', 5, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'audio', '{"duration": "25:00", "format": "youtube", "host": "Medical Advisor"}')
 
 -- Insert Surveys
 INSERT INTO Surveys (program_id, type, questions_json) VALUES

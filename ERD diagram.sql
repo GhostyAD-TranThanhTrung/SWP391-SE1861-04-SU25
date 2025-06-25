@@ -132,6 +132,7 @@ CREATE TABLE Assessments (
 -- CATEGORY
 CREATE TABLE Category (
   category_id INT IDENTITY(1,1) PRIMARY KEY,
+  name NVARCHAR(255),
   description NVARCHAR(255)
 );
 
