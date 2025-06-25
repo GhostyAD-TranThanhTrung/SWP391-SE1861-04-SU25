@@ -9,6 +9,12 @@ const ContentViewPage = () => {
     const [contentFile, setContentFile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    
+    // New state for enrollment and completion tracking
+    const [enrollmentData, setEnrollmentData] = useState(null);
+    const [isCompleted, setIsCompleted] = useState(false);
+    const [checkingCompletion, setCheckingCompletion] = useState(true);
+    const [updatingCompletion, setUpdatingCompletion] = useState(false);
 
     useEffect(() => {
         const fetchContent = async () => {
@@ -19,8 +25,11 @@ const ContentViewPage = () => {
             }
 
             setLoading(true);
+            console.log('📚 Fetching content data for ID:', contentId);
+            
             try {
                 // Get content details
+                console.log('📡 GET content from:', `http://localhost:3000/api/content/${contentId}`);
                 const contentRes = await fetch(`http://localhost:3000/api/content/${contentId}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -32,9 +41,11 @@ const ContentViewPage = () => {
                 }
 
                 const contentData = await contentRes.json();
+                console.log('✅ Content data received:', contentData);
                 setContent(contentData.data);
 
                 // Get content file
+                console.log('📡 GET content file from:', `http://localhost:3000/api/content/file/${contentId}`);
                 const fileRes = await fetch(`http://localhost:3000/api/content/file/${contentId}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -43,9 +54,16 @@ const ContentViewPage = () => {
 
                 if (fileRes.ok) {
                     const fileData = await fileRes.json();
+                    console.log('✅ Content file data received:', fileData);
                     setContentFile(fileData.data);
                 }
+
+                // Check enrollment status for this content's program
+                if (contentData.data && contentData.data.program_id) {
+                    await checkEnrollmentAndCompletion(contentData.data.program_id, parseInt(contentId), token);
+                }
             } catch (err) {
+                console.error('💥 Error fetching content:', err);
                 setError(err.message);
             } finally {
                 setLoading(false);
@@ -54,6 +72,105 @@ const ContentViewPage = () => {
 
         fetchContent();
     }, [contentId, navigate]);
+
+    const checkEnrollmentAndCompletion = async (programId, contentIdNum, token) => {
+        setCheckingCompletion(true);
+        console.log('🔍 Checking enrollment for program:', programId, 'content:', contentIdNum);
+        
+        try {
+            // Check if user is enrolled in this program
+            console.log('📡 GET enrollment check from:', `http://localhost:3000/api/enrollments/check/${programId}`);
+            const enrollmentRes = await fetch(`http://localhost:3000/api/enrollments/check/${programId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (enrollmentRes.ok) {
+                const enrollmentData = await enrollmentRes.json();
+                console.log('✅ Enrollment check response:', enrollmentData);
+                
+                if (enrollmentData.data && enrollmentData.data.length > 0) {
+                    const enrollment = enrollmentData.data[0];
+                    setEnrollmentData(enrollment);
+                    console.log('📚 Enrollment found:', enrollment);
+                    
+                    // Check if this specific content is completed
+                    const progress = enrollment.progress || [];
+                    const contentProgress = progress.find(p => p.content_id === contentIdNum);
+                    const completed = contentProgress ? contentProgress.complete : false;
+                    setIsCompleted(completed);
+                    console.log(`🎯 Content ${contentIdNum} completion status:`, completed);
+                } else {
+                    console.log('❌ User not enrolled in this program');
+                    setEnrollmentData(null);
+                    setIsCompleted(false);
+                }
+            }
+        } catch (err) {
+            console.error('💥 Error checking enrollment:', err);
+        } finally {
+            setCheckingCompletion(false);
+        }
+    };
+
+    const handleToggleCompletion = async () => {
+        if (!enrollmentData || !content) {
+            console.log('❌ Cannot toggle - no enrollment or content data');
+            return;
+        }
+
+        const token = sessionStorage.getItem('token');
+        if (!token) {
+            console.log('❌ No token available');
+            return;
+        }
+
+        setUpdatingCompletion(true);
+        console.log('🔄 Toggling completion for content:', contentId);
+
+        try {
+            // Create composite enroll_id in format "userId_programId"
+            const enrollId = `${enrollmentData.user_id}_${enrollmentData.program_id}`;
+            console.log('🆔 Using enroll ID:', enrollId);
+
+            const url = `http://localhost:3000/api/enrollments/${enrollId}/content/${contentId}/toggle`;
+            console.log('📡 PATCH to:', url);
+
+            const res = await fetch(url, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('📊 Toggle response status:', res.status);
+
+            if (res.ok) {
+                const data = await res.json();
+                console.log('✅ Toggle successful! Response data:', data);
+                
+                // Update local state
+                setEnrollmentData(data.data);
+                const progress = data.data.progress || [];
+                const contentProgress = progress.find(p => p.content_id === parseInt(contentId));
+                const newCompletionStatus = contentProgress ? contentProgress.complete : false;
+                setIsCompleted(newCompletionStatus);
+                
+                console.log('🎉 Content completion updated to:', newCompletionStatus);
+                alert(`Nội dung đã được đánh dấu ${newCompletionStatus ? 'hoàn thành' : 'chưa hoàn thành'}!`);
+            } else {
+                const errorData = await res.json();
+                console.error('❌ Toggle failed:', errorData);
+                alert(errorData.message || 'Có lỗi xảy ra khi cập nhật tiến độ');
+            }
+        } catch (err) {
+            console.error('💥 Error toggling completion:', err);
+            alert('Có lỗi xảy ra khi cập nhật tiến độ học tập');
+        } finally {
+            setUpdatingCompletion(false);
+        }
+    };
 
     const renderContent = () => {
         if (!contentFile) return null;
@@ -215,47 +332,113 @@ const ContentViewPage = () => {
 
     return (
         <div className="content-view-container">
-            <div className="content-view-header">
-                <div className="header-info">
-                    <h1 className="content-title">{content.title}</h1>
-                    <div className="content-meta">
-                        <span className="content-type-badge">
-                            {content.type === 'article' && '📄'}
-                            {content.type === 'video' && '🎥'}
-                            {content.type === 'podcast' && '🎧'}
-                            {content.type === 'module' && '📚'}
-                            {!['article', 'video', 'podcast', 'module'].includes(content.type) && '📝'}
-                            {content.type}
-                        </span>
-                        <span className="content-order">Bài {content.orders}</span>
+            {/* Top Navigation Bar */}
+            <div className="content-nav-bar">
+                <div className="nav-left">
+                    <button onClick={() => navigate(-1)} className="back-btn">
+                        <i className="bi bi-arrow-left"></i>
+                        <span>Quay lại</span>
+                    </button>
+                    <div className="breadcrumb">
+                        <span className="breadcrumb-item">Khóa học</span>
+                        <i className="bi bi-chevron-right"></i>
+                        <span className="breadcrumb-item current">Bài {content.orders}</span>
                     </div>
                 </div>
-                <button onClick={() => navigate(-1)} className="close-btn">
-                    <span className="close-icon">←</span>
-                    Quay lại
-                </button>
+                <div className="nav-right">
+                    {enrollmentData && !checkingCompletion && (
+                        <button 
+                            onClick={handleToggleCompletion} 
+                            className={`completion-btn ${isCompleted ? 'completed' : 'incomplete'} ${updatingCompletion ? 'updating' : ''}`}
+                            disabled={updatingCompletion}
+                            title={isCompleted ? 'Đánh dấu chưa hoàn thành' : 'Đánh dấu hoàn thành'}
+                        >
+                            {updatingCompletion ? (
+                                <>
+                                    <div className="spinner"></div>
+                                    <span>Đang cập nhật...</span>
+                                </>
+                            ) : isCompleted ? (
+                                <>
+                                    <i className="bi bi-check-circle-fill"></i>
+                                    <span>Đã hoàn thành</span>
+                                </>
+                            ) : (
+                                <>
+                                    <i className="bi bi-circle"></i>
+                                    <span>Đánh dấu hoàn thành</span>
+                                </>
+                            )}
+                        </button>
+                    )}
+                </div>
             </div>
 
-            <div className="content-view-body">
-                {contentFile ? (
-                    <div className="content-display">
-                        {renderContent()}
+            {/* Main Content Area */}
+            <div className="content-main">
+                {/* Content Header */}
+                <div className="content-header">
+                    <div className="content-title-section">
+                        <h1 className="content-title">{content.title}</h1>
+                        <div className="content-badges">
+                            <span className="type-badge">
+                                {content.type === 'article' && <i className="bi bi-file-text"></i>}
+                                {content.type === 'video' && <i className="bi bi-play-circle"></i>}
+                                {content.type === 'podcast' && <i className="bi bi-headphones"></i>}
+                                {content.type === 'module' && <i className="bi bi-book"></i>}
+                                {!['article', 'video', 'podcast', 'module'].includes(content.type) && <i className="bi bi-file"></i>}
+                                <span>{content.type}</span>
+                            </span>
+                            <span className="order-badge">
+                                <i className="bi bi-hash"></i>
+                                <span>Bài {content.orders}</span>
+                            </span>
+                            {enrollmentData && (
+                                <span className={`status-badge ${isCompleted ? 'completed' : 'incomplete'}`}>
+                                    {checkingCompletion ? (
+                                        <>
+                                            <div className="spinner-small"></div>
+                                            <span>Đang kiểm tra...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <i className={`bi ${isCompleted ? 'bi-check-circle-fill' : 'bi-clock'}`}></i>
+                                            <span>{isCompleted ? 'Đã hoàn thành' : 'Chưa hoàn thành'}</span>
+                                        </>
+                                    )}
+                                </span>
+                            )}
+                        </div>
                     </div>
-                ) : (
-                    <div className="no-content-file">
-                        <p>Không có nội dung file để hiển thị</p>
-                        {content.content_file_link && (
-                            <a
-                                href={content.content_file_link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="external-link"
-                            >
-                                Mở liên kết ngoài
-                            </a>
-                        )}
-                    </div>
-                )}
+                </div>
+
+                {/* Content Body */}
+                <div className="content-body">
+                    {contentFile ? (
+                        <div className="content-wrapper">
+                            {renderContent()}
+                        </div>
+                    ) : (
+                        <div className="no-content-wrapper">
+                            <div className="no-content-icon">
+                                <i className="bi bi-file-earmark-x"></i>
+                            </div>
+                            <h3>Không có nội dung để hiển thị</h3>
+                            <p>Nội dung này hiện chưa có file đính kèm hoặc đã bị xóa.</p>
+                            {content.content_file_link && (
+                                <a
+                                    href={content.content_file_link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="external-link-btn"
+                                >
+                                    <i className="bi bi-box-arrow-up-right"></i>
+                                    <span>Mở liên kết gốc</span>
+                                </a>
+                            )}
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

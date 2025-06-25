@@ -224,6 +224,7 @@ $transition: all 0.3s ease;
         @include card-style;
         background: linear-gradient(135deg, $primary-light 0%, #fff 100%);
         border: 2px solid $primary-color;
+        padding: 16px; // Reduced padding from default 24px
 
         .enroll-info {
             margin-bottom: 20px;
@@ -269,25 +270,29 @@ $transition: all 0.3s ease;
         .enrolled-info {
             .enrolled-status {
                 text-align: center;
-                padding: 20px;
+                padding: 12px 16px; // Reduced padding from 20px
 
                 .enrolled-icon {
-                    font-size: 2rem;
-                    display: block;
-                    margin-bottom: 12px;
+                    font-size: 1.5rem; // Reduced from 2rem
+                    display: inline-block; // Changed from block to inline-block
+                    margin-right: 8px; // Added right margin
+                    margin-bottom: 0; // Removed bottom margin
                 }
 
                 h3 {
-                    font-size: 1.4rem;
+                    font-size: 1.1rem; // Reduced from 1.4rem
                     font-weight: 600;
                     color: $success-color;
-                    margin-bottom: 8px;
+                    margin-bottom: 4px; // Reduced from 8px
+                    display: inline-block; // Added to make it inline with icon
+                    vertical-align: middle; // Align with icon
                 }
 
                 p {
                     color: $text-secondary;
                     margin: 0;
-                    line-height: 1.5;
+                    line-height: 1.4; // Reduced from 1.5
+                    font-size: 0.9rem; // Made text smaller
                 }
             }
 
@@ -400,6 +405,95 @@ $transition: all 0.3s ease;
                 animation: spin 1s linear infinite;
             }
         }
+
+        // Progress section for enrolled users
+        .progress-section {
+            margin-top: 16px;
+            
+            .progress-card {
+                background: linear-gradient(135deg, rgba($success-color, 0.05) 0%, rgba($success-color, 0.02) 100%);
+                border: 1px solid rgba($success-color, 0.15);
+                border-radius: 8px;
+                padding: 12px 16px; // Compact padding
+
+                h3 {
+                    font-size: 1rem; // Smaller heading
+                    font-weight: 600;
+                    color: $text-primary;
+                    margin-bottom: 8px;
+                }
+
+                .progress-stats {
+                    .progress-bar-container {
+                        margin-bottom: 8px;
+
+                        .progress-bar {
+                            width: 100%;
+                            height: 6px; // Thinner progress bar
+                            background: rgba($success-color, 0.15);
+                            border-radius: 3px;
+                            overflow: hidden;
+                            margin-bottom: 4px;
+
+                            .progress-fill {
+                                height: 100%;
+                                background: linear-gradient(90deg, $success-color 0%, darken($success-color, 10%) 100%);
+                                transition: width 0.3s ease;
+                            }
+                        }
+
+                        .progress-text {
+                            font-size: 0.85rem;
+                            color: $text-secondary;
+                            font-weight: 500;
+                        }
+                    }
+
+                    .progress-details {
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        font-size: 0.8rem;
+
+                        .completed-count {
+                            color: $text-secondary;
+                            font-weight: 500;
+                        }
+
+                        .completion-badge {
+                            background: $success-color;
+                            color: white;
+                            padding: 2px 8px;
+                            border-radius: 12px;
+                            font-size: 0.75rem;
+                            font-weight: 600;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Progress overlay on image
+        .progress-overlay {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            
+            .progress-circle {
+                @include flex-center;
+                width: 50px;
+                height: 50px;
+                background: rgba(255, 255, 255, 0.95);
+                border-radius: 50%;
+                border: 3px solid $success-color;
+                
+                .progress-percentage {
+                    font-size: 0.8rem;
+                    font-weight: 700;
+                    color: $success-color;
+                }
+            }
+        }
     }
 }
 
@@ -425,6 +519,18 @@ $transition: all 0.3s ease;
             border-radius: 20px;
             font-size: 12px;
             font-weight: 600;
+        }
+
+        .content-progress-summary {
+            .progress-summary-text {
+                background: rgba($success-color, 0.1);
+                color: $success-color;
+                padding: 6px 12px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 600;
+                border: 1px solid rgba($success-color, 0.2);
+            }
         }
     }
 
@@ -513,8 +619,22 @@ $transition: all 0.3s ease;
                         transform: translateX(4px);
                     }
 
+                    &.completed {
+                        background: rgba($success-color, 0.05);
+                        border-left-color: $success-color;
+                        
+                        &:hover {
+                            background: rgba($success-color, 0.1);
+                        }
+
+                        .content-title {
+                            color: darken($success-color, 10%);
+                        }
+                    }
+
                     .content-order {
                         margin-right: 16px;
+                        position: relative;
 
                         .order-number {
                             display: flex;
@@ -527,6 +647,21 @@ $transition: all 0.3s ease;
                             border-radius: 50%;
                             font-weight: 600;
                             font-size: 14px;
+                        }
+
+                        .completion-indicator {
+                            position: absolute;
+                            top: -4px;
+                            right: -4px;
+                            
+                            .completed-icon,
+                            .incomplete-icon {
+                                font-size: 16px;
+                                background: white;
+                                border-radius: 50%;
+                                padding: 2px;
+                                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                            }
                         }
                     }
 
@@ -542,6 +677,8 @@ $transition: all 0.3s ease;
                         }
 
                         .content-type-badge {
+                            margin-bottom: 4px;
+                            
                             .type-badge {
                                 display: inline-flex;
                                 align-items: center;
@@ -579,19 +716,43 @@ $transition: all 0.3s ease;
                                 }
                             }
                         }
+
+                        .content-status {
+                            .status-text {
+                                font-size: 11px;
+                                font-weight: 600;
+                                padding: 2px 8px;
+                                border-radius: 10px;
+                                
+                                &.completed {
+                                    background: rgba($success-color, 0.15);
+                                    color: $success-color;
+                                }
+                                
+                                &.incomplete {
+                                    background: rgba($text-light, 0.15);
+                                    color: $text-secondary;
+                                }
+                            }
+                        }
                     }
 
                     .content-actions {
+                        display: flex;
+                        gap: 8px;
+                        align-items: center;
+                        flex-wrap: wrap;
+
                         .view-content-btn {
                             @include button-style;
                             background: linear-gradient(135deg, $success-color 0%, darken($success-color, 10%) 100%);
                             color: white;
-                            padding: 8px 16px;
-                            font-size: 12px;
-                            border-radius: 6px;
+                            padding: 6px 12px; // Made smaller
+                            font-size: 11px; // Made smaller
+                            border-radius: 5px;
 
                             .view-icon {
-                                font-size: 14px;
+                                font-size: 12px; // Made smaller
                             }
 
                             &:hover {
@@ -602,6 +763,47 @@ $transition: all 0.3s ease;
 
                             &:active {
                                 transform: translateY(0);
+                            }
+                        }
+
+                        .toggle-completion-btn {
+                            @include button-style;
+                            padding: 6px 12px; // Made smaller
+                            font-size: 11px; // Made smaller
+                            border-radius: 5px;
+                            border: 1px solid;
+                            
+                            &.completed {
+                                background: rgba($success-color, 0.1);
+                                color: $success-color;
+                                border-color: rgba($success-color, 0.3);
+                                
+                                &:hover:not(:disabled) {
+                                    background: rgba($success-color, 0.2);
+                                    transform: translateY(-1px);
+                                }
+                            }
+                            
+                            &.incomplete {
+                                background: rgba($text-light, 0.1);
+                                color: $text-secondary;
+                                border-color: rgba($text-light, 0.3);
+                                
+                                &:hover:not(:disabled) {
+                                    background: rgba($primary-color, 0.1);
+                                    color: $primary-color;
+                                    border-color: rgba($primary-color, 0.3);
+                                    transform: translateY(-1px);
+                                }
+                            }
+                            
+                            &.updating {
+                                opacity: 0.6;
+                                cursor: not-allowed;
+                                
+                                .updating-spinner {
+                                    animation: spin 1s linear infinite;
+                                }
                             }
                         }
 

@@ -3,50 +3,129 @@ import { Link } from 'react-router-dom';
 import '../styles/CoursePage.scss';
 import Image from '../images/Images.jpg';
 
-const CATEGORIES = [
-    { id: 1, label: 'Bài viết', icon: 'bi bi-book me-2' },
-    { id: 2, label: 'Video', icon: 'bi bi-play-circle me-2' },
-    { id: 3, label: 'Podcast', icon: 'bi bi-mic me-2' }
-];
-
 const CoursePage = () => {
-    const [selectedCategory, setSelectedCategory] = useState(CATEGORIES[0]);
+    const [categories, setCategories] = useState([]);
+    const [selectedCategory, setSelectedCategory] = useState(null);
     const [programs, setPrograms] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [categoriesLoading, setCategoriesLoading] = useState(true);
     const [error, setError] = useState(null);
     const [pageIndex, setPageIndex] = useState(0);
+    const [showAllCategories, setShowAllCategories] = useState(false);
     const itemsPerPage = 4;
+    const maxVisibleCategories = 4;
 
+    // Fetch categories from API
     useEffect(() => {
-        const fetchPrograms = async () => {
-            setLoading(true);
-            setError(null);
+        const fetchCategories = async () => {
+            setCategoriesLoading(true);
             try {
-                const response = await fetch(`http://localhost:3000/api/programs/category/${selectedCategory.id}`, {
+                console.log('🏷️ Fetching categories from API...');
+                const response = await fetch('http://localhost:3000/api/categories', {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                 });
-                console.log('Fetch response for category', selectedCategory.id, response);
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch categories');
+                }
+
+                const res = await response.json();
+                console.log('✅ Categories fetched successfully:', res);
+                
+                if (res.success && res.data && res.data.length > 0) {
+                    setCategories(res.data);
+                    // Set first category as default selected
+                    setSelectedCategory(res.data[0]);
+                } else {
+                    console.warn('⚠️ No categories found or invalid response');
+                    setCategories([]);
+                }
+            } catch (err) {
+                console.error('💥 Error fetching categories:', err);
+                setError('Không thể tải danh mục. Vui lòng thử lại sau.');
+            } finally {
+                setCategoriesLoading(false);
+            }
+        };
+
+        fetchCategories();
+    }, []);
+
+    // Fetch programs based on selected category
+    useEffect(() => {
+        if (!selectedCategory) return; // Don't fetch if no category selected
+
+        const fetchPrograms = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                console.log(`📚 Fetching programs for category: ${selectedCategory.category_id} (${selectedCategory.name || selectedCategory.description})`);
+                const response = await fetch(`http://localhost:3000/api/programs/category/${selectedCategory.category_id}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                
+                console.log('📊 Fetch response for category', selectedCategory.category_id, response.status);
+                
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
+                
                 const res = await response.json();
-                console.log('Parsed JSON for category', selectedCategory.id, res);
+                console.log('✅ Programs fetched for category', selectedCategory.category_id, res);
                 setPrograms(res.data || []);
             } catch (err) {
+                console.error('💥 Error fetching programs:', err);
                 setError('Không thể tải chương trình. Vui lòng thử lại sau.');
             } finally {
                 setLoading(false);
             }
         };
+
         fetchPrograms();
     }, [selectedCategory]);
+
+    // Helper function to get icon based on category name or description
+    const getCategoryIcon = (categoryName) => {
+        const name = categoryName.toLowerCase();
+        if (name.includes('article') || name.includes('articles') || name.includes('bài viết') || name.includes('text') || name.includes('reading')) {
+            return 'bi bi-book me-2';
+        } else if (name.includes('video') || name.includes('videos') || name.includes('visual') || name.includes('watch')) {
+            return 'bi bi-play-circle me-2';
+        } else if (name.includes('audio') || name.includes('podcast') || name.includes('podcasts') || name.includes('sound') || name.includes('listen')) {
+            return 'bi bi-mic me-2';
+        } else if (name.includes('mental') || name.includes('tâm lý') || name.includes('health') || name.includes('sức khỏe')) {
+            return 'bi bi-heart me-2';
+        } else if (name.includes('substance') || name.includes('chất') || name.includes('addiction') || name.includes('nghiện')) {
+            return 'bi bi-shield-exclamation me-2';
+        } else if (name.includes('family') || name.includes('gia đình') || name.includes('relationship') || name.includes('mối quan hệ')) {
+            return 'bi bi-people me-2';
+        } else if (name.includes('youth') || name.includes('trẻ em') || name.includes('teen') || name.includes('child')) {
+            return 'bi bi-person-check me-2';
+        } else {
+            return 'bi bi-bookmark me-2'; // Default icon
+        }
+    };
 
     const handleCategoryChange = (cat) => {
         setSelectedCategory(cat);
         setPageIndex(0);
+    };
+
+    const toggleShowAllCategories = () => {
+        setShowAllCategories(!showAllCategories);
+    };
+
+    const getVisibleCategories = () => {
+        if (showAllCategories || categories.length <= maxVisibleCategories) {
+            return categories;
+        }
+        return categories.slice(0, maxVisibleCategories);
     };
 
     const handlePrev = () => {
@@ -58,9 +137,11 @@ const CoursePage = () => {
     };
 
     const renderCards = () => {
-        if (loading) return <div className="text-center">Đang tải...</div>;
+        if (categoriesLoading) return <div className="text-center">Đang tải danh mục...</div>;
+        if (loading) return <div className="text-center">Đang tải chương trình...</div>;
         if (error) return <div className="text-center text-danger">{error}</div>;
-        if (!programs.length) return <div className="text-center">Không có chương trình nào</div>;
+        if (!selectedCategory) return <div className="text-center">Vui lòng chọn một danh mục</div>;
+        if (!programs.length) return <div className="text-center">Không có chương trình nào trong danh mục này</div>;
         const visibleData = programs.slice(pageIndex, pageIndex + itemsPerPage);
         return (
             <div className="position-relative">
@@ -164,23 +245,64 @@ const CoursePage = () => {
 
             <div className="container" style={{ paddingTop: '5rem', paddingBottom: '5rem' }}>
                 {/* Category Tabs */}
-                <div className="category-tabs d-flex justify-content-center mb-4">
-                    {CATEGORIES.map((cat) => (
-                        <button
-                            key={cat.id}
-                            className={`category-btn${selectedCategory.id === cat.id ? ' active' : ''}`}
-                            onClick={() => handleCategoryChange(cat)}
-                        >
-                            <i className={cat.icon}></i>
-                            <span>{cat.label}</span>
-                        </button>
-                    ))}
+                <div className="category-section mb-4">
+                    {categoriesLoading ? (
+                        <div className="text-center">Đang tải danh mục...</div>
+                    ) : categories.length === 0 ? (
+                        <div className="text-center text-muted">Không có danh mục nào</div>
+                    ) : (
+                        <>
+                            <div className="category-tabs-wrapper">
+                                <div className="category-tabs d-flex justify-content-center flex-wrap mb-3">
+                                    {getVisibleCategories().map((cat) => (
+                                        <button
+                                            key={cat.category_id}
+                                            className={`category-btn${selectedCategory && selectedCategory.category_id === cat.category_id ? ' active' : ''}`}
+                                            onClick={() => handleCategoryChange(cat)}
+                                            title={cat.description || cat.name}
+                                        >
+                                            <i className={getCategoryIcon(cat.name || cat.description)}></i>
+                                            <span className="category-text">{cat.name || cat.description}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                                
+                                {categories.length > maxVisibleCategories && (
+                                    <div className="text-center">
+                                        <button 
+                                            className="btn btn-outline-primary btn-sm toggle-categories-btn"
+                                            onClick={toggleShowAllCategories}
+                                        >
+                                            {showAllCategories ? (
+                                                <>
+                                                    <i className="bi bi-chevron-up me-2"></i>
+                                                    Ẩn bớt danh mục
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <i className="bi bi-chevron-down me-2"></i>
+                                                    Xem thêm {categories.length - maxVisibleCategories} danh mục
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </>
+                    )}
                 </div>
                 {/* Programs Section */}
                 <section className="section mb-5">
                     <div className="section-header-wrapper text-center mb-5">
-                        <h2 className="section-header">{selectedCategory.label}</h2>
-                        <p className="section-subtitle">Duyệt qua {selectedCategory.label.toLowerCase()} của chúng tôi</p>
+                        <h2 className="section-header">
+                            {selectedCategory ? (selectedCategory.name || selectedCategory.description) : 'Chọn Danh mục'}
+                        </h2>
+                        <p className="section-subtitle">
+                            {selectedCategory 
+                                ? `Duyệt qua ${(selectedCategory.name || selectedCategory.description).toLowerCase()} của chúng tôi`
+                                : 'Vui lòng chọn một danh mục để xem chương trình'
+                            }
+                        </p>
                     </div>
                     {renderCards()}
                 </section>
