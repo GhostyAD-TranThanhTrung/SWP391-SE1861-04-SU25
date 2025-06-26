@@ -120,7 +120,7 @@ const ContentViewPage = () => {
             return;
         }
 
-        const token = sessionStorage.getItem('token');
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
         if (!token) {
             console.log('❌ No token available');
             return;
@@ -144,11 +144,11 @@ const ContentViewPage = () => {
                 }
             });
 
-            console.log('📊 Toggle response status:', res.status);
+            console.log('Toggle response status:', res.status);
 
             if (res.ok) {
                 const data = await res.json();
-                console.log('✅ Toggle successful! Response data:', data);
+                console.log('Toggle successful! Response data:', data);
                 
                 // Update local state
                 setEnrollmentData(data.data);
@@ -178,15 +178,39 @@ const ContentViewPage = () => {
         switch (contentFile.type) {
             case 'markdown':
                 return (
-                    <div className="markdown-content">
-                        <div className="markdown-text" dangerouslySetInnerHTML={{ __html: formatMarkdown(contentFile.content) }} />
+                    <div className="content-display markdown-display">
+                        <div className="markdown-content" dangerouslySetInnerHTML={{ __html: formatMarkdown(contentFile.content) }} />
                         {contentFile.metadata && (
                             <div className="content-metadata">
-                                <h3>Thông tin bổ sung:</h3>
-                                <div className="metadata-info">
-                                    {contentFile.metadata.author && <p><strong>Tác giả:</strong> {contentFile.metadata.author}</p>}
-                                    {contentFile.metadata.readingTime && <p><strong>Thời gian đọc:</strong> {contentFile.metadata.readingTime}</p>}
-                                    {contentFile.metadata.difficulty && <p><strong>Độ khó:</strong> {contentFile.metadata.difficulty}</p>}
+                                                                <h3>Thông tin bổ sung</h3>
+                                <div className="metadata-grid">
+                                    {contentFile.metadata.author && (
+                                        <div className="metadata-card">
+                                            <div className="metadata-icon"></div>
+                                            <div className="metadata-content">
+                                                <span className="metadata-label">Tác giả</span>
+                                                <span className="metadata-value">{contentFile.metadata.author}</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {contentFile.metadata.readingTime && (
+                                        <div className="metadata-card">
+                                            <div className="metadata-icon"></div>
+                                            <div className="metadata-content">
+                                                <span className="metadata-label">Thời gian đọc</span>
+                                                <span className="metadata-value">{contentFile.metadata.readingTime}</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {contentFile.metadata.difficulty && (
+                                        <div className="metadata-card">
+                                            <div className="metadata-icon"></div>
+                                            <div className="metadata-content">
+                                                <span className="metadata-label">Độ khó</span>
+                                                <span className="metadata-value">{contentFile.metadata.difficulty}</span>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -195,25 +219,49 @@ const ContentViewPage = () => {
 
             case 'youtube':
                 return (
-                    <div className="youtube-content">
-                        <div className="video-container">
-                            <iframe
-                                width="100%"
-                                height="500"
-                                src={`https://www.youtube.com/embed/${contentFile.videoId}`}
-                                title={content.title}
-                                frameBorder="0"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                            ></iframe>
+                    <div className="content-display video-display">
+                        <div className="video-wrapper">
+                            <div className="video-container">
+                                <iframe
+                                    src={`https://www.youtube.com/embed/${contentFile.videoId}`}
+                                    title={content.title}
+                                    frameBorder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                ></iframe>
+                            </div>
                         </div>
                         {contentFile.metadata && (
                             <div className="content-metadata">
-                                <h3>Thông tin video:</h3>
-                                <div className="metadata-info">
-                                    {contentFile.metadata.duration && <p><strong>Thời lượng:</strong> {contentFile.metadata.duration}</p>}
-                                    {contentFile.metadata.instructor && <p><strong>Giảng viên:</strong> {contentFile.metadata.instructor}</p>}
-                                    {contentFile.metadata.expert && <p><strong>Chuyên gia:</strong> {contentFile.metadata.expert}</p>}
+                                <h3>Thông tin video</h3>
+                                <div className="metadata-grid">
+                                    {contentFile.metadata.duration && (
+                                        <div className="metadata-card">
+                                            <div className="metadata-icon"></div>
+                                            <div className="metadata-content">
+                                                <span className="metadata-label">Thời lượng</span>
+                                                <span className="metadata-value">{contentFile.metadata.duration}</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {contentFile.metadata.instructor && (
+                                        <div className="metadata-card">
+                                            <div className="metadata-icon"></div>
+                                            <div className="metadata-content">
+                                                <span className="metadata-label">Giảng viên</span>
+                                                <span className="metadata-value">{contentFile.metadata.instructor}</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {contentFile.metadata.expert && (
+                                        <div className="metadata-card">
+                                            <div className="metadata-icon"></div>
+                                            <div className="metadata-content">
+                                                <span className="metadata-label">Chuyên gia</span>
+                                                <span className="metadata-value">{contentFile.metadata.expert}</span>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -222,25 +270,49 @@ const ContentViewPage = () => {
 
             case 'youtube_audio':
                 return (
-                    <div className="youtube-audio-content">
-                        <div className="audio-container">
-                            <iframe
-                                width="100%"
-                                height="200"
-                                src={`https://www.youtube.com/embed/${contentFile.videoId}`}
-                                title={content.title}
-                                frameBorder="0"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                            ></iframe>
+                    <div className="content-display audio-display">
+                        <div className="audio-wrapper">
+                            <div className="audio-container">
+                                <iframe
+                                    src={`https://www.youtube.com/embed/${contentFile.videoId}`}
+                                    title={content.title}
+                                    frameBorder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                ></iframe>
+                            </div>
                         </div>
                         {contentFile.metadata && (
                             <div className="content-metadata">
-                                <h3>Thông tin podcast:</h3>
-                                <div className="metadata-info">
-                                    {contentFile.metadata.duration && <p><strong>Thời lượng:</strong> {contentFile.metadata.duration}</p>}
-                                    {contentFile.metadata.host && <p><strong>Người dẫn:</strong> {contentFile.metadata.host}</p>}
-                                    {contentFile.metadata.guest && <p><strong>Khách mời:</strong> {contentFile.metadata.guest}</p>}
+                                <h3>Thông tin podcast</h3>
+                                <div className="metadata-grid">
+                                    {contentFile.metadata.duration && (
+                                        <div className="metadata-card">
+                                            <div className="metadata-icon">•</div>
+                                            <div className="metadata-content">
+                                                <span className="metadata-label">Thời lượng</span>
+                                                <span className="metadata-value">{contentFile.metadata.duration}</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {contentFile.metadata.host && (
+                                        <div className="metadata-card">
+                                            <div className="metadata-icon">•</div>
+                                            <div className="metadata-content">
+                                                <span className="metadata-label">Người dẫn</span>
+                                                <span className="metadata-value">{contentFile.metadata.host}</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {contentFile.metadata.guest && (
+                                        <div className="metadata-card">
+                                            <div className="metadata-icon">•</div>
+                                            <div className="metadata-content">
+                                                <span className="metadata-label">Khách mời</span>
+                                                <span className="metadata-value">{contentFile.metadata.guest}</span>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -249,16 +321,19 @@ const ContentViewPage = () => {
 
             case 'external_link':
                 return (
-                    <div className="external-link-content">
-                        <div className="link-info">
-                            <p>Nội dung này được lưu trữ bên ngoài.</p>
+                    <div className="content-display external-display">
+                        <div className="external-wrapper">
+                            <div className="external-icon">→</div>
+                            <h3>Nội dung bên ngoài</h3>
+                            <p>Nội dung này được lưu trữ trên một trang web bên ngoài.</p>
                             <a
                                 href={contentFile.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="external-link-btn"
+                                className="external-btn"
                             >
-                                Mở liên kết ngoài
+                                <i className="bi bi-box-arrow-up-right"></i>
+                                <span>Mở liên kết</span>
                             </a>
                         </div>
                     </div>
@@ -266,18 +341,23 @@ const ContentViewPage = () => {
 
             default:
                 return (
-                    <div className="default-content">
-                        <p>Loại nội dung không được hỗ trợ: {contentFile.type}</p>
-                        {content.content_file_link && (
-                            <a
-                                href={content.content_file_link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="external-link"
-                            >
-                                Mở liên kết gốc
-                            </a>
-                        )}
+                    <div className="content-display default-display">
+                        <div className="default-wrapper">
+                            <div className="default-icon">•</div>
+                            <h3>Loại nội dung không được hỗ trợ</h3>
+                            <p>Loại nội dung: {contentFile.type}</p>
+                            {content.content_file_link && (
+                                <a
+                                    href={content.content_file_link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="external-btn"
+                                >
+                                    <i className="bi bi-box-arrow-up-right"></i>
+                                    <span>Mở liên kết gốc</span>
+                                </a>
+                            )}
+                        </div>
                     </div>
                 );
         }
@@ -286,8 +366,10 @@ const ContentViewPage = () => {
     const formatMarkdown = (markdown) => {
         if (!markdown) return '';
 
-        // Simple markdown to HTML conversion
+        // Enhanced markdown to HTML conversion with image support
         let html = markdown
+            // Images
+            .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" class="content-image" />')
             // Headers
             .replace(/^### (.*$)/gim, '<h3>$1</h3>')
             .replace(/^## (.*$)/gim, '<h2>$1</h2>')
@@ -296,150 +378,171 @@ const ContentViewPage = () => {
             .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
             // Italic
             .replace(/\*(.*)\*/gim, '<em>$1</em>')
+            // Code blocks
+            .replace(/```([\s\S]*?)```/gim, '<pre><code>$1</code></pre>')
+            // Inline code
+            .replace(/`([^`]+)`/gim, '<code>$1</code>')
             // Lists
-            .replace(/^\- (.*$)/gim, '<li>$1</li>')
+            .replace(/^\d+\. (.*$)/gim, '<li class="ordered">$1</li>')
+            .replace(/^[-*+] (.*$)/gim, '<li class="unordered">$1</li>')
+            // Links
+            .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
             // Line breaks
             .replace(/\n/gim, '<br/>');
 
-        // Wrap consecutive <li> elements in <ul>
-        html = html.replace(/(<li>.*<\/li>)/gim, '<ul>$1</ul>');
+        // Wrap consecutive <li> elements in appropriate lists
+        html = html.replace(/(<li class="ordered">.*?<\/li>)/gims, '<ol>$1</ol>');
+        html = html.replace(/(<li class="unordered">.*?<\/li>)/gims, '<ul>$1</ul>');
 
         return html;
     };
 
+    const getContentTypeIcon = () => {
+        switch (content?.type) {
+            case 'article': return '•';
+            case 'video': return '▶';
+            case 'podcast': return '♪';
+            case 'module': return '■';
+            default: return '•';
+        }
+    };
+
     if (loading) return (
-        <div className="content-view-loading">
-            <div className="loading-spinner"></div>
-            <p>Đang tải nội dung...</p>
+        <div className="content-page-state">
+            <div className="state-container">
+                <div className="loading-animation">
+                    <div className="loading-spinner"></div>
+                    <div className="loading-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+                <h3>Đang tải nội dung...</h3>
+                <p>Vui lòng chờ một chút</p>
+            </div>
         </div>
     );
 
     if (error) return (
-        <div className="content-view-error">
-            <div className="error-icon">⚠️</div>
-            <p>{error}</p>
-            <button onClick={() => navigate(-1)} className="close-btn">Quay lại</button>
+        <div className="content-page-state error-state">
+            <div className="state-container">
+                <div className="state-icon">!</div>
+                <h3>Không thể tải nội dung</h3>
+                <p>{error}</p>
+                <button onClick={() => navigate(-1)} className="state-btn">
+                    <i className="bi bi-arrow-left"></i>
+                    <span>Quay lại</span>
+                </button>
+            </div>
         </div>
     );
 
     if (!content) return (
-        <div className="content-view-notfound">
-            <div className="notfound-icon">🔍</div>
-            <p>Không tìm thấy nội dung.</p>
-            <button onClick={() => navigate(-1)} className="close-btn">Quay lại</button>
+        <div className="content-page-state notfound-state">
+            <div className="state-container">
+                <div className="state-icon">🔍</div>
+                <h3>Không tìm thấy nội dung</h3>
+                <p>Nội dung bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.</p>
+                <button onClick={() => navigate(-1)} className="state-btn">
+                    <i className="bi bi-arrow-left"></i>
+                    <span>Quay lại</span>
+                </button>
+            </div>
         </div>
     );
 
     return (
-        <div className="content-view-container">
-            {/* Top Navigation Bar */}
-            <div className="content-nav-bar">
-                <div className="nav-left">
-                    <button onClick={() => navigate(-1)} className="back-btn">
-                        <i className="bi bi-arrow-left"></i>
-                        <span>Quay lại</span>
-                    </button>
-                    <div className="breadcrumb">
-                        <span className="breadcrumb-item">Khóa học</span>
-                        <i className="bi bi-chevron-right"></i>
-                        <span className="breadcrumb-item current">Bài {content.orders}</span>
-                    </div>
-                </div>
-                <div className="nav-right">
-                    {enrollmentData && !checkingCompletion && (
-                        <button 
-                            onClick={handleToggleCompletion} 
-                            className={`completion-btn ${isCompleted ? 'completed' : 'incomplete'} ${updatingCompletion ? 'updating' : ''}`}
-                            disabled={updatingCompletion}
-                            title={isCompleted ? 'Đánh dấu chưa hoàn thành' : 'Đánh dấu hoàn thành'}
-                        >
-                            {updatingCompletion ? (
-                                <>
-                                    <div className="spinner"></div>
-                                    <span>Đang cập nhật...</span>
-                                </>
-                            ) : isCompleted ? (
-                                <>
-                                    <i className="bi bi-check-circle-fill"></i>
-                                    <span>Đã hoàn thành</span>
-                                </>
-                            ) : (
-                                <>
-                                    <i className="bi bi-circle"></i>
-                                    <span>Đánh dấu hoàn thành</span>
-                                </>
-                            )}
+        <div className="content-view-page">
+            {/* Header Navigation */}
+            <header className="content-header">
+                <div className="header-container">
+                    <div className="header-left">
+                        <button onClick={() => navigate(-1)} className="back-button">
+                            <i className="bi bi-arrow-left"></i>
                         </button>
-                    )}
-                </div>
-            </div>
-
-            {/* Main Content Area */}
-            <div className="content-main">
-                {/* Content Header */}
-                <div className="content-header">
-                    <div className="content-title-section">
-                        <h1 className="content-title">{content.title}</h1>
-                        <div className="content-badges">
-                            <span className="type-badge">
-                                {content.type === 'article' && <i className="bi bi-file-text"></i>}
-                                {content.type === 'video' && <i className="bi bi-play-circle"></i>}
-                                {content.type === 'podcast' && <i className="bi bi-headphones"></i>}
-                                {content.type === 'module' && <i className="bi bi-book"></i>}
-                                {!['article', 'video', 'podcast', 'module'].includes(content.type) && <i className="bi bi-file"></i>}
-                                <span>{content.type}</span>
-                            </span>
-                            <span className="order-badge">
-                                <i className="bi bi-hash"></i>
-                                <span>Bài {content.orders}</span>
-                            </span>
-                            {enrollmentData && (
-                                <span className={`status-badge ${isCompleted ? 'completed' : 'incomplete'}`}>
-                                    {checkingCompletion ? (
-                                        <>
-                                            <div className="spinner-small"></div>
-                                            <span>Đang kiểm tra...</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <i className={`bi ${isCompleted ? 'bi-check-circle-fill' : 'bi-clock'}`}></i>
-                                            <span>{isCompleted ? 'Đã hoàn thành' : 'Chưa hoàn thành'}</span>
-                                        </>
-                                    )}
-                                </span>
-                            )}
+                        <div className="breadcrumb">
+                            <span className="breadcrumb-item">Khóa học</span>
+                            <i className="bi bi-chevron-right"></i>
+                            <span className="breadcrumb-item">Bài {content.orders}</span>
                         </div>
                     </div>
+                    <div className="header-right">
+                        {enrollmentData && !checkingCompletion && (
+                            <button 
+                                onClick={handleToggleCompletion} 
+                                className={`completion-toggle ${isCompleted ? 'completed' : 'incomplete'}`}
+                                disabled={updatingCompletion}
+                            >
+                                {updatingCompletion ? (
+                                    <>
+                                        <div className="mini-spinner"></div>
+                                        <span>Đang cập nhật...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <i className={`bi ${isCompleted ? 'bi-check-circle-fill' : 'bi-circle'}`}></i>
+                                        <span>{isCompleted ? 'Đã hoàn thành' : 'Đánh dấu hoàn thành'}</span>
+                                    </>
+                                )}
+                            </button>
+                        )}
+                    </div>
                 </div>
+            </header>
 
-                {/* Content Body */}
-                <div className="content-body">
-                    {contentFile ? (
-                        <div className="content-wrapper">
-                            {renderContent()}
-                        </div>
-                    ) : (
-                        <div className="no-content-wrapper">
-                            <div className="no-content-icon">
-                                <i className="bi bi-file-earmark-x"></i>
+            {/* Main Content */}
+            <main className="content-main">
+                <div className="content-container">
+                    {/* Content Title Section */}
+                    <section className="content-title-section">
+                        <div className="title-container">
+                            <div className="title-meta">
+                                <div className="content-type-badge">
+                                    <span className="type-icon">{getContentTypeIcon()}</span>
+                                    <span className="type-text">{content.type}</span>
+                                </div>
+                                <div className="content-order">
+                                    <span>Bài {content.orders}</span>
+                                </div>
+                                {enrollmentData && (
+                                    <div className={`status-indicator ${isCompleted ? 'completed' : 'incomplete'}`}>
+                                        <i className={`bi ${isCompleted ? 'bi-check-circle-fill' : 'bi-clock'}`}></i>
+                                        <span>{isCompleted ? 'Đã hoàn thành' : 'Chưa hoàn thành'}</span>
+                                    </div>
+                                )}
                             </div>
-                            <h3>Không có nội dung để hiển thị</h3>
-                            <p>Nội dung này hiện chưa có file đính kèm hoặc đã bị xóa.</p>
-                            {content.content_file_link && (
-                                <a
-                                    href={content.content_file_link}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="external-link-btn"
-                                >
-                                    <i className="bi bi-box-arrow-up-right"></i>
-                                    <span>Mở liên kết gốc</span>
-                                </a>
+                            <h1 className="content-title">{content.title}</h1>
+                        </div>
+                    </section>
+
+                    {/* Content Body */}
+                    <section className="content-body-section">
+                        <div className="content-wrapper">
+                            {contentFile ? (
+                                renderContent()
+                            ) : (
+                                <div className="no-content-state">
+                                    <div className="no-content-icon">•</div>
+                                    <h3>Không có nội dung</h3>
+                                    <p>Nội dung này hiện chưa có file đính kèm.</p>
+                                    {content.content_file_link && (
+                                        <a
+                                            href={content.content_file_link}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="external-btn"
+                                        >
+                                            <i className="bi bi-box-arrow-up-right"></i>
+                                            <span>Mở liên kết gốc</span>
+                                        </a>
+                                    )}
+                                </div>
                             )}
                         </div>
-                    )}
+                    </section>
                 </div>
-            </div>
+            </main>
         </div>
     );
 };

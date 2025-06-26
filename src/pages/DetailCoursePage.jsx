@@ -15,6 +15,10 @@ const DetailCoursePage = () => {
     const [isEnrolled, setIsEnrolled] = useState(false);
     const [checkingEnrollment, setCheckingEnrollment] = useState(true);
     const [userId, setUserId] = useState(null);
+    const [enrollmentData, setEnrollmentData] = useState(null);
+    const [progressPercentage, setProgressPercentage] = useState(0);
+    const [isCompleted, setIsCompleted] = useState(false);
+    const [deleting, setDeleting] = useState(false);
 
     useEffect(() => {
         const fetchProgram = async () => {
@@ -72,10 +76,33 @@ const DetailCoursePage = () => {
                 if (res.ok) {
                     const data = await res.json();
                     // Check if user is enrolled in this specific program
-                    const isEnrolledInProgram = data.data && data.data.some(enrollment =>
+                    const enrollmentInProgram = data.data && data.data.find(enrollment =>
                         enrollment.program_id === parseInt(id)
                     );
-                    setIsEnrolled(isEnrolledInProgram);
+                    
+                    if (enrollmentInProgram) {
+                        setIsEnrolled(true);
+                        setEnrollmentData(enrollmentInProgram);
+                        
+                        // Calculate progress percentage
+                        if (enrollmentInProgram.progress && Array.isArray(enrollmentInProgram.progress)) {
+                            const totalContent = enrollmentInProgram.progress.length;
+                            const completedContent = enrollmentInProgram.progress.filter(item => item.complete).length;
+                            const percentage = totalContent > 0 ? (completedContent / totalContent) * 100 : 0;
+                            setProgressPercentage(percentage);
+                            
+                            // Check if course is completed
+                            const allCompleted = totalContent > 0 && completedContent === totalContent;
+                            setIsCompleted(!!enrollmentInProgram.complete_at || allCompleted);
+                            
+                            // If all content is complete but complete_at is not set, update it
+                            if (allCompleted && !enrollmentInProgram.complete_at) {
+                                updateEnrollmentCompletion(tokenPayload.userId, parseInt(id));
+                            }
+                        }
+                    } else {
+                        setIsEnrolled(false);
+                    }
                 }
             } catch (err) {
                 console.error('Lỗi khi kiểm tra trạng thái đăng ký:', err);
@@ -89,6 +116,70 @@ const DetailCoursePage = () => {
         fetchContentPreview();
         checkEnrollmentStatus();
     }, [id]);
+
+    // Function to update enrollment completion
+    const updateEnrollmentCompletion = async (userId, programId) => {
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        if (!token) return;
+
+        try {
+            const enrollId = `${userId}_${programId}`;
+            const res = await fetch(`http://localhost:3000/api/enrollments/${enrollId}/complete`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setEnrollmentData(data.data);
+                setIsCompleted(true);
+                setProgressPercentage(100);
+                console.log('Course completion updated successfully');
+            }
+        } catch (err) {
+            console.error('Error updating course completion:', err);
+        }
+    };
+
+    // Function to delete enrollment
+    const handleDeleteEnrollment = async () => {
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        if (!token || !userId) return;
+
+        const confirmed = window.confirm('Bạn có chắc chắn muốn hủy đăng ký khóa học này? Tất cả tiến độ học tập sẽ bị xóa.');
+        if (!confirmed) return;
+
+        setDeleting(true);
+        try {
+            const res = await fetch(`http://localhost:3000/api/enrollments/${userId}/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (res.ok) {
+                // Reset all enrollment-related states
+                setIsEnrolled(false);
+                setEnrollmentData(null);
+                setProgressPercentage(0);
+                setIsCompleted(false);
+                alert('Đã hủy đăng ký khóa học thành công!');
+            } else {
+                const errorData = await res.json();
+                alert(errorData.message || 'Có lỗi xảy ra khi hủy đăng ký');
+            }
+        } catch (err) {
+            console.error('Error deleting enrollment:', err);
+            alert('Có lỗi xảy ra khi hủy đăng ký khóa học');
+        } finally {
+            setDeleting(false);
+        }
+    };
 
     const handleEnroll = async () => {
         const token = localStorage.getItem('token') || sessionStorage.getItem('token');
@@ -139,7 +230,7 @@ const DetailCoursePage = () => {
 
     if (error) return (
         <div className="detailcourse-error">
-            <div className="error-icon">⚠️</div>
+            <div className="error-icon"></div>
             <p>{error}</p>
             <Link to="/courses" className="error-back-btn">Quay lại danh sách khóa học</Link>
         </div>
@@ -191,12 +282,12 @@ const DetailCoursePage = () => {
                         <h1 className="detailcourse-title">{program.title}</h1>
                         <div className="course-meta">
                             <div className="meta-item">
-                                <span className="meta-icon">👤</span>
+                                <span className="meta-icon"></span>
                                 <span className="meta-label">Người tạo:</span>
                                 <span className="meta-value">{program.creator?.name || program.creator?.email || 'Không rõ'}</span>
                             </div>
                             <div className="meta-item">
-                                <span className="meta-icon">🎯</span>
+                                <span className="meta-icon"></span>
                                 <span className="meta-label">Nhóm tuổi:</span>
                                 <span className="meta-value">{program.age_group || 'Không rõ'}</span>
                             </div>
@@ -224,9 +315,68 @@ const DetailCoursePage = () => {
                             ) : isEnrolled ? (
                                 <div className="enrolled-info">
                                     <div className="enrolled-status">
-                                        <span className="enrolled-icon">✅</span>
-                                        <h3>Bạn đã đăng ký khóa học này</h3>
-                                        <p>Bạn có thể xem tất cả nội dung khóa học bên dưới. Chúc bạn học tập hiệu quả!</p>
+                                        {isCompleted ? (
+                                            <>
+                                                <span className="completed-icon"></span>
+                                                <h3>Chúc mừng! Bạn đã hoàn thành khóa học</h3>
+                                                <p>Bạn đã hoàn thành tất cả nội dung của khóa học này. Chúc mừng bạn!</p>
+                                                {enrollmentData?.complete_at && (
+                                                    <p className="completion-date">
+                                                        Hoàn thành vào: {new Date(enrollmentData.complete_at).toLocaleDateString('vi-VN')}
+                                                    </p>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span className="enrolled-icon"></span>
+                                                <h3>Bạn đã đăng ký khóa học này</h3>
+                                                <p>Bạn có thể xem tất cả nội dung khóa học bên dưới. Chúc bạn học tập hiệu quả!</p>
+                                            </>
+                                        )}
+                                    </div>
+                                    
+                                    {/* Progress Bar */}
+                                    <div className="progress-section">
+                                        <div className="progress-header">
+                                            <h4>Tiến độ học tập</h4>
+                                            <span className="progress-percentage">{Math.round(progressPercentage)}%</span>
+                                        </div>
+                                        <div className="progress-bar-container">
+                                            <div className="progress-bar">
+                                                <div 
+                                                    className="progress-fill" 
+                                                    style={{ width: `${progressPercentage}%` }}
+                                                ></div>
+                                            </div>
+                                        </div>
+                                        {enrollmentData?.progress && (
+                                            <div className="progress-details">
+                                                <span className="progress-text">
+                                                    {enrollmentData.progress.filter(item => item.complete).length} / {enrollmentData.progress.length} nội dung đã hoàn thành
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Delete Enrollment Button */}
+                                    <div className="enrollment-actions">
+                                        <button
+                                            className={`delete-enrollment-btn ${deleting ? 'deleting' : ''}`}
+                                            onClick={handleDeleteEnrollment}
+                                            disabled={deleting}
+                                        >
+                                            {deleting ? (
+                                                <>
+                                                    <span className="delete-spinner"></span>
+                                                    Đang hủy đăng ký...
+                                                </>
+                                            ) : (
+                                                <>
+                                                                                                <span className="delete-icon"></span>
+                                            Hủy đăng ký khóa học
+                                                </>
+                                            )}
+                                        </button>
                                     </div>
                                 </div>
                             ) : userId ? (
@@ -245,8 +395,8 @@ const DetailCoursePage = () => {
                                             </>
                                         ) : (
                                             <>
-                                                <span className="enroll-icon">📚</span>
-                                                Đăng ký ngay
+                                                                                            <span className="enroll-icon"></span>
+                                            Đăng ký ngay
                                             </>
                                         )}
                                     </button>
@@ -259,7 +409,7 @@ const DetailCoursePage = () => {
                                         className="login-btn"
                                         onClick={() => navigate('/login')}
                                     >
-                                        <span className="login-icon">🔐</span>
+                                        <span className="login-icon"></span>
                                         Đăng nhập ngay
                                     </button>
                                 </div>
@@ -295,11 +445,6 @@ const DetailCoursePage = () => {
                                             <h4 className="content-title">{content.title}</h4>
                                             <div className="content-type-badge">
                                                 <span className={`type-badge ${content.type}`}>
-                                                    {content.type === 'article' && '📄'}
-                                                    {content.type === 'video' && '🎥'}
-                                                    {content.type === 'podcast' && '🎧'}
-                                                    {content.type === 'module' && '📚'}
-                                                    {!['article', 'video', 'podcast', 'module'].includes(content.type) && '📝'}
                                                     {content.type}
                                                 </span>
                                             </div>
@@ -310,7 +455,7 @@ const DetailCoursePage = () => {
                                                     className="view-content-btn"
                                                     onClick={() => handleViewContent(content.content_id)}
                                                 >
-                                                    <span className="view-icon">👁️</span>
+                                                    <span className="view-icon"></span>
                                                     Xem nội dung
                                                 </button>
                                             </div>
@@ -320,7 +465,7 @@ const DetailCoursePage = () => {
                             </div>
                         ) : (
                             <div className="no-content">
-                                <span className="no-content-icon">📝</span>
+                                <span className="no-content-icon"></span>
                                 <p>Nội dung chi tiết sẽ được cập nhật sớm nhất</p>
                             </div>
                         )}
