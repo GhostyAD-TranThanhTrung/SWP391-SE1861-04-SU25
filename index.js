@@ -176,6 +176,7 @@ app.delete('/api/actions/:id', authController.verifyToken, ActionController.dele
 
 // Program Routes
 app.get("/api/programs", ProgramController.getAllPrograms);
+app.get("/api/programs/my-enrollment-status", authController.verifyToken, ProgramController.getUserProgramsWithEnrollmentStatus); // Get programs with user's enrollment status
 app.get("/api/programs/:id", ProgramController.getProgramById);
 app.get("/api/programs/category/:categoryId", ProgramController.getProgramsByCategory);
 app.get("/api/programs/creator/:creatorId", authController.verifyToken, ProgramController.getProgramsByCreator);
@@ -258,6 +259,7 @@ app.post("/api/enrollments", authController.verifyToken, EnrollController.create
 // Content progress routes
 app.patch("/api/enrollments/:enrollId/content/:contentId/toggle", authController.verifyToken, EnrollController.toggleContentCompletion); // Toggle content completion status
 app.put("/api/enrollments/:enrollId/content/:contentId", authController.verifyToken, EnrollController.updateContentCompletionById); // Update content completion using enrollId (format: "userId_programId")
+app.put("/api/enrollments/:enrollId/complete", authController.verifyToken, EnrollController.updateEnrollmentCompletionById); // Mark enrollment as completed using enrollId (format: "userId_programId")
 
 // Admin/detailed enrollment routes
 app.get("/api/enrollments", EnrollController.getAllEnrollments); // Get all enrollments (admin/staff only)

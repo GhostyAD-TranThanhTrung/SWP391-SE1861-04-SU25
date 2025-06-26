@@ -959,6 +959,108 @@ class EnrollController {
             });
         }
     }
+
+    /**
+     * Update enrollment completion date using composite enroll_id
+     * enroll_id format: "userId_programId" (e.g., "6_2" for user 6 in program 2)
+     * Sets complete_at to current timestamp and marks all content as completed
+     */
+    static async updateEnrollmentCompletionById(req, res) {
+        try {
+            const { enrollId } = req.params;
+
+            // Parse composite enroll_id (format: "userId_programId")
+            const enrollIdParts = enrollId.split('_');
+            if (enrollIdParts.length !== 2) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid enroll_id format. Expected format: "userId_programId" (e.g., "6_2")'
+                });
+            }
+
+            const userId = parseInt(enrollIdParts[0]);
+            const programId = parseInt(enrollIdParts[1]);
+
+            if (isNaN(userId) || isNaN(programId)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid enroll_id. Both userId and programId must be valid numbers'
+                });
+            }
+
+            const enrollRepository = AppDataSource.getRepository(Enroll);
+
+            // Check if enrollment exists
+            const enrollment = await enrollRepository.findOne({
+                where: {
+                    user_id: userId,
+                    program_id: programId
+                }
+            });
+
+            if (!enrollment) {
+                return res.status(404).json({
+                    success: false,
+                    message: `Enrollment not found for enroll_id: ${enrollId}`
+                });
+            }
+
+            // Parse current progress and mark all content as completed
+            const currentProgress = EnrollController.parseProgress(enrollment.progress);
+            const updatedProgress = currentProgress.map(item => ({
+                ...item,
+                complete: true
+            }));
+
+            // Update enrollment with current timestamp and completed progress
+            const currentTime = new Date();
+            await enrollRepository.update(
+                {
+                    user_id: userId,
+                    program_id: programId
+                },
+                {
+                    complete_at: currentTime,
+                    progress: JSON.stringify(updatedProgress)
+                }
+            );
+
+            // Fetch updated enrollment
+            const updatedEnrollment = await enrollRepository.findOne({
+                where: {
+                    user_id: userId,
+                    program_id: programId
+                }
+            });
+
+            // Parse progress JSON before returning
+            const parsedEnrollment = EnrollController.parseEnrollment(updatedEnrollment);
+
+            // Calculate progress percentage for response
+            const completedCount = parsedEnrollment.progress.filter(item => item.complete).length;
+            const totalCount = parsedEnrollment.progress.length;
+            const progressPercentage = totalCount > 0 ? (completedCount / totalCount) : 0;
+
+            res.status(200).json({
+                success: true,
+                data: {
+                    ...parsedEnrollment,
+                    enroll_id: enrollId,
+                    progressPercentage: Math.round(progressPercentage * 100),
+                    completedContent: completedCount,
+                    totalContent: totalCount
+                },
+                message: `Enrollment ${enrollId} marked as completed successfully`
+            });
+        } catch (error) {
+            console.error('Error updating enrollment completion:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to update enrollment completion',
+                error: error.message
+            });
+        }
+    }
 }
 
 module.exports = EnrollController;

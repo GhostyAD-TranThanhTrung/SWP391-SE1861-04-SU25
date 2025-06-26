@@ -1,5 +1,7 @@
 # Understanding Addiction Science
 
+![Understanding Addiction Science](../image/Sample.jpg)
+
 ## What is Addiction?
 
 Addiction is a complex, chronic brain disorder characterized by compulsive drug seeking and use, despite harmful consequences. It's considered a brain disorder because drugs change the brain's structure and how it works.
