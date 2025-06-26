@@ -152,6 +152,7 @@ app.patch("/api/booking-sessions/confirm/:id", authController.verifyToken, Booki
 
 // Assessment Routes
 app.get('/api/assessments', authController.verifyToken, AssessmentController.getAllAssessments);
+app.get('/api/assessments/me', authController.verifyToken, AssessmentController.getAssessmentsByUserToken);
 app.get('/api/assessments/:id', authController.verifyToken, AssessmentController.getAssessmentById);
 app.get('/api/assessments/user/:userId', authController.verifyToken, AssessmentController.getAssessmentsByUserId);
 app.get('/api/assessments/details/:userId', authController.verifyToken, AssessmentController.getAssessmentDetails);

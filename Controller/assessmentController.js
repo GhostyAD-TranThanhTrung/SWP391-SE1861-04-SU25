@@ -91,6 +91,53 @@ class AssessmentController {
     }
   }
 
+  static async getAssessmentsByUserToken(req, res) {
+    try {
+      const userId = req.user.userId;
+      const assessmentRepository = AppDataSource.getRepository(Assessment);
+
+      // Get assessments with Action relations
+      const assessments = await assessmentRepository.find({
+        where: { user_id: parseInt(userId) },
+        relations: {
+          action: true,
+        },
+        order: {
+          create_at: 'DESC'
+        }
+      });
+
+      // Format the response to include combined data
+      const formattedAssessments = assessments.map(assessment => ({
+        assessment_id: assessment.assessment_id,
+        user_id: assessment.user_id,
+        type: assessment.type,
+        result_json: assessment.result_json,
+        create_at: assessment.create_at,
+        action: assessment.action ? {
+          action_id: assessment.action.action_id,
+          description: assessment.action.description,
+          range: assessment.action.range,
+          type: assessment.action.type,
+        } : null
+      }));
+
+      res.status(200).json({
+        success: true,
+        data: formattedAssessments,
+        count: formattedAssessments.length,
+        message: `Assessments with actions for user ${userId} retrieved successfully`,
+      });
+    } catch (error) {
+      console.error("Error getting assessments by user token:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to retrieve assessments by user token",
+        error: error.message,
+      });
+    }
+  }
+
   /**
    * Get assessments with related user and action data
    */
@@ -332,7 +379,7 @@ class AssessmentController {
       const { score, type, results } = req.body;
 
       const user_id = req.user.userId;
-      
+
       if (!results || !Array.isArray(results) || results.length === 0 || results === undefined || results === null) {
         return res.status(400).json({
           success: false,
