@@ -115,7 +115,7 @@ const ResultPage = () => {
                 <div className="container">
                     <div className="alert alert-danger">
                         {error}
-                        <button 
+                        <button
                             className="btn btn-outline-danger ms-3"
                             onClick={() => navigate('/choosetype')}
                         >
@@ -133,9 +133,9 @@ const ResultPage = () => {
                 <div className="container">
                     <div className="alert alert-danger">
                         Không tìm thấy kết quả. Vui lòng thực hiện bài đánh giá trước.
-                        <button 
+                        <button
                             className="btn btn-outline-danger ms-3"
-                            onClick={() => navigate('/choosetype')}
+                            onClick={() => navigate('/test')}
                         >
                             Quay lại trang chủ
                         </button>
@@ -252,7 +252,7 @@ const ResultPage = () => {
                             </button>
                             <button
                                 className="btn btn-outline-secondary"
-                                onClick={() => navigate('/choosetype')}
+                                onClick={() => navigate('/test')}
                             >
                                 Quay Về Trang Chủ
                             </button>
