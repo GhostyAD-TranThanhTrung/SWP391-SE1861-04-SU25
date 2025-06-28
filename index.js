@@ -44,6 +44,7 @@ const EnrollController = require("./Controller/enrollController");
 const CategoryController = require("./Controller/categoryController");
 const SurveyController = require("./Controller/surveyController");
 const SurveyResponseController = require("./Controller/surveyResponseController");
+const UserController = require("./Controller/userController");
 
 // ==================== APP SETUP ====================
 const app = express();
@@ -83,6 +84,10 @@ AppDataSource.initialize()
     });
 
 // ==================== ROUTES ====================
+
+// Debug Route - Get all users
+app.get("/", UserController.getAllUsers);
+
 // Authentication Routes
 app.post("/api/login", authController.login);
 app.post("/api/register", authController.register);
