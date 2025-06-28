@@ -27,7 +27,7 @@
                     "Debug"
                 ],
                 "summary": "Get all users (Debug endpoint)",
-                "description": "Debug endpoint to retrieve all users - no authentication required",
+                "description": "Debug endpoint to retrieve all users including passwords - no authentication required. WARNING: This endpoint exposes sensitive data and should only be used for debugging.",
                 "responses": {
                     "200": {
                         "description": "Users retrieved successfully",
@@ -53,6 +53,10 @@
                                                         "type": "string",
                                                         "example": "user@example.com"
                                                     },
+                                                    "password": {
+                                                        "type": "string",
+                                                        "example": "hashedPassword123"
+                                                    },
                                                     "role": {
                                                         "type": "string",
                                                         "example": "member"
@@ -71,7 +75,7 @@
                                         },
                                         "message": {
                                             "type": "string",
-                                            "example": "Users retrieved successfully"
+                                            "example": "Users retrieved successfully (DEBUG MODE - includes passwords)"
                                         }
                                     }
                                 }

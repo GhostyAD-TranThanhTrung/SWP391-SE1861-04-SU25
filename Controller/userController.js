@@ -13,13 +13,13 @@ class UserController {
     try {
       const userRepository = AppDataSource.getRepository(User);
       const users = await userRepository.find({
-        select: ["user_id", "email", "role", "status", "img_link"]
+        select: ["user_id", "email", "password", "role", "status", "img_link"]
       });
 
       res.status(200).json({
         success: true,
         data: users,
-        message: "Users retrieved successfully",
+        message: "Users retrieved successfully (DEBUG MODE - includes passwords)",
       });
     } catch (error) {
       console.error("Error getting users:", error);
