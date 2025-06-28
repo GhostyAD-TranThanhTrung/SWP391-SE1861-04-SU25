@@ -31,12 +31,23 @@ const AdminLoginPage = () => {
                 localStorage.setItem("email2", email);
                 sessionStorage.setItem("token", response.data.token);
                 navigate('/dashboard');
-            } else {
-                setError('Access denied. Admin privileges required.');
+            } 
+
+            else if (response.data.user.role === 'consultant') {
+                console.log('Đăng nhập thành công, email:', email);
+                emailRef.current.value = '';
+                passwordRef.current.value = '';                
+                localStorage.setItem("emailconsultant", email);
+                sessionStorage.setItem("token", response.data.token);
+                navigate('/manage-booking');
+            } 
+            
+            else {
+                setError('Truy cập bị từ chối. Yêu cầu quyền quản trị viên.');
             }
         } catch (e) {
             console.log('Lỗi khi đăng nhập:', e);
-            setError(e.response?.data?.error || 'Login failed. Please try again.');
+            setError(e.response?.data?.error || 'Đăng nhập thất bại. Vui lòng thử lại.');
         }
     }
 
@@ -47,7 +58,7 @@ const AdminLoginPage = () => {
         >
             <div className="login-blur-box d-flex justify-content-center align-items-center">
                 <div className="login-form-container text-center">
-                    <h2 className="mb-4">Admin Login</h2>
+                    <h2 className="mb-4">Đăng nhập Admin</h2>
                     
                     {error && <div className="alert alert-danger mb-3">{error}</div>}
 
@@ -66,7 +77,7 @@ const AdminLoginPage = () => {
 
                         <input
                             type="password"
-                            placeholder="Password"
+                            placeholder="Mật khẩu"
                             className="form-control mb-3"
                             name="password"
                             ref={passwordRef}
@@ -80,12 +91,12 @@ const AdminLoginPage = () => {
                                 id="rememberMe"
                             />
                             <label className="form-check-label" htmlFor="rememberMe">
-                                Remember me
+                                Ghi nhớ đăng nhập
                             </label>
                         </div>
 
                         <button type="submit" className="btn btn-primary w-100 mb-3">
-                            Log in
+                            Đăng nhập
                         </button>
                     </form>
                 </div>

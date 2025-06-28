@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import '../styles/SidebarAdmin.scss';
-import { FaBlog, FaBook, FaClipboardList, FaGauge, FaIdBadge, FaRightFromBracket, FaTerminal, FaUser, FaUserCheck } from "react-icons/fa6";
+import { FaBlog, FaBook, FaClipboardList, FaGauge, FaIdBadge, FaRightFromBracket, FaUser, FaUserCheck } from "react-icons/fa6";
 
 const SidebarAdmin = ({ isOpen }) => {
     const location = useLocation();
@@ -19,41 +19,38 @@ const SidebarAdmin = ({ isOpen }) => {
             {/* Navigation */}
             <ul className="sidebar-menu">
                 <li className={currentPath === "/dashboard" ? "active" : ""}>
-                    <Link to="/dashboard"><FaGauge className='icon'/> Dashboard</Link>
+                    <Link to="/dashboard"><FaGauge className='icon'/> Bảng báo cáo</Link>
                 </li>
-                <li className={currentPath === "/memberlist" ? "active" : ""}>
-                    <Link to="/memberlist"><FaUser className='icon'/> Member</Link>
+                <li className={currentPath === "/member-list" ? "active" : ""}>
+                    <Link to="/member-list"><FaUser className='icon'/> Thành viên</Link>
                 </li>
-                <li className={currentPath === "/stafflist" ? "active" : ""}>
-                    <Link to="/stafflist"><FaIdBadge className='icon'/> Staff</Link>
+                <li className={currentPath === "/staff-list" ? "active" : ""}>
+                    <Link to="/staff-list"><FaIdBadge className='icon'/> Nhân viên</Link>
                 </li>
-                <li className={currentPath === "/consultantlist" ? "active" : ""}>
-                    <Link to="/consultantlist"><FaUserCheck className='icon'/> Consultant</Link>
+                <li className={currentPath === "/consultant-list" ? "active" : ""}>
+                    <Link to="/consultant-list"><FaUserCheck className='icon'/> Tư vấn viên</Link>
                 </li>
-                <li className={currentPath === "/scorelist" ? "active" : ""}>
-                    <Link to="/scorelist"><FaClipboardList className='icon'/> Score</Link>
+                <li className={currentPath === "/assessment-list" ? "active" : ""}>
+                    <Link to="/assessment-list"><FaClipboardList className='icon'/> Đánh giá</Link>
                 </li>
-                <li className={currentPath === "/bloglist" ? "active" : ""}>
-                    <Link to="/bloglist"><FaBlog className='icon'/> Blog</Link>
+                <li className={currentPath === "/course-list" ? "active" : ""}>
+                    <Link to="/course-list"><FaBook className='icon'/> Khóa học</Link>
                 </li>
-                <li className={currentPath === "/courselist" ? "active" : ""}>
-                    <Link to="/courselist"><FaBook className='icon'/> Course</Link>
-                </li>
-                <li className={currentPath === "/log" ? "active" : ""}>
-                    <Link to="/log"><FaTerminal className='icon'/> Log</Link>
+                <li className={currentPath === "/blog-list" ? "active" : ""}>
+                    <Link to="/blog-list"><FaBlog className='icon'/> Blog</Link>
                 </li>
                 <li>
-                    <Link to="#" onClick={handleLogout}><FaRightFromBracket className='icon'/> Logout</Link>
+                    <Link to="#" onClick={handleLogout}><FaRightFromBracket className='icon'/> Đăng xuất</Link>
                 </li>
             </ul>
 
             {/* Profile */}
             <div className="sidebar-footer">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/2048px-No_image_available.svg.png" alt="Admin Avatar" />
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/2048px-No_image_available.svg.png" alt="Ảnh đại diện Admin" />
                 <div>
-                    <strong>Admin</strong>
+                    <strong>Quản trị viên</strong>
                     <Link to="#">
-                        <div className="text-muted">View profile</div>
+                        <div className="text-muted">Xem hồ sơ</div>
                     </Link>
                 </div>
             </div>

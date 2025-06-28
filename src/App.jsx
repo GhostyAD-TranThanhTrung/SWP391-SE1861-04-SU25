@@ -24,18 +24,25 @@ import DashboardPage from "./pages/admin/DashboardPage";
 import StaffListPage from "./pages/admin/StaffListPage";
 import MemberListPage from "./pages/admin/MemberListPage";
 import ConsultantListPage from "./pages/admin/ConsultantListPage";
-import ScoreListPage from "./pages/admin/ScoreListPage";
+import AssessmentListPage from "./pages/admin/AssessmentListPage";
 import DetailCoursePage from "./pages/DetailCoursePage";
 import DetailBlogPage from "./pages/DetailBlogPage";
 import ContentViewPage from "./pages/ContentViewPage";
+import CertificatePage from "./pages/consultant/CertificatePage";
+import ManageBookingPage from "./pages/consultant/ManageBookingPage";
+import CourseListPage from "./pages/admin/CourseListPage";
+import BlogListPage from "./pages/admin/BlogListPage";
+
 //Import layout
 import AdminLayout from "./layout/AdminLayout";
+import ConsultantLayout from "./layout/ConsultantLayout";
 
 // Wrapper component to conditionally render Navbar and Footer
 const AppLayout = () => {
   const location = useLocation();
   const hideNavbarAndFooter = ["/login", "/signup", "/forget", "/choose-role", "/admin/login",
-    "/dashboard", "/stafflist", "/memberlist", "/consultantlist", '/scorelist'].includes(location.pathname);
+    "/dashboard", "/staff-list", "/member-list", "/consultant-list", '/assessment-list', 
+    '/course-list', '/blog-list','/manage-booking', '/certificate'].includes(location.pathname);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
@@ -62,8 +69,9 @@ const AppLayout = () => {
           <Route path="/program/:id" element={<DetailCoursePage />} />
           <Route path="/blog/:id" element={<DetailBlogPage />} />
           <Route path="/content/:contentId" element={<ContentViewPage />} />
-          {/* Admin */}
-          <Route path="/admin/login" element={<AdminLoginPage />} />
+
+        {/* Admin */}
+        <Route path="/admin/login" element={<AdminLoginPage />} />
           <Route
             path="/dashboard"
             element={
@@ -73,7 +81,7 @@ const AppLayout = () => {
             }
           />
           <Route
-            path="/stafflist"
+            path="/staff-list"
             element={
               <AdminLayout>
                 <StaffListPage />
@@ -81,7 +89,7 @@ const AppLayout = () => {
             }
           />
           <Route
-            path="/memberlist"
+            path="/member-list"
             element={
               <AdminLayout>
                 <MemberListPage />
@@ -89,7 +97,7 @@ const AppLayout = () => {
             }
           />
           <Route
-            path="/consultantlist"
+            path="/consultant-list"
             element={
               <AdminLayout>
                 <ConsultantListPage />
@@ -97,11 +105,45 @@ const AppLayout = () => {
             }
           />
           <Route
-            path="/scorelist"
+            path="/assessment-list"
             element={
               <AdminLayout>
-                <ScoreListPage />
+                <AssessmentListPage />
               </AdminLayout>
+            }
+          />
+          <Route
+            path="/course-list"
+            element={
+              <AdminLayout>
+                <CourseListPage />
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/blog-list"
+            element={
+              <AdminLayout>
+                <BlogListPage />
+              </AdminLayout>
+            }
+          />
+
+          {/* Consultant*/}
+          <Route
+            path="/manage-booking"
+            element={
+              <ConsultantLayout>
+                <ManageBookingPage />
+              </ConsultantLayout>
+            }
+          />
+          <Route
+            path="/certificate"
+            element={
+              <ConsultantLayout>
+                <CertificatePage />
+              </ConsultantLayout>
             }
           />
         </Routes>

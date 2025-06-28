@@ -10,7 +10,6 @@ const StaffListPage = () => {
   const [staffs, setStaffs] = useState([]);
   const [newStaff, setNewStaff] = useState({
     email: "",
-    password: "",
     role: "",
     name: "",
     bio: "",
@@ -18,45 +17,19 @@ const StaffListPage = () => {
     date_of_birth: "",
     job: "",
   });
-
   const [editingStaffId, setEditingStaffId] = useState(null);
   const [editStaffData, setEditStaffData] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [staffIdToDelete, setStaffIdToDelete] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [newPassword, setNewPassword] = useState('');
   const token = sessionStorage.getItem("token");
-
-  const handleOpenPopup = () => {
-    setShowPopup(true);
-  };
-
-  const handleClosePopup = () => {
-    setShowPopup(false);
-    setNewStaff({
-      email: "",
-      password: "",
-      role: "",
-      name: "",
-      bio: "",
-      education: "",
-      date_of_birth: "",
-      job: "",
-    });
-    setEditingStaffId(null);
-    setEditStaffData(null);
-  };
-
-  const handleChange = (e) => {
-    setNewStaff({ ...newStaff, [e.target.name]: e.target.value });
-  };
-
-  const handleEditChange = (e) => {
-    setEditStaffData({ ...editStaffData, [e.target.name]: e.target.value });
-  };
 
   const fetchStaffs = async () => {
     try {
-      const res = await axios.get("http://localhost:3000/api/staff", { headers: { Authorization: `Bearer ${token}` } });
+      const res = await axios.get("http://localhost:3000/api/staff", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       if (res.data.success) {
         setStaffs(res.data.data);
       }
@@ -69,6 +42,35 @@ const StaffListPage = () => {
     fetchStaffs();
   }, []);
 
+  const handleOpenPopup = () => {
+    setShowPopup(true);
+    setNewPassword(""); // reset khi tạo mới
+  };
+
+  const handleClosePopup = () => {
+    setShowPopup(false);
+    setNewPassword("");
+    setEditingStaffId(null);
+    setEditStaffData(null);
+    setNewStaff({
+      email: "",
+      role: "",
+      name: "",
+      bio: "",
+      education: "",
+      date_of_birth: "",
+      job: "",
+    });
+  };
+
+  const handleChange = (e) => {
+    setNewStaff({ ...newStaff, [e.target.name]: e.target.value });
+  };
+
+  const handleEditChange = (e) => {
+    setEditStaffData({ ...editStaffData, [e.target.name]: e.target.value });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -78,13 +80,18 @@ const StaffListPage = () => {
           bio: newStaff.bio,
           education: newStaff.education,
         },
+        password: newPassword,
       };
       delete payload.bio;
       delete payload.education;
 
-      console.log('Payload submit:', payload);
+      console.log("Payload gửi:", payload);
 
-      const res = await axios.post("http://localhost:3000/api/staff", payload, { headers: { Authorization: `Bearer ${token}` } });
+
+      const res = await axios.post("http://localhost:3000/api/staff", payload, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
       if (res.data.success) {
         fetchStaffs();
         handleClosePopup();
@@ -99,17 +106,17 @@ const StaffListPage = () => {
     if (staff) {
       const flatData = {
         email: staff.email,
-        passwordInput: "",
         role: staff.role,
         status: staff.status,
         name: staff.profile?.name || "",
         bio: staff.profile?.bio_json?.bio || "",
         education: staff.profile?.bio_json?.education || "",
-        date_of_birth: staff.profile?.date_of_birth || "",
+        date_of_birth: staff.profile?.date_of_birth?.slice(0, 10) || "",
         job: staff.profile?.job || "",
       };
       setEditStaffData(flatData);
       setEditingStaffId(String(staffId));
+      setNewPassword(""); 
       setShowPopup(true);
     }
   };
@@ -127,16 +134,18 @@ const StaffListPage = () => {
       delete payload.bio;
       delete payload.education;
 
-      if (payload.passwordInput && payload.passwordInput.trim() !== "") {
-        payload.password = payload.passwordInput;
-      }
-      delete payload.passwordInput;
 
-      console.log('Payload update:', payload);
+      if (newPassword.trim() !== "") {
+        payload.password = newPassword;
+      }
+
+      console.log("Payload gửi:", payload);
+      console.log("Editing Staff ID:", editingStaffId);
 
       const res = await axios.put(
         `http://localhost:3000/api/staff/${editingStaffId}`,
-        payload, { headers: { Authorization: `Bearer ${token}` } }
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       if (res.data.success) {
         fetchStaffs();
@@ -161,7 +170,8 @@ const StaffListPage = () => {
     if (!staffIdToDelete) return;
     try {
       const res = await axios.delete(
-        `http://localhost:3000/api/staff/${staffIdToDelete}`, { headers: { Authorization: `Bearer ${token}` } }
+        `http://localhost:3000/api/staff/${staffIdToDelete}`,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       if (res.data.success) {
         fetchStaffs();
@@ -177,12 +187,15 @@ const StaffListPage = () => {
   };
 
   const handleSearchClick = async () => {
-    if (searchTerm.trim() === '') {
+    if (searchTerm.trim() === "") {
       fetchStaffs();
       return;
     }
     try {
-      const res = await axios.get(`http://localhost:3000/api/members/search/${searchTerm}`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await axios.get(
+        `http://localhost:3000/api/staff/${searchTerm}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       if (res.data.success) {
         setStaffs(res.data.data);
       }
@@ -195,13 +208,12 @@ const StaffListPage = () => {
     <div className="staff-list-container">
       <div className="top-bar d-flex justify-content-between align-items-center mb-3">
         <button className="btn btn-primary" onClick={handleOpenPopup}>
-          <FaPlus style={{ marginRight: "5px", paddingBottom: "2px" }} /> Create
-          new staff
+          <FaPlus style={{ marginRight: "5px" }} /> Tạo nhân viên mới
         </button>
         <div className="search-box">
-          <input 
-            type="text" 
-            placeholder="Search..." 
+          <input
+            type="text"
+            placeholder="Tìm kiếm..."
             value={searchTerm}
             onChange={handleSearch}
           />
@@ -216,12 +228,12 @@ const StaffListPage = () => {
           <thead>
             <tr>
               <th>#</th>
-              <th>Name</th>
+              <th>Tên</th>
               <th>Email</th>
-              <th>Role</th>
-              <th>Status</th>
-              <th>Creation date</th>
-              <th>Actions</th>
+              <th>Vai trò</th>
+              <th>Trạng thái</th>
+              <th>Ngày tạo</th>
+              <th>Thao tác</th>
             </tr>
           </thead>
           <tbody>
@@ -234,16 +246,10 @@ const StaffListPage = () => {
                 <td>{staff.status}</td>
                 <td>{new Date(staff.date_create).toLocaleDateString()}</td>
                 <td className="action-buttons">
-                  <button
-                    className="btn btn-light me-2"
-                    onClick={() => handleEdit(staff.user_id)}
-                  >
+                  <button className="btn btn-light me-2" onClick={() => handleEdit(staff.user_id)}>
                     <FaEdit color="yellow" />
                   </button>
-                  <button
-                    className="btn btn-light"
-                    onClick={() => handleOpenDeleteDialog(staff.user_id)}
-                  >
+                  <button className="btn btn-light" onClick={() => handleOpenDeleteDialog(staff.user_id)}>
                     <FaTrash color="red" />
                   </button>
                 </td>
@@ -256,15 +262,10 @@ const StaffListPage = () => {
       {showPopup && (
         <div className="popup">
           <div className="popup-content">
-            <span className="close" onClick={handleClosePopup}>
-              <MdCancel />
-            </span>
+            <span className="close" onClick={handleClosePopup}><MdCancel /></span>
             <div className="form">
-              <h2>{editingStaffId ? "Edit Staff" : "Create New Staff"}</h2>
-              <form
-                className="form-grid"
-                onSubmit={editingStaffId ? handleUpdateSubmit : handleSubmit}
-              >
+              <h2>{editingStaffId ? "Chỉnh sửa nhân viên" : "Tạo nhân viên mới"}</h2>
+              <form className="form-grid" onSubmit={editingStaffId ? handleUpdateSubmit : handleSubmit}>
                 <input
                   type="text"
                   name="email"
@@ -273,33 +274,24 @@ const StaffListPage = () => {
                   onChange={editingStaffId ? handleEditChange : handleChange}
                   required
                 />
-
                 <input
                   type="password"
                   name="password"
-                  placeholder="Password"
-                  value={editingStaffId ? editStaffData?.passwordInput || "" : newStaff.password}
-                  onChange={(e) => {
-                    if (editingStaffId) {
-                      setEditStaffData({ ...editStaffData, passwordInput: e.target.value });
-                    } else {
-                      handleChange(e);
-                    }
-                  }}
+                  placeholder="Mật khẩu"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
                   required={!editingStaffId}
                 />
-
                 <select
                   name="role"
                   value={editingStaffId ? editStaffData?.role || "" : newStaff.role}
                   onChange={editingStaffId ? handleEditChange : handleChange}
                   required
                 >
-                  <option value="">Choose role</option>
+                  <option value="">Chọn vai trò</option>
                   <option value="admin">Admin</option>
-                  <option value="consultant">Consultant</option>
+                  <option value="consultant">Tư vấn viên</option>
                 </select>
-
                 {editingStaffId && (
                   <select
                     name="status"
@@ -307,55 +299,49 @@ const StaffListPage = () => {
                     onChange={handleEditChange}
                     required
                   >
-                    <option value="">Choose status</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                    <option value="banned">Banned</option>
+                    <option value="">Chọn trạng thái</option>
+                    <option value="active">Hoạt động</option>
+                    <option value="inactive">Không hoạt động</option>
+                    <option value="banned">Bị cấm</option>
                   </select>
                 )}
-
                 <input
                   type="text"
                   name="name"
-                  placeholder="Name"
+                  placeholder="Tên"
                   value={editingStaffId ? editStaffData?.name || "" : newStaff.name}
                   onChange={editingStaffId ? handleEditChange : handleChange}
                   required
                 />
-
                 <input
                   type="text"
                   name="bio"
-                  placeholder="Bio"
+                  placeholder="Tiểu sử"
                   value={editingStaffId ? editStaffData?.bio || "" : newStaff.bio}
                   onChange={editingStaffId ? handleEditChange : handleChange}
                 />
-
                 <input
                   type="text"
                   name="education"
-                  placeholder="Education"
+                  placeholder="Học vấn"
                   value={editingStaffId ? editStaffData?.education || "" : newStaff.education}
                   onChange={editingStaffId ? handleEditChange : handleChange}
                 />
-
                 <input
                   type="date"
                   name="date_of_birth"
                   value={editingStaffId ? editStaffData?.date_of_birth || "" : newStaff.date_of_birth}
                   onChange={editingStaffId ? handleEditChange : handleChange}
                 />
-
                 <input
                   type="text"
                   name="job"
-                  placeholder="Job"
+                  placeholder="Công việc"
                   value={editingStaffId ? editStaffData?.job || "" : newStaff.job}
                   onChange={editingStaffId ? handleEditChange : handleChange}
                 />
-
                 <button type="submit" className="form-button">
-                  {editingStaffId ? "Update" : "Create"}
+                  {editingStaffId ? "Cập nhật" : "Tạo"}
                 </button>
               </form>
             </div>
@@ -367,14 +353,11 @@ const StaffListPage = () => {
         <div className="modal fade show" style={{ display: 'block', background: 'rgba(0,0,0,0.3)' }} tabIndex="-1" role="dialog">
           <div className="modal-dialog modal-dialog-centered" role="document">
             <div className="modal-content position-relative">
-              <button
-                type="button"
-                className="close position-absolute top-0 end-0 m-2"
-                style={{ zIndex: 2, background: 'none', border: 'none' }}
+              <button type="button" className="close position-absolute top-0 end-0 m-2"
                 onClick={handleCloseDeleteDialog}
                 aria-label="Close"
-              >
-                <span aria-hidden="true"><MdCancel size={20}/></span>
+                style={{ border: 'none', background: 'none' }}>
+                <span><MdCancel size={20} /></span>
               </button>
               <div className="modal-header border-0 pb-0">
                 <h5 className="modal-title">Xác nhận xóa</h5>
@@ -383,8 +366,8 @@ const StaffListPage = () => {
                 <p>Bạn có chắc chắn muốn xóa nhân viên này không?</p>
               </div>
               <div className="modal-footer border-0 pt-0">
-                <button type="button" className="btn btn-secondary" onClick={handleCloseDeleteDialog}>No</button>
-                <button type="button" className="btn btn-danger" onClick={handleConfirmDelete}>Yes</button>
+                <button type="button" className="btn btn-secondary" onClick={handleCloseDeleteDialog}>Không</button>
+                <button type="button" className="btn btn-danger" onClick={handleConfirmDelete}>Có</button>
               </div>
             </div>
           </div>

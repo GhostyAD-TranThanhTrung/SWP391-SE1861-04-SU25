@@ -1,63 +1,32 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { FaSearch, FaPlus, FaEdit } from "react-icons/fa";
-import { FaTrash } from "react-icons/fa6";
+import { FaEye, FaTrash } from "react-icons/fa6";
 import { MdCancel } from "react-icons/md";
 import "../../styles/ScoreListPage.scss";
 
-const ScoreListPage = () => {
-  const [showPopup, setShowPopup] = useState(false);
-  const [staffs, setStaffs] = useState([]);
-  const [newStaff, setNewStaff] = useState({
-    email: "",
-    password: "",
-    role: "",
-    name: "",
-    bio: "",
-    education: "",
-    date_of_birth: "",
-    job: "",
-  });
+const AssessmentListPage = () => {
+  const [assessments, setAssessments] = useState([]);
+  //const token = sessionStorage.getItem("token");
+  
+  //const [showPopup, setShowPopup] = useState(false);
 
-  const [editingStaffId, setEditingStaffId] = useState(null);
-  const [editStaffData, setEditStaffData] = useState(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [staffIdToDelete, setStaffIdToDelete] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  //const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  //const [assessmentIdToDelete, setAssessmentIdToDelete] = useState(null);
 
-  const handleOpenPopup = () => {
-    setShowPopup(true);
-  };
+  // const handleOpenPopup = () => {
+  //   setShowPopup(true);
+  // };
 
-  const handleClosePopup = () => {
-    setShowPopup(false);
-    setNewStaff({
-      email: "",
-      password: "",
-      role: "",
-      name: "",
-      bio: "",
-      education: "",
-      date_of_birth: "",
-      job: "",
-    });
-    setEditingStaffId(null);
-    setEditStaffData(null);
-  };
+  // const handleClosePopup = () => {
+  //   setShowPopup(false);
+  // };
 
-  const handleChange = (e) => {
-    setNewStaff({ ...newStaff, [e.target.name]: e.target.value });
-  };
-
-  const handleEditChange = (e) => {
-    setEditStaffData({ ...editStaffData, [e.target.name]: e.target.value });
-  };
-
-  const fetchStaffs = async () => {
+  const fetchAssessments = async () => {
     try {
-      const res = await axios.get("http://localhost:3000/api/staff");
+      const res = await axios.get("http://localhost:3000/api/assessments");
       if (res.data.success) {
-        setStaffs(res.data.data);
+        setAssessments(res.data.data);
       }
     } catch (err) {
       console.error("Lỗi khi gọi API:", err);
@@ -65,134 +34,39 @@ const ScoreListPage = () => {
   };
 
   useEffect(() => {
-    fetchStaffs();
+    fetchAssessments();
   }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const payload = {
-        ...newStaff,
-        bio_json: {
-          bio: newStaff.bio,
-          education: newStaff.education,
-        },
-      };
-      delete payload.bio;
-      delete payload.education;
+  // const handleOpenDeleteDialog = (staffId) => {
+  //   setStaffIdToDelete(staffId);
+  //   setDeleteDialogOpen(true);
+  // };
 
-      const res = await axios.post("http://localhost:3000/api/staff", payload);
-      if (res.data.success) {
-        fetchStaffs();
-        handleClosePopup();
-      }
-    } catch (err) {
-      console.error("Lỗi khi thêm staff:", err);
-    }
-  };
+  // const handleCloseDeleteDialog = () => {
+  //   setDeleteDialogOpen(false);
+  //   setStaffIdToDelete(null);
+  // };
 
-  const handleEdit = (staffId) => {
-    const staff = staffs.find((s) => s.user_id === staffId);
-    if (staff) {
-      const flatData = {
-        email: staff.email,
-        passwordInput: staff.password,
-        role: staff.role,
-        status: staff.status,
-        name: staff.profile?.name || "",
-        bio: staff.profile?.bio_json?.bio || "",
-        education: staff.profile?.bio_json?.education || "",
-        date_of_birth: staff.profile?.date_of_birth || "",
-        job: staff.profile?.job || "",
-      };
-      setEditStaffData(flatData);
-      setEditingStaffId(staffId);
-      setShowPopup(true);
-    }
-  };
+  // const handleConfirmDelete = async () => {
+  //   if (!staffIdToDelete) return;
+  //   try {
+  //     const res = await axios.delete(
+  //       `http://localhost:3000/api/staff/${staffIdToDelete}`
+  //     );
+  //     if (res.data.success) {
+  //       fetchStaffs();
+  //     }
+  //   } catch (err) {
+  //     console.error("Lỗi khi xóa staff:", err);
+  //   }
+  //   handleCloseDeleteDialog();
+  // };
 
-  const handleUpdateSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const payload = {
-        ...editStaffData,
-        bio_json: {
-          bio: editStaffData.bio,
-          education: editStaffData.education,
-        },
-      };
-      delete payload.bio;
-      delete payload.education;
-      
-      if (payload.passwordInput && payload.passwordInput.trim() !== "") {
-        payload.password = payload.passwordInput;
-      }
-      delete payload.passwordInput; // Xóa trường tạm
-      const res = await axios.put(
-        `http://localhost:3000/api/staff/${editingStaffId}`,
-        payload
-      );
-      if (res.data.success) {
-        fetchStaffs();
-        handleClosePopup();
-      }
-    } catch (err) {
-      console.error("Lỗi khi cập nhật staff:", err);
-    }
-  };
-
-  const handleOpenDeleteDialog = (staffId) => {
-    setStaffIdToDelete(staffId);
-    setDeleteDialogOpen(true);
-  };
-
-  const handleCloseDeleteDialog = () => {
-    setDeleteDialogOpen(false);
-    setStaffIdToDelete(null);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!staffIdToDelete) return;
-    try {
-      const res = await axios.delete(
-        `http://localhost:3000/api/staff/${staffIdToDelete}`
-      );
-      if (res.data.success) {
-        fetchStaffs();
-      }
-    } catch (err) {
-      console.error("Lỗi khi xóa staff:", err);
-    }
-    handleCloseDeleteDialog();
-  };
-
-  const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
-  };
-
-  const handleSearchClick = async () => {
-    if (searchTerm.trim() === '') {
-      fetchStaffs();
-      return;
-    }
-    try {
-      const res = await axios.get(`http://localhost:3000/api/members/search/${searchTerm}`);
-      if (res.data.success) {
-        setStaffs(res.data.data);
-      }
-    } catch (err) {
-      console.error("Lỗi khi tìm kiếm staff:", err);
-    }
-  };
 
   return (
     <div className="staff-list-container">
       <div className="top-bar d-flex justify-content-between align-items-center mb-3">
-        <button className="btn btn-primary" onClick={handleOpenPopup}>
-          <FaPlus style={{ marginRight: "5px", paddingBottom: "2px" }} /> Create
-          new staff
-        </button>
-        <div className="search-box">
+        {/* <div className="search-box">
           <input 
             type="text" 
             placeholder="Search..." 
@@ -202,41 +76,44 @@ const ScoreListPage = () => {
           <button onClick={handleSearchClick}>
             <FaSearch />
           </button>
-        </div>
+        </div> */}
       </div>
 
       <div className="table-wrapper">
         <table className="table table-bordered">
           <thead>
             <tr>
-              <th>#</th>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Status</th>
-              <th>Creation date</th>
-              <th>Actions</th>
+              <th>STT</th>
+              <th>Mã người dùng</th>
+              <th>Tổng điểm</th>
+              <th>Loại đánh giá</th>
+              <th>Ngày tạo</th>
+              <th>Hành động</th>
             </tr>
           </thead>
           <tbody>
-            {staffs.map((staff, index) => (
-              <tr key={staff.user_id}>
+            {assessments.map((assessment, index) => (
+              <tr key={assessment.user_id}>
                 <td>{index + 1}</td>
-                <td>{staff.profile?.name}</td>
-                <td>{staff.email}</td>
-                <td>{staff.role}</td>
-                <td>{staff.status}</td>
-                <td>{new Date(staff.date_create).toLocaleDateString()}</td>
+                <td>{assessment.user_id}</td>
+                <td>{(() => {
+                  try {
+                    const result = JSON.parse(assessment.result_json);
+                    return result.total_score;
+                  } catch {
+                    return "";
+                  }
+                })()}</td>
+                <td>{assessment.type}</td>
+                <td>{new Date(assessment.create_at).toLocaleDateString()}</td>
                 <td className="action-buttons">
                   <button
                     className="btn btn-light me-2"
-                    onClick={() => handleEdit(staff.user_id)}
                   >
-                    <FaEdit color="yellow" />
+                    <FaEye color="yellow" />
                   </button>
                   <button
                     className="btn btn-light"
-                    onClick={() => handleOpenDeleteDialog(staff.user_id)}
                   >
                     <FaTrash color="red" />
                   </button>
@@ -247,7 +124,7 @@ const ScoreListPage = () => {
         </table>
       </div>
 
-      {showPopup && (
+      {/* {showPopup && (
         <div className="popup">
           <div className="popup-content">
             <span className="close" onClick={handleClosePopup}>
@@ -385,9 +262,9 @@ const ScoreListPage = () => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 };
 
-export default ScoreListPage;
+export default AssessmentListPage;

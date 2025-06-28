@@ -1,18 +1,18 @@
-import HeaderAdmin from "../components/HeaderAdmin";
-import SidebarAdmin from "../components/SidebarAdmin";
+import HeaderConsultant from "../components/HeaderConsultant";
+import SidebarConsultant from "../components/SidebarConsultant";
 import "../styles/AdminLayout.scss";
 import { useState } from "react";
 
-const AdminLayout = ({ children }) => {
+const ConsultantLayout = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   return (
     <div className="layout-main">
-      <HeaderAdmin toggleSidebar={() => setIsSidebarOpen((prev) => !prev)} />
+      <HeaderConsultant toggleSidebar={() => setIsSidebarOpen((prev) => !prev)} />
 
       <div className="main-content">
         <div className={`sidebar ${isSidebarOpen ? "open" : "closed"}`}>
-          <SidebarAdmin isOpen={isSidebarOpen} />
+          <SidebarConsultant isOpen={isSidebarOpen} />
         </div>
 
         <div className="content">
@@ -23,4 +23,4 @@ const AdminLayout = ({ children }) => {
   );
 };
 
-export default AdminLayout;
+export default ConsultantLayout;

@@ -48,7 +48,7 @@ const Footer = () => {
                                         className="admin-login-btn"
                                     >
                                         <span className="admin-icon">👨‍💼</span>
-                                        <span className="admin-text">Admin Login</span>
+                                        <span className="admin-text">Đăng nhập Admin</span>
                                     </Link>
                                 </li>
                             </ul>

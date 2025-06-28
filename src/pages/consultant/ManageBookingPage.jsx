@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 import { FaSearch } from "react-icons/fa";
 import { FaEye, FaTrash, FaWrench } from "react-icons/fa6";
 import { MdCancel } from "react-icons/md";
-import "../../styles/MemberListPage.scss";
+import "../../styles/ManageBookingPage.scss";
 import axios from "axios";
 
-const MemberListPage = () => {
+const ManageBookingPage = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [members, setMembers] = useState([]);
   const [selectedMember, setSelectedMember] = useState(null);
@@ -223,4 +223,4 @@ const MemberListPage = () => {
   );
 };
 
-export default MemberListPage;
+export default ManageBookingPage;

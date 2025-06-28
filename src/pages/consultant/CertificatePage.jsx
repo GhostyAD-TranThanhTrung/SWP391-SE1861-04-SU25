@@ -3,9 +3,9 @@ import axios from "axios";
 import { FaSearch, FaPlus, FaEdit } from "react-icons/fa";
 import { FaTrash } from "react-icons/fa6";
 import { MdCancel } from "react-icons/md";
-import "../../styles/StaffListPage.scss";
+import "../../styles/CertificatePage.scss";
 
-const BlogListPage = () => {
+const CertificatePage = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [staffs, setStaffs] = useState([]);
   const [newStaff, setNewStaff] = useState({
@@ -377,4 +377,4 @@ const BlogListPage = () => {
   );
 };
 
-export default BlogListPage;
+export default CertificatePage;

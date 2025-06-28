@@ -1,121 +1,183 @@
 import { useRef, useEffect, useState } from 'react';
 import { Chart } from 'chart.js/auto';
 import '../../styles/DashboardPage.scss';
+import axios from 'axios';
 
 const DashboardPage = () => {
-  const canvasRef = useRef(null);
-  const chartInstance = useRef(null);
+  const userStatsCanvasRef = useRef(null);
+  const bookingStatsCanvasRef = useRef(null);
+
+  const userStatsChartInstance = useRef(null);
+  const bookingStatsChartInstance = useRef(null);
 
   const [dashboardData, setDashboardData] = useState({
     totalMonthlyCourseEnrollment: 0,
-    totalMonthlyCourseCompletion: 0, // 👈 Thêm trường mới
+    totalMonthlyCourseCompletion: 0,
     monthlyCreatedMember: 0,
     memberActiveCount: 0,
     totalMonthlyBookingSession: 0,
-    monthlyRevenueData: []
+    monthlyRevenueData: [],
+    userStats: {},
+    bookingStats: {},
+    currentMonth: {},
+    dateRange: {}
   });
 
   useEffect(() => {
-    fetch('http://localhost:3000/api/dashboard')
-      .then((res) => res.json())
-      .then((data) => {
+    axios
+      .get('http://localhost:3000/api/dashboard/detailed')
+      .then((res) => {
+        const data = res.data.data;
         setDashboardData({
-          totalMonthlyCourseEnrollment: data.data.totalMonthlyCourseEnrollment || 0,
-          totalMonthlyCourseCompletion: data.data.totalMonthlyCourseCompletion || 3, // 👈 Dữ liệu mới
-          monthlyCreatedMember: data.data.monthlyCreatedMember || 0,
-          memberActiveCount: data.data.memberActiveCount || 0,
-          totalMonthlyBookingSession: data.data.totalMonthlyBookingSession || 0,
-          monthlyRevenueData: data.data.monthlyRevenueData || []
+          totalMonthlyCourseEnrollment: data.totalMonthlyCourseEnrollment || 0,
+          totalMonthlyCourseCompletion: data.totalMonthlyCourseCompletion || 0,
+          monthlyCreatedMember: data.monthlyCreatedMember || 0,
+          memberActiveCount: data.memberActiveCount || 0,
+          totalMonthlyBookingSession: data.totalMonthlyBookingSession || 0,
+          monthlyRevenueData: data.monthlyRevenueData || [],
+          userStats: data.userStats || {},
+          bookingStats: data.bookingStats || {},
+          currentMonth: data.currentMonth || {},
+          dateRange: data.dateRange || {}
         });
       })
       .catch((error) => {
-        console.error('Error fetching dashboard data:', error);
+        console.error('Lỗi khi tải dữ liệu dashboard:', error);
       });
   }, []);
 
+  // User Stats Chart (chỉ còn Hoạt động, Không hoạt động, Bị cấm)
   useEffect(() => {
-    const ctx = canvasRef.current.getContext('2d');
-
-    if (chartInstance.current) {
-      chartInstance.current.destroy();
-    }
-
-    chartInstance.current = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: [
-          'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-        ],
-        datasets: [{
-          label: 'Revenue',
-          data: dashboardData.monthlyRevenueData,
-          backgroundColor: '#66B0C6',
-          borderRadius: 8
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: true,
-            position: 'bottom'
-          }
-        },
-        scales: {
-          y: {
-            title: {
-              display: true,
-              text: 'Unit: VND'
-            }
-          }
-        }
+    if (userStatsCanvasRef.current && dashboardData.userStats && Object.keys(dashboardData.userStats).length > 0) {
+      const ctx = userStatsCanvasRef.current.getContext('2d');
+      if (userStatsChartInstance.current) {
+        userStatsChartInstance.current.destroy();
       }
-    });
-  }, [dashboardData.monthlyRevenueData]);
+      userStatsChartInstance.current = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: [
+            'Hoạt động',
+            'Không hoạt động',
+            'Bị cấm'
+          ],
+          datasets: [
+            {
+              label: 'Thống kê người dùng',
+              data: [
+                dashboardData.userStats.active,
+                dashboardData.userStats.inactive,
+                dashboardData.userStats.banned
+              ],
+              backgroundColor: ['#4BC0C0', '#FFCE56', '#FF6384']
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false
+        }
+      });
+    }
+  }, [dashboardData.userStats]);
+
+  // Booking Stats Chart (bỏ cột Hàng tháng)
+  useEffect(() => {
+    if (
+      bookingStatsCanvasRef.current &&
+      dashboardData.bookingStats &&
+      Object.keys(dashboardData.bookingStats).length > 0
+    ) {
+      const ctx = bookingStatsCanvasRef.current.getContext('2d');
+      if (bookingStatsChartInstance.current) {
+        bookingStatsChartInstance.current.destroy();
+      }
+      const bookingStatsData = dashboardData.bookingStats;
+      bookingStatsChartInstance.current = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Đang chờ', 'Đã xác nhận', 'Đã hoàn thành', 'Đã hủy'],
+          datasets: [
+            {
+              label: 'Thống kê đặt lịch',
+              data: [
+                bookingStatsData.pending,
+                bookingStatsData.confirmed,
+                bookingStatsData.completed,
+                bookingStatsData.cancelled
+              ],
+              backgroundColor: ['#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40']
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false
+        }
+      });
+    }
+  }, [dashboardData.bookingStats]);
 
   return (
     <div className="dashboard-container">
       <div className="stat-cards">
         <div className="card">
-          <div>Total Member Enroll Course</div>
-          <small>/month</small>
+          <div>Tổng thành viên đăng ký khóa học</div>
           <h4>{dashboardData.totalMonthlyCourseEnrollment}</h4>
-          <small>member</small>
+          <small>thành viên/tháng</small>
         </div>
         <div className="card">
-          <div>Total Member Complete Course</div>
-          <small>/month</small>
+          <div>Tổng thành viên hoàn thành khóa học</div>
           <h4>{dashboardData.totalMonthlyCourseCompletion}</h4>
-          <small>member</small>
+          <small>thành viên/tháng</small>
         </div>
         <div className="card">
-          <div>Total user</div>
-          <small>/month</small>
+          <div>Tổng người dùng</div>
           <h4>{dashboardData.monthlyCreatedMember}</h4>
-          <small>user</small>
+          <small>người dùng/tháng</small>
         </div>
         <div className="card">
-          <div>Active user</div>
-          <small>/month</small>
+          <div>Người dùng hoạt động</div>
           <h4>{dashboardData.memberActiveCount}</h4>
-          <small>active</small>
+          <small>hoạt động/tháng</small>
         </div>
         <div className="card">
-          <div>Total consultation</div>
-          <small>/month</small>
+          <div>Tổng tư vấn</div>
           <h4>{dashboardData.totalMonthlyBookingSession}</h4>
-          <small>consultation</small>
+          <small>lượt tư vấn/tháng</small>
         </div>
       </div>
-
-      <div className="chart-container">
-        <canvas ref={canvasRef}></canvas>
+      {dashboardData.dateRange && dashboardData.dateRange.startDate && dashboardData.dateRange.endDate && (
+        <div className="current-month-info">
+          <h3>
+            Thống kê tháng {new Date(dashboardData.dateRange.startDate).getMonth() + 1} năm {new Date(dashboardData.dateRange.startDate).getFullYear()}
+          </h3>
+          <p>
+            (Từ {new Date(dashboardData.dateRange.startDate).toLocaleDateString('vi-VN')} đến {new Date(dashboardData.dateRange.endDate).toLocaleDateString('vi-VN')})
+          </p>
+        </div>
+      )}
+      <div
+        className="charts-grid"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+          gap: '2rem',
+          marginTop: '2rem'
+        }}
+      >
+        <div className="chart-container">
+          <h2>Thống kê người dùng</h2>
+          <canvas ref={userStatsCanvasRef}></canvas>
+        </div>
+        <div className="chart-container">
+          <h2>Thống kê đặt lịch</h2>
+          <canvas ref={bookingStatsCanvasRef}></canvas>
+        </div>
       </div>
 
       <button className="export-button">
-        <i className="bi bi-file-earmark-excel"></i> Export to Excel
+        <i className="bi bi-file-earmark-excel"></i> Xuất ra Excel
       </button>
     </div>
   );
