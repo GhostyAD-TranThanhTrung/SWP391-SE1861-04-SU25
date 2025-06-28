@@ -102,7 +102,8 @@ const ExamPage = () => {
             navigate('/result', {
                 state: {
                     result: { ...result, score: newScore, riskLevel },
-                    type
+                    type,
+                    userAnswers: savedAnswers
                 }
             });
         }

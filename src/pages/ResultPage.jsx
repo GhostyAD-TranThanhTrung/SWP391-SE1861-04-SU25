@@ -8,10 +8,11 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 const ResultPage = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { result, type } = location.state || {};
+    const { result, type, userAnswers } = location.state || {};
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
     const [assessmentResult, setAssessmentResult] = useState(null);
+    const [showAnswers, setShowAnswers] = useState(false);
 
     const generateAssessmentId = () => {
         // Simple incremental assessment_id generation (in real app, use UUID or DB auto-increment)
@@ -33,14 +34,31 @@ const ResultPage = () => {
                 return;
             }
 
+            // Chuyển đổi userAnswers thành định dạng API mong muốn
+            const answersData = userAnswers ? Object.entries(userAnswers).map(([questionIndex, answer]) => {
+                const questionId = parseInt(questionIndex) + 1;
+                // Xử lý cả trường hợp answer là mảng (cho câu hỏi nhiều lựa chọn)
+                const selectedOption = Array.isArray(answer)
+                    ? answer.map(a => a.id).join(',')
+                    : answer?.id || '';
+
+                return {
+                    questionId: questionId.toString(),
+                    selectedOption: selectedOption.toString(),
+                    score: Array.isArray(answer)
+                        ? answer.reduce((sum, a) => sum + a.score, 0)
+                        : answer?.score || 0
+                }
+            }) : [{
+                questionId: "1",
+                selectedOption: "A1",
+                score: result.score
+            }];
+
             const requestData = {
                 type,
                 score: result.score,
-                results: [{
-                    questionId: "1",
-                    selectedOption: "A1",
-                    score: result.score
-                }]
+                results: answersData
             };
 
             console.log('Sending assessment data:', requestData);
@@ -242,6 +260,54 @@ const ResultPage = () => {
                                 ))}
                             </ul>
                         </div>
+
+                        {userAnswers && (
+                            <div className="user-answers">
+                                <button
+                                    className="btn btn-outline-primary mb-3"
+                                    onClick={() => setShowAnswers(!showAnswers)}
+                                >
+                                    {showAnswers ? 'Ẩn câu trả lời' : 'Xem câu trả lời của bạn'}
+                                </button>
+
+                                {showAnswers && (
+                                    <div className="answers-container">
+                                        <h4>Câu trả lời của bạn:</h4>
+                                        <div className="table-responsive">
+                                            <table className="table table-striped table-bordered">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Câu hỏi</th>
+                                                        <th>Câu trả lời</th>
+                                                        <th>Điểm</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {Object.entries(userAnswers).map(([questionIndex, answer]) => {
+                                                        const questionNumber = parseInt(questionIndex) + 1;
+                                                        return (
+                                                            <tr key={questionIndex}>
+                                                                <td>Câu {questionNumber}</td>
+                                                                <td>
+                                                                    {Array.isArray(answer)
+                                                                        ? answer.map(a => a.text).join(', ')
+                                                                        : answer?.text || 'Không có câu trả lời'}
+                                                                </td>
+                                                                <td>
+                                                                    {Array.isArray(answer)
+                                                                        ? answer.reduce((sum, a) => sum + a.score, 0)
+                                                                        : answer?.score || 0}
+                                                                </td>
+                                                            </tr>
+                                                        );
+                                                    })}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                         <div className="action-buttons">
                             <button
