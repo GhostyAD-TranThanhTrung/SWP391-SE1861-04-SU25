@@ -36,7 +36,7 @@ const CoursePage = () => {
 
                 const res = await response.json();
                 console.log('Categories fetched successfully:', res);
-                
+
                 if (res.success && res.data && res.data.length > 0) {
                     setCategories(res.data);
                     // Set first category as default selected
@@ -64,20 +64,21 @@ const CoursePage = () => {
             setLoading(true);
             setError(null);
             try {
-                console.log(`Fetching programs for category: ${selectedCategory.category_id} (${selectedCategory.name || selectedCategory.description})`);
+                const categoryDisplayName = getCategoryDisplayName(selectedCategory);
+                console.log(`Fetching programs for category: ${selectedCategory.category_id} (${categoryDisplayName})`);
                 const response = await fetch(`http://localhost:3000/api/programs/category/${selectedCategory.category_id}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                 });
-                
+
                 console.log('Fetch response for category', selectedCategory.category_id, response.status);
-                
+
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
-                
+
                 const res = await response.json();
                 console.log('Programs fetched for category', selectedCategory.category_id, res);
                 setPrograms(res.data || []);
@@ -115,7 +116,7 @@ const CoursePage = () => {
 
                 const res = await response.json();
                 console.log('Enrolled programs fetched successfully:', res);
-                
+
                 if (res.success && res.data) {
                     // Filter only enrolled programs
                     const enrolledOnly = res.data.filter(program => program.enrollment_status.is_enrolled);
@@ -131,6 +132,24 @@ const CoursePage = () => {
         fetchEnrolledPrograms();
     }, []);
 
+    // Helper function to get display name for category (name + description)
+    const getCategoryDisplayName = (category) => {
+        if (category.name && category.description) {
+            return `${category.name} - ${category.description}`;
+        } else if (category.name) {
+            return category.name;
+        } else if (category.description) {
+            return category.description;
+        } else {
+            return 'Danh mục không xác định';
+        }
+    };
+
+    // Helper function to get short display name for category buttons
+    const getCategoryShortName = (category) => {
+        return category.name || category.description || 'Danh mục';
+    };
+
     // Helper functions for enrolled programs
     const getCompletedPrograms = () => {
         return enrolledPrograms.filter(program => program.enrollment_status.has_complete);
@@ -143,13 +162,13 @@ const CoursePage = () => {
     const renderEnrolledProgramCard = (program) => (
         <div className="col-md-3" key={program.program_id}>
             <Link to={`/program/${program.program_id}`} className="custom-card-link" style={{ textDecoration: 'none' }}>
-                <div className="custom-card" style={{ 
-                    borderRadius: 20, 
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.08)', 
-                    minHeight: 480, 
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    justifyContent: 'space-between', 
+                <div className="custom-card" style={{
+                    borderRadius: 20,
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+                    minHeight: 480,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
                     padding: 0,
                     position: 'relative',
                     border: program.enrollment_status.has_complete ? '2px solid #4caf50' : '2px solid #2196f3'
@@ -170,7 +189,7 @@ const CoursePage = () => {
                     }}>
                         {program.enrollment_status.has_complete ? 'Hoàn thành' : 'Đang học'}
                     </div>
-                    
+
                     {/* Image Section */}
                     <div style={{ height: 160, width: '100%', background: '#f7f7f7', borderTopLeftRadius: 20, borderTopRightRadius: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                         <img
@@ -180,7 +199,7 @@ const CoursePage = () => {
                             onError={e => { e.target.onerror = null; e.target.src = Image; }}
                         />
                     </div>
-                    
+
                     {/* Content Section */}
                     <div style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
                         <hr className="card-divider" />
@@ -188,7 +207,7 @@ const CoursePage = () => {
                         <p className="card-description" style={{ marginBottom: 12, color: '#444', fontSize: 15, minHeight: 38, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {program.description}
                         </p>
-                        
+
                         {/* Progress Section */}
                         <div className="progress-section" style={{ marginBottom: 12 }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
@@ -197,17 +216,17 @@ const CoursePage = () => {
                                     {program.enrollment_status.progress_percentage}%
                                 </span>
                             </div>
-                            <div style={{ 
-                                width: '100%', 
-                                height: '8px', 
-                                backgroundColor: '#e0e0e0', 
-                                borderRadius: '4px', 
+                            <div style={{
+                                width: '100%',
+                                height: '8px',
+                                backgroundColor: '#e0e0e0',
+                                borderRadius: '4px',
                                 overflow: 'hidden',
                                 marginBottom: 4
                             }}>
-                                <div style={{ 
-                                    width: `${program.enrollment_status.progress_percentage}%`, 
-                                    height: '100%', 
+                                <div style={{
+                                    width: `${program.enrollment_status.progress_percentage}%`,
+                                    height: '100%',
                                     backgroundColor: program.enrollment_status.has_complete ? '#4caf50' : '#2196f3',
                                     transition: 'width 0.3s ease',
                                     borderRadius: '4px'
@@ -223,7 +242,7 @@ const CoursePage = () => {
                             <strong>Nhóm tuổi:</strong> {program.age_group || 'N/A'}
                         </p>
                     </div>
-                    
+
                     {/* Footer Section */}
                     <div style={{ padding: '0 1rem 1rem 1rem', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         {program.enrollment_status.completion_date ? (
@@ -403,9 +422,9 @@ const CoursePage = () => {
             <div className="container" style={{ paddingTop: '5rem', paddingBottom: '5rem' }}>
                 {/* Enrolled Programs Section - Only show if user is logged in */}
                 {(localStorage.getItem('token') || sessionStorage.getItem('token')) && (
-                    <section className="enrolled-programs-section mb-5" style={{ 
-                        background: 'linear-gradient(135deg, #f8f9ff 0%, #e8f0ff 100%)', 
-                        borderRadius: '20px', 
+                    <section className="enrolled-programs-section mb-5" style={{
+                        background: 'linear-gradient(135deg, #f8f9ff 0%, #e8f0ff 100%)',
+                        borderRadius: '20px',
                         padding: '2rem',
                         border: '1px solid #e1e7ff'
                     }}>
@@ -479,17 +498,17 @@ const CoursePage = () => {
                                             key={cat.category_id}
                                             className={`category-btn${selectedCategory && selectedCategory.category_id === cat.category_id ? ' active' : ''}`}
                                             onClick={() => handleCategoryChange(cat)}
-                                            title={cat.description || cat.name}
+                                            title={getCategoryDisplayName(cat)}
                                         >
-                                            <i className={getCategoryIcon(cat.name || cat.description)}></i>
-                                            <span className="category-text">{cat.name || cat.description}</span>
+                                            <i className={getCategoryIcon(getCategoryShortName(cat))}></i>
+                                            <span className="category-text">{getCategoryShortName(cat)}</span>
                                         </button>
                                     ))}
                                 </div>
-                                
+
                                 {categories.length > maxVisibleCategories && (
                                     <div className="text-center">
-                                        <button 
+                                        <button
                                             className="btn btn-outline-primary btn-sm toggle-categories-btn"
                                             onClick={toggleShowAllCategories}
                                         >
@@ -515,11 +534,11 @@ const CoursePage = () => {
                 <section className="section mb-5">
                     <div className="section-header-wrapper text-center mb-5">
                         <h2 className="section-header">
-                            {selectedCategory ? (selectedCategory.name || selectedCategory.description) : 'Chọn Danh mục'}
+                            {selectedCategory ? getCategoryDisplayName(selectedCategory) : 'Chọn Danh mục'}
                         </h2>
                         <p className="section-subtitle">
-                            {selectedCategory 
-                                ? `Duyệt qua ${(selectedCategory.name || selectedCategory.description).toLowerCase()} của chúng tôi`
+                            {selectedCategory
+                                ? `Duyệt qua ${getCategoryDisplayName(selectedCategory).toLowerCase()} của chúng tôi`
                                 : 'Vui lòng chọn một danh mục để xem chương trình'
                             }
                         </p>
