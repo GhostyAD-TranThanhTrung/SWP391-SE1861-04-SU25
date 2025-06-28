@@ -25,10 +25,9 @@ const config = {
     },
 };
 
-// Controller imports
+// Controller imports (Only used controllers)
 const authController = require("./Controller/authController");
 const googleController = require("./Controller/googleController");
-const UserController = require("./Controller/userController");
 const ProfileController = require("./Controller/profileController");
 const AppDataSource = require("./src/data-source");
 const DashboardController = require("./Controller/dashboardController");
@@ -36,15 +35,15 @@ const StaffController = require("./Controller/staffController");
 const MemberController = require("./Controller/MemberController");
 const ConsultantController = require("./Controller/consultantController");
 const AssessmentController = require("./Controller/assessmentController");
-const ActionController = require("./Controller/actionController");
 const ConsultantSlotController = require("./Controller/consultantSlotController");
 const BookingSessionController = require("./Controller/bookingSessionController");
 const ProgramController = require("./Controller/programController");
 const ContentController = require("./Controller/contentController");
 const BlogController = require("./Controller/blogController");
-const FlagController = require("./Controller/flagController");
 const EnrollController = require("./Controller/enrollController");
 const CategoryController = require("./Controller/categoryController");
+const SurveyController = require("./Controller/surveyController");
+const SurveyResponseController = require("./Controller/surveyResponseController");
 
 // ==================== APP SETUP ====================
 const app = express();
@@ -90,53 +89,31 @@ app.post("/api/register", authController.register);
 app.post("/api/google-login", googleController.googleLogin);
 app.post("/api/google-register", googleController.googleRegister);
 
-// User Routes
-app.get("/", authController.getAllUsers);
-app.get("/orm", UserController.getAllUsers);
-app.get("/api/data", authController.testApi);
-
 // Dashboard Routes
 app.get("/api/dashboard", DashboardController.getDashboardStats);
 app.get("/api/dashboard/detailed", DashboardController.getDetailedDashboard);
-app.get(
-    "/api/dashboard/consultants",
-    authController.verifyToken,
-    DashboardController.getConsultantDashboard
-);
 
 // Profile Routes
 app.post("/api/profile", authController.verifyToken, ProfileController.createProfile);
 app.get("/api/profile", authController.verifyToken, ProfileController.getUserProfile);
-app.get("/api/profile/me", authController.verifyToken, ProfileController.getUserProfile);
 app.get("/api/profile/status", authController.verifyToken, ProfileController.checkProfileStatus);
-app.put("/api/profile", authController.verifyToken, ProfileController.updateProfile);
-app.delete("/api/profile", authController.verifyToken, ProfileController.deleteProfile);
 
-// Admin Profile Routes
-app.get("/api/profiles", authController.verifyToken, ProfileController.getAllProfiles);
-app.get("/api/profile/:userId", authController.verifyToken, ProfileController.getProfileByUserId);
-
-// Staff Routes
+// Staff Routes (Admin)
 app.get("/api/staff", authController.verifyToken, StaffController.getAllStaff);
 app.get("/api/staff/:staffName", authController.verifyToken, StaffController.searchStaffByName);
 app.post("/api/staff", authController.verifyToken, StaffController.createStaff);
 app.put("/api/staff/:staffId", authController.verifyToken, StaffController.updateStaff);
 app.delete("/api/staff/:staffId", authController.verifyToken, StaffController.deleteStaff);
-app.get("/api/staff/statistics", authController.verifyToken, StaffController.getStaffStatistics);
 
-// Member Routes
+// Member Routes (Admin)
 app.get("/api/members", authController.verifyToken, MemberController.getAllMembers);
 app.get("/api/members/search/:memberName", authController.verifyToken, MemberController.searchMembersByName);
-app.get("/api/members/statistics", authController.verifyToken, MemberController.getMemberStatistics);
 app.get("/api/members/:memberId", authController.verifyToken, MemberController.getMemberById);
-app.post("/api/members", authController.verifyToken, MemberController.createMember);
-app.put("/api/members/:memberId", authController.verifyToken, MemberController.updateMember);
 app.delete("/api/members/:memberId", authController.verifyToken, MemberController.deleteMember);
 
 // Consultant Routes
 app.get("/api/consultants", ConsultantController.getAllConsultants);
 app.get("/api/consultants/search/:consultantName", authController.verifyToken, ConsultantController.searchConsultantsByName);
-app.get("/api/consultants/statistics", authController.verifyToken, ConsultantController.getAllConsultants);
 app.get("/api/consultants/:consultantId", ConsultantController.getConsultantById);
 app.post("/api/consultants", authController.verifyToken, ConsultantController.createConsultant);
 app.put("/api/consultants/:consultantId", ConsultantController.updateConsultant);
@@ -146,145 +123,68 @@ app.delete("/api/consultants/:consultantId", authController.verifyToken, Consult
 app.get("/api/consultant-slots/:consultantId", ConsultantSlotController.getSlotsByConsultantId);
 
 // Booking Session Routes
-app.get("/api/booking-sessions/me", authController.verifyToken, BookingSessionController.getBookingSessionsByMember); // toàn bộ booking session
-app.get("/api/booking-sessions/scheduled", authController.verifyToken, BookingSessionController.getScheduledBookingSessions);// chỉ lấy đang có lịch lịch hạn trong tương lailai
+app.get("/api/booking-sessions/scheduled", authController.verifyToken, BookingSessionController.getScheduledBookingSessions);
 app.post("/api/booking-sessions", authController.verifyToken, BookingSessionController.createBookingSession);
-app.patch("/api/booking-sessions/confirm/:id", authController.verifyToken, BookingSessionController.confirmBookingSession);
 
 // Assessment Routes
 app.get('/api/assessments', authController.verifyToken, AssessmentController.getAllAssessments);
 app.get('/api/assessments/me', authController.verifyToken, AssessmentController.getAssessmentsByUserToken);
-app.get('/api/assessments/:id', authController.verifyToken, AssessmentController.getAssessmentById);
-app.get('/api/assessments/user/:userId', authController.verifyToken, AssessmentController.getAssessmentsByUserId);
 app.get('/api/assessments/details/:userId', authController.verifyToken, AssessmentController.getAssessmentDetails);
-app.get('/api/assessments/with-relations', authController.verifyToken, AssessmentController.getAssessmentsWithRelations);
 app.get('/api/assessments/type/:type', authController.verifyToken, AssessmentController.getAssessmentsByType);
-app.get('/api/assessments/date-range', authController.verifyToken, AssessmentController.getAssessmentsByDateRange);
-app.post('/api/assessments', authController.verifyToken, AssessmentController.createAssessment);
 app.post('/api/assessments/take-test', authController.verifyToken, AssessmentController.takeTestFromUser);
-app.put('/api/assessments/:id', authController.verifyToken, AssessmentController.updateAssessment);
 app.delete('/api/assessments/:id', authController.verifyToken, AssessmentController.deleteAssessment);
-
-// Action Routes
-app.get('/api/actions', authController.verifyToken, ActionController.getAllActions);
-app.get('/api/actions/:id', authController.verifyToken, ActionController.getActionById);
-app.get('/api/actions/type/:type', authController.verifyToken, ActionController.getActionsByType);
-app.get('/api/actions/with-assessments', authController.verifyToken, ActionController.getActionsWithAssessments);
-app.post('/api/actions', authController.verifyToken, ActionController.createAction);
-app.put('/api/actions/:id', authController.verifyToken, ActionController.updateAction);
-app.delete('/api/actions/:id', authController.verifyToken, ActionController.deleteAction);
 
 // Program Routes
 app.get("/api/programs", ProgramController.getAllPrograms);
-app.get("/api/programs/my-enrollment-status", authController.verifyToken, ProgramController.getUserProgramsWithEnrollmentStatus); // Get programs with user's enrollment status
+app.get("/api/programs/my-enrollment-status", authController.verifyToken, ProgramController.getUserProgramsWithEnrollmentStatus);
+app.get("/api/programs/search", ProgramController.searchPrograms);
 app.get("/api/programs/:id", ProgramController.getProgramById);
 app.get("/api/programs/category/:categoryId", ProgramController.getProgramsByCategory);
-app.get("/api/programs/creator/:creatorId", authController.verifyToken, ProgramController.getProgramsByCreator);
-app.get("/api/programs/status/:status", ProgramController.getProgramsByStatus);
-app.get("/api/programs/age-group/:ageGroup", ProgramController.getProgramsByAgeGroup);
 app.post("/api/programs", authController.verifyToken, ProgramController.createProgram);
 app.put("/api/programs/:id", authController.verifyToken, ProgramController.updateProgram);
 app.delete("/api/programs/:id", authController.verifyToken, ProgramController.deleteProgram);
-app.get("/api/programs/search", ProgramController.searchPrograms);
-app.get("/api/programs/:id/statistics", ProgramController.getProgramStatistics);
-app.get("/api/programs/recent", ProgramController.getRecentPrograms);
-app.get("/api/programs/popular", ProgramController.getPopularPrograms);
-
+app.get("/api/programs/community-events", ProgramController.getCommunityEventPrograms); // Get Community Event programs only
 // Content Routes
-app.get("/api/content", ContentController.getAllContent);
 app.get("/api/content/:id", ContentController.getContentById);
-app.get("/api/content/program/:programId", ContentController.getContentByProgramId);
-app.get("/api/content/type/:type", ContentController.getContentByType);
-app.get("/api/content/content-type/:contentType", ContentController.getContentByContentType);
 app.get("/api/content/file/:id", ContentController.getContentFile);
-app.get("/api/content/program-details/:programId", ContentController.getContentWithProgramDetails);
-app.get("/api/content/preview/:program_id", ContentController.getPreviewContent); // lấy preview content theo program_id (chỉ title, type, orders)
-app.post("/api/content", authController.verifyToken, ContentController.createContent);
-app.put("/api/content/:id", authController.verifyToken, ContentController.updateContent);
-app.delete("/api/content/:id", authController.verifyToken, ContentController.deleteContent);
-app.put("/api/content/order", authController.verifyToken, ContentController.updateContentOrder);
-app.get("/api/content/:id/parsed-metadata", ContentController.getParsedMetadataContentById);
+app.get("/api/content/preview/:program_id", ContentController.getPreviewContent);
 
 // Category Routes
 app.get("/api/categories", CategoryController.getAllCategories);
-app.get("/api/categories/:id", CategoryController.getCategoryById);
-app.get("/api/categories/:id/programs", CategoryController.getCategoryWithPrograms);
-app.get("/api/categories/with-programs", CategoryController.getAllCategoriesWithPrograms);
-app.get("/api/categories/program-count", CategoryController.getCategoriesByProgramCount);
-app.post("/api/categories", authController.verifyToken, CategoryController.createCategory);
-app.put("/api/categories/:id", authController.verifyToken, CategoryController.updateCategory);
-app.delete("/api/categories/:id", authController.verifyToken, CategoryController.deleteCategory);
 
 // Blog Routes
-app.get("/api/blogs/page/:page", BlogController.BlogPagination)
-
 app.get("/api/blogs", BlogController.getAllBlogs);
-app.get("/api/blogs/my", authController.verifyToken, BlogController.getMyBlogs); // lấy tất cả blog của user đang đăng nhập
-app.get("/api/blogs/published", BlogController.getPublishedBlogs);
-app.get("/api/blogs/hidden", authController.verifyToken, BlogController.getHiddenBlogs);
-app.get("/api/blogs/search", BlogController.searchBlogs);
-app.get("/api/blogs/author/:authorId", BlogController.getBlogsByAuthorId);
-app.get("/api/blogs/relations/:id", BlogController.getBlogWithRelations);
+app.get("/api/blogs/my", authController.verifyToken, BlogController.getMyBlogs);
 app.get("/api/blogs/:id", BlogController.getBlogById);
-app.post("/api/blogs", authController.verifyToken, BlogController.createBlog);
-app.post("/api/blogs/with-image", authController.verifyToken, ...BlogController.createBlogWithImage); // New route for blogs with images
-app.get("/api/blog/image/:filename", BlogController.getBlogImage); // Route to serve blog images with fallback
+app.post("/api/blogs/with-image", authController.verifyToken, ...BlogController.createBlogWithImage);
 app.put("/api/blogs/:id", authController.verifyToken, BlogController.updateBlog);
 app.delete("/api/blogs/:id", authController.verifyToken, BlogController.deleteBlog);
 app.patch("/api/blogs/:id/status", authController.verifyToken, BlogController.updateBlogStatus);
-app.patch("/api/blogs/:id/hide", authController.verifyToken, BlogController.hideBlog);
-
-// Flag Routes
-app.get("/api/flags", authController.verifyStaffOrAdmin, FlagController.getAllFlags);
-app.get("/api/flags/:id", authController.verifyStaffOrAdmin, FlagController.getFlagById);
-app.get("/api/flags/blog/:blogId", authController.verifyStaffOrAdmin, FlagController.getFlagsByBlogId);
-app.get("/api/flags/user/:userId", authController.verifyStaffOrAdmin, FlagController.getFlagsByUser);
-app.get("/api/flags/relations/:id", authController.verifyStaffOrAdmin, FlagController.getFlagWithRelations);
-app.get("/api/flags/most-flagged", authController.verifyStaffOrAdmin, FlagController.getMostFlaggedBlogs);
-app.get("/api/flags/banned-users", authController.verifyStaffOrAdmin, FlagController.getBannedUsers);
-app.post("/api/flags", authController.verifyStaffOrAdmin, FlagController.createFlag);
-app.put("/api/flags/:id", authController.verifyStaffOrAdmin, FlagController.updateFlag);
-app.delete("/api/flags/:id", authController.verifyStaffOrAdmin, FlagController.deleteFlag);
-app.delete("/api/flags/blog/:blogId", authController.verifyStaffOrAdmin, FlagController.clearBlogFlags);
-app.patch("/api/flags/unban/:userId", authController.verifyStaffOrAdmin, FlagController.unbanUser);
 
 // ==================== ENROLLMENT ROUTES ====================
-// Enrollment management for tracking user progress in programs
-
 // Core enrollment routes
-app.get("/api/enrollments/my", authController.verifyToken, EnrollController.getMyEnrollment); // Get current user's enrollments
-app.get("/api/enrollments/check/:programId", authController.verifyToken, EnrollController.getCheckMyEnrollment); // Check if current user is enrolled in a specific program
-app.post("/api/enrollments", authController.verifyToken, EnrollController.createEnrollment); // Create new enrollment (requires: program_id in body)
+app.get("/api/enrollments/user/:userId", authController.verifyToken, EnrollController.getEnrollmentsByUser);
+app.get("/api/enrollments/check/:programId", authController.verifyToken, EnrollController.getCheckMyEnrollment);
+app.get("/api/enrollments/:userId/:programId", authController.verifyToken, EnrollController.getEnrollmentById);
+app.post("/api/enrollments", authController.verifyToken, EnrollController.createEnrollment);
 
 // Content progress routes
-app.patch("/api/enrollments/:enrollId/content/:contentId/toggle", authController.verifyToken, EnrollController.toggleContentCompletion); // Toggle content completion status
-app.put("/api/enrollments/:enrollId/content/:contentId", authController.verifyToken, EnrollController.updateContentCompletionById); // Update content completion using enrollId (format: "userId_programId")
-app.put("/api/enrollments/:enrollId/complete", authController.verifyToken, EnrollController.updateEnrollmentCompletionById); // Mark enrollment as completed using enrollId (format: "userId_programId")
+app.patch("/api/enrollments/:enrollId/content/:contentId/toggle", authController.verifyToken, EnrollController.toggleContentCompletion);
+app.put("/api/enrollments/:enrollId/complete", authController.verifyToken, EnrollController.updateEnrollmentCompletionById);
 
-// Admin/detailed enrollment routes
-app.get("/api/enrollments", EnrollController.getAllEnrollments); // Get all enrollments (admin/staff only)
-app.get("/api/enrollments/user/:userId", authController.verifyToken, EnrollController.getEnrollmentsByUser); // Get enrollments by specific user ID
-app.get("/api/enrollments/program/:programId", authController.verifyToken, EnrollController.getEnrollmentsByProgram); // Get all enrollments for a specific program
-app.get("/api/enrollments/:userId/:programId", authController.verifyToken, EnrollController.getEnrollmentById); // Get specific enrollment by user and program ID
+// ==================== COMMUNITY EVENT ROUTES ====================
+app.get("/api/programs/community-events", ProgramController.getCommunityEventPrograms);
 
-// Progress filtering routes
-app.get("/api/enrollments/completed", authController.verifyToken, EnrollController.getCompletedEnrollments); // Get all completed enrollments (progress = 100%)
-app.get("/api/enrollments/in-progress", authController.verifyToken, EnrollController.getInProgressEnrollments); // Get all in-progress enrollments (0% < progress < 100%)
-app.get("/api/enrollments/progress-range", authController.verifyToken, EnrollController.getEnrollmentsByProgressRange); // Get enrollments within a progress range (query params: minProgress, maxProgress)
+// ==================== SURVEY ROUTES ====================
+app.get("/api/surveys", authController.verifyToken, SurveyController.getAllSurveys);
+app.get("/api/surveys/:id", authController.verifyToken, SurveyController.getSurveyById);
+app.post("/api/surveys", authController.verifyToken, SurveyController.createSurvey);
+app.get("/api/surveys/program/:programId", authController.verifyToken, SurveyController.getSurveysByProgramId);
 
-// Update and management routes
-app.put("/api/enrollments/:userId/:programId", authController.verifyToken, EnrollController.updateEnrollment); // Update enrollment progress and dates
-app.put("/api/enrollments/:userId/:programId/end-date", authController.verifyToken, EnrollController.updateEnrollmentEndDate); // Mark enrollment as completed and set end date
-app.put("/api/enrollments/:userId/:programId/content/:contentId/progress", authController.verifyToken, EnrollController.updateContentProgress); // Update specific content completion status
-app.delete("/api/enrollments/:userId/:programId", authController.verifyToken, EnrollController.deleteEnrollment); // Delete specific enrollment
-
-// Test Route
-app.get("/api/test-profile", authController.verifyToken, (req, res) => {
-    res.json({
-        message: "Protected route accessed successfully",
-        user: req.user,
-    });
-});
+// ==================== SURVEY RESPONSE ROUTES ====================
+app.get("/api/survey-responses/me", authController.verifyToken, SurveyResponseController.getMySurveyResponsesKeyValue);
+app.post("/api/survey-responses", authController.verifyToken, SurveyResponseController.submitSurveyResponseKeyValue);
+app.get("/api/survey-responses/statistics", authController.verifyToken, SurveyResponseController.getSurveyResponseStatistics);
 
 // ==================== SERVER STARTUP ====================
 app.listen(3000, () => {

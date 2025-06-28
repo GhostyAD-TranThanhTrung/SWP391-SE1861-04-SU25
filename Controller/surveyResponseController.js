@@ -19,7 +19,7 @@ class SurveyResponseController {
                     submitted_at: 'DESC'
                 }
             });
-            
+
             res.status(200).json({
                 success: true,
                 data: responses,
@@ -127,7 +127,7 @@ class SurveyResponseController {
         try {
             const { surveyId } = req.params;
             const responseRepository = AppDataSource.getRepository(SurveyResponse);
-            
+
             const responses = await responseRepository.find({
                 where: { survey_id: parseInt(surveyId) },
                 order: {
@@ -158,7 +158,7 @@ class SurveyResponseController {
         try {
             const { userId } = req.params;
             const responseRepository = AppDataSource.getRepository(SurveyResponse);
-            
+
             const responses = await responseRepository.find({
                 where: { user_id: parseInt(userId) },
                 order: {
@@ -189,7 +189,7 @@ class SurveyResponseController {
         try {
             const { id } = req.params;
             const responseRepository = AppDataSource.getRepository(SurveyResponse);
-            
+
             const response = await responseRepository.findOne({
                 where: { response_id: parseInt(id) },
                 relations: {
@@ -226,7 +226,7 @@ class SurveyResponseController {
     static async createSurveyResponse(req, res) {
         try {
             const { survey_id, user_id, answers } = req.body;
-            
+
             // Validate required fields
             if (!survey_id) {
                 return res.status(400).json({
@@ -234,27 +234,27 @@ class SurveyResponseController {
                     message: 'Survey ID is required'
                 });
             }
-            
+
             // Check if survey exists
             const surveyRepository = AppDataSource.getRepository(Survey);
             const survey = await surveyRepository.findOne({
                 where: { survey_id: parseInt(survey_id) }
             });
-            
+
             if (!survey) {
                 return res.status(404).json({
                     success: false,
                     message: 'Survey not found'
                 });
             }
-            
+
             // Check if user exists if user_id is provided
             if (user_id) {
                 const userRepository = AppDataSource.getRepository(User);
                 const user = await userRepository.findOne({
                     where: { user_id: parseInt(user_id) }
                 });
-                
+
                 if (!user) {
                     return res.status(404).json({
                         success: false,
@@ -262,15 +262,15 @@ class SurveyResponseController {
                     });
                 }
             }
-            
+
             // Validate answers format if provided
             let answer_json = null;
             if (answers) {
                 try {
-                    answer_json = typeof answers === 'string' 
-                        ? answers 
+                    answer_json = typeof answers === 'string'
+                        ? answers
                         : JSON.stringify(answers);
-                    
+
                     // Validate JSON format
                     JSON.parse(answer_json);
                 } catch (jsonError) {
@@ -281,7 +281,7 @@ class SurveyResponseController {
                     });
                 }
             }
-            
+
             // Check if user has already responded to this survey
             if (user_id) {
                 const responseRepository = AppDataSource.getRepository(SurveyResponse);
@@ -291,7 +291,7 @@ class SurveyResponseController {
                         user_id: parseInt(user_id)
                     }
                 });
-                
+
                 if (existingResponse) {
                     return res.status(409).json({
                         success: false,
@@ -300,9 +300,9 @@ class SurveyResponseController {
                     });
                 }
             }
-            
+
             const responseRepository = AppDataSource.getRepository(SurveyResponse);
-            
+
             // Create new survey response
             const newResponse = responseRepository.create({
                 survey_id: parseInt(survey_id),
@@ -335,16 +335,16 @@ class SurveyResponseController {
         try {
             const { id } = req.params;
             const { answers } = req.body;
-            
+
             if (!answers) {
                 return res.status(400).json({
                     success: false,
                     message: 'Answers are required'
                 });
             }
-            
+
             const responseRepository = AppDataSource.getRepository(SurveyResponse);
-            
+
             // Check if response exists
             const response = await responseRepository.findOne({
                 where: { response_id: parseInt(id) }
@@ -359,10 +359,10 @@ class SurveyResponseController {
 
             // Validate answers format
             try {
-                response.answer_json = typeof answers === 'string' 
-                    ? answers 
+                response.answer_json = typeof answers === 'string'
+                    ? answers
                     : JSON.stringify(answers);
-                
+
                 // Validate JSON format
                 JSON.parse(response.answer_json);
             } catch (jsonError) {
@@ -399,7 +399,7 @@ class SurveyResponseController {
     static async deleteSurveyResponse(req, res) {
         try {
             const { id } = req.params;
-            
+
             if (!id || isNaN(parseInt(id))) {
                 return res.status(400).json({
                     success: false,
@@ -408,7 +408,7 @@ class SurveyResponseController {
             }
 
             const responseRepository = AppDataSource.getRepository(SurveyResponse);
-            
+
             // Check if response exists before deleting
             const response = await responseRepository.findOne({
                 where: { response_id: parseInt(id) }
@@ -423,7 +423,7 @@ class SurveyResponseController {
 
             // Delete the response
             await responseRepository.remove(response);
-            
+
             res.status(200).json({
                 success: true,
                 message: `Survey response with ID ${id} deleted successfully`
@@ -444,7 +444,7 @@ class SurveyResponseController {
     static async getResponsesByDateRange(req, res) {
         try {
             const { startDate, endDate } = req.query;
-            
+
             if (!startDate || !endDate) {
                 return res.status(400).json({
                     success: false,
@@ -453,7 +453,7 @@ class SurveyResponseController {
             }
 
             const responseRepository = AppDataSource.getRepository(SurveyResponse);
-            
+
             const responses = await responseRepository.createQueryBuilder("response")
                 .where("response.submitted_at >= :startDate", { startDate })
                 .andWhere("response.submitted_at <= :endDate", { endDate })
@@ -482,7 +482,7 @@ class SurveyResponseController {
     static async checkUserResponse(req, res) {
         try {
             const { surveyId, userId } = req.params;
-            
+
             if (!surveyId || !userId) {
                 return res.status(400).json({
                     success: false,
@@ -491,7 +491,7 @@ class SurveyResponseController {
             }
 
             const responseRepository = AppDataSource.getRepository(SurveyResponse);
-            
+
             const response = await responseRepository.findOne({
                 where: {
                     survey_id: parseInt(surveyId),
@@ -503,8 +503,8 @@ class SurveyResponseController {
                 success: true,
                 hasResponded: !!response,
                 responseId: response ? response.response_id : null,
-                message: response 
-                    ? 'User has already responded to this survey' 
+                message: response
+                    ? 'User has already responded to this survey'
                     : 'User has not responded to this survey'
             });
         } catch (error) {
@@ -523,27 +523,27 @@ class SurveyResponseController {
     static async getSurveyAnalytics(req, res) {
         try {
             const { surveyId } = req.params;
-            
+
             // Check if survey exists
             const surveyRepository = AppDataSource.getRepository(Survey);
             const survey = await surveyRepository.findOne({
                 where: { survey_id: parseInt(surveyId) }
             });
-            
+
             if (!survey) {
                 return res.status(404).json({
                     success: false,
                     message: 'Survey not found'
                 });
             }
-            
+
             const responseRepository = AppDataSource.getRepository(SurveyResponse);
-            
+
             // Get all responses for this survey
             const responses = await responseRepository.find({
                 where: { survey_id: parseInt(surveyId) }
             });
-            
+
             // Parse survey questions
             let questions = [];
             try {
@@ -557,25 +557,25 @@ class SurveyResponseController {
                     error: error.message
                 });
             }
-            
+
             // Process responses
             const analytics = {
                 surveyId: parseInt(surveyId),
                 totalResponses: responses.length,
                 questionAnalytics: {}
             };
-            
+
             // Process each response
             responses.forEach(response => {
                 try {
                     if (!response.answer_json) return;
-                    
+
                     const answers = JSON.parse(response.answer_json);
-                    
+
                     // Process each answer
                     Object.keys(answers).forEach(questionId => {
                         const answer = answers[questionId];
-                        
+
                         // Initialize question analytics if not exist
                         if (!analytics.questionAnalytics[questionId]) {
                             analytics.questionAnalytics[questionId] = {
@@ -583,9 +583,9 @@ class SurveyResponseController {
                                 values: {}
                             };
                         }
-                        
+
                         analytics.questionAnalytics[questionId].responses++;
-                        
+
                         // Handle different answer types
                         if (Array.isArray(answer)) {
                             // Multiple choice
@@ -618,6 +618,500 @@ class SurveyResponseController {
             res.status(500).json({
                 success: false,
                 message: 'Failed to generate survey analytics',
+                error: error.message
+            });
+        }
+    }
+
+    /**
+     * Submit survey response in key-value format (id, question, answer)
+     * Expected request body format:
+     * {
+     *   "survey_id": 1,
+     *   "responses": [
+     *     {"id": 1, "question": "How confident are you?", "answer": "Very confident"},
+     *     {"id": 2, "question": "What is your age?", "answer": "25"}
+     *   ]
+     * }
+     */
+    static async submitSurveyResponseKeyValue(req, res) {
+        try {
+            const userId = req.user.userId; // Get user_id from token middleware
+            const { survey_id, responses } = req.body;
+
+            // Validate required fields
+            if (!survey_id || !responses || !Array.isArray(responses)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Survey ID and responses array are required'
+                });
+            }
+
+            // Validate responses format
+            for (const response of responses) {
+                if (!response.hasOwnProperty('id') || !response.hasOwnProperty('question') || !response.hasOwnProperty('answer')) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Each response must have id, question, and answer fields'
+                    });
+                }
+            }
+
+            // Check if survey exists
+            const surveyRepository = AppDataSource.getRepository(Survey);
+            const survey = await surveyRepository.findOne({
+                where: { survey_id: parseInt(survey_id) }
+            });
+
+            if (!survey) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Survey not found'
+                });
+            }
+
+            // Check if user already has a response for this survey
+            const responseRepository = AppDataSource.getRepository(SurveyResponse);
+            const existingResponse = await responseRepository.findOne({
+                where: {
+                    survey_id: parseInt(survey_id),
+                    user_id: parseInt(userId)
+                }
+            });
+
+            if (existingResponse) {
+                return res.status(409).json({
+                    success: false,
+                    message: 'User has already responded to this survey. Use update endpoint to modify existing response.'
+                });
+            }
+
+            // Create response object in key-value format
+            const responseData = {
+                responses: responses.map(item => ({
+                    id: item.id,
+                    question: item.question,
+                    answer: item.answer
+                })),
+                submitted_at: new Date().toISOString(),
+                total_questions: responses.length
+            };
+
+            // Create new survey response
+            const newResponse = responseRepository.create({
+                survey_id: parseInt(survey_id),
+                user_id: parseInt(userId),
+                answer_json: JSON.stringify(responseData),
+                submitted_at: new Date()
+            });
+
+            const savedResponse = await responseRepository.save(newResponse);
+
+            res.status(201).json({
+                success: true,
+                data: {
+                    response_id: savedResponse.response_id,
+                    survey_id: savedResponse.survey_id,
+                    user_id: savedResponse.user_id,
+                    responses: responseData.responses,
+                    submitted_at: savedResponse.submitted_at,
+                    total_questions: responseData.total_questions
+                },
+                message: 'Survey response submitted successfully'
+            });
+
+        } catch (error) {
+            console.error('Error submitting survey response:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to submit survey response',
+                error: error.message
+            });
+        }
+    }
+
+    /**
+     * Update existing survey response in key-value format
+     * Expected request body format same as submitSurveyResponseKeyValue
+     */
+    static async updateSurveyResponseKeyValue(req, res) {
+        try {
+            const userId = req.user.userId;
+            const { survey_id, responses } = req.body;
+
+            // Validate required fields
+            if (!survey_id || !responses || !Array.isArray(responses)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Survey ID and responses array are required'
+                });
+            }
+
+            // Validate responses format
+            for (const response of responses) {
+                if (!response.hasOwnProperty('id') || !response.hasOwnProperty('question') || !response.hasOwnProperty('answer')) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Each response must have id, question, and answer fields'
+                    });
+                }
+            }
+
+            // Find existing response
+            const responseRepository = AppDataSource.getRepository(SurveyResponse);
+            const existingResponse = await responseRepository.findOne({
+                where: {
+                    survey_id: parseInt(survey_id),
+                    user_id: parseInt(userId)
+                }
+            });
+
+            if (!existingResponse) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'No existing response found for this user and survey. Use submit endpoint to create new response.'
+                });
+            }
+
+            // Create updated response object
+            const responseData = {
+                responses: responses.map(item => ({
+                    id: item.id,
+                    question: item.question,
+                    answer: item.answer
+                })),
+                submitted_at: existingResponse.submitted_at, // Keep original submission time
+                updated_at: new Date().toISOString(),
+                total_questions: responses.length
+            };
+
+            // Update existing response
+            existingResponse.answer_json = JSON.stringify(responseData);
+            const updatedResponse = await responseRepository.save(existingResponse);
+
+            res.status(200).json({
+                success: true,
+                data: {
+                    response_id: updatedResponse.response_id,
+                    survey_id: updatedResponse.survey_id,
+                    user_id: updatedResponse.user_id,
+                    responses: responseData.responses,
+                    submitted_at: updatedResponse.submitted_at,
+                    updated_at: responseData.updated_at,
+                    total_questions: responseData.total_questions
+                },
+                message: 'Survey response updated successfully'
+            });
+
+        } catch (error) {
+            console.error('Error updating survey response:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to update survey response',
+                error: error.message
+            });
+        }
+    }
+
+    /**
+     * Get user's survey responses in key-value format
+     */
+    static async getMySurveyResponsesKeyValue(req, res) {
+        try {
+            const userId = req.user.userId;
+            const responseRepository = AppDataSource.getRepository(SurveyResponse);
+
+            const responses = await responseRepository.find({
+                where: { user_id: parseInt(userId) },
+                relations: ['survey'],
+                order: { submitted_at: 'DESC' }
+            });
+
+            const formattedResponses = responses.map(response => {
+                let parsedAnswer;
+                try {
+                    parsedAnswer = response.answer_json ? JSON.parse(response.answer_json) : null;
+                } catch (jsonError) {
+                    parsedAnswer = { error: 'Invalid JSON format', raw: response.answer_json };
+                }
+
+                return {
+                    response_id: response.response_id,
+                    survey_id: response.survey_id,
+                    survey_type: response.survey ? response.survey.type : null,
+                    survey_program_id: response.survey ? response.survey.program_id : null,
+                    responses: parsedAnswer ? parsedAnswer.responses : null,
+                    submitted_at: response.submitted_at,
+                    updated_at: parsedAnswer ? parsedAnswer.updated_at : null,
+                    total_questions: parsedAnswer ? parsedAnswer.total_questions : 0
+                };
+            });
+
+            res.status(200).json({
+                success: true,
+                data: formattedResponses,
+                count: formattedResponses.length,
+                message: 'User survey responses retrieved successfully'
+            });
+
+        } catch (error) {
+            console.error('Error getting user survey responses:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to retrieve user survey responses',
+                error: error.message
+            });
+        }
+    }
+
+    /**
+     * Get comprehensive survey response statistics
+     * Can filter by survey ID or program ID
+     * Returns detailed statistics showing how many people gave each answer for each question
+     * Supports both old format (answers array) and new format (responses array)
+     * 
+     * Query parameters:
+     * - surveyId: Get statistics for specific survey
+     * - programId: Get statistics for all surveys in a program
+     * - type: Filter by survey type (pre-assessment, post-assessment, etc.)
+     */
+    static async getSurveyResponseStatistics(req, res) {
+        try {
+            const { programId, type } = req.query;
+
+            if (!programId) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'programId parameter is required'
+                });
+            }
+
+            const surveyRepository = AppDataSource.getRepository(Survey);
+            const responseRepository = AppDataSource.getRepository(SurveyResponse);
+
+            // Get surveys based on program_id and optional type
+            const whereClause = { program_id: parseInt(programId) };
+            if (type) {
+                whereClause.type = type;
+            }
+
+            const surveys = await surveyRepository.find({
+                where: whereClause
+            });
+
+            if (surveys.length === 0) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'No surveys found for the specified program'
+                });
+            }
+
+            const statistics = {
+                overview: {
+                    totalSurveys: surveys.length,
+                    totalResponses: 0,
+                    programId: programId ? parseInt(programId) : null,
+                    surveyIds: surveys.map(s => s.survey_id),
+                    surveyTypes: [...new Set(surveys.map(s => s.type))]
+                },
+                surveyStatistics: []
+            };
+
+            // Process each survey
+            for (const survey of surveys) {
+                // Get all responses for this survey
+                const responses = await responseRepository.find({
+                    where: { survey_id: survey.survey_id }
+                });
+
+                statistics.overview.totalResponses += responses.length;
+
+                // Parse survey questions
+                let surveyQuestions = [];
+                try {
+                    if (survey.questions_json) {
+                        const questionsData = JSON.parse(survey.questions_json);
+                        surveyQuestions = questionsData.questions || [];
+                    }
+                } catch (error) {
+                    console.warn(`Invalid JSON in survey ${survey.survey_id} questions:`, error);
+                }
+
+                const surveyStats = {
+                    surveyId: survey.survey_id,
+                    surveyType: survey.type,
+                    programId: survey.program_id,
+                    totalResponses: responses.length,
+                    questionStatistics: {}
+                };
+
+                // Create question statistics structure
+                surveyQuestions.forEach(question => {
+                    surveyStats.questionStatistics[question.id] = {
+                        questionId: question.id,
+                        questionText: question.question,
+                        questionOptions: question.options || [],
+                        totalResponses: 0,
+                        answerCounts: {},
+                        percentages: {}
+                    };
+                });
+
+                // Process each response
+                responses.forEach(response => {
+                    try {
+                        if (!response.answer_json) return;
+
+                        const answerData = JSON.parse(response.answer_json);
+
+                        // Handle new format (responses array)
+                        if (answerData.responses && Array.isArray(answerData.responses)) {
+                            answerData.responses.forEach(responseItem => {
+                                const questionId = responseItem.id;
+                                const answer = responseItem.answer;
+
+                                if (surveyStats.questionStatistics[questionId]) {
+                                    surveyStats.questionStatistics[questionId].totalResponses++;
+
+                                    // Count answers
+                                    if (Array.isArray(answer)) {
+                                        // Multiple choice answers
+                                        answer.forEach(singleAnswer => {
+                                            if (!surveyStats.questionStatistics[questionId].answerCounts[singleAnswer]) {
+                                                surveyStats.questionStatistics[questionId].answerCounts[singleAnswer] = 0;
+                                            }
+                                            surveyStats.questionStatistics[questionId].answerCounts[singleAnswer]++;
+                                        });
+                                    } else {
+                                        // Single answer
+                                        if (!surveyStats.questionStatistics[questionId].answerCounts[answer]) {
+                                            surveyStats.questionStatistics[questionId].answerCounts[answer] = 0;
+                                        }
+                                        surveyStats.questionStatistics[questionId].answerCounts[answer]++;
+                                    }
+                                }
+                            });
+                        }
+                        // Handle old format (answers array)
+                        else if (answerData.answers && Array.isArray(answerData.answers)) {
+                            answerData.answers.forEach(answerItem => {
+                                const questionId = answerItem.question_id;
+                                const answer = answerItem.answer;
+
+                                if (surveyStats.questionStatistics[questionId]) {
+                                    surveyStats.questionStatistics[questionId].totalResponses++;
+
+                                    // Count answers
+                                    if (Array.isArray(answer)) {
+                                        // Multiple choice answers
+                                        answer.forEach(singleAnswer => {
+                                            if (!surveyStats.questionStatistics[questionId].answerCounts[singleAnswer]) {
+                                                surveyStats.questionStatistics[questionId].answerCounts[singleAnswer] = 0;
+                                            }
+                                            surveyStats.questionStatistics[questionId].answerCounts[singleAnswer]++;
+                                        });
+                                    } else {
+                                        // Single answer
+                                        if (!surveyStats.questionStatistics[questionId].answerCounts[answer]) {
+                                            surveyStats.questionStatistics[questionId].answerCounts[answer] = 0;
+                                        }
+                                        surveyStats.questionStatistics[questionId].answerCounts[answer]++;
+                                    }
+                                }
+                            });
+                        }
+                        // Handle direct question-answer format
+                        else {
+                            Object.keys(answerData).forEach(questionId => {
+                                const answer = answerData[questionId];
+                                const numericQuestionId = parseInt(questionId);
+
+                                if (surveyStats.questionStatistics[numericQuestionId]) {
+                                    surveyStats.questionStatistics[numericQuestionId].totalResponses++;
+
+                                    // Count answers
+                                    if (Array.isArray(answer)) {
+                                        // Multiple choice answers
+                                        answer.forEach(singleAnswer => {
+                                            if (!surveyStats.questionStatistics[numericQuestionId].answerCounts[singleAnswer]) {
+                                                surveyStats.questionStatistics[numericQuestionId].answerCounts[singleAnswer] = 0;
+                                            }
+                                            surveyStats.questionStatistics[numericQuestionId].answerCounts[singleAnswer]++;
+                                        });
+                                    } else {
+                                        // Single answer
+                                        if (!surveyStats.questionStatistics[numericQuestionId].answerCounts[answer]) {
+                                            surveyStats.questionStatistics[numericQuestionId].answerCounts[answer] = 0;
+                                        }
+                                        surveyStats.questionStatistics[numericQuestionId].answerCounts[answer]++;
+                                    }
+                                }
+                            });
+                        }
+                    } catch (error) {
+                        console.warn('Error processing response:', error);
+                    }
+                });
+
+                // Calculate percentages for each question
+                Object.keys(surveyStats.questionStatistics).forEach(questionId => {
+                    const questionStats = surveyStats.questionStatistics[questionId];
+                    const totalAnswers = Object.values(questionStats.answerCounts).reduce((sum, count) => sum + count, 0);
+
+                    Object.keys(questionStats.answerCounts).forEach(answer => {
+                        const count = questionStats.answerCounts[answer];
+                        questionStats.percentages[answer] = totalAnswers > 0 ?
+                            parseFloat(((count / totalAnswers) * 100).toFixed(2)) : 0;
+                    });
+
+                    // Add summary statistics
+                    questionStats.totalAnswers = totalAnswers;
+                    questionStats.uniqueAnswers = Object.keys(questionStats.answerCounts).length;
+                    questionStats.mostCommonAnswer = totalAnswers > 0 ?
+                        Object.keys(questionStats.answerCounts).reduce((a, b) =>
+                            questionStats.answerCounts[a] > questionStats.answerCounts[b] ? a : b
+                        ) : null;
+                });
+
+                statistics.surveyStatistics.push(surveyStats);
+            }
+
+            // Add aggregated statistics for program-level queries
+            if (programId && surveys.length > 1) {
+                statistics.aggregatedStatistics = {
+                    totalUniqueQuestions: 0,
+                    averageResponseRate: 0,
+                    surveyTypeBreakdown: {}
+                };
+
+                // Calculate survey type breakdown
+                surveys.forEach(survey => {
+                    if (!statistics.aggregatedStatistics.surveyTypeBreakdown[survey.type]) {
+                        statistics.aggregatedStatistics.surveyTypeBreakdown[survey.type] = {
+                            count: 0,
+                            totalResponses: 0
+                        };
+                    }
+                    statistics.aggregatedStatistics.surveyTypeBreakdown[survey.type].count++;
+
+                    const surveyStats = statistics.surveyStatistics.find(s => s.surveyId === survey.survey_id);
+                    if (surveyStats) {
+                        statistics.aggregatedStatistics.surveyTypeBreakdown[survey.type].totalResponses += surveyStats.totalResponses;
+                    }
+                });
+            }
+
+            res.status(200).json({
+                success: true,
+                data: statistics.surveyStatistics,
+                message: 'Survey response statistics generated successfully'
+            });
+
+        } catch (error) {
+            console.error('Error generating survey response statistics:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to generate survey response statistics',
                 error: error.message
             });
         }

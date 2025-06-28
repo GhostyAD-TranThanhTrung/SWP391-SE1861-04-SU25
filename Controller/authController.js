@@ -247,7 +247,7 @@ class AuthController {
     AuthController.verifyToken(req, res, () => {
       // Check if user role is staff, manager, or admin
       const role = req.user.role ? req.user.role.toLowerCase() : '';
-      
+
       if (role === 'staff' || role === 'manager' || role === 'admin') {
         // User is authorized, proceed to the next middleware
         next();

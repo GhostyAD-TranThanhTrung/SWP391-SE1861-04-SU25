@@ -1,0 +1,348 @@
+{
+    "pre_assessment_survey": [
+        {
+            "id": 1,
+            "question": "How would you rate your current knowledge about substance abuse risks?",
+            "options": [
+                "Very Low",
+                "Low",
+                "Moderate",
+                "High",
+                "Very High"
+            ]
+        },
+        {
+            "id": 2,
+            "question": "How confident are you in resisting peer pressure related to substance use?",
+            "options": [
+                "Not confident at all",
+                "Slightly confident",
+                "Moderately confident",
+                "Very confident",
+                "Extremely confident"
+            ]
+        },
+        {
+            "id": 3,
+            "question": "Which of the following substances are you most concerned about? (Select all that apply)",
+            "options": [
+                "Alcohol",
+                "Marijuana",
+                "Prescription drugs",
+                "Tobacco/Vaping",
+                "Illegal drugs",
+                "None"
+            ]
+        },
+        {
+            "id": 4,
+            "question": "How often do you feel stressed or anxious?",
+            "options": [
+                "Never",
+                "Rarely",
+                "Sometimes",
+                "Often",
+                "Always"
+            ]
+        },
+        {
+            "id": 5,
+            "question": "What are your main sources of support when facing challenges?",
+            "options": [
+                "Family",
+                "Friends",
+                "Teachers/Mentors",
+                "Counselors",
+                "Religious community",
+                "Online resources",
+                "No support system"
+            ]
+        },
+        {
+            "id": 6,
+            "question": "How likely are you to seek help if you or a friend had a substance use problem?",
+            "options": [
+                "Very unlikely",
+                "Unlikely",
+                "Neutral",
+                "Likely",
+                "Very likely"
+            ]
+        },
+        {
+            "id": 7,
+            "question": "Rate your understanding of the impact of substance use on mental health",
+            "options": [
+                "No understanding",
+                "Little understanding",
+                "Some understanding",
+                "Good understanding",
+                "Excellent understanding"
+            ]
+        },
+        {
+            "id": 8,
+            "question": "How prepared do you feel to handle situations involving substance use?",
+            "options": [
+                "Not prepared at all",
+                "Slightly prepared",
+                "Moderately prepared",
+                "Well prepared",
+                "Very well prepared"
+            ]
+        }
+    ],
+    "post_assessment_survey": [
+        {
+            "id": 1,
+            "question": "How would you rate your knowledge about substance abuse risks after completing this program?",
+            "options": [
+                "Very Low",
+                "Low",
+                "Moderate",
+                "High",
+                "Very High"
+            ]
+        },
+        {
+            "id": 2,
+            "question": "How confident are you now in resisting peer pressure related to substance use?",
+            "options": [
+                "Not confident at all",
+                "Slightly confident",
+                "Moderately confident",
+                "Very confident",
+                "Extremely confident"
+            ]
+        },
+        {
+            "id": 3,
+            "question": "Which program components were most helpful to you? (Select all that apply)",
+            "options": [
+                "Educational materials",
+                "Interactive activities",
+                "Group discussions",
+                "Personal reflection exercises",
+                "Resource information",
+                "All components"
+            ]
+        },
+        {
+            "id": 4,
+            "question": "How likely are you to use the coping strategies learned in this program?",
+            "options": [
+                "Very unlikely",
+                "Unlikely",
+                "Neutral",
+                "Likely",
+                "Very likely"
+            ]
+        },
+        {
+            "id": 5,
+            "question": "How has your understanding of available support resources changed?",
+            "options": [
+                "Decreased significantly",
+                "Decreased slightly",
+                "No change",
+                "Increased slightly",
+                "Increased significantly"
+            ]
+        },
+        {
+            "id": 6,
+            "question": "How likely are you to seek help if you or a friend had a substance use problem after this program?",
+            "options": [
+                "Very unlikely",
+                "Unlikely",
+                "Neutral",
+                "Likely",
+                "Very likely"
+            ]
+        },
+        {
+            "id": 7,
+            "question": "Rate your current understanding of the impact of substance use on mental health",
+            "options": [
+                "No understanding",
+                "Little understanding",
+                "Some understanding",
+                "Good understanding",
+                "Excellent understanding"
+            ]
+        },
+        {
+            "id": 8,
+            "question": "How prepared do you feel now to handle situations involving substance use?",
+            "options": [
+                "Not prepared at all",
+                "Slightly prepared",
+                "Moderately prepared",
+                "Well prepared",
+                "Very well prepared"
+            ]
+        },
+        {
+            "id": 9,
+            "question": "How would you rate the overall effectiveness of this prevention program?",
+            "options": [
+                "Very ineffective",
+                "Ineffective",
+                "Neutral",
+                "Effective",
+                "Very effective"
+            ]
+        },
+        {
+            "id": 10,
+            "question": "How likely are you to recommend this program to others?",
+            "options": [
+                "Very unlikely",
+                "Unlikely",
+                "Neutral",
+                "Likely",
+                "Very likely"
+            ]
+        }
+    ],
+    "community_event_pre_assessment": [
+        {
+            "id": 1,
+            "question": "How familiar are you with community prevention resources in your area?",
+            "options": [
+                "Not familiar at all",
+                "Slightly familiar",
+                "Moderately familiar",
+                "Very familiar",
+                "Extremely familiar"
+            ]
+        },
+        {
+            "id": 2,
+            "question": "Have you participated in community prevention events before?",
+            "options": [
+                "Never",
+                "Once",
+                "2-3 times",
+                "4-5 times",
+                "More than 5 times"
+            ]
+        },
+        {
+            "id": 3,
+            "question": "What motivates you to attend this community event? (Select all that apply)",
+            "options": [
+                "Learn about prevention",
+                "Support community",
+                "Meet like-minded people",
+                "Access resources",
+                "Family activity",
+                "Personal interest"
+            ]
+        },
+        {
+            "id": 4,
+            "question": "How comfortable do you feel discussing substance use prevention topics?",
+            "options": [
+                "Very uncomfortable",
+                "Uncomfortable",
+                "Neutral",
+                "Comfortable",
+                "Very comfortable"
+            ]
+        },
+        {
+            "id": 5,
+            "question": "What do you hope to gain from this event?",
+            "options": [
+                "Information and resources",
+                "Community connections",
+                "Skills and strategies",
+                "Support for family member",
+                "Professional development",
+                "All of the above"
+            ]
+        }
+    ],
+    "community_event_post_assessment": [
+        {
+            "id": 1,
+            "question": "How would you rate the overall quality of this community prevention event?",
+            "options": [
+                "Very poor",
+                "Poor",
+                "Fair",
+                "Good",
+                "Excellent"
+            ]
+        },
+        {
+            "id": 2,
+            "question": "Which activities were most valuable to you? (Select all that apply)",
+            "options": [
+                "Information booths",
+                "Interactive activities",
+                "Resource materials",
+                "Networking opportunities",
+                "Educational presentations",
+                "Family activities"
+            ]
+        },
+        {
+            "id": 3,
+            "question": "How likely are you to use the resources you learned about today?",
+            "options": [
+                "Very unlikely",
+                "Unlikely",
+                "Neutral",
+                "Likely",
+                "Very likely"
+            ]
+        },
+        {
+            "id": 4,
+            "question": "Did this event increase your knowledge of community prevention resources?",
+            "options": [
+                "Decreased significantly",
+                "Decreased slightly",
+                "No change",
+                "Increased slightly",
+                "Increased significantly"
+            ]
+        },
+        {
+            "id": 5,
+            "question": "How likely are you to attend future community prevention events?",
+            "options": [
+                "Very unlikely",
+                "Unlikely",
+                "Neutral",
+                "Likely",
+                "Very likely"
+            ]
+        },
+        {
+            "id": 6,
+            "question": "Would you recommend this type of event to others?",
+            "options": [
+                "Definitely not",
+                "Probably not",
+                "Neutral",
+                "Probably yes",
+                "Definitely yes"
+            ]
+        },
+        {
+            "id": 7,
+            "question": "What could be improved for future events?",
+            "options": [
+                "More interactive activities",
+                "Better timing",
+                "More diverse topics",
+                "Additional resources",
+                "Better location",
+                "Nothing - it was great"
+            ]
+        }
+    ]
+}

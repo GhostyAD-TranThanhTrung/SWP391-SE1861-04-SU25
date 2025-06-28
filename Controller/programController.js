@@ -532,7 +532,7 @@ class ProgramController {
             // Process each program to add enrollment and completion status
             const programsWithStatus = programs.map(program => {
                 const enrollment = enrollmentMap.get(program.program_id);
-                
+
                 let enrollmentStatus = {
                     is_enrolled: false,
                     has_complete: false,
@@ -579,7 +579,7 @@ class ProgramController {
             const totalPrograms = programs.length;
             const enrolledPrograms = programsWithStatus.filter(p => p.enrollment_status.is_enrolled).length;
             const completedPrograms = programsWithStatus.filter(p => p.enrollment_status.has_complete).length;
-            const inProgressPrograms = programsWithStatus.filter(p => 
+            const inProgressPrograms = programsWithStatus.filter(p =>
                 p.enrollment_status.is_enrolled && !p.enrollment_status.has_complete
             ).length;
 
@@ -600,6 +600,59 @@ class ProgramController {
             res.status(500).json({
                 success: false,
                 message: 'Failed to retrieve programs with enrollment status',
+                error: error.message
+            });
+        }
+    }
+
+    /**
+     * Get Community Event programs only
+     * Specifically designed to retrieve programs from the Community Event category (category_id: 18)
+     */
+    static async getCommunityEventPrograms(req, res) {
+        try {
+            const COMMUNITY_EVENT_CATEGORY_ID = 18;
+            const programRepository = AppDataSource.getRepository(Program);
+
+            const programs = await programRepository.find({
+                where: {
+                    category_id: COMMUNITY_EVENT_CATEGORY_ID,
+                    status: 'active' // Only return active community event programs
+                },
+                relations: ['creator', 'category', 'enrollments', 'contents'],
+                order: {
+                    create_at: 'DESC'
+                }
+            });
+
+            // Add additional metadata for community events
+            const programsWithMetadata = programs.map(program => {
+                const totalEnrollments = program.enrollments ? program.enrollments.length : 0;
+                const totalContents = program.contents ? program.contents.length : 0;
+
+                return {
+                    ...program,
+                    event_metadata: {
+                        total_enrollments: totalEnrollments,
+                        total_contents: totalContents,
+                        is_community_event: true,
+                        event_type: program.title.toLowerCase().includes('walk') ? 'outdoor_event' : 'community_fair'
+                    }
+                };
+            });
+
+            res.status(200).json({
+                success: true,
+                data: programsWithMetadata,
+                count: programsWithMetadata.length,
+                category: 'Community Event',
+                message: 'Community Event programs retrieved successfully'
+            });
+        } catch (error) {
+            console.error('Error getting Community Event programs:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to retrieve Community Event programs',
                 error: error.message
             });
         }
