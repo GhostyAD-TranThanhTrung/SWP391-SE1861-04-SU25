@@ -88,7 +88,16 @@ const CoursePage = () => {
 
                 const res = await response.json();
                 console.log('Programs fetched for category', selectedCategory.category_id, res);
-                setPrograms(res.data || []);
+                
+                // Filter out community events from regular programs display
+                const filteredPrograms = (res.data || []).filter(program => {
+                    // Exclude programs that have category name "Community Event"
+                    // Also handle cases where category might be null/undefined
+                    return !program.category || program.category.name !== 'Community Event';
+                });
+                
+                console.log('Filtered programs (excluding community events):', filteredPrograms);
+                setPrograms(filteredPrograms);
             } catch (err) {
                 console.error('💥 Error fetching programs:', err);
                 setError('Không thể tải chương trình. Vui lòng thử lại sau.');
@@ -125,8 +134,12 @@ const CoursePage = () => {
                 console.log('Enrolled programs fetched successfully:', res);
 
                 if (res.success && res.data) {
-                    // Filter only enrolled programs
-                    const enrolledOnly = res.data.filter(program => program.enrollment_status.is_enrolled);
+                    // Filter only enrolled programs and exclude community events
+                    const enrolledOnly = res.data.filter(program => 
+                        program.enrollment_status.is_enrolled && 
+                        (!program.category || program.category.name !== 'Community Event')
+                    );
+                    console.log('Enrolled programs (excluding community events):', enrolledOnly);
                     setEnrolledPrograms(enrolledOnly);
                 }
             } catch (err) {
@@ -164,6 +177,7 @@ const CoursePage = () => {
                     // Sort by create_at date (newest first) - get all events
                     const sortedEvents = res.data
                         .sort((a, b) => new Date(b.create_at) - new Date(a.create_at));
+                    console.log(`Community events loaded: ${sortedEvents.length} total (showing 1 by default)`);
                     setCommunityEvents(sortedEvents);
                 } else {
                     setCommunityEvents([]);
@@ -208,14 +222,14 @@ const CoursePage = () => {
 
     // Helper functions for community events
     const getVisibleEvents = () => {
-        if (showAllEvents || communityEvents.length <= 3) {
+        if (showAllEvents || communityEvents.length <= 1) {
             return communityEvents;
         }
-        return communityEvents.slice(0, 3);
+        return communityEvents.slice(0, 1);
     };
 
     const shouldShowToggleButton = () => {
-        return communityEvents.length > 3;
+        return communityEvents.length > 1;
     };
 
     const toggleShowAllEvents = () => {
@@ -873,7 +887,7 @@ const CoursePage = () => {
                                 {getVisibleEvents().map((event, index) => renderCommunityEventCard(event, index === 0))}
                             </div>
                             
-                            {/* Toggle Button for More Events - Only show if there are more than 3 events */}
+                            {/* Toggle Button for More Events - Only show if there are more than 1 event */}
                             {shouldShowToggleButton() && (
                                 <div className="text-center mt-4" style={{ position: 'relative', zIndex: 10 }}>
                                     <button
@@ -911,7 +925,7 @@ const CoursePage = () => {
                                         ) : (
                                             <>
                                                 <i className="bi bi-chevron-down me-2"></i>
-                                                Xem thêm {communityEvents.length - 3} sự kiện
+                                                Xem thêm {communityEvents.length - 1} sự kiện
                                             </>
                                         )}
                                     </button>

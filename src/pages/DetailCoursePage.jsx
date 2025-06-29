@@ -147,14 +147,14 @@ const DetailCoursePage = () => {
     // Function to delete enrollment
     const handleDeleteEnrollment = async () => {
         const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-        if (!token || !userId) return;
+        if (!token) return;
 
         const confirmed = window.confirm('Bạn có chắc chắn muốn hủy đăng ký khóa học này? Tất cả tiến độ học tập sẽ bị xóa.');
         if (!confirmed) return;
 
         setDeleting(true);
         try {
-            const res = await fetch(`http://localhost:3000/api/enrollments/${userId}/${id}`, {
+            const res = await fetch(`http://localhost:3000/api/enrollments/my/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',

@@ -147,14 +147,21 @@ const DetailCommunityEventPage = () => {
     // Function to cancel registration
     const handleCancelRegistration = async () => {
         const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-        if (!token || !userId) return;
+        if (!token) return;
 
         const confirmed = window.confirm('Bạn có chắc chắn muốn hủy đăng ký tham gia sự kiện này? Tất cả thông tin tham gia sẽ bị xóa.');
         if (!confirmed) return;
 
         setCancelling(true);
+        console.log('🚀 Starting cancel registration process...');
+        console.log('📋 Program ID:', id);
+        console.log('🔑 Token available:', !!token);
+        
         try {
-            const res = await fetch(`http://localhost:3000/api/enrollments/${userId}/${id}`, {
+            const apiUrl = `http://localhost:3000/api/enrollments/my/${id}`;
+            console.log('📡 Making DELETE request to:', apiUrl);
+            
+            const res = await fetch(apiUrl, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -162,7 +169,13 @@ const DetailCommunityEventPage = () => {
                 }
             });
 
+            console.log('📨 Response status:', res.status);
+            console.log('✅ Response ok:', res.ok);
+
             if (res.ok) {
+                const responseData = await res.json();
+                console.log('🎉 Cancel registration successful:', responseData);
+                
                 // Reset all registration-related states
                 setIsRegistered(false);
                 setEnrollmentData(null);
@@ -171,13 +184,15 @@ const DetailCommunityEventPage = () => {
                 alert('Đã hủy đăng ký tham gia sự kiện thành công!');
             } else {
                 const errorData = await res.json();
+                console.error('❌ Cancel registration failed:', errorData);
                 alert(errorData.message || 'Có lỗi xảy ra khi hủy đăng ký');
             }
         } catch (err) {
-            console.error('Error cancelling registration:', err);
+            console.error('💥 Error cancelling registration:', err);
             alert('Có lỗi xảy ra khi hủy đăng ký tham gia sự kiện');
         } finally {
             setCancelling(false);
+            console.log('🏁 Cancel registration process completed');
         }
     };
 
