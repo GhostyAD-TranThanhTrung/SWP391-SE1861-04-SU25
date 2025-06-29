@@ -445,3 +445,52 @@
         }
     }
 } 
+
+// Featured Community Event Animations
+@keyframes pulse {
+    0% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(1.05);
+    }
+    100% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+}
+
+@keyframes glow {
+    0% {
+        box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+    }
+    50% {
+        box-shadow: 0 6px 25px rgba(255, 107, 107, 0.6);
+    }
+    100% {
+        box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+    }
+}
+
+// Featured Community Event Styles
+.featured-community-event-card {
+    .pulse-bg {
+        animation: pulse 4s ease-in-out infinite alternate;
+    }
+    
+    .glow-badge {
+        animation: glow 2s ease-in-out infinite alternate;
+    }
+}
+
+// Regular Community Event Styles
+.regular-community-event-card {
+    &:hover {
+        .event-icon {
+            transform: rotate(360deg);
+            transition: transform 0.5s ease;
+        }
+    }
+} 

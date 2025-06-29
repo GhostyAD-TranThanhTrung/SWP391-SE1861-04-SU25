@@ -14,6 +14,7 @@ const TestPage = () => {
     const [error, setError] = useState(null);
     const [expandedRecommendations, setExpandedRecommendations] = useState({});
     const [expandedAnswers, setExpandedAnswers] = useState({});
+    const [showResults, setShowResults] = useState(false); // Hidden by default
 
     // Fetch assessments when component mounts
     useEffect(() => {
@@ -150,6 +151,16 @@ const TestPage = () => {
         navigate(`/result?id=${assessmentId}`);
     };
 
+    // Hàm để toggle hiển thị kết quả
+    const toggleResults = () => {
+        setShowResults(!showResults);
+        if (!showResults) {
+            // Đóng tất cả các chi tiết mở rộng khi ẩn kết quả
+            setExpandedAnswers({});
+            setExpandedRecommendations({});
+        }
+    };
+
     // Cấu hình cho carousel
     const sliderSettings = {
         dots: true,
@@ -217,73 +228,101 @@ const TestPage = () => {
                         <div className="result-header">
                             <FaChartLine className="result-icon" />
                             <h4>Kết quả Trước đây</h4>
+                            <button 
+                                className={`toggle-results-button ${
+                                    loading ? 'loading' : 
+                                    error ? 'error' : 
+                                    assessments.length === 0 ? 'no-results' : 
+                                    assessments.length > 0 ? 'has-results' : ''
+                                }`}
+                                onClick={toggleResults}
+                                disabled={loading || error || assessments.length === 0}
+                            >
+                                {loading ? (
+                                    'Đang tải...'
+                                ) : error ? (
+                                    'Lỗi'
+                                ) : assessments.length === 0 ? (
+                                    'Chưa có kết quả'
+                                ) : showResults ? (
+                                    <>
+                                        <FaEyeSlash className="toggle-icon" />
+                                        Ẩn kết quả
+                                    </>
+                                ) : (
+                                    <>
+                                        <FaEye className="toggle-icon" />
+                                        Xem kết quả ({assessments.length})
+                                    </>
+                                )}
+                            </button>
                         </div>
-                        {loading ? (
-                            <p className="loading-text">Đang tải kết quả...</p>
-                        ) : error ? (
-                            <p className="error-text">{error}</p>
-                        ) : assessments.length === 0 ? (
-                            <div className="no-results-container">
-                                <p className="no-results">Không tìm thấy đánh giá nào trước đây. Hãy thực hiện đánh giá đầu tiên của bạn ngay bây giờ!</p>
-                                <button className="start-button start-button-small" onClick={handleStartExam}>
-                                    Bắt đầu Đánh giá
-                                    <FaArrowRight className="arrow-icon" />
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="results-carousel-container">
-                                <div className="results-carousel">
-                                    <Slider {...sliderSettings}>
-                                        {assessments.map((assessment, index) => (
-                                            <div key={index} className="carousel-item">
-                                                <div className="result-item">
-                                                    <div className="result-header-row">
-                                                        <div className="result-date">{formatDate(assessment.create_at)}</div>
-                                                        <button
-                                                            className="view-details-icon"
-                                                            onClick={() => toggleAnswers(assessment.assessment_id)}
-                                                            title={expandedAnswers[assessment.assessment_id] ? "Ẩn chi tiết" : "Xem chi tiết"}
-                                                        >
-                                                            {expandedAnswers[assessment.assessment_id] ? <FaEyeSlash /> : <FaEye />}
-                                                        </button>
-                                                    </div>
-                                                    <div className="result-type">Loại: {assessment.type}</div>
-                                                    {renderResultContent(assessment)}
+                        {showResults && (
+                            <>
+                                {loading ? (
+                                    <p className="loading-text">Đang tải kết quả...</p>
+                                ) : error ? (
+                                    <p className="error-text">{error}</p>
+                                ) : assessments.length === 0 ? (
+                                    <div className="no-results-container">
+                                        <p className="no-results">Không tìm thấy đánh giá nào trước đây. Hãy thực hiện đánh giá đầu tiên của bạn ngay bây giờ!</p>
+                                    </div>
+                                ) : (
+                                    <div className="results-carousel-container">
+                                        <div className="results-carousel">
+                                            <Slider {...sliderSettings}>
+                                                {assessments.map((assessment, index) => (
+                                                    <div key={index} className="carousel-item">
+                                                        <div className="result-item">
+                                                            <div className="result-header-row">
+                                                                <div className="result-date">{formatDate(assessment.create_at)}</div>
+                                                                <button
+                                                                    className="view-details-icon"
+                                                                    onClick={() => toggleAnswers(assessment.assessment_id)}
+                                                                    title={expandedAnswers[assessment.assessment_id] ? "Ẩn chi tiết" : "Xem chi tiết"}
+                                                                >
+                                                                    {expandedAnswers[assessment.assessment_id] ? <FaEyeSlash /> : <FaEye />}
+                                                                </button>
+                                                            </div>
+                                                            <div className="result-type">Loại: {assessment.type}</div>
+                                                            {renderResultContent(assessment)}
 
-                                                    {/* Hiển thị chi tiết câu trả lời khi nhấn vào icon con mắt */}
-                                                    {expandedAnswers[assessment.assessment_id] && (
-                                                        <div className="answer-details-container">
-                                                            {renderAnswerDetails(assessment)}
-                                                        </div>
-                                                    )}
-
-                                                    {assessment.action && (
-                                                        <>
-                                                            <button
-                                                                className="recommendation-toggle"
-                                                                onClick={() => toggleRecommendation(assessment.assessment_id)}
-                                                            >
-                                                                <div className="toggle-content">
-                                                                    <span>Khuyến nghị</span>
-                                                                    {expandedRecommendations[assessment.assessment_id] ?
-                                                                        <FaChevronUp className="toggle-icon" /> :
-                                                                        <FaChevronDown className="toggle-icon" />
-                                                                    }
-                                                                </div>
-                                                            </button>
-                                                            {expandedRecommendations[assessment.assessment_id] && (
-                                                                <div className="result-action">
-                                                                    <div className="action-description">{assessment.action.description}</div>
+                                                            {/* Hiển thị chi tiết câu trả lời khi nhấn vào icon con mắt */}
+                                                            {expandedAnswers[assessment.assessment_id] && (
+                                                                <div className="answer-details-container">
+                                                                    {renderAnswerDetails(assessment)}
                                                                 </div>
                                                             )}
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </Slider>
-                                </div>
-                            </div>
+
+                                                            {assessment.action && (
+                                                                <>
+                                                                    <button
+                                                                        className="recommendation-toggle"
+                                                                        onClick={() => toggleRecommendation(assessment.assessment_id)}
+                                                                    >
+                                                                        <div className="toggle-content">
+                                                                            <span>Khuyến nghị</span>
+                                                                            {expandedRecommendations[assessment.assessment_id] ?
+                                                                                <FaChevronUp className="toggle-icon" /> :
+                                                                                <FaChevronDown className="toggle-icon" />
+                                                                            }
+                                                                        </div>
+                                                                    </button>
+                                                                    {expandedRecommendations[assessment.assessment_id] && (
+                                                                        <div className="result-action">
+                                                                            <div className="action-description">{assessment.action.description}</div>
+                                                                        </div>
+                                                                    )}
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </Slider>
+                                        </div>
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
                 </div>

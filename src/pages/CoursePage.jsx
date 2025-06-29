@@ -14,6 +14,10 @@ const CoursePage = () => {
     const [showAllCategories, setShowAllCategories] = useState(false);
     const [enrolledPrograms, setEnrolledPrograms] = useState([]);
     const [enrollmentLoading, setEnrollmentLoading] = useState(false);
+    const [communityEvents, setCommunityEvents] = useState([]);
+    const [eventsLoading, setEventsLoading] = useState(true);
+    const [eventsError, setEventsError] = useState(null);
+    const [showAllEvents, setShowAllEvents] = useState(false);
     const itemsPerPage = 4;
     const maxVisibleCategories = 4;
 
@@ -39,8 +43,11 @@ const CoursePage = () => {
 
                 if (res.success && res.data && res.data.length > 0) {
                     setCategories(res.data);
-                    // Set first category as default selected
-                    setSelectedCategory(res.data[0]);
+                    // Set first non-Community Event category as default selected
+                    const filteredCategories = res.data.filter(category => category.name !== 'Community Event');
+                    if (filteredCategories.length > 0) {
+                        setSelectedCategory(filteredCategories[0]);
+                    }
                 } else {
                     console.warn('No categories found or invalid response');
                     setCategories([]);
@@ -132,6 +139,46 @@ const CoursePage = () => {
         fetchEnrolledPrograms();
     }, []);
 
+    // Fetch community events
+    useEffect(() => {
+        const fetchCommunityEvents = async () => {
+            setEventsLoading(true);
+            setEventsError(null);
+            try {
+                console.log('Fetching community events...');
+                const response = await fetch('http://localhost:3000/api/programs/community-events', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch community events');
+                }
+
+                const res = await response.json();
+                console.log('Community events fetched successfully:', res);
+
+                if (res.success && res.data) {
+                    // Sort by create_at date (newest first) - get all events
+                    const sortedEvents = res.data
+                        .sort((a, b) => new Date(b.create_at) - new Date(a.create_at));
+                    setCommunityEvents(sortedEvents);
+                } else {
+                    setCommunityEvents([]);
+                }
+            } catch (err) {
+                console.error('💥 Error fetching community events:', err);
+                setEventsError('Không thể tải sự kiện cộng đồng. Vui lòng thử lại sau.');
+            } finally {
+                setEventsLoading(false);
+            }
+        };
+
+        fetchCommunityEvents();
+    }, []);
+
     // Helper function to get display name for category (name + description)
     const getCategoryDisplayName = (category) => {
         if (category.name && category.description) {
@@ -157,6 +204,280 @@ const CoursePage = () => {
 
     const getOngoingPrograms = () => {
         return enrolledPrograms.filter(program => !program.enrollment_status.has_complete);
+    };
+
+    // Helper functions for community events
+    const getVisibleEvents = () => {
+        if (showAllEvents || communityEvents.length <= 3) {
+            return communityEvents;
+        }
+        return communityEvents.slice(0, 3);
+    };
+
+    const shouldShowToggleButton = () => {
+        return communityEvents.length > 3;
+    };
+
+    const toggleShowAllEvents = () => {
+        setShowAllEvents(!showAllEvents);
+    };
+
+    // Helper function to render community event cards
+    const renderCommunityEventCard = (event, isLatest = false) => {
+        if (isLatest) {
+            // Featured layout for the latest event
+            return (
+                <div className="col-12 mb-4" key={event.program_id}>
+                    <Link to={`/community-event/${event.program_id}`} className="custom-card-link" style={{ textDecoration: 'none' }}>
+                        <div 
+                            className="featured-community-event-card" 
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = 'translateY(-5px) scale(1.02)';
+                                e.currentTarget.style.boxShadow = '0 20px 60px rgba(102, 126, 234, 0.4)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                                e.currentTarget.style.boxShadow = '0 15px 50px rgba(0, 0, 0, 0.25)';
+                            }}
+                            style={{
+                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
+                            borderRadius: '25px',
+                            padding: '2.5rem',
+                            color: 'white',
+                            position: 'relative',
+                            overflow: 'hidden',
+                            minHeight: '220px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            boxShadow: '0 15px 50px rgba(0, 0, 0, 0.25)',
+                            transition: 'all 0.4s ease'
+                        }}>
+                            {/* Animated Background Pattern */}
+                            <div style={{
+                                position: 'absolute',
+                                top: '0',
+                                left: '0',
+                                right: '0',
+                                bottom: '0',
+                                background: 'radial-gradient(circle at 20% 50%, rgba(255,255,255,0.2) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255,255,255,0.15) 0%, transparent 50%)',
+                                animation: 'pulse 4s ease-in-out infinite alternate'
+                            }}></div>
+
+                            {/* LATEST Badge */}
+                            <div style={{
+                                position: 'absolute',
+                                top: '20px',
+                                right: '20px',
+                                background: 'linear-gradient(135deg, #ff6b6b 0%, #feca57 100%)',
+                                padding: '8px 16px',
+                                borderRadius: '25px',
+                                fontSize: '12px',
+                                fontWeight: 'bold',
+                                border: '2px solid rgba(255, 255, 255, 0.3)',
+                                zIndex: 10,
+                                boxShadow: '0 4px 15px rgba(255, 107, 107, 0.4)',
+                                animation: 'glow 2s ease-in-out infinite alternate'
+                            }}>
+                                <i className="bi bi-star-fill me-1"></i>
+                                MỚI NHẤT
+                            </div>
+
+                            {/* Content */}
+                            <div className="row w-100" style={{ position: 'relative', zIndex: 5 }}>
+                                <div className="col-md-8">
+                                    <div style={{ marginBottom: '1rem' }}>
+                                        <h2 style={{
+                                            fontWeight: 'bold',
+                                            fontSize: '2.2rem',
+                                            marginBottom: '1rem',
+                                            lineHeight: '1.2',
+                                            textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                                        }}>
+                                            {event.title}
+                                        </h2>
+                                        <p style={{
+                                            fontSize: '1.1rem',
+                                            opacity: 0.95,
+                                            marginBottom: '1.5rem',
+                                            lineHeight: '1.6',
+                                            display: '-webkit-box',
+                                            WebkitLineClamp: 3,
+                                            WebkitBoxOrient: 'vertical',
+                                            overflow: 'hidden'
+                                        }}>
+                                            {event.description}
+                                        </p>
+                                    </div>
+
+                                    {/* Event Info */}
+                                    <div style={{
+                                        display: 'flex',
+                                        gap: '1.5rem',
+                                        alignItems: 'center'
+                                    }}>
+                                        <div style={{
+                                            background: 'rgba(255, 255, 255, 0.25)',
+                                            padding: '10px 16px',
+                                            borderRadius: '20px',
+                                            fontSize: '0.9rem',
+                                            fontWeight: 'bold',
+                                            backdropFilter: 'blur(10px)',
+                                            border: '1px solid rgba(255, 255, 255, 0.3)'
+                                        }}>
+                                            <i className="bi bi-calendar-event me-2"></i>
+                                            {event.create_at ? new Date(event.create_at).toLocaleDateString('vi-VN') : ''}
+                                        </div>
+                                        <div style={{
+                                            background: 'rgba(255, 255, 255, 0.25)',
+                                            padding: '10px 16px',
+                                            borderRadius: '20px',
+                                            fontSize: '0.9rem',
+                                            fontWeight: 'bold',
+                                            backdropFilter: 'blur(10px)',
+                                            border: '1px solid rgba(255, 255, 255, 0.3)'
+                                        }}>
+                                            <i className="bi bi-people-fill me-2"></i>
+                                            Sự kiện Cộng đồng
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="col-md-4 text-center">
+                                    <div style={{
+                                        background: 'rgba(255, 255, 255, 0.15)',
+                                        borderRadius: '20px',
+                                        padding: '1.5rem',
+                                        backdropFilter: 'blur(15px)',
+                                        border: '1px solid rgba(255, 255, 255, 0.2)'
+                                    }}>
+                                        <i className="bi bi-calendar-heart" style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.9 }}></i>
+                                        <h4 style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>Tham gia ngay</h4>
+                                        <p style={{ fontSize: '0.9rem', opacity: 0.9, margin: 0 }}>
+                                            Đừng bỏ lỡ cơ hội kết nối cộng đồng
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </Link>
+                </div>
+            );
+        } else {
+            // Regular layout for other events
+            return (
+                <div className="col-md-6" key={event.program_id}>
+                    <Link to={`/community-event/${event.program_id}`} className="custom-card-link" style={{ textDecoration: 'none' }}>
+                        <div 
+                            className="regular-community-event-card" 
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = 'translateY(-5px)';
+                                e.currentTarget.style.boxShadow = '0 10px 30px rgba(102, 126, 234, 0.25)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.15)';
+                            }}
+                            style={{
+                            background: 'linear-gradient(135deg, #74b9ff 0%, #0984e3 100%)',
+                            borderRadius: '20px',
+                            padding: '1.5rem',
+                            color: 'white',
+                            position: 'relative',
+                            overflow: 'hidden',
+                            minHeight: '200px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'space-between',
+                            boxShadow: '0 6px 20px rgba(0, 0, 0, 0.15)',
+                            transition: 'all 0.3s ease'
+                        }}>
+                            {/* Background Pattern */}
+                            <div style={{
+                                position: 'absolute',
+                                top: '-30px',
+                                right: '-30px',
+                                width: '100px',
+                                height: '100px',
+                                background: 'rgba(255, 255, 255, 0.1)',
+                                borderRadius: '50%',
+                                opacity: 0.6
+                            }}></div>
+
+                            {/* Event Badge */}
+                            <div style={{
+                                position: 'absolute',
+                                top: '12px',
+                                right: '12px',
+                                background: 'rgba(255, 255, 255, 0.25)',
+                                backdropFilter: 'blur(10px)',
+                                padding: '4px 10px',
+                                borderRadius: '15px',
+                                fontSize: '11px',
+                                fontWeight: 'bold',
+                                border: '1px solid rgba(255, 255, 255, 0.3)',
+                                zIndex: 10
+                            }}>
+                                <i className="bi bi-calendar-event me-1"></i>
+                                Sự kiện
+                            </div>
+
+                            {/* Content */}
+                            <div style={{ position: 'relative', zIndex: 5, flex: 1 }}>
+                                <h5 style={{
+                                    fontWeight: 'bold',
+                                    fontSize: '1.4rem',
+                                    marginBottom: '0.8rem',
+                                    lineHeight: '1.3',
+                                    display: '-webkit-box',
+                                    WebkitLineClamp: 2,
+                                    WebkitBoxOrient: 'vertical',
+                                    overflow: 'hidden'
+                                }}>
+                                    {event.title}
+                                </h5>
+                                <p style={{
+                                    fontSize: '0.95rem',
+                                    opacity: 0.9,
+                                    lineHeight: '1.5',
+                                    display: '-webkit-box',
+                                    WebkitLineClamp: 3,
+                                    WebkitBoxOrient: 'vertical',
+                                    overflow: 'hidden'
+                                }}>
+                                    {event.description}
+                                </p>
+                            </div>
+
+                            {/* Footer */}
+                            <div style={{ position: 'relative', zIndex: 5, marginTop: '1rem' }}>
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    paddingTop: '1rem',
+                                    borderTop: '1px solid rgba(255, 255, 255, 0.2)'
+                                }}>
+                                    <div style={{ fontSize: '0.85rem', opacity: 0.9 }}>
+                                        <i className="bi bi-clock me-1"></i>
+                                        {event.create_at ? new Date(event.create_at).toLocaleDateString('vi-VN') : ''}
+                                    </div>
+                                    <div style={{
+                                        background: 'rgba(255, 255, 255, 0.2)',
+                                        padding: '4px 10px',
+                                        borderRadius: '12px',
+                                        fontSize: '0.75rem',
+                                        fontWeight: 'bold'
+                                    }}>
+                                        <i className="bi bi-people me-1"></i>
+                                        Cộng đồng
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </Link>
+                </div>
+            );
+        }
     };
 
     const renderEnrolledProgramCard = (program) => (
@@ -298,10 +619,15 @@ const CoursePage = () => {
     };
 
     const getVisibleCategories = () => {
-        if (showAllCategories || categories.length <= maxVisibleCategories) {
-            return categories;
+        // Filter out Community Event category from the display
+        const filteredCategories = categories.filter(category => 
+            category.name !== 'Community Event'
+        );
+        
+        if (showAllCategories || filteredCategories.length <= maxVisibleCategories) {
+            return filteredCategories;
         }
-        return categories.slice(0, maxVisibleCategories);
+        return filteredCategories.slice(0, maxVisibleCategories);
     };
 
     const handlePrev = () => {
@@ -483,6 +809,118 @@ const CoursePage = () => {
                     </section>
                 )}
 
+                {/* Community Events Section */}
+                <section className="community-events-section mb-5" style={{
+                    background: 'linear-gradient(135deg, #f6f9ff 0%, #e8f4fd 100%)',
+                    borderRadius: '25px',
+                    padding: '3rem 2rem',
+                    border: '1px solid rgba(102, 126, 234, 0.1)',
+                    position: 'relative',
+                    overflow: 'hidden'
+                }}>
+                    {/* Background decoration */}
+                    <div style={{
+                        position: 'absolute',
+                        top: '-50px',
+                        right: '-50px',
+                        width: '200px',
+                        height: '200px',
+                        background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
+                        borderRadius: '50%',
+                        filter: 'blur(30px)'
+                    }}></div>
+
+                    <div className="text-center mb-4" style={{ position: 'relative', zIndex: 10 }}>
+                        <h2 style={{ 
+                            color: '#2c3e50', 
+                            fontWeight: 'bold', 
+                            marginBottom: '0.5rem',
+                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            backgroundClip: 'text'
+                        }}>
+                            <i className="bi bi-calendar-heart me-2" style={{ color: '#667eea' }}></i>
+                            Sự kiện Cộng đồng Mới nhất
+                        </h2>
+                        <p style={{ color: '#546e7a', fontSize: '1.1rem', maxWidth: '600px', margin: '0 auto' }}>
+                            Tham gia các hoạt động cộng đồng và kết nối với những người có cùng hành trình
+                        </p>
+                    </div>
+
+                    {eventsLoading ? (
+                        <div className="text-center py-4">
+                            <div className="spinner-border text-primary" role="status">
+                                <span className="visually-hidden">Đang tải...</span>
+                            </div>
+                            <p className="mt-2 text-muted">Đang tải sự kiện cộng đồng...</p>
+                        </div>
+                    ) : eventsError ? (
+                        <div className="text-center py-4">
+                            <i className="bi bi-exclamation-triangle" style={{ fontSize: '3rem', color: '#ffc107' }}></i>
+                            <h4 className="mt-3 text-warning">Có lỗi xảy ra</h4>
+                            <p className="text-muted">{eventsError}</p>
+                        </div>
+                    ) : communityEvents.length === 0 ? (
+                        <div className="text-center py-4">
+                            <i className="bi bi-calendar-x" style={{ fontSize: '3rem', color: '#ccc' }}></i>
+                            <h4 className="mt-3 text-muted">Chưa có sự kiện nào</h4>
+                            <p className="text-muted">Các sự kiện cộng đồng sẽ được cập nhật sớm. Hãy quay lại sau!</p>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="row gx-4 gy-4" style={{ position: 'relative', zIndex: 10 }}>
+                                {getVisibleEvents().map((event, index) => renderCommunityEventCard(event, index === 0))}
+                            </div>
+                            
+                            {/* Toggle Button for More Events - Only show if there are more than 3 events */}
+                            {shouldShowToggleButton() && (
+                                <div className="text-center mt-4" style={{ position: 'relative', zIndex: 10 }}>
+                                    <button
+                                        className="btn btn-outline-secondary btn-lg toggle-events-btn"
+                                        onClick={toggleShowAllEvents}
+                                        style={{
+                                            borderRadius: '25px',
+                                            padding: '12px 30px',
+                                            fontWeight: 'bold',
+                                            background: 'rgba(255, 255, 255, 0.9)',
+                                            backdropFilter: 'blur(10px)',
+                                            border: '2px solid #6c757d',
+                                            color: '#6c757d',
+                                            transition: 'all 0.3s ease',
+                                            marginBottom: '1rem'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.target.style.background = '#6c757d';
+                                            e.target.style.color = 'white';
+                                            e.target.style.transform = 'translateY(-2px)';
+                                            e.target.style.boxShadow = '0 8px 25px rgba(108, 117, 125, 0.3)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.target.style.background = 'rgba(255, 255, 255, 0.9)';
+                                            e.target.style.color = '#6c757d';
+                                            e.target.style.transform = 'translateY(0)';
+                                            e.target.style.boxShadow = 'none';
+                                        }}
+                                    >
+                                        {showAllEvents ? (
+                                            <>
+                                                <i className="bi bi-chevron-up me-2"></i>
+                                                Ẩn bớt sự kiện
+                                            </>
+                                        ) : (
+                                            <>
+                                                <i className="bi bi-chevron-down me-2"></i>
+                                                Xem thêm {communityEvents.length - 3} sự kiện
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            )}
+                        </>
+                    )}
+                </section>
+
                 {/* Category Tabs */}
                 <div className="category-section mb-4">
                     {categoriesLoading ? (
@@ -506,7 +944,7 @@ const CoursePage = () => {
                                     ))}
                                 </div>
 
-                                {categories.length > maxVisibleCategories && (
+                                {categories.filter(category => category.name !== 'Community Event').length > maxVisibleCategories && (
                                     <div className="text-center">
                                         <button
                                             className="btn btn-outline-primary btn-sm toggle-categories-btn"
@@ -520,7 +958,7 @@ const CoursePage = () => {
                                             ) : (
                                                 <>
                                                     <i className="bi bi-chevron-down me-2"></i>
-                                                    Xem thêm {categories.length - maxVisibleCategories} danh mục
+                                                    Xem thêm {categories.filter(category => category.name !== 'Community Event').length - maxVisibleCategories} danh mục
                                                 </>
                                             )}
                                         </button>

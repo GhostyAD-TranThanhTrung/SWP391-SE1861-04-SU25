@@ -13,6 +13,8 @@ const ResultPage = () => {
     const [loading, setLoading] = useState(false);
     const [assessmentResult, setAssessmentResult] = useState(null);
     const [showAnswers, setShowAnswers] = useState(false);
+    const [hasSaved, setHasSaved] = useState(false); // Track if assessment has been saved
+    const [showResults, setShowResults] = useState(true); // Always show results, but save separately
 
     const generateAssessmentId = () => {
         // Simple incremental assessment_id generation (in real app, use UUID or DB auto-increment)
@@ -20,8 +22,19 @@ const ResultPage = () => {
     };
 
     const saveAssessmentResult = async () => {
+        // Prevent duplicate saves
+        if (hasSaved) {
+            console.log('Assessment already saved, skipping...');
+            return;
+        }
+
         setLoading(true);
         setError(null);
+        setHasSaved(true); // Mark as being saved
+        
+        console.log('🔄 MANUAL SAVE: Saving assessment result for type:', type);
+        console.log('📊 Assessment data to save:', { result, type, userAnswers });
+        
         try {
             const token = sessionStorage.getItem('token');
             if (!token) {
@@ -75,13 +88,18 @@ const ResultPage = () => {
             );
 
             if (response.data.success) {
-                console.log('Assessment saved successfully:', response.data);
+                console.log('✅ Assessment saved successfully:', response.data);
                 setAssessmentResult(response.data.data);
+                // Keep hasSaved as true since save was successful
             } else {
+                console.error('❌ Failed to save assessment:', response.data.message);
                 setError(response.data.message || 'Failed to save assessment');
+                setHasSaved(false); // Reset flag on failure so user can retry
             }
         } catch (error) {
-            console.error('Error saving assessment:', error);
+            console.error('💥 Error saving assessment:', error);
+            setHasSaved(false); // Reset flag on error so user can retry
+            
             if (error.response) {
                 // Server responded with error
                 switch (error.response.status) {
@@ -109,36 +127,52 @@ const ResultPage = () => {
         }
     };
 
-    useEffect(() => {
-        if (result) {
-            saveAssessmentResult();
+    // Manual submit function to save assessment
+    const handleSubmitAssessment = async () => {
+        if (!hasSaved) {
+            console.log('🎯 User clicked submit - saving assessment result...');
+            await saveAssessmentResult();
         }
-    }, [result]);
+    };
 
-    if (loading) {
-        return (
-            <div className="result-page">
-                <div className="container">
-                    <div className="alert alert-info">
-                        Đang xử lý kết quả...
-                    </div>
-                </div>
-            </div>
-        );
-    }
+    // Remove automatic saving - only validate that we have the required data
+    useEffect(() => {
+        if (!result || !type) {
+            console.log('❌ Missing result or type data, redirecting...');
+            navigate('/choosetype');
+        } else {
+            console.log('✅ ResultPage loaded with data:', { type, score: result.score, riskLevel: result.riskLevel });
+            console.log('⏳ Assessment will NOT be saved automatically - waiting for user to click Submit');
+        }
+    }, [result, type, navigate]);
+
+    // Remove the loading screen - we'll show loading state in the button instead
 
     if (error) {
         return (
             <div className="result-page">
                 <div className="container">
                     <div className="alert alert-danger">
-                        {error}
-                        <button
-                            className="btn btn-outline-danger ms-3"
-                            onClick={() => navigate('/choosetype')}
-                        >
-                            Quay lại trang chủ
-                        </button>
+                        <strong>Lỗi lưu kết quả:</strong> {error}
+                        <div className="mt-3">
+                            <button
+                                className="btn btn-primary me-2"
+                                onClick={() => {
+                                    setError(null);
+                                    setHasSaved(false);
+                                    saveAssessmentResult();
+                                }}
+                                disabled={loading}
+                            >
+                                {loading ? 'Đang thử lại...' : 'Thử lại'}
+                            </button>
+                            <button
+                                className="btn btn-outline-secondary"
+                                onClick={() => navigate('/choosetype')}
+                            >
+                                Quay lại trang chủ
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -220,6 +254,18 @@ const ResultPage = () => {
                 >
                     <div className="card-header">
                         <h2>Kết Quả Đánh Giá {type?.toUpperCase()}</h2>
+                        {!hasSaved && (
+                            <div className="alert alert-warning mt-2 mb-0">
+                                <i className="fas fa-exclamation-triangle me-2"></i>
+                                <small>Kết quả chưa được lưu vào hệ thống. Nhấn "Lưu Kết Quả" để lưu.</small>
+                            </div>
+                        )}
+                        {assessmentResult && hasSaved && (
+                            <div className="alert alert-success mt-2 mb-0">
+                                <i className="fas fa-check-circle me-2"></i>
+                                <small>Kết quả đã được lưu thành công vào hệ thống!</small>
+                            </div>
+                        )}
                     </div>
                     <div className="card-body">
                         <div className="result-summary">
@@ -227,6 +273,14 @@ const ResultPage = () => {
                             <div className={`risk-level ${getRiskLevelClass(result.riskLevel)}`}>
                                 {result.riskLevel}
                             </div>
+                            {!hasSaved && (
+                                <div className="mt-3">
+                                    <small className="text-muted">
+                                        <i className="fas fa-info-circle me-1"></i>
+                                        Đây là kết quả tạm thời. Nhấn "Lưu Kết Quả" để lưu vào hệ thống của bạn.
+                                    </small>
+                                </div>
+                            )}
                         </div>
 
                         <div className="result-details">
@@ -310,16 +364,39 @@ const ResultPage = () => {
                         )}
 
                         <div className="action-buttons">
+                            {!hasSaved && (
+                                <button
+                                    className="btn btn-success btn-lg"
+                                    onClick={handleSubmitAssessment}
+                                    disabled={loading}
+                                >
+                                    {loading ? (
+                                        <>
+                                            <div className="spinner-border spinner-border-sm me-2" role="status">
+                                                <span className="visually-hidden">Loading...</span>
+                                            </div>
+                                            Đang lưu...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <i className="fas fa-save me-2"></i>
+                                            Lưu Kết Quả
+                                        </>
+                                    )}
+                                </button>
+                            )}
                             <button
                                 className="btn btn-primary"
                                 onClick={() => navigate(`/exam/${type}`)}
                             >
+                                <i className="fas fa-redo me-2"></i>
                                 Làm Lại Bài Đánh Giá
                             </button>
                             <button
                                 className="btn btn-outline-secondary"
                                 onClick={() => navigate('/test')}
                             >
+                                <i className="fas fa-home me-2"></i>
                                 Quay Về Trang Chủ
                             </button>
                         </div>

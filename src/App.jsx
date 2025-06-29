@@ -26,6 +26,7 @@ import MemberListPage from "./pages/admin/MemberListPage";
 import ConsultantListPage from "./pages/admin/ConsultantListPage";
 import AssessmentListPage from "./pages/admin/AssessmentListPage";
 import DetailCoursePage from "./pages/DetailCoursePage";
+import DetailCommunityEventPage from "./pages/DetailCommunityEventPage";
 import DetailBlogPage from "./pages/DetailBlogPage";
 import ContentViewPage from "./pages/ContentViewPage";
 import CertificatePage from "./pages/consultant/CertificatePage";
@@ -67,6 +68,7 @@ const AppLayout = () => {
           <Route path="/consultant/:id" element={<BookingProfile />} />
           <Route path="/result" element={<ResultPage />} />
           <Route path="/program/:id" element={<DetailCoursePage />} />
+          <Route path="/community-event/:id" element={<DetailCommunityEventPage />} />
           <Route path="/blog/:id" element={<DetailBlogPage />} />
           <Route path="/content/:contentId" element={<ContentViewPage />} />
 

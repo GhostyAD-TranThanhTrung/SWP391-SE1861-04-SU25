@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { API_URL, CONTENT_BASE_URL, CONTENT_URLS, getAuthHeaders } from '../service/config';
 import '../styles/ContentViewPage.scss';
 
 const ContentViewPage = () => {
@@ -29,11 +30,10 @@ const ContentViewPage = () => {
             
             try {
                 // Get content details
-                console.log('📡 GET content from:', `http://localhost:3000/api/content/${contentId}`);
-                const contentRes = await fetch(`http://localhost:3000/api/content/${contentId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+                const contentUrl = `${API_URL}/content/${contentId}`;
+                console.log('📡 GET content from:', contentUrl);
+                const contentRes = await fetch(contentUrl, {
+                    headers: getAuthHeaders()
                 });
 
                 if (!contentRes.ok) {
@@ -45,11 +45,10 @@ const ContentViewPage = () => {
                 setContent(contentData.data);
 
                 // Get content file
-                console.log('📡 GET content file from:', `http://localhost:3000/api/content/file/${contentId}`);
-                const fileRes = await fetch(`http://localhost:3000/api/content/file/${contentId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+                const fileUrl = `${API_URL}/content/file/${contentId}`;
+                console.log('📡 GET content file from:', fileUrl);
+                const fileRes = await fetch(fileUrl, {
+                    headers: getAuthHeaders()
                 });
 
                 if (fileRes.ok) {
@@ -79,11 +78,10 @@ const ContentViewPage = () => {
         
         try {
             // Check if user is enrolled in this program
-            console.log('📡 GET enrollment check from:', `http://localhost:3000/api/enrollments/check/${programId}`);
-            const enrollmentRes = await fetch(`http://localhost:3000/api/enrollments/check/${programId}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+            const enrollmentUrl = `${API_URL}/enrollments/check/${programId}`;
+            console.log('📡 GET enrollment check from:', enrollmentUrl);
+            const enrollmentRes = await fetch(enrollmentUrl, {
+                headers: getAuthHeaders()
             });
 
             if (enrollmentRes.ok) {
@@ -134,14 +132,12 @@ const ContentViewPage = () => {
             const enrollId = `${enrollmentData.user_id}_${enrollmentData.program_id}`;
             console.log('🆔 Using enroll ID:', enrollId);
 
-            const url = `http://localhost:3000/api/enrollments/${enrollId}/content/${contentId}/toggle`;
+            const url = `${API_URL}/enrollments/${enrollId}/content/${contentId}/toggle`;
             console.log('📡 PATCH to:', url);
 
             const res = await fetch(url, {
                 method: 'PATCH',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                headers: getAuthHeaders()
             });
 
             console.log('Toggle response status:', res.status);
@@ -366,10 +362,15 @@ const ContentViewPage = () => {
     const formatMarkdown = (markdown) => {
         if (!markdown) return '';
 
-        // Enhanced markdown to HTML conversion with image support
+        // Enhanced markdown to HTML conversion with image support using new API endpoint
         let html = markdown
-            // Images
-            .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" class="content-image" />')
+            // Images - now using the new API endpoint via CONTENT_URLS
+            .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, src) => {
+                console.log('🔍 Found image in markdown:', { alt, src, match });
+                const convertedSrc = CONTENT_URLS.CONVERT_IMAGE_PATH(src);
+                console.log('🎯 Final converted image src (via API):', convertedSrc);
+                return `<img src="${convertedSrc}" alt="${alt}" class="content-image" onerror="console.error('❌ Image failed to load via API:', '${convertedSrc}'); this.style.display='none';" onload="console.log('✅ Image loaded successfully via API:', '${convertedSrc}');" />`;
+            })
             // Headers
             .replace(/^### (.*$)/gim, '<h3>$1</h3>')
             .replace(/^## (.*$)/gim, '<h2>$1</h2>')
@@ -394,6 +395,7 @@ const ContentViewPage = () => {
         html = html.replace(/(<li class="ordered">.*?<\/li>)/gims, '<ol>$1</ol>');
         html = html.replace(/(<li class="unordered">.*?<\/li>)/gims, '<ul>$1</ul>');
 
+        console.log('📝 Final HTML output:', html);
         return html;
     };
 

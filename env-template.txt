@@ -2,9 +2,9 @@
 VITE_API_BASE_URL=http://localhost:3000
 VITE_API_URL=http://localhost:3000/api
 
-# Content URLs  
+# Content URLs
 VITE_CONTENT_BASE_URL=http://localhost:3000/content
 VITE_UPLOADS_BASE_URL=http://localhost:3000/uploads
 
 # Environment
-NODE_ENV=development
+NODE_ENV=development 

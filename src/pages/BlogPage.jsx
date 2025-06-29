@@ -27,6 +27,42 @@ const BlogPage = () => {
     const [expandedBlogs, setExpandedBlogs] = useState(new Set());
     const [contentError, setContentError] = useState('');
 
+    // Suppress React Quill deprecation warnings
+    useEffect(() => {
+        // Store original console methods
+        const originalWarn = console.warn;
+        const originalError = console.error;
+
+        // Filter out React Quill deprecation warnings
+        console.warn = (...args) => {
+            const message = args[0];
+            if (typeof message === 'string' && 
+                (message.includes('findDOMNode') || 
+                 message.includes('DOMNodeInserted') ||
+                 message.includes('react-quill'))) {
+                return; // Suppress these warnings
+            }
+            originalWarn.apply(console, args);
+        };
+
+        console.error = (...args) => {
+            const message = args[0];
+            if (typeof message === 'string' && 
+                (message.includes('findDOMNode') || 
+                 message.includes('DOMNodeInserted') ||
+                 message.includes('react-quill'))) {
+                return; // Suppress these errors
+            }
+            originalError.apply(console, args);
+        };
+
+        // Cleanup function to restore original console methods
+        return () => {
+            console.warn = originalWarn;
+            console.error = originalError;
+        };
+    }, []);
+
     // Danh sách từ cấm
     const bannedWords = [
         'đụ', 'địt', 'lồn', 'cặc', 'buồi', 'dái', 'đéo', 'đĩ', 'đít', 'đm',
@@ -35,7 +71,7 @@ const BlogPage = () => {
         'fuck', 'shit', 'bitch', 'dick', 'cock', 'pussy', 'asshole', 'motherfucker'
     ];
 
-    // Cấu hình cho React Quill
+    // Cấu hình cho React Quill - Updated to reduce deprecation warnings
     const modules = {
         toolbar: [
             [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
@@ -46,6 +82,10 @@ const BlogPage = () => {
             ['link'],
             ['clean']
         ],
+        clipboard: {
+            // toggle to add extra line breaks when pasting HTML:
+            matchVisual: false,
+        }
     };
 
     const formats = [
@@ -67,18 +107,27 @@ const BlogPage = () => {
     const fetchBlogs = async () => {
         try {
             setLoading(true);
-            const response = await fetch('http://localhost:3000/api/blogs', {
+            const endpoint = 'http://localhost:3000/api/blogs';
+            console.log('📡 Fetching blogs from:', endpoint);
+            
+            const response = await fetch(endpoint, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
                 },
             });
 
+            console.log('📡 Fetch blogs response status:', response.status);
+
             if (!response.ok) {
+                const errorText = await response.text();
+                console.error('❌ Fetch blogs error:', errorText);
                 throw new Error('Không thể tải dữ liệu blog');
             }
 
             const data = await response.json();
+            console.log('📊 Blogs data received:', data);
+            
             // Filter out hidden blogs for public view
             const visibleBlogs = data.data.filter(blog => blog.status !== 'hidden');
             setPosts(visibleBlogs);
@@ -248,13 +297,34 @@ const BlogPage = () => {
     const handleSubmitBlog = async (e) => {
         e.preventDefault();
 
+                // Validate required fields
+        if (!newBlog.title.trim()) {
+            alert('Vui lòng nhập tiêu đề câu chuyện');
+            return;
+        }
+
+        if (!newBlog.body.trim()) {
+            alert('Vui lòng nhập nội dung câu chuyện');
+            return;
+        }
+
+        // Validate status
+        const validStatuses = ['draft', 'pending', 'published'];
+        if (!validStatuses.includes(newBlog.status)) {
+            console.error('❌ Invalid status:', newBlog.status);
+            alert('Trạng thái không hợp lệ. Vui lòng chọn lại.');
+            return;
+        }
+
+        console.log('📊 Blog data before submission:', newBlog);
+
         // Kiểm tra từ cấm trước khi submit
         const hasTitleBannedWords = checkForBannedWords(newBlog.title, 'title');
         const hasBodyBannedWords = checkForBannedWords(newBlog.body, 'body');
 
         if (hasTitleBannedWords || hasBodyBannedWords) {
             alert('Nội dung chứa từ ngữ không phù hợp. Vui lòng chỉnh sửa trước khi đăng.');
-            return;
+            return;  
         }
 
         setIsSubmitting(true);
@@ -303,14 +373,25 @@ const BlogPage = () => {
                 setImageUploadProgress(0);
             }
 
+            console.log('📡 Making request to:', endpoint);
+            console.log('📝 Method:', method);
+            console.log('📋 Headers:', headers);
+            console.log('💾 Has image:', !!selectedImage);
+            console.log('📄 Request body type:', selectedImage ? 'FormData' : 'JSON');
+
             const response = await fetch(endpoint, {
                 method: method,
                 headers: headers,
                 body: selectedImage ? formData : JSON.stringify(newBlog)
             });
 
+            console.log('📡 Response status:', response.status);
+            console.log('📡 Response ok:', response.ok);
+
             if (!response.ok) {
-                throw new Error(isEditing ? 'Không thể cập nhật câu chuyện' : 'Không thể tạo câu chuyện mới');
+                const errorText = await response.text();
+                console.error('❌ Response error:', errorText);
+                throw new Error(`${isEditing ? 'Không thể cập nhật câu chuyện' : 'Không thể tạo câu chuyện mới'} (${response.status}): ${errorText}`);
             }
 
             // Simulate completion progress
@@ -504,6 +585,7 @@ const BlogPage = () => {
         const statusMap = {
             'published': { text: 'Đã xuất bản', class: 'badge-success' },
             'draft': { text: 'Bản nháp', class: 'badge-warning' },
+            'pending': { text: 'Chờ duyệt', class: 'badge-info' },
             'hidden': { text: 'Đã ẩn', class: 'badge-secondary' }
         };
         const statusInfo = statusMap[status] || { text: status, class: 'badge-secondary' };
@@ -812,6 +894,16 @@ const BlogPage = () => {
                                                             </button>
                                                             <ul className="dropdown-menu">
                                                                 {blog.status === 'draft' && (
+                                                                    <>
+                                                                        <li>
+                                                                            <button
+                                                                                className="dropdown-item"
+                                                                                onClick={() => handleUpdateBlogStatus(blog.blog_id, 'pending')}
+                                                                            >
+                                                                                <i className="bi bi-send me-2"></i>
+                                                                                Gửi để duyệt
+                                                                            </button>
+                                                                        </li>
                                                                     <li>
                                                                         <button
                                                                             className="dropdown-item"
@@ -819,6 +911,18 @@ const BlogPage = () => {
                                                                         >
                                                                             <i className="bi bi-share me-2"></i>
                                                                             Chia sẻ công khai
+                                                                            </button>
+                                                                        </li>
+                                                                    </>
+                                                                )}
+                                                                {blog.status === 'pending' && (
+                                                                    <li>
+                                                                        <button
+                                                                            className="dropdown-item"
+                                                                            onClick={() => handleUpdateBlogStatus(blog.blog_id, 'draft')}
+                                                                        >
+                                                                            <i className="bi bi-arrow-left me-2"></i>
+                                                                            Chuyển về bản nháp
                                                                         </button>
                                                                     </li>
                                                                 )}
@@ -849,18 +953,22 @@ const BlogPage = () => {
                                                                     <button
                                                                         className="dropdown-item"
                                                                         onClick={() => handleEditBlog(blog.blog_id)}
+                                                                        disabled={blog.status === 'pending'}
                                                                     >
                                                                         <i className="bi bi-pencil me-2"></i>
                                                                         Chỉnh sửa
+                                                                        {blog.status === 'pending' && <small className="text-muted ms-1">(Không thể chỉnh sửa khi đang chờ duyệt)</small>}
                                                                     </button>
                                                                 </li>
                                                                 <li>
                                                                     <button
                                                                         className="dropdown-item text-danger"
                                                                         onClick={() => handleDeleteBlog(blog.blog_id)}
+                                                                        disabled={blog.status === 'pending'}
                                                                     >
                                                                         <i className="bi bi-trash me-2"></i>
                                                                         Xóa
+                                                                        {blog.status === 'pending' && <small className="text-muted ms-1">(Không thể xóa khi đang chờ duyệt)</small>}
                                                                     </button>
                                                                 </li>
                                                             </ul>
@@ -1039,12 +1147,14 @@ const BlogPage = () => {
                                                     Nội dung câu chuyện *
                                                 </label>
                                                 <ReactQuill
+                                                    key={editingBlog ? `edit-${editingBlog.blog_id}` : 'new-blog'}
                                                     value={newBlog.body}
                                                     onChange={handleEditorChange}
                                                     modules={modules}
                                                     formats={formats}
                                                     placeholder="Chia sẻ hành trình của bạn: những thử thách, thành công, bài học và cảm hứng..."
                                                     className={`blog-editor ${contentError ? 'is-invalid' : ''}`}
+                                                    theme="snow"
                                                 />
                                                 <div className="form-text">
                                                     Kể về trải nghiệm phục hồi, cách sử dụng website, hoặc những câu chuyện truyền cảm hứng của bạn.
@@ -1079,8 +1189,12 @@ const BlogPage = () => {
                                                     onChange={handleInputChange}
                                                 >
                                                     <option value="draft">Bản nháp (chỉ bạn có thể xem)</option>
-                                                    <option value="published">Chia sẻ công khai (truyền cảm hứng cho người khác)</option>
+                                                    <option value="pending">Gửi để duyệt (chờ nhân viên phê duyệt)</option>
                                                 </select>
+                                                <div className="form-text">
+                                                    <strong>Bản nháp:</strong> Chỉ bạn có thể xem và chỉnh sửa<br/>
+                                                    <strong>Gửi để duyệt:</strong> Nhân viên sẽ kiểm tra và phê duyệt trước khi xuất bản công khai
+                                                </div>
                                             </div>
 
                                             <div className="d-flex justify-content-between">
