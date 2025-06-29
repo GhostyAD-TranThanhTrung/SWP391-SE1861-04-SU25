@@ -400,10 +400,10 @@ class BlogController {
       }
 
       // Validate status if provided
-      if (status !== undefined && !["draft", "published", "archived", "hidden"].includes(status)) {
+      if (status !== undefined && !["draft", "published", "archived", "hidden", "pending"].includes(status)) {
         return res.status(400).json({
           success: false,
-          message: "Invalid status. Must be one of: draft, published, archived, hidden",
+          message: "Invalid status. Must be one of: draft, published, archived, hidden, pending",
         });
       }
 
@@ -544,10 +544,10 @@ class BlogController {
         });
       }
 
-      if (!status || !["draft", "published", "archived", "hidden"].includes(status)) {
+      if (!status || !["draft", "published", "archived", "hidden", "pending"].includes(status)) {
         return res.status(400).json({
           success: false,
-          message: "Valid status is required (draft, published, archived, hidden)",
+          message: "Valid status is required (draft, published, archived, hidden, pending)",
         });
       }
 
@@ -780,6 +780,244 @@ class BlogController {
       res.status(500).json({
         success: false,
         message: "Failed to serve image",
+        error: error.message,
+      });
+    }
+  }
+
+  /**
+   * Get all pending blogs for staff review
+   */
+  static async getPendingBlogs(req, res) {
+    try {
+      const blogRepository = AppDataSource.getRepository(Blog);
+
+      const blogs = await blogRepository.find({
+        where: { status: "pending" },
+        order: {
+          created_at: "ASC", // Oldest first for review queue
+        },
+      });
+
+      res.status(200).json({
+        success: true,
+        data: blogs,
+        count: blogs.length,
+        message: "Pending blogs retrieved successfully",
+      });
+    } catch (error) {
+      console.error("Error getting pending blogs:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to retrieve pending blogs",
+        error: error.message,
+      });
+    }
+  }
+
+  /**
+   * Approve a pending blog (staff only)
+   */
+  static async approveBlog(req, res) {
+    try {
+      const { id } = req.params;
+      const { approvalNote } = req.body;
+
+      // Get user info from token
+      const staffUserId = req.user.userId;
+      const userRole = req.user.role;
+
+      // Check if user is staff or admin
+      if (!userRole || !['staff', 'admin'].includes(userRole)) {
+        return res.status(403).json({
+          success: false,
+          message: "Only staff members can approve blog posts",
+        });
+      }
+
+      const blogRepository = AppDataSource.getRepository(Blog);
+
+      // Check if blog exists
+      const blog = await blogRepository.findOne({
+        where: { blog_id: parseInt(id) },
+      });
+
+      if (!blog) {
+        return res.status(404).json({
+          success: false,
+          message: "Blog not found",
+        });
+      }
+
+      // Check if blog is in pending status
+      if (blog.status !== "pending") {
+        return res.status(400).json({
+          success: false,
+          message: "Only pending blogs can be approved",
+          currentStatus: blog.status,
+        });
+      }
+
+      // Update blog status to published
+      blog.status = "published";
+
+      // Add approval metadata to body or create a separate approval log
+      // For now, we'll add it as a comment in the existing structure
+      const approvalData = {
+        approved_by: staffUserId,
+        approved_at: new Date().toISOString(),
+        approval_note: approvalNote || "Approved by staff",
+      };
+
+      // Store approval data (you might want to create a separate table for this)
+      // For now, let's just update the blog
+      const updatedBlog = await blogRepository.save(blog);
+
+      res.status(200).json({
+        success: true,
+        data: updatedBlog,
+        message: "Blog approved and published successfully",
+        approvalData,
+      });
+    } catch (error) {
+      console.error("Error approving blog:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to approve blog",
+        error: error.message,
+      });
+    }
+  }
+
+  /**
+   * Reject a pending blog (staff only)
+   */
+  static async rejectBlog(req, res) {
+    try {
+      const { id } = req.params;
+      const { rejectionReason } = req.body;
+
+      // Get user info from token
+      const staffUserId = req.user.userId;
+      const userRole = req.user.role;
+
+      // Validate rejection reason
+      if (!rejectionReason || rejectionReason.trim().length < 10) {
+        return res.status(400).json({
+          success: false,
+          message: "Rejection reason must be at least 10 characters long",
+        });
+      }
+
+      // Check if user is staff or admin
+      if (!userRole || !['staff', 'admin'].includes(userRole)) {
+        return res.status(403).json({
+          success: false,
+          message: "Only staff members can reject blog posts",
+        });
+      }
+
+      const blogRepository = AppDataSource.getRepository(Blog);
+
+      // Check if blog exists
+      const blog = await blogRepository.findOne({
+        where: { blog_id: parseInt(id) },
+      });
+
+      if (!blog) {
+        return res.status(404).json({
+          success: false,
+          message: "Blog not found",
+        });
+      }
+
+      // Check if blog is in pending status
+      if (blog.status !== "pending") {
+        return res.status(400).json({
+          success: false,
+          message: "Only pending blogs can be rejected",
+          currentStatus: blog.status,
+        });
+      }
+
+      // Update blog status to draft so author can edit
+      blog.status = "draft";
+
+      // Store rejection data
+      const rejectionData = {
+        rejected_by: staffUserId,
+        rejected_at: new Date().toISOString(),
+        rejection_reason: rejectionReason.trim(),
+      };
+
+      const updatedBlog = await blogRepository.save(blog);
+
+      res.status(200).json({
+        success: true,
+        data: updatedBlog,
+        message: "Blog rejected and returned to draft",
+        rejectionData,
+      });
+    } catch (error) {
+      console.error("Error rejecting blog:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to reject blog",
+        error: error.message,
+      });
+    }
+  }
+
+  /**
+   * Get blog moderation statistics (staff only)
+   */
+  static async getModerationStats(req, res) {
+    try {
+      const userRole = req.user.role;
+
+      // Check if user is staff or admin
+      if (!userRole || !['staff', 'admin'].includes(userRole)) {
+        return res.status(403).json({
+          success: false,
+          message: "Only staff members can access moderation statistics",
+        });
+      }
+
+      const blogRepository = AppDataSource.getRepository(Blog);
+
+      // Get counts for each status
+      const totalBlogs = await blogRepository.count();
+      const publishedBlogs = await blogRepository.count({ where: { status: "published" } });
+      const draftBlogs = await blogRepository.count({ where: { status: "draft" } });
+      const pendingBlogs = await blogRepository.count({ where: { status: "pending" } });
+      const hiddenBlogs = await blogRepository.count({ where: { status: "hidden" } });
+
+      // Get recent pending blogs for quick review
+      const recentPending = await blogRepository.find({
+        where: { status: "pending" },
+        order: { created_at: "ASC" },
+        take: 5,
+      });
+
+      const stats = {
+        total: totalBlogs,
+        published: publishedBlogs,
+        draft: draftBlogs,
+        pending: pendingBlogs,
+        hidden: hiddenBlogs,
+        recentPending,
+      };
+
+      res.status(200).json({
+        success: true,
+        data: stats,
+        message: "Blog moderation statistics retrieved successfully",
+      });
+    } catch (error) {
+      console.error("Error getting moderation stats:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to retrieve moderation statistics",
         error: error.message,
       });
     }

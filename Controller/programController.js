@@ -5,6 +5,7 @@
 const AppDataSource = require('../src/data-source');
 const Program = require('../src/entities/Program');
 const Enroll = require('../src/entities/Enroll');
+const Category = require('../src/entities/Category');
 
 class ProgramController {
     /**
@@ -611,12 +612,25 @@ class ProgramController {
      */
     static async getCommunityEventPrograms(req, res) {
         try {
-            const COMMUNITY_EVENT_CATEGORY_ID = 18;
             const programRepository = AppDataSource.getRepository(Program);
+            const categoryRepository = AppDataSource.getRepository(Category);
+
+            // Find the Community Event category by name instead of hardcoded ID
+            const communityEventCategory = await categoryRepository.findOne({
+                where: { name: 'Community Event' }
+            });
+
+            if (!communityEventCategory) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Community Event category not found',
+                    data: []
+                });
+            }
 
             const programs = await programRepository.find({
                 where: {
-                    category_id: COMMUNITY_EVENT_CATEGORY_ID,
+                    category_id: communityEventCategory.category_id,
                     status: 'active' // Only return active community event programs
                 },
                 relations: ['creator', 'category', 'enrollments', 'contents'],

@@ -3,7 +3,7 @@
     "info": {
         "title": "SWP391 Drug Prevention API",
         "version": "2.0.0",
-        "description": "Clean API documentation for SWP391 Drug Prevention Platform - Only active endpoints"
+        "description": "Clean API documentation for SWP391 Drug Prevention Platform - Only active endpoints\n\n**🔓 DEVELOPMENT TESTING:**\nTo test protected endpoints without authentication, add the header:\n`x-swagger-bypass: true`\n\nThis will bypass token verification and use a mock admin user for testing purposes."
     },
     "servers": [
         {
@@ -16,7 +16,21 @@
             "bearerAuth": {
                 "type": "http",
                 "scheme": "bearer",
-                "bearerFormat": "JWT"
+                "bearerFormat": "JWT",
+                "description": "JWT Authorization header using the Bearer scheme. Example: 'Bearer {token}'"
+            }
+        },
+        "parameters": {
+            "swaggerBypass": {
+                "name": "x-swagger-bypass",
+                "in": "header",
+                "required": false,
+                "schema": {
+                    "type": "string",
+                    "enum": ["true", "false"],
+                    "default": "true"
+                },
+                "description": "🔓 Development bypass for authentication (set to 'true' to skip token verification)"
             }
         }
     },
@@ -100,6 +114,93 @@
                                         "error": {
                                             "type": "string",
                                             "example": "Database connection error"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/test-bypass": {
+            "get": {
+                "tags": [
+                    "Development Testing"
+                ],
+                "summary": "Test Swagger bypass functionality",
+                "description": "This endpoint tests if the Swagger bypass is working. Add header 'x-swagger-bypass: true' to test without authentication.",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Bypass test successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "🔓 Swagger bypass is working!"
+                                        },
+                                        "user": {
+                                            "type": "object",
+                                            "properties": {
+                                                "userId": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "swagger-test@example.com"
+                                                },
+                                                "role": {
+                                                    "type": "string",
+                                                    "example": "admin"
+                                                }
+                                            }
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "example": "2024-01-15T10:30:00.000Z"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Token required (unless bypass header is used)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Access denied. No token provided."
+                                        },
+                                        "hint": {
+                                            "type": "string",
+                                            "example": "For Swagger testing, add header 'x-swagger-bypass: true'"
                                         }
                                     }
                                 }
@@ -253,6 +354,11 @@
                     "Profile"
                 ],
                 "summary": "Get user profile",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
                 "security": [
                     {
                         "bearerAuth": []
@@ -272,6 +378,11 @@
                     "Profile"
                 ],
                 "summary": "Create user profile",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
                 "security": [
                     {
                         "bearerAuth": []
@@ -311,6 +422,11 @@
                     "Profile"
                 ],
                 "summary": "Check if user has profile",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
                 "security": [
                     {
                         "bearerAuth": []
@@ -329,6 +445,11 @@
                     "Admin - Staff"
                 ],
                 "summary": "Get all staff members",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
                 "security": [
                     {
                         "bearerAuth": []
@@ -345,6 +466,11 @@
                     "Admin - Staff"
                 ],
                 "summary": "Create new staff member",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
                 "security": [
                     {
                         "bearerAuth": []
@@ -376,6 +502,9 @@
                         "schema": {
                             "type": "string"
                         }
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
                     }
                 ],
                 "responses": {
@@ -404,6 +533,9 @@
                         "schema": {
                             "type": "integer"
                         }
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
                     }
                 ],
                 "responses": {
@@ -430,6 +562,9 @@
                         "schema": {
                             "type": "integer"
                         }
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
                     }
                 ],
                 "responses": {
@@ -445,6 +580,11 @@
                     "Admin - Members"
                 ],
                 "summary": "Get all members",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
                 "security": [
                     {
                         "bearerAuth": []
@@ -476,6 +616,9 @@
                         "schema": {
                             "type": "string"
                         }
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
                     }
                 ],
                 "responses": {
@@ -504,6 +647,9 @@
                         "schema": {
                             "type": "integer"
                         }
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
                     }
                 ],
                 "responses": {
@@ -530,6 +676,9 @@
                         "schema": {
                             "type": "integer"
                         }
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
                     }
                 ],
                 "responses": {
@@ -556,6 +705,11 @@
                     "Admin - Consultants"
                 ],
                 "summary": "Create new consultant",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
                 "security": [
                     {
                         "bearerAuth": []
@@ -587,6 +741,9 @@
                         "schema": {
                             "type": "string"
                         }
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
                     }
                 ],
                 "responses": {
@@ -657,6 +814,9 @@
                         "schema": {
                             "type": "integer"
                         }
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
                     }
                 ],
                 "responses": {
@@ -695,6 +855,11 @@
                     "Booking"
                 ],
                 "summary": "Get user's scheduled booking sessions",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
                 "security": [
                     {
                         "bearerAuth": []
@@ -713,6 +878,11 @@
                     "Booking"
                 ],
                 "summary": "Create new booking session",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
                 "security": [
                     {
                         "bearerAuth": []
@@ -758,6 +928,11 @@
                     "Admin - Assessments"
                 ],
                 "summary": "Get all assessments",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
                 "security": [
                     {
                         "bearerAuth": []
@@ -776,6 +951,11 @@
                     "Assessments"
                 ],
                 "summary": "Get current user's assessments",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
                 "security": [
                     {
                         "bearerAuth": []
@@ -807,6 +987,9 @@
                         "schema": {
                             "type": "integer"
                         }
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
                     }
                 ],
                 "responses": {
@@ -835,6 +1018,9 @@
                         "schema": {
                             "type": "string"
                         }
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
                     }
                 ],
                 "responses": {
@@ -850,6 +1036,11 @@
                     "Assessments"
                 ],
                 "summary": "Submit assessment test",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
                 "security": [
                     {
                         "bearerAuth": []
@@ -899,6 +1090,9 @@
                         "schema": {
                             "type": "integer"
                         }
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
                     }
                 ],
                 "responses": {
@@ -925,6 +1119,11 @@
                     "Admin - Programs"
                 ],
                 "summary": "Create new program",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
                 "security": [
                     {
                         "bearerAuth": []
@@ -943,6 +1142,11 @@
                     "Programs"
                 ],
                 "summary": "Get programs with user's enrollment status",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
                 "security": [
                     {
                         "bearerAuth": []
@@ -1017,6 +1221,9 @@
                         "schema": {
                             "type": "integer"
                         }
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
                     }
                 ],
                 "responses": {
@@ -1043,6 +1250,9 @@
                         "schema": {
                             "type": "integer"
                         }
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
                     }
                 ],
                 "responses": {
@@ -1176,6 +1386,11 @@
                     "Blogs"
                 ],
                 "summary": "Get current user's blogs",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
                 "security": [
                     {
                         "bearerAuth": []
@@ -1228,6 +1443,9 @@
                         "schema": {
                             "type": "integer"
                         }
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
                     }
                 ],
                 "responses": {
@@ -1254,6 +1472,9 @@
                         "schema": {
                             "type": "integer"
                         }
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
                     }
                 ],
                 "responses": {
@@ -1269,6 +1490,11 @@
                     "Blogs"
                 ],
                 "summary": "Create blog with image",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
                 "security": [
                     {
                         "bearerAuth": []
@@ -1321,6 +1547,9 @@
                         "schema": {
                             "type": "integer"
                         }
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
                     }
                 ],
                 "requestBody": {
@@ -1368,6 +1597,9 @@
                         "schema": {
                             "type": "integer"
                         }
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
                     }
                 ],
                 "responses": {
@@ -1396,6 +1628,9 @@
                         "schema": {
                             "type": "integer"
                         }
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
                     }
                 ],
                 "responses": {
@@ -1432,7 +1667,10 @@
                         "schema": {
                             "type": "integer"
                         }
-                    }
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }  
                 ],
                 "responses": {
                     "200": {
@@ -1447,6 +1685,11 @@
                     "Enrollments"
                 ],
                 "summary": "Create new enrollment",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
                 "security": [
                     {
                         "bearerAuth": []
@@ -1504,6 +1747,9 @@
                         "schema": {
                             "type": "integer"
                         }
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
                     }
                 ],
                 "responses": {
@@ -1532,6 +1778,9 @@
                         "schema": {
                             "type": "string"
                         }
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
                     }
                 ],
                 "responses": {
@@ -1560,6 +1809,11 @@
                     "Surveys"
                 ],
                 "summary": "Get all surveys",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
                 "security": [
                     {
                         "bearerAuth": []
@@ -1576,6 +1830,11 @@
                     "Surveys"
                 ],
                 "summary": "Create new survey",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
                 "security": [
                     {
                         "bearerAuth": []
@@ -1634,6 +1893,9 @@
                         "schema": {
                             "type": "integer"
                         }
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
                     }
                 ],
                 "responses": {
@@ -1662,6 +1924,9 @@
                         "schema": {
                             "type": "integer"
                         }
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
                     }
                 ],
                 "responses": {
@@ -1677,6 +1942,11 @@
                     "Survey Responses"
                 ],
                 "summary": "Get current user's survey responses",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
                 "security": [
                     {
                         "bearerAuth": []
@@ -1695,6 +1965,11 @@
                     "Survey Responses"
                 ],
                 "summary": "Submit survey response",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
                 "security": [
                     {
                         "bearerAuth": []
@@ -1769,6 +2044,9 @@
                             "type": "string"
                         },
                         "description": "Survey type filter (e.g., pre-assessment, post-assessment)"
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
                     }
                 ],
                 "responses": {

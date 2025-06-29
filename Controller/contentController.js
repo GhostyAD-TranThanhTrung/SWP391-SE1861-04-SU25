@@ -215,6 +215,345 @@ class ContentController {
   }
 
   /**
+   * Create YouTube video content
+   * Expected request body:
+   * {
+   *   "program_id": 1,
+   *   "title": "Introduction to Addiction Science",
+   *   "youtube_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+   *   "orders": 1,
+   *   "instructor": "Dr. Smith",
+   *   "duration": "15:30",
+   *   "description": "Overview of addiction science basics"
+   * }
+   */
+  static async createYouTubeContent(req, res) {
+    try {
+      const { 
+        program_id, 
+        title, 
+        youtube_url, 
+        orders, 
+        instructor, 
+        duration, 
+        description 
+      } = req.body;
+
+      // Validate required fields
+      if (!program_id || !title || !youtube_url) {
+        return res.status(400).json({
+          success: false,
+          message: "Missing required fields: program_id, title, and youtube_url are required"
+        });
+      }
+
+      // Validate YouTube URL and extract video ID
+      const videoId = extractYouTubeVideoId(youtube_url);
+      if (!videoId) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid YouTube URL format"
+        });
+      }
+
+      // Check if program exists
+      const programRepository = AppDataSource.getRepository(Program);
+      const program = await programRepository.findOne({
+        where: { program_id: parseInt(program_id) }
+      });
+
+      if (!program) {
+        return res.status(404).json({
+          success: false,
+          message: "Program not found"
+        });
+      }
+
+      // Create metadata for YouTube content
+      const metadata = {
+        video_id: videoId,
+        instructor: instructor || "Unknown",
+        duration: duration || "Unknown",
+        description: description || "",
+        format: "youtube",
+        thumbnail_url: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+        embed_url: `https://www.youtube.com/embed/${videoId}`,
+        created_at: new Date().toISOString()
+      };
+
+      const contentRepository = AppDataSource.getRepository(Content);
+
+      // Create new YouTube content
+      const newContent = contentRepository.create({
+        program_id: parseInt(program_id),
+        title,
+        type: 'video',
+        orders: orders ? parseInt(orders) : 1,
+        content_file_link: youtube_url,
+        content_type: 'video',
+        content_metadata_json: JSON.stringify(metadata)
+      });
+
+      const savedContent = await contentRepository.save(newContent);
+
+      res.status(201).json({
+        success: true,
+        data: {
+          ...savedContent,
+          parsed_metadata: metadata
+        },
+        message: "YouTube content created successfully"
+      });
+    } catch (error) {
+      console.error("Error creating YouTube content:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to create YouTube content",
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Create markdown content with image
+   * Expected request body:
+   * {
+   *   "program_id": 1,
+   *   "title": "Understanding Addiction Science",
+   *   "markdown_file": "addiction-science.md",
+   *   "image_file": "addiction-brain.jpg", // optional
+   *   "orders": 1,
+   *   "author": "Dr. Smith",
+   *   "reading_time": "10 min",
+   *   "difficulty": "intermediate",
+   *   "tags": ["addiction", "science", "brain"]
+   * }
+   */
+  static async createMarkdownContent(req, res) {
+    try {
+      const { 
+        program_id, 
+        title, 
+        markdown_file,
+        image_file,
+        orders, 
+        author, 
+        reading_time, 
+        difficulty,
+        tags,
+        description
+      } = req.body;
+
+      // Validate required fields
+      if (!program_id || !title || !markdown_file) {
+        return res.status(400).json({
+          success: false,
+          message: "Missing required fields: program_id, title, and markdown_file are required"
+        });
+      }
+
+      // Check if program exists
+      const programRepository = AppDataSource.getRepository(Program);
+      const program = await programRepository.findOne({
+        where: { program_id: parseInt(program_id) }
+      });
+
+      if (!program) {
+        return res.status(404).json({
+          success: false,
+          message: "Program not found"
+        });
+      }
+
+      // Validate markdown file exists
+      const markdownPath = path.join(__dirname, '..', 'content', 'markdown', markdown_file);
+      if (!fs.existsSync(markdownPath)) {
+        return res.status(400).json({
+          success: false,
+          message: `Markdown file not found: ${markdown_file}`,
+          path: markdownPath
+        });
+      }
+
+      // Validate image file if provided
+      let imagePath = null;
+      if (image_file) {
+        imagePath = path.join(__dirname, '..', 'content', 'image', image_file);
+        if (!fs.existsSync(imagePath)) {
+          return res.status(400).json({
+            success: false,
+            message: `Image file not found: ${image_file}`,
+            path: imagePath
+          });
+        }
+      }
+
+      // Create metadata for markdown content
+      const metadata = {
+        author: author || "Unknown",
+        reading_time: reading_time || "Unknown",
+        difficulty: difficulty || "beginner",
+        tags: Array.isArray(tags) ? tags : (tags ? [tags] : []),
+        description: description || "",
+        image_file: image_file || null,
+        image_url: image_file ? `/api/images/${image_file}` : null,
+        markdown_path: `/content/markdown/${markdown_file}`,
+        created_at: new Date().toISOString(),
+        file_size: fs.statSync(markdownPath).size,
+        word_count: null // Will be calculated if needed
+      };
+
+      // Calculate word count from markdown file
+      try {
+        const markdownContent = fs.readFileSync(markdownPath, 'utf8');
+        const wordCount = markdownContent.split(/\s+/).filter(word => word.length > 0).length;
+        metadata.word_count = wordCount;
+        
+        // Estimate reading time if not provided (average 200 words per minute)
+        if (reading_time === undefined || reading_time === "Unknown") {
+          const estimatedMinutes = Math.ceil(wordCount / 200);
+          metadata.reading_time = `${estimatedMinutes} min`;
+        }
+      } catch (error) {
+        console.warn("Could not calculate word count:", error.message);
+      }
+
+      const contentRepository = AppDataSource.getRepository(Content);
+
+      // Create new markdown content
+      const newContent = contentRepository.create({
+        program_id: parseInt(program_id),
+        title,
+        type: 'article',
+        orders: orders ? parseInt(orders) : 1,
+        content_file_link: `/content/markdown/${markdown_file}`,
+        content_type: 'markdown',
+        content_metadata_json: JSON.stringify(metadata)
+      });
+
+      const savedContent = await contentRepository.save(newContent);
+
+      res.status(201).json({
+        success: true,
+        data: {
+          ...savedContent,
+          parsed_metadata: metadata
+        },
+        message: "Markdown content created successfully"
+      });
+    } catch (error) {
+      console.error("Error creating markdown content:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to create markdown content",
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Create podcast/audio content
+   * Expected request body:
+   * {
+   *   "program_id": 1,
+   *   "title": "Recovery Stories Podcast",
+   *   "audio_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+   *   "orders": 1,
+   *   "host": "Recovery Expert",
+   *   "duration": "25:00",
+   *   "description": "Personal stories of recovery and hope"
+   * }
+   */
+  static async createPodcastContent(req, res) {
+    try {
+      const { 
+        program_id, 
+        title, 
+        audio_url, 
+        orders, 
+        host, 
+        duration, 
+        description,
+        episode_number,
+        season
+      } = req.body;
+
+      // Validate required fields
+      if (!program_id || !title || !audio_url) {
+        return res.status(400).json({
+          success: false,
+          message: "Missing required fields: program_id, title, and audio_url are required"
+        });
+      }
+
+      // Check if program exists
+      const programRepository = AppDataSource.getRepository(Program);
+      const program = await programRepository.findOne({
+        where: { program_id: parseInt(program_id) }
+      });
+
+      if (!program) {
+        return res.status(404).json({
+          success: false,
+          message: "Program not found"
+        });
+      }
+
+      // Create metadata for podcast content
+      const metadata = {
+        host: host || "Unknown",
+        duration: duration || "Unknown",
+        description: description || "",
+        episode_number: episode_number || null,
+        season: season || null,
+        format: audio_url.includes('youtube.com') ? 'youtube' : 'audio',
+        created_at: new Date().toISOString()
+      };
+
+      // If it's a YouTube URL, extract video ID for additional metadata
+      if (audio_url.includes('youtube.com')) {
+        const videoId = extractYouTubeVideoId(audio_url);
+        if (videoId) {
+          metadata.video_id = videoId;
+          metadata.thumbnail_url = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+          metadata.embed_url = `https://www.youtube.com/embed/${videoId}`;
+        }
+      }
+
+      const contentRepository = AppDataSource.getRepository(Content);
+
+      // Create new podcast content
+      const newContent = contentRepository.create({
+        program_id: parseInt(program_id),
+        title,
+        type: 'podcast',
+        orders: orders ? parseInt(orders) : 1,
+        content_file_link: audio_url,
+        content_type: 'audio',
+        content_metadata_json: JSON.stringify(metadata)
+      });
+
+      const savedContent = await contentRepository.save(newContent);
+
+      res.status(201).json({
+        success: true,
+        data: {
+          ...savedContent,
+          parsed_metadata: metadata
+        },
+        message: "Podcast content created successfully"
+      });
+    } catch (error) {
+      console.error("Error creating podcast content:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to create podcast content",
+        error: error.message
+      });
+    }
+  }
+
+  /**
    * Update content
    */
   static async updateContent(req, res) {
