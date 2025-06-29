@@ -362,23 +362,24 @@
                         // Video Display
                         &.video-display {
                             .video-wrapper {
-                                margin-bottom: 32px;
-                                
+                                background: #000;
+                                border-radius: 12px;
+                                overflow: hidden;
+                                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+
                                 .video-container {
                                     position: relative;
                                     width: 100%;
                                     height: 0;
                                     padding-bottom: 56.25%; // 16:9 aspect ratio
-                                    border-radius: 16px;
-                                    overflow: hidden;
-                                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-                                    
+
                                     iframe {
                                         position: absolute;
                                         top: 0;
                                         left: 0;
                                         width: 100%;
                                         height: 100%;
+                                        border: none;
                                     }
                                 }
                             }
@@ -386,20 +387,119 @@
                         
                         // Audio Display
                         &.audio-display {
+                            .podcast-header {
+                                display: flex;
+                                align-items: center;
+                                gap: 12px;
+                                margin-bottom: 20px;
+                                padding: 16px 20px;
+                                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                border-radius: 12px;
+                                color: white;
+
+                                .podcast-icon {
+                                    font-size: 24px;
+                                }
+
+                                h3 {
+                                    margin: 0;
+                                    font-size: 18px;
+                                    font-weight: 600;
+                                }
+                            }
+
                             .audio-wrapper {
-                                margin-bottom: 32px;
-                                
-                                .audio-container {
+                                background: #f8f9fa;
+                                border-radius: 12px;
+                                overflow: hidden;
+                                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+
+                                .podcast-container {
                                     position: relative;
                                     width: 100%;
-                                    height: 200px;
-                                    border-radius: 16px;
-                                    overflow: hidden;
-                                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-                                    
-                                    iframe {
+                                    max-width: 600px; // Limit maximum width for podcasts
+                                    margin: 0 auto; // Center the container
+                                    height: 0;
+                                    padding-bottom: 33.75%; // 16:9 ratio but shorter (about 1/3 height)
+
+                                    .podcast-iframe {
+                                        position: absolute;
+                                        top: 0;
+                                        left: 0;
                                         width: 100%;
                                         height: 100%;
+                                        border: none;
+                                        border-radius: 8px;
+                                    }
+                                }
+
+                                // Fallback for regular audio-container (backward compatibility)
+                                .audio-container:not(.podcast-container) {
+                                    position: relative;
+                                    width: 100%;
+                                    height: 0;
+                                    padding-bottom: 56.25%; // 16:9 aspect ratio
+
+                                    iframe {
+                                        position: absolute;
+                                        top: 0;
+                                        left: 0;
+                                        width: 100%;
+                                        height: 100%;
+                                        border: none;
+                                    }
+                                }
+                            }
+
+                            .podcast-metadata {
+                                margin-top: 24px;
+                                
+                                h3 {
+                                    color: #495057;
+                                    margin-bottom: 16px;
+                                    font-size: 18px;
+                                }
+
+                                .metadata-grid {
+                                    display: grid;
+                                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                                    gap: 16px;
+
+                                    .metadata-card {
+                                        background: #ffffff;
+                                        border: 1px solid #e9ecef;
+                                        border-radius: 8px;
+                                        padding: 16px;
+                                        transition: all 0.2s ease;
+
+                                        &:hover {
+                                            border-color: #667eea;
+                                            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+                                        }
+
+                                        .metadata-icon {
+                                            font-size: 20px;
+                                            margin-bottom: 8px;
+                                            display: block;
+                                        }
+
+                                        .metadata-content {
+                                            .metadata-label {
+                                                display: block;
+                                                font-size: 12px;
+                                                color: #6c757d;
+                                                text-transform: uppercase;
+                                                letter-spacing: 0.5px;
+                                                margin-bottom: 4px;
+                                            }
+
+                                            .metadata-value {
+                                                display: block;
+                                                font-size: 14px;
+                                                color: #212529;
+                                                font-weight: 500;
+                                            }
+                                        }
                                     }
                                 }
                             }

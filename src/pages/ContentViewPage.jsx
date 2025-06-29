@@ -267,24 +267,29 @@ const ContentViewPage = () => {
             case 'youtube_audio':
                 return (
                     <div className="content-display audio-display">
+                        <div className="podcast-header">
+                            <div className="podcast-icon">🎧</div>
+                            <h3>Podcast Audio</h3>
+                        </div>
                         <div className="audio-wrapper">
-                            <div className="audio-container">
+                            <div className="audio-container podcast-container">
                                 <iframe
                                     src={`https://www.youtube.com/embed/${contentFile.videoId}`}
                                     title={content.title}
                                     frameBorder="0"
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                     allowFullScreen
+                                    className="podcast-iframe"
                                 ></iframe>
                             </div>
                         </div>
                         {contentFile.metadata && (
-                            <div className="content-metadata">
+                            <div className="content-metadata podcast-metadata">
                                 <h3>Thông tin podcast</h3>
                                 <div className="metadata-grid">
                                     {contentFile.metadata.duration && (
                                         <div className="metadata-card">
-                                            <div className="metadata-icon">•</div>
+                                            <div className="metadata-icon">⏱️</div>
                                             <div className="metadata-content">
                                                 <span className="metadata-label">Thời lượng</span>
                                                 <span className="metadata-value">{contentFile.metadata.duration}</span>
@@ -293,7 +298,7 @@ const ContentViewPage = () => {
                                     )}
                                     {contentFile.metadata.host && (
                                         <div className="metadata-card">
-                                            <div className="metadata-icon">•</div>
+                                            <div className="metadata-icon">🎙️</div>
                                             <div className="metadata-content">
                                                 <span className="metadata-label">Người dẫn</span>
                                                 <span className="metadata-value">{contentFile.metadata.host}</span>
@@ -302,7 +307,7 @@ const ContentViewPage = () => {
                                     )}
                                     {contentFile.metadata.guest && (
                                         <div className="metadata-card">
-                                            <div className="metadata-icon">•</div>
+                                            <div className="metadata-icon">👤</div>
                                             <div className="metadata-content">
                                                 <span className="metadata-label">Khách mời</span>
                                                 <span className="metadata-value">{contentFile.metadata.guest}</span>

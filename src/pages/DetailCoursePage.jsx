@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import '../styles/DetailCoursePage.scss';
 import DefaultImage from '../images/Images.jpg';
+import SurveyModal from '../components/SurveyModal';
 
 const DetailCoursePage = () => {
     const { id } = useParams();
@@ -19,6 +20,20 @@ const DetailCoursePage = () => {
     const [progressPercentage, setProgressPercentage] = useState(0);
     const [isCompleted, setIsCompleted] = useState(false);
     const [deleting, setDeleting] = useState(false);
+    
+    // Survey modal states
+    const [showSurveyModal, setShowSurveyModal] = useState(false);
+    const [surveyType, setSurveyType] = useState(''); // 'pre-assessment' or 'post-assessment'
+    const [justEnrolled, setJustEnrolled] = useState(false);
+    const [justCompleted, setJustCompleted] = useState(false);
+    
+    // Survey status states
+    const [preAssessmentCompleted, setPreAssessmentCompleted] = useState(false);
+    const [postAssessmentCompleted, setPostAssessmentCompleted] = useState(false);
+    const [checkingSurveyStatus, setCheckingSurveyStatus] = useState(false);
+    const [preAssessmentExists, setPreAssessmentExists] = useState(false);
+    const [postAssessmentExists, setPostAssessmentExists] = useState(false);
+    const [surveysChecked, setSurveysChecked] = useState(false);
 
     useEffect(() => {
         const fetchProgram = async () => {
@@ -117,6 +132,146 @@ const DetailCoursePage = () => {
         checkEnrollmentStatus();
     }, [id]);
 
+    // Check survey status when enrollment status changes
+    useEffect(() => {
+        if (isEnrolled && !checkingEnrollment) {
+            checkSurveyStatus();
+        }
+    }, [isEnrolled, checkingEnrollment]);
+
+    // Survey modal functions
+    const triggerSurvey = (type) => {
+        // Check if survey exists before opening modal
+        if (type === 'pre-assessment' && !preAssessmentExists) {
+            alert('Pre-course assessment is not available for this program yet.');
+            return;
+        }
+        if (type === 'post-assessment' && !postAssessmentExists) {
+            alert('Post-course assessment is not available for this program yet.');
+            return;
+        }
+        
+        setSurveyType(type);
+        setShowSurveyModal(true);
+    };
+
+    const handleSurveyComplete = () => {
+        setShowSurveyModal(false);
+        setJustEnrolled(false);
+        setJustCompleted(false);
+        // Refresh survey status after completion
+        checkSurveyStatus();
+    };
+
+    const closeSurveyModal = () => {
+        setShowSurveyModal(false);
+        setJustEnrolled(false);
+        setJustCompleted(false);
+    };
+
+    // Function to check survey completion status
+    const checkSurveyStatus = async () => {
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        if (!token || !isEnrolled) return;
+
+        setCheckingSurveyStatus(true);
+        try {
+            // Check for pre-assessment survey
+            const preResponse = await fetch(
+                `http://localhost:3000/api/surveys/program/${id}/type/pre-assessment`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+
+            let preExists = false;
+            let preCompleted = false;
+
+            if (preResponse.ok) {
+                const preData = await preResponse.json();
+                if (preData.success && preData.data && preData.data.length > 0) {
+                    preExists = true;
+                    const preSurvey = preData.data[0];
+                    
+                    // Check if user has responded
+                    const preCheckResponse = await fetch(
+                        `http://localhost:3000/api/survey-responses/check/${preSurvey.survey_id}`,
+                        {
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            }
+                        }
+                    );
+
+                    if (preCheckResponse.ok) {
+                        const preCheckData = await preCheckResponse.json();
+                        preCompleted = preCheckData.success && preCheckData.hasResponded;
+                    }
+                }
+            }
+
+            // Check for post-assessment survey
+            const postResponse = await fetch(
+                `http://localhost:3000/api/surveys/program/${id}/type/post-assessment`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+
+            let postExists = false;
+            let postCompleted = false;
+
+            if (postResponse.ok) {
+                const postData = await postResponse.json();
+                if (postData.success && postData.data && postData.data.length > 0) {
+                    postExists = true;
+                    const postSurvey = postData.data[0];
+                    
+                    // Check if user has responded
+                    const postCheckResponse = await fetch(
+                        `http://localhost:3000/api/survey-responses/check/${postSurvey.survey_id}`,
+                        {
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            }
+                        }
+                    );
+
+                    if (postCheckResponse.ok) {
+                        const postCheckData = await postCheckResponse.json();
+                        postCompleted = postCheckData.success && postCheckData.hasResponded;
+                    }
+                }
+            }
+
+            // Update states
+            setPreAssessmentExists(preExists);
+            setPostAssessmentExists(postExists);
+            setPreAssessmentCompleted(preCompleted);
+            setPostAssessmentCompleted(postCompleted);
+            setSurveysChecked(true);
+
+        } catch (err) {
+            console.error('Error checking survey status:', err);
+            // Set defaults if there's an error
+            setPreAssessmentExists(false);
+            setPostAssessmentExists(false);
+            setPreAssessmentCompleted(false);
+            setPostAssessmentCompleted(false);
+            setSurveysChecked(true);
+        } finally {
+            setCheckingSurveyStatus(false);
+        }
+    };
+
     // Function to update enrollment completion
     const updateEnrollmentCompletion = async (userId, programId) => {
         const token = localStorage.getItem('token') || sessionStorage.getItem('token');
@@ -137,7 +292,13 @@ const DetailCoursePage = () => {
                 setEnrollmentData(data.data);
                 setIsCompleted(true);
                 setProgressPercentage(100);
+                setJustCompleted(true);
                 console.log('Course completion updated successfully');
+                
+                // Trigger post-assessment survey
+                setTimeout(() => {
+                    triggerSurvey('post-assessment');
+                }, 1000); // Small delay to let completion state update
             }
         } catch (err) {
             console.error('Error updating course completion:', err);
@@ -205,6 +366,17 @@ const DetailCoursePage = () => {
             if (res.ok) {
                 alert('Đăng ký khóa học thành công!');
                 setIsEnrolled(true);
+                setJustEnrolled(true);
+                
+                // Check survey status after enrollment
+                setTimeout(() => {
+                    checkSurveyStatus();
+                }, 500);
+                
+                // Trigger pre-assessment survey after successful enrollment
+                setTimeout(() => {
+                    triggerSurvey('pre-assessment');
+                }, 1500); // Small delay to let enrollment success message show
             } else {
                 const errorData = await res.json();
                 alert(errorData.message || 'Có lỗi xảy ra khi đăng ký');
@@ -358,6 +530,81 @@ const DetailCoursePage = () => {
                                         )}
                                     </div>
 
+                                    {/* Survey Button */}
+                                    <div className="survey-section">
+                                        {!checkingSurveyStatus && surveysChecked && (
+                                            <>
+                                                {/* Show pre-assessment button if survey exists and not completed */}
+                                                {preAssessmentExists && !isCompleted && !preAssessmentCompleted && (
+                                                    <button
+                                                        className="survey-btn pre-assessment-btn"
+                                                        onClick={() => triggerSurvey('pre-assessment')}
+                                                    >
+                                                        <span className="survey-icon">📋</span>
+                                                        Take Pre-Course Assessment
+                                                    </button>
+                                                )}
+                                                
+                                                {/* Show post-assessment button if survey exists and course completed */}
+                                                {postAssessmentExists && isCompleted && !postAssessmentCompleted && (
+                                                    <button
+                                                        className="survey-btn post-assessment-btn"
+                                                        onClick={() => triggerSurvey('post-assessment')}
+                                                    >
+                                                        <span className="survey-icon">📊</span>
+                                                        Take Post-Course Assessment
+                                                    </button>
+                                                )}
+
+                                                {/* Show completion status for pre-assessment */}
+                                                {preAssessmentExists && preAssessmentCompleted && !isCompleted && (
+                                                    <div className="survey-status">
+                                                        <span className="completed-icon">✅</span>
+                                                        Pre-course assessment completed
+                                                    </div>
+                                                )}
+
+                                                {/* Show completion status when all assessments are done */}
+                                                {postAssessmentExists && postAssessmentCompleted && isCompleted && (
+                                                    <div className="survey-status">
+                                                        <span className="completed-icon">✅</span>
+                                                        All assessments completed
+                                                    </div>
+                                                )}
+
+                                                {/* Show message when no surveys are available */}
+                                                {!preAssessmentExists && !postAssessmentExists && (
+                                                    <div className="no-surveys-message">
+                                                        <span className="info-icon">ℹ️</span>
+                                                        No assessments are currently available for this course.
+                                                    </div>
+                                                )}
+
+                                                {/* Show partial survey availability messages */}
+                                                {!preAssessmentExists && postAssessmentExists && !isCompleted && (
+                                                    <div className="survey-info">
+                                                        <span className="info-icon">📝</span>
+                                                        Post-course assessment will be available after completion.
+                                                    </div>
+                                                )}
+
+                                                {!postAssessmentExists && preAssessmentExists && isCompleted && (
+                                                    <div className="survey-info">
+                                                        <span className="info-icon">📝</span>
+                                                        Post-course assessment is not available for this program.
+                                                    </div>
+                                                )}
+                                            </>
+                                        )}
+                                        
+                                        {checkingSurveyStatus && (
+                                            <div className="survey-loading">
+                                                <span className="loading-icon">⏳</span>
+                                                Checking survey status...
+                                            </div>
+                                        )}
+                                    </div>
+
                                     {/* Delete Enrollment Button */}
                                     <div className="enrollment-actions">
                                         <button
@@ -472,6 +719,15 @@ const DetailCoursePage = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Survey Modal */}
+            <SurveyModal
+                isOpen={showSurveyModal}
+                onClose={closeSurveyModal}
+                programId={parseInt(id)}
+                surveyType={surveyType}
+                onComplete={handleSurveyComplete}
+            />
         </div>
     );
 };
