@@ -1061,6 +1061,59 @@ class EnrollController {
             });
         }
     }
+
+    /**
+     * Delete enrollment for current user (more secure version)
+     * Gets user ID from token instead of path parameter
+     */
+    static async deleteMyEnrollment(req, res) {
+        try {
+            const { programId } = req.params;
+            const userId = req.user.userId; // Get user ID from token
+            
+            if (!programId) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Program ID is required'
+                });
+            }
+
+            const enrollRepository = AppDataSource.getRepository(Enroll);
+
+            // Check if enrollment exists
+            const enrollment = await enrollRepository.findOne({
+                where: {
+                    user_id: parseInt(userId),
+                    program_id: parseInt(programId)
+                }
+            });
+
+            if (!enrollment) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Enrollment not found. You are not enrolled in this program.'
+                });
+            }
+
+            // Delete the enrollment
+            await enrollRepository.delete({
+                user_id: parseInt(userId),
+                program_id: parseInt(programId)
+            });
+
+            res.status(200).json({
+                success: true,
+                message: 'Enrollment deleted successfully'
+            });
+        } catch (error) {
+            console.error('Error deleting enrollment:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to delete enrollment',
+                error: error.message
+            });
+        }
+    }
 }
 
 module.exports = EnrollController;

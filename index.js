@@ -801,6 +801,16 @@ app.patch("/api/enrollments/:enrollId/content/:contentId/toggle", authController
  */
 app.put("/api/enrollments/:enrollId/complete", authController.verifyToken, EnrollController.updateEnrollmentCompletionById);
 
+/**
+ * DELETE MY ENROLLMENT: Delete enrollment for current user
+ * Purpose: Allow user to delete their own enrollment in a program (more secure than using userId in path)
+ * Method: DELETE /api/enrollments/my/:programId
+ * Input: Path params: { programId: number }, user ID from token
+ * Output: { success: boolean, message: string }
+ * Authentication: Required (Enrolled User)
+ */
+app.delete("/api/enrollments/my/:programId", authController.verifyToken, EnrollController.deleteMyEnrollment);
+
 // ==================== COMMUNITY EVENT ROUTES ====================
 // Community events route is already defined in the Program Routes section above
 
