@@ -370,6 +370,7 @@ class SurveyController {
     }
   }
 
+  
   /**
    * Delete survey by ID
    */
@@ -450,6 +451,45 @@ class SurveyController {
       res.status(500).json({
         success: false,
         message: "Failed to retrieve surveys by type",
+        error: error.message,
+      });
+    }
+  }
+
+  /**
+   * Get surveys by type and program ID
+   */
+  static async getSurveysByTypeAndProgramId(req, res) {
+    try {
+      const { type, programId } = req.params;
+      const surveyRepository = AppDataSource.getRepository(Survey);
+
+      // Validate programId is a number
+      if (isNaN(parseInt(programId))) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid program ID provided",
+        });
+      }
+
+      const surveys = await surveyRepository.find({
+        where: { 
+          type: type,
+          program_id: parseInt(programId)
+        },
+      });
+
+      res.status(200).json({
+        success: true,
+        data: surveys,
+        count: surveys.length,
+        message: `Surveys of type '${type}' for program ID ${programId} retrieved successfully`,
+      });
+    } catch (error) {
+      console.error("Error getting surveys by type and program ID:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to retrieve surveys by type and program ID",
         error: error.message,
       });
     }

@@ -814,6 +814,66 @@ class SurveyResponseController {
     }
 
     /**
+     * Check if current user has responded to a specific survey
+     * Uses survey_id from params and user_id from token
+     */
+    static async checkMyResponse(req, res) {
+        try {
+            const userId = req.user.userId; // Get user_id from token middleware
+            const { surveyId } = req.params;
+
+            if (!surveyId) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Survey ID is required'
+                });
+            }
+
+            // Check if survey exists first
+            const surveyRepository = AppDataSource.getRepository(Survey);
+            const survey = await surveyRepository.findOne({
+                where: { survey_id: parseInt(surveyId) }
+            });
+
+            if (!survey) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Survey not found'
+                });
+            }
+
+            // Check if user has responded to this survey
+            const responseRepository = AppDataSource.getRepository(SurveyResponse);
+            const response = await responseRepository.findOne({
+                where: {
+                    survey_id: parseInt(surveyId),
+                    user_id: parseInt(userId)
+                }
+            });
+
+            res.status(200).json({
+                success: true,
+                hasResponded: !!response,
+                responseId: response ? response.response_id : null,
+                surveyId: parseInt(surveyId),
+                userId: parseInt(userId),
+                submittedAt: response ? response.submitted_at : null,
+                message: response
+                    ? 'You have already responded to this survey'
+                    : 'You have not responded to this survey yet'
+            });
+
+        } catch (error) {
+            console.error('Error checking user response:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to check user response',
+                error: error.message
+            });
+        }
+    }
+
+    /**
      * Get user's survey responses in key-value format
      */
     static async getMySurveyResponsesKeyValue(req, res) {

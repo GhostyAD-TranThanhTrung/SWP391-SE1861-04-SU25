@@ -826,6 +826,7 @@ app.delete("/api/enrollments/my/:programId", authController.verifyToken, EnrollC
  * GET    /api/surveys/:id/response-stats        - Get survey response statistics
  * GET    /api/surveys/program/:programId        - Get surveys by program ID
  * GET    /api/surveys/type/:type                - Get surveys by type (pre-assessment, post-assessment)
+ * GET    /api/surveys/program/:programId/type/:type - Get surveys by program ID and type
  * POST   /api/surveys                           - Create new survey
  * PUT    /api/surveys/:id                       - Update survey
  * DELETE /api/surveys/:id                       - Delete survey
@@ -836,6 +837,7 @@ app.delete("/api/enrollments/my/:programId", authController.verifyToken, EnrollC
 app.get("/api/surveys", authController.verifyToken, SurveyController.getAllSurveys);
 app.get("/api/surveys/type/:type", authController.verifyToken, SurveyController.getSurveysByType);
 app.get("/api/surveys/program/:programId", authController.verifyToken, SurveyController.getSurveysByProgramId);
+app.get("/api/surveys/program/:programId/type/:type", authController.verifyToken, SurveyController.getSurveysByTypeAndProgramId);
 app.get("/api/surveys/:id", authController.verifyToken, SurveyController.getSurveyById);
 app.get("/api/surveys/:id/parsed", authController.verifyToken, SurveyController.getParsedSurveyById);
 app.get("/api/surveys/:id/with-program", authController.verifyToken, SurveyController.getSurveyWithProgram);
@@ -852,6 +854,7 @@ app.post("/api/surveys/:id/clone", authController.verifyToken, SurveyController.
  * 
  * GET    /api/survey-responses                        - Get all survey responses (admin)
  * GET    /api/survey-responses/me                     - Get current user's responses (key-value format)
+ * GET    /api/survey-responses/check/:surveyId        - Check if current user responded to a survey
  * GET    /api/survey-responses/statistics             - Get survey response statistics by program/type
  * GET    /api/survey-responses/date-range             - Get responses by date range
  * GET    /api/survey-responses/:id                    - Get survey response by ID
@@ -870,6 +873,7 @@ app.post("/api/surveys/:id/clone", authController.verifyToken, SurveyController.
 
 // User-facing survey response routes (key-value format)
 app.get("/api/survey-responses/me", authController.verifyToken, SurveyResponseController.getMySurveyResponsesKeyValue);
+app.get("/api/survey-responses/check/:surveyId", authController.verifyToken, SurveyResponseController.checkMyResponse);
 app.post("/api/survey-responses", authController.verifyToken, SurveyResponseController.submitSurveyResponseKeyValue);
 app.put("/api/survey-responses", authController.verifyToken, SurveyResponseController.updateSurveyResponseKeyValue);
 
@@ -982,6 +986,7 @@ Members (Admin/Staff):
 
 📋 SURVEY RESPONSE ROUTES:
 - GET /api/survey-responses/me - My survey responses
+- GET /api/survey-responses/check/:surveyId - Check if I responded to survey
 - POST /api/survey-responses - Submit survey response (auth)
 - GET /api/survey-responses/statistics - Response statistics
 
