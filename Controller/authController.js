@@ -44,6 +44,16 @@ class AuthController {
         });
       }
 
+      // Check if user status is active
+      if (user.status !== 'active') {
+        console.log(`❌ LOGIN DENIED - User ${user.email} has status: ${user.status}`);
+        return res.status(403).json({
+          success: false,
+          error: "Account is not active. Please contact support.",
+          status: user.status
+        });
+      }
+
       // Generate a JWT token with user information as the payload
       const token = jwt.sign(
         {

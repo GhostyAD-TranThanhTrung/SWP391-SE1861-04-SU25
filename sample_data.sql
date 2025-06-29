@@ -2,17 +2,19 @@
 -- This file contains realistic sample data for testing and development
 
 -- Insert Users (Admin, Consultants, Members)
+-- Status options: 'active' (can login), 'inactive' (soft deleted, cannot login), 'banned' (cannot login)
 INSERT INTO Users (role, password, status, email, img_link) VALUES
 ('admin', 'hashed_password_123', 'active', 'admin@drugprevention.com', '/uploads/profile-pictures/default-admin.png'),
 ('consultant', 'hashed_password_456', 'active', 'dr.smith@drugprevention.com', '/uploads/profile-pictures/default-consultant.png'),
 ('consultant', 'hashed_password_789', 'active', 'therapist.johnson@drugprevention.com', '/uploads/profile-pictures/default-consultant.png'),
 ('consultant', 'hashed_password_321', 'active', 'counselor.williams@drugprevention.com', '/uploads/profile-pictures/default-consultant.png'),
-('consultant', 'hashed_password_654', 'inactive', 'dr.brown@drugprevention.com', '/uploads/profile-pictures/default-consultant.png'),
+('consultant', 'hashed_password_654', 'inactive', 'dr.brown@drugprevention.com', '/uploads/profile-pictures/default-consultant.png'), -- Deactivated account
 ('member', 'hashed_password_987', 'active', 'john.doe@email.com', '/uploads/profile-pictures/default-member.png'),
 ('member', 'hashed_password_147', 'active', 'jane.smith@email.com', '/uploads/profile-pictures/default-member.png'),
 ('member', 'hashed_password_258', 'active', 'mike.wilson@email.com', '/uploads/profile-pictures/default-member.png'),
 ('member', 'hashed_password_369', 'active', 'sarah.davis@email.com', '/uploads/profile-pictures/default-member.png'),
-('member', 'hashed_password_741', 'banned', 'banned.user@email.com', NULL);
+('member', 'hashed_password_741', 'banned', 'banned.user@email.com', NULL), -- Banned account
+('member', 'hashed_password_999', 'inactive', 'deleted.user@email.com', NULL); -- Soft deleted account (user "deleted" their account)
 
 -- Insert Profiles for all users
 INSERT INTO Profile (user_id, name, bio_json, date_of_birth, job) VALUES
@@ -25,7 +27,8 @@ INSERT INTO Profile (user_id, name, bio_json, date_of_birth, job) VALUES
 (7, 'Jane Smith', '{"bio": "Parent looking for prevention resources for teenager", "interests": ["parenting", "community service"]}', '1978-09-22', 'Teacher'),
 (8, 'Mike Wilson', '{"bio": "College student interested in prevention education", "interests": ["sports", "music"]}', '2001-12-03', 'Student'),
 (9, 'Sarah Davis', '{"bio": "Healthcare worker seeking professional development in addiction prevention", "interests": ["healthcare", "training"]}', '1988-04-17', 'Nurse'),
-(10, 'Banned User', '{"bio": "User account banned for violations"}', '1990-07-25', 'Unknown');
+(10, 'Banned User', '{"bio": "User account banned for violations"}', '1990-07-25', 'Unknown'),
+(11, 'Deleted User', '{"bio": "User who deleted their account (data preserved)"}', '1992-03-18', 'Former Member');
 
 -- Insert Consultants
 INSERT INTO Consultant (user_id, cost, certification, speciality) VALUES
@@ -296,12 +299,12 @@ INSERT INTO Content (program_id, title, type, orders, content_file_link, content
 
 -- Community Event Programs Content
 -- Program 25: Community Prevention Fair (2 content items)
-(25, 'Planning Your Community Prevention Fair', 'article', 1, '/content/markdown/community-prevention-fair.md', 'markdown', '{"author": "Community Event Coordinator", "readingTime": "8 min", "difficulty": "beginner"}'),
-(25, 'Engaging Activities for All Ages', 'article', 2, '/content/markdown/prevention-fair-activities.md', 'markdown', '{"author": "Youth Engagement Specialist", "readingTime": "6 min", "difficulty": "beginner"}'),
+(31, 'Planning Your Community Prevention Fair', 'article', 1, '/content/markdown/community-prevention-fair.md', 'markdown', '{"author": "Community Event Coordinator", "readingTime": "8 min", "difficulty": "beginner"}'),
+(31, 'Engaging Activities for All Ages', 'article', 2, '/content/markdown/prevention-fair-activities.md', 'markdown', '{"author": "Youth Engagement Specialist", "readingTime": "6 min", "difficulty": "beginner"}'),
 
 -- Program 26: Recovery Walk & Support Rally (2 content items)
-(26, 'Organizing a Recovery Support Walk', 'article', 1, '/content/markdown/recovery-walk-guide.md', 'markdown', '{"author": "Recovery Advocate", "readingTime": "7 min", "difficulty": "beginner"}'),
-(26, 'Building Community Support Networks', 'article', 2, '/content/markdown/community-support-networks.md', 'markdown', '{"author": "Community Organizer", "readingTime": "9 min", "difficulty": "beginner"}');
+(31, 'Organizing a Recovery Support Walk', 'article', 1, '/content/markdown/recovery-walk-guide.md', 'markdown', '{"author": "Recovery Advocate", "readingTime": "7 min", "difficulty": "beginner"}'),
+(31, 'Building Community Support Networks', 'article', 2, '/content/markdown/community-support-networks.md', 'markdown', '{"author": "Community Organizer", "readingTime": "9 min", "difficulty": "beginner"}');
 
 -- Insert Surveys
 INSERT INTO Surveys (program_id, type, questions_json) VALUES

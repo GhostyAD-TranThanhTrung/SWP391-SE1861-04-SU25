@@ -214,6 +214,40 @@ app.get("/api/profile", authController.verifyToken, ProfileController.getUserPro
  */
 app.get("/api/profile/status", authController.verifyToken, ProfileController.checkProfileStatus);
 
+// ==================== COMBINED USER+PROFILE ROUTES ====================
+/**
+ * USER PROFILE COMBINED GET: Get complete user and profile data
+ * Purpose: Retrieve combined user and profile information using JWT token user_id
+ * Method: GET /api/user/profile-combined
+ * Input: None (user ID from JWT token)
+ * Output: { success: boolean, data: { user: object, profile: object|null, hasProfile: boolean }, message: string }
+ * Authentication: Required
+ * Features: Returns user data (excluding password) combined with profile data
+ */
+app.get("/api/user/profile-combined", authController.verifyToken, UserController.getUserProfileCombined);
+
+/**
+ * USER PROFILE COMBINED UPDATE: Update user and profile data together
+ * Purpose: Update both user and profile information in a single transaction using JWT token user_id
+ * Method: PUT /api/user/profile-combined
+ * Input: { email?: string, role?: string, status?: string, img_link?: string, name?: string, bio_json?: string, date_of_birth?: string, job?: string }
+ * Output: { success: boolean, data: { user: object, profile: object|null, hasProfile: boolean }, message: string }
+ * Authentication: Required
+ * Features: Transactional update, creates profile if doesn't exist, validates JSON
+ */
+app.put("/api/user/profile-combined", authController.verifyToken, UserController.updateUserProfileCombined);
+
+/**
+ * USER ACCOUNT DEACTIVATION: Deactivate user account (soft delete - sets status to 'inactive')
+ * Purpose: Deactivate user account using JWT token user_id (preserves data but marks as inactive)
+ * Method: DELETE /api/user/delete-account
+ * Input: None (user ID from JWT token)
+ * Output: { success: boolean, message: string, deactivatedData: { user: object, profile: object|null, softDeleted: boolean } }
+ * Authentication: Required
+ * Features: Soft delete preserves all data while preventing login, returns deactivated data for logging
+ */
+app.delete("/api/user/delete-account", authController.verifyToken, UserController.deleteUserCascade);
+
 // ==================== STAFF MANAGEMENT ROUTES (Admin Only) ====================
 /**
  * STAFF LIST: Get all staff members
@@ -902,6 +936,7 @@ app.listen(3000, () => {
     console.log("   Authentication: /api/login, /api/register, /api/google-*");
     console.log("   Dashboard: /api/dashboard, /api/dashboard/detailed");
     console.log("   Profile: /api/profile, /api/profile/status");
+    console.log("   User+Profile Combined: /api/user/profile-combined, /api/user/delete-account");
     console.log("   Staff: /api/staff/*");
     console.log("   Members: /api/members/*");
     console.log("   Consultants: /api/consultants/*");
@@ -936,6 +971,11 @@ app.listen(3000, () => {
 - POST /api/profile - Create/update user profile
 - GET /api/profile - Get current user profile
 - GET /api/profile/status - Check profile completion
+
+🔗 COMBINED USER+PROFILE ROUTES:
+- GET /api/user/profile-combined - Get complete user and profile data (JWT token)
+- PUT /api/user/profile-combined - Update user and profile data together (JWT token)
+- DELETE /api/user/delete-account - Deactivate user account (soft delete - sets status to 'inactive') (JWT token)
 
 👥 USER MANAGEMENT ROUTES:
 Staff (Admin only):
