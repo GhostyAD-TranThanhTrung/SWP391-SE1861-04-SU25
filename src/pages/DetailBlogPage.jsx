@@ -101,7 +101,7 @@ const DetailBlogPage = () => {
                             {blog.content ? (
                                 <div dangerouslySetInnerHTML={{ __html: blog.content }} />
                             ) : (
-                                <p>{blog.excerpt || 'Nội dung bài viết sẽ được cập nhật sớm.'}</p>
+                                <p>{blog.body || 'Nội dung bài viết sẽ được cập nhật sớm.'}</p>
                             )}
                         </div>
                     </div>
