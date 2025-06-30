@@ -22,6 +22,7 @@ const DetailBlogPage = () => {
                 if (!res.ok) throw new Error('Không thể tải dữ liệu bài viết');
                 const data = await res.json();
                 setBlog(data.data);
+                window.scrollTo(0, 0);
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -33,86 +34,118 @@ const DetailBlogPage = () => {
 
     if (loading) return (
         <div className="detail-blog-page">
-            <div className="container text-center" style={{ paddingTop: '5rem', paddingBottom: '5rem' }}>
+            <div className="container text-center loading-container">
                 <div className="spinner-border text-primary" role="status">
                     <span className="visually-hidden">Đang tải...</span>
                 </div>
-                <p className="mt-3">Đang tải bài viết...</p>
+                <p className="mt-2">Đang tải bài viết...</p>
             </div>
         </div>
     );
 
     if (error) return (
         <div className="detail-blog-page">
-            <div className="container text-center" style={{ paddingTop: '5rem', paddingBottom: '5rem' }}>
+            <div className="container text-center error-container">
                 <div className="alert alert-warning" role="alert">
-                    <i className="bi bi-exclamation-triangle me-2"></i>
+                    <i className="bi bi-exclamation-triangle me-1"></i>
                     {error}
                 </div>
-                <Link to="/blog" className="btn btn-outline-primary mt-3">Quay lại danh sách bài viết</Link>
+                <Link to="/blog" className="btn btn-primary btn-sm mt-2">
+                    <i className="bi bi-arrow-left me-1"></i>
+                    Quay lại
+                </Link>
             </div>
         </div>
     );
 
     if (!blog) return (
         <div className="detail-blog-page">
-            <div className="container text-center" style={{ paddingTop: '5rem', paddingBottom: '5rem' }}>
+            <div className="container text-center not-found-container">
                 <div className="alert alert-info" role="alert">
-                    <i className="bi bi-info-circle me-2"></i>
+                    <i className="bi bi-info-circle me-1"></i>
                     Không tìm thấy bài viết.
                 </div>
-                <Link to="/blog" className="btn btn-outline-primary mt-3">Quay lại danh sách bài viết</Link>
+                <Link to="/blog" className="btn btn-primary btn-sm mt-2">
+                    <i className="bi bi-arrow-left me-1"></i>
+                    Quay lại
+                </Link>
             </div>
         </div>
     );
 
+    const formattedDate = blog.date
+        ? new Date(blog.date).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
+        : new Date(blog.createdAt).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
     return (
         <div className="detail-blog-page">
-            <div className="container" style={{ paddingTop: '5rem', paddingBottom: '5rem' }}>
-                {/* Breadcrumb */}
-                <nav aria-label="breadcrumb">
-                    <ol className="breadcrumb">
-                        <li className="breadcrumb-item"><Link to="/">Trang chủ</Link></li>
-                        <li className="breadcrumb-item"><Link to="/blog">Blog</Link></li>
-                        <li className="breadcrumb-item active" aria-current="page">{blog.title}</li>
-                    </ol>
-                </nav>
+            <div className="blog-header">
+                <div className="container">
+                    <nav aria-label="breadcrumb" className="blog-breadcrumb">
+                        <ol className="breadcrumb">
+                            <li className="breadcrumb-item"><Link to="/">Trang chủ</Link></li>
+                            <li className="breadcrumb-item"><Link to="/blog">Blog</Link></li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
 
-                {/* Blog Content */}
+            <div className="container blog-container">
                 <div className="row">
                     <div className="col-lg-8 mx-auto">
-                        <h1 className="blog-title">{blog.title}</h1>
-                        <p className="blog-meta">
-                            <i className="bi bi-calendar me-2"></i>
-                            {blog.date || new Date(blog.createdAt).toLocaleDateString('vi-VN')}
-                            <span className="mx-2">|</span>
-                            <i className="bi bi-person me-2"></i>
-                            {blog.author || 'Tác giả'}
-                        </p>
-                        <div className="blog-image mb-4">
-                            <img
-                                src={blog.image || DefaultImage}
-                                alt={blog.title}
-                                className="img-fluid"
-                                onError={e => { e.target.onerror = null; e.target.src = DefaultImage; }}
-                            />
-                        </div>
-                        <div className="blog-content">
-                            {blog.content ? (
-                                <div dangerouslySetInnerHTML={{ __html: blog.content }} />
-                            ) : (
-                                <p>{blog.body || 'Nội dung bài viết sẽ được cập nhật sớm.'}</p>
-                            )}
-                        </div>
-                    </div>
-                </div>
+                        <article className="blog-article">
+                            <div className="blog-meta-top">
+                                <span className="blog-category">Sức khỏe tinh thần</span>
+                                <span className="blog-date">
+                                    <i className="bi bi-calendar3 me-1"></i>
+                                    {formattedDate}
+                                </span>
+                            </div>
 
-                {/* Back to Blog List */}
-                <div className="text-center mt-5">
-                    <Link to="/blog" className="btn btn-outline-primary">
-                        <i className="bi bi-arrow-left me-2"></i>
-                        Quay lại danh sách bài viết
-                    </Link>
+                            <h1 className="blog-title">{blog.title}</h1>
+
+                            <div className="blog-author-info">
+                                <div className="author-avatar">
+                                    <i className="bi bi-person-circle"></i>
+                                </div>
+                                <div className="author-details">
+                                    <span className="author-name">{blog.author || 'Tác giả'}</span>
+                                    <span className="author-role">Chuyên gia tư vấn</span>
+                                </div>
+                            </div>
+
+                            <div className="blog-image">
+                                <img
+                                    src={blog.image || DefaultImage}
+                                    alt={blog.title}
+                                    className="img-fluid"
+                                    onError={e => { e.target.onerror = null; e.target.src = DefaultImage; }}
+                                />
+                            </div>
+
+                            <div className="blog-content">
+                                {blog.content ? (
+                                    <div dangerouslySetInnerHTML={{ __html: blog.content }} />
+                                ) : (
+                                    <p>{blog.body || 'Nội dung bài viết sẽ được cập nhật sớm.'}</p>
+                                )}
+                            </div>
+
+                            <div className="blog-tags">
+                                <i className="bi bi-tags me-1"></i>
+                                <span className="tag">Sức khỏe</span>
+                                <span className="tag">Tâm lý</span>
+                                <span className="tag">Tư vấn</span>
+                            </div>
+
+                            <div className="blog-footer">
+                                <Link to="/blog" className="btn btn-outline-primary">
+                                    <i className="bi bi-arrow-left me-1"></i>
+                                    Quay lại danh sách bài viết
+                                </Link>
+                            </div>
+                        </article>
+                    </div>
                 </div>
             </div>
         </div>

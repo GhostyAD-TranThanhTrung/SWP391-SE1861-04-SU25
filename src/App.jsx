@@ -33,6 +33,8 @@ import CertificatePage from "./pages/consultant/CertificatePage";
 import ManageBookingPage from "./pages/consultant/ManageBookingPage";
 import CourseListPage from "./pages/admin/CourseListPage";
 import BlogListPage from "./pages/admin/BlogListPage";
+import ProfilePage from "./pages/ProfilePage";
+import SettingLayout from "./layout/SettingLayout";
 
 //Import layout
 import AdminLayout from "./layout/AdminLayout";
@@ -42,8 +44,8 @@ import ConsultantLayout from "./layout/ConsultantLayout";
 const AppLayout = () => {
   const location = useLocation();
   const hideNavbarAndFooter = ["/login", "/signup", "/forget", "/choose-role", "/admin/login",
-    "/dashboard", "/staff-list", "/member-list", "/consultant-list", '/assessment-list', 
-    '/course-list', '/blog-list','/manage-booking', '/certificate'].includes(location.pathname);
+    "/dashboard", "/staff-list", "/member-list", "/consultant-list", '/assessment-list',
+    '/course-list', '/blog-list', '/manage-booking', '/certificate'].includes(location.pathname);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
@@ -61,7 +63,6 @@ const AppLayout = () => {
           <Route path="/test" element={<TestPage />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/about" element={<AboutUsPage />} />
-          <Route path="/setting" element={<SettingSidebar />} />
           <Route path="/choose-role" element={<ChooseRolePage />} />
           <Route path="/choosetype" element={<ChooseTypeExam />} />
           <Route path="/exam/:type" element={<ExamPage />} />
@@ -71,9 +72,13 @@ const AppLayout = () => {
           <Route path="/community-event/:id" element={<DetailCommunityEventPage />} />
           <Route path="/blog/:id" element={<DetailBlogPage />} />
           <Route path="/content/:contentId" element={<ContentViewPage />} />
+          <Route path="/setting" element={<SettingLayout />}>
+            <Route path="profile" element={<ProfilePage />} />
+            {/* Thêm các route khác nếu cần */}
+          </Route>
 
-        {/* Admin */}
-        <Route path="/admin/login" element={<AdminLoginPage />} />
+          {/* Admin */}
+          <Route path="/admin/login" element={<AdminLoginPage />} />
           <Route
             path="/dashboard"
             element={

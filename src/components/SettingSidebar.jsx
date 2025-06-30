@@ -9,7 +9,7 @@ const SettingSidebar = ({ isOpen }) => {
 
     useEffect(() => {
         const path = location.pathname;
-        if (path.includes('/profile')) setActiveItem('profile');
+        if (path.includes('/setting/profile')) setActiveItem('profile');
         else if (path.includes('/read-blogs')) setActiveItem('read-blogs');
         else if (path.includes('/favorite-blogs')) setActiveItem('favorite-blogs');
         else if (path.includes('/completed-courses')) setActiveItem('completed-courses');
@@ -25,7 +25,7 @@ const SettingSidebar = ({ isOpen }) => {
             {/* Navigation Menu */}
             <ul className="sidebar-menu">
                 <li className={activeItem === 'profile' ? 'active' : ''}>
-                    <Link to="/profile">
+                    <Link to="/setting/profile">
                         <div className="menu-item">
                             <FaUser className='icon' />
                             <span>Hồ sơ của bạn</span>
@@ -44,7 +44,7 @@ const SettingSidebar = ({ isOpen }) => {
                     <Link to="/favorite-blogs">
                         <div className="menu-item">
                             <FaHeart className='icon' />
-                            <span>Favorite Blog</span>
+                            <span>Blog yêu thích</span>
                         </div>
                     </Link>
                 </li>
@@ -52,7 +52,7 @@ const SettingSidebar = ({ isOpen }) => {
                     <Link to="/completed-courses">
                         <div className="menu-item">
                             <FaGraduationCap className='icon' />
-                            <span>Complete Course</span>
+                            <span>Khóa học đã hoàn thành</span>
                         </div>
                     </Link>
                 </li>
