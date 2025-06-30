@@ -213,11 +213,19 @@ class ConsultantController {
     try {
       const {
         // User table fields
-        role, password, status, email,
+        role,
+        password,
+        status,
+        email,
         // Consultant table fields
-        cost, certification, speciality,
+        cost,
+        certification,
+        speciality,
         // Profile table fields
-        name, bio_json, date_of_birth, job
+        name,
+        bio_json,
+        date_of_birth,
+        job,
       } = req.body;
 
       // Validate required fields
@@ -254,7 +262,7 @@ class ConsultantController {
         const newUser = queryRunner.manager.create(User, {
           role: role,
           password: password, // Note: In production, this should be hashed
-          status: status || 'active',
+          status: status || "active",
           email: email,
         });
 
@@ -314,14 +322,12 @@ class ConsultantController {
           data: completeConsultantData,
           message: "Consultant created successfully with complete profile",
         });
-
       } catch (error) {
         await queryRunner.rollbackTransaction();
         throw error;
       } finally {
         await queryRunner.release();
       }
-
     } catch (error) {
       console.error("Error creating consultant:", error);
       res.status(500).json({
@@ -340,11 +346,18 @@ class ConsultantController {
       const { id } = req.params;
       const {
         // User table fields
-        role, status, email,
+        role,
+        status,
+        email,
         // Consultant table fields
-        cost, certification, speciality,
+        cost,
+        certification,
+        speciality,
         // Profile table fields
-        name, bio_json, date_of_birth, job
+        name,
+        bio_json,
+        date_of_birth,
+        job,
       } = req.body;
 
       const consultantRepository = AppDataSource.getRepository(Consultant);
@@ -372,7 +385,8 @@ class ConsultantController {
       try {
         // Update consultant fields
         if (cost !== undefined) consultant.cost = cost;
-        if (certification !== undefined) consultant.certification = certification;
+        if (certification !== undefined)
+          consultant.certification = certification;
         if (speciality !== undefined) consultant.speciality = speciality;
 
         const updatedConsultant = await queryRunner.manager.save(consultant);
@@ -408,7 +422,8 @@ class ConsultantController {
           // Update existing profile
           if (name !== undefined) profile.name = name;
           if (bio_json !== undefined) profile.bio_json = bio_json;
-          if (date_of_birth !== undefined) profile.date_of_birth = date_of_birth;
+          if (date_of_birth !== undefined)
+            profile.date_of_birth = date_of_birth;
           if (job !== undefined) profile.job = job;
         }
 
@@ -451,14 +466,12 @@ class ConsultantController {
           data: completeUpdatedData,
           message: "Consultant updated successfully with complete profile",
         });
-
       } catch (error) {
         await queryRunner.rollbackTransaction();
         throw error;
       } finally {
         await queryRunner.release();
       }
-
     } catch (error) {
       console.error("Error updating consultant:", error);
       res.status(500).json({
@@ -489,25 +502,17 @@ class ConsultantController {
       const consultants = await consultantRepository
         .createQueryBuilder("consultant")
         .innerJoinAndSelect("consultant.user", "user")
-        .leftJoin(Profile, "profile", "profile.user_id = consultant.user_id")
+        .leftJoinAndSelect("user.profile", "profile") // ✅ Select luôn profile
         .where("LOWER(profile.name) LIKE LOWER(:name)", {
-          name: `%${consultantName}%`,
+          name: `%${consultantName.trim().toLowerCase()}%`,
         })
         .getMany();
 
-      // Get profile data for all matched consultants
-      const userIds = consultants.map((c) => c.user_id);
-      const profileRepository = AppDataSource.getRepository(Profile);
-      const profiles = await profileRepository.find({
-        where: { user_id: userIds },
-      });
+      // Không cần truy vấn profile lại nữa
 
-      const profileMap = new Map();
-      profiles.forEach((profile) => profileMap.set(profile.user_id, profile));
-
-      // Format response with ALL fields from Users, Consultant, and Profile tables
+      // Trả dữ liệu đã gộp
       const formattedConsultants = consultants.map((consultant) => {
-        const profile = profileMap.get(consultant.user_id);
+        const profile = consultant.user.profile;
 
         return {
           // Consultant table fields
@@ -516,7 +521,7 @@ class ConsultantController {
           certification: consultant.certification,
           speciality: consultant.speciality,
 
-          // Users table fields (excluding password for security)
+          // Users table fields
           user_id: consultant.user_id,
           date_create: consultant.user?.date_create,
           role: consultant.user?.role,
