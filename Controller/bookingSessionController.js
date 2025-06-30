@@ -6,7 +6,6 @@ require('dotenv').config();
 const { parse } = require('dotenv');
 const AppDataSource = require('../src/data-source');
 const BookingSession = require('../src/entities/BookingSession');
-const BookingSession = require('../src/entities/BookingSession');
 const google = require('googleapis').google;
 
 const oauth2Client = new google.auth.OAuth2(
@@ -736,85 +735,8 @@ class BookingSessionController {
             });
         }
     }
-    static async confirmBookingSession(req, res) {
-        try {
-            const { id, meet } = req.params;
-            const bookingRepository = AppDataSource.getRepository(BookingSession);
 
-            // Check if booking exists and has the correct status
-            const booking = await bookingRepository.findOne({
-                where: { booking_id: parseInt(id) }
-            });
-
-            if (!booking) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Không tìm thấy lịch hẹn'
-                });
-            }
-            if (!meet) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Link Google Meet không được để trống.'
-                })
-            }
-            // Check if the booking status is "Đang xác nhận"
-            if (booking.status !== 'Đang xác nhận') {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Chỉ có thể xác nhận lịch hẹn có trạng thái "Đang xác nhận"'
-                });
-            }
-
-            // Update booking status to "Đã xác nhận"
-            await bookingRepository.update(parseInt(id), {
-                status: 'Đã xác nhận',
-                google_meet_link: meet
-            });
-
-            // Fetch updated booking with complete details
-            const completeBookingQuery = `
-                SELECT 
-                    b.booking_id,
-                    b.consultant_id,
-                    b.member_id,
-                    b.slot_id,
-                    CONVERT(varchar(10), b.booking_date, 120) as booking_date,
-                    b.status,
-                    b.notes,
-                    b.google_meet_link,
-                    cs.day_of_week,
-                    CONVERT(varchar(8), s.start_time, 108) as start_time,
-                    CONVERT(varchar(8), s.end_time, 108) as end_time,
-                    p.name as consultant_name
-                FROM Booking_Session b
-                LEFT JOIN Consultant c ON b.consultant_id = c.id_consultant
-                LEFT JOIN [Users] u ON c.user_id = u.user_id
-                LEFT JOIN Profile p ON u.user_id = p.user_id
-                LEFT JOIN Slot s ON b.slot_id = s.slot_id
-                LEFT JOIN Consultant_Slot cs ON (b.consultant_id = cs.consultant_id AND b.slot_id = cs.slot_id)
-                WHERE b.booking_id = @0
-            `;
-
-            const [updatedBooking] = await AppDataSource.query(
-                completeBookingQuery,
-                [parseInt(id)]
-            );
-
-            res.status(200).json({
-                success: true,
-                data: updatedBooking,
-                message: 'Xác nhận lịch hẹn thành công'
-            });
-        } catch (error) {
-            console.error('Error confirming booking session:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Không thể xác nhận lịch hẹn',
-                error: error.message
-            });
-        }
-    }
+    
 }
 
 module.exports = BookingSessionController;
