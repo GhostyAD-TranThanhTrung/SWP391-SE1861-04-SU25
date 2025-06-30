@@ -3,7 +3,9 @@
  * CRUD operations for Booking_Session table
  */
 require('dotenv').config();
+const { parse } = require('dotenv');
 const AppDataSource = require('../src/data-source');
+const BookingSession = require('../src/entities/BookingSession');
 const BookingSession = require('../src/entities/BookingSession');
 const google = require('googleapis').google;
 
@@ -259,7 +261,7 @@ class BookingSessionController {
 
             const startDateWithTime = `${booking_date}T${startTime}`;
             const endDateWithTime = `${booking_date}T${endTime}`;
-            const google_meet_link = await BookingSessionController.CreateLink(startDateWithTime, endDateWithTime);
+            const google_meet_link = null;
             if (getSlot.length === 0) {
                 console.log('Slot not found:', slot_id);
                 return res.status(404).json({
@@ -269,15 +271,7 @@ class BookingSessionController {
                     message: 'Khung giờ không tồn tại'
                 });
             }
-            if (google_meet_link.error) {
-                console.error('Failed to create Google Meet link');
-                return res.status(500).json({
-                    success: false,
-                    data: [],
-                    count: 0,
-                    message: 'Không thể tạo liên kết Google Meet'
-                });
-            }
+
 
             console.log('Parsed input data:', {
                 consultant_id,
@@ -710,9 +704,41 @@ class BookingSessionController {
     /**
      * Confirm booking session - Update status from "Đang xác nhận" to "Đã xác nhận"
      */
+    static async updateBookingNotes(req, res) {
+        try {
+            const { id, notes } = req.params
+            const BookingRepo = AppDataSource.getRepository(BookingSession)
+            const booking = await BookingRepo.findOne({
+                where: { booking_id: parseInt(id) }
+            })
+            if (!booking) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Không tìm thấy lịch hẹn'
+                });
+            }
+            if (!notes) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Ghi chú không được để trống.'
+                });
+            }
+            BookingRepo.update(parseInt(id), {
+                notes: notes
+            })
+        } catch (error) {
+            console.error('Error getting scheduled booking status:', error);
+            res.status(500).json({
+                success: false,
+                data: [],
+                count: 0,
+                message: error.message || 'Không thể lấy danh sách lịch hẹn đã lên lịch'
+            });
+        }
+    }
     static async confirmBookingSession(req, res) {
         try {
-            const { id } = req.params;
+            const { id, meet } = req.params;
             const bookingRepository = AppDataSource.getRepository(BookingSession);
 
             // Check if booking exists and has the correct status
@@ -726,7 +752,12 @@ class BookingSessionController {
                     message: 'Không tìm thấy lịch hẹn'
                 });
             }
-
+            if (!meet) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Link Google Meet không được để trống.'
+                })
+            }
             // Check if the booking status is "Đang xác nhận"
             if (booking.status !== 'Đang xác nhận') {
                 return res.status(400).json({
@@ -737,7 +768,8 @@ class BookingSessionController {
 
             // Update booking status to "Đã xác nhận"
             await bookingRepository.update(parseInt(id), {
-                status: 'Đã xác nhận'
+                status: 'Đã xác nhận',
+                google_meet_link: meet
             });
 
             // Fetch updated booking with complete details
