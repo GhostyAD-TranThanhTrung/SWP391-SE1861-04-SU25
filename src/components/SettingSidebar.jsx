@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import '../styles/SettingSidebar.scss';
-import { FaUser, FaBookOpen, FaHeart, FaGraduationCap, FaChartBar } from "react-icons/fa6";
+import { FaUser, FaBookOpen, FaGraduationCap, FaChartBar, FaCalendarDays } from "react-icons/fa6";
 import { useState, useEffect } from 'react';
 
 const SettingSidebar = ({ isOpen }) => {
@@ -10,10 +10,10 @@ const SettingSidebar = ({ isOpen }) => {
     useEffect(() => {
         const path = location.pathname;
         if (path.includes('/setting/profile')) setActiveItem('profile');
-        else if (path.includes('/read-blogs')) setActiveItem('read-blogs');
-        else if (path.includes('/favorite-blogs')) setActiveItem('favorite-blogs');
-        else if (path.includes('/completed-courses')) setActiveItem('completed-courses');
-        else if (path.includes('/assessment-result')) setActiveItem('assessment-result');
+        else if (path.includes('/my-blogs')) setActiveItem('my-blogs');
+        else if (path.includes('/my-programs/community-events')) setActiveItem('community-events');
+        else if (path.includes('/my-programs/others')) setActiveItem('other-programs');
+        else if (path.includes('/assessment-history')) setActiveItem('assessment-history');
     }, [location]);
 
     return (
@@ -32,35 +32,35 @@ const SettingSidebar = ({ isOpen }) => {
                         </div>
                     </Link>
                 </li>
-                <li className={activeItem === 'read-blogs' ? 'active' : ''}>
-                    <Link to="/read-blogs">
+                <li className={activeItem === 'my-blogs' ? 'active' : ''}>
+                    <Link to="/my-blogs">
                         <div className="menu-item">
                             <FaBookOpen className='icon' />
-                            <span>Blog đã đọc</span>
+                            <span>Blog bạn viết</span>
                         </div>
                     </Link>
                 </li>
-                <li className={activeItem === 'favorite-blogs' ? 'active' : ''}>
-                    <Link to="/favorite-blogs">
+                <li className={activeItem === 'community-events' ? 'active' : ''}>
+                    <Link to="/my-programs/community-events">
                         <div className="menu-item">
-                            <FaHeart className='icon' />
-                            <span>Blog yêu thích</span>
+                            <FaCalendarDays className='icon' />
+                            <span>Sự kiện cộng đồng</span>
                         </div>
                     </Link>
                 </li>
-                <li className={activeItem === 'completed-courses' ? 'active' : ''}>
-                    <Link to="/completed-courses">
+                <li className={activeItem === 'other-programs' ? 'active' : ''}>
+                    <Link to="/my-programs/others">
                         <div className="menu-item">
                             <FaGraduationCap className='icon' />
-                            <span>Khóa học đã hoàn thành</span>
+                            <span>Chương trình khác</span>
                         </div>
                     </Link>
                 </li>
-                <li className={activeItem === 'assessment-result' ? 'active' : ''}>
-                    <Link to="/assessment-result">
+                <li className={activeItem === 'assessment-history' ? 'active' : ''}>
+                    <Link to="/assessment-history">
                         <div className="menu-item">
                             <FaChartBar className='icon' />
-                            <span>Kết quả kiểm tra</span>
+                            <span>Lịch sử đánh giá</span>
                         </div>
                     </Link>
                 </li>
