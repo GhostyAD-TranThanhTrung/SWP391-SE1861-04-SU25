@@ -266,7 +266,7 @@ class ConsultantController {
           email: email,
         });
 
-        const savedUser = await queryRunner.manager.save(newUser);
+        const savedUser = await queryRunner.manager.save(User, newUser);
 
         // Create consultant profile
         const newConsultant = queryRunner.manager.create(Consultant, {
@@ -276,7 +276,7 @@ class ConsultantController {
           speciality: speciality || null,
         });
 
-        const savedConsultant = await queryRunner.manager.save(newConsultant);
+        const savedConsultant = await queryRunner.manager.save(Consultant, newConsultant);
 
         // Create profile if profile data is provided
         let savedProfile = null;
@@ -284,12 +284,12 @@ class ConsultantController {
           const newProfile = queryRunner.manager.create(Profile, {
             user_id: savedUser.user_id,
             name: name || null,
-            bio_json: bio_json || null,
+            bio_json: JSON.stringify(bio_json) || null,
             date_of_birth: date_of_birth || null,
             job: job || null,
           });
 
-          savedProfile = await queryRunner.manager.save(newProfile);
+          savedProfile = await queryRunner.manager.save(Profile, newProfile);
         }
 
         await queryRunner.commitTransaction();
@@ -343,7 +343,7 @@ class ConsultantController {
    */
   static async updateConsultant(req, res) {
     try {
-      const { id } = req.params;
+      const { consultantId } = req.params;
       const {
         // User table fields
         role,
@@ -366,7 +366,7 @@ class ConsultantController {
 
       // Check if consultant exists
       const consultant = await consultantRepository.findOne({
-        where: { id_consultant: parseInt(id) },
+        where: { id_consultant: parseInt(consultantId) },
         relations: { user: true },
       });
 
@@ -389,7 +389,7 @@ class ConsultantController {
           consultant.certification = certification;
         if (speciality !== undefined) consultant.speciality = speciality;
 
-        const updatedConsultant = await queryRunner.manager.save(consultant);
+        const updatedConsultant = await queryRunner.manager.save(Consultant, consultant);
 
         // Update user fields
         const user = await queryRunner.manager.findOne(User, {
@@ -401,7 +401,7 @@ class ConsultantController {
           if (status !== undefined) user.status = status;
           if (email !== undefined) user.email = email;
 
-          await queryRunner.manager.save(user);
+          await queryRunner.manager.save(User, user);
         }
 
         // Update or create profile
@@ -414,21 +414,21 @@ class ConsultantController {
           profile = queryRunner.manager.create(Profile, {
             user_id: consultant.user_id,
             name: name || null,
-            bio_json: bio_json || null,
+            bio_json: JSON.stringify(bio_json) || null,
             date_of_birth: date_of_birth || null,
             job: job || null,
           });
         } else if (profile) {
           // Update existing profile
           if (name !== undefined) profile.name = name;
-          if (bio_json !== undefined) profile.bio_json = bio_json;
+          if (bio_json !== undefined) profile.bio_json = JSON.stringify(bio_json);
           if (date_of_birth !== undefined)
             profile.date_of_birth = date_of_birth;
           if (job !== undefined) profile.job = job;
         }
 
         if (profile) {
-          await queryRunner.manager.save(profile);
+          await queryRunner.manager.save(Profile, profile);
         }
 
         await queryRunner.commitTransaction();
