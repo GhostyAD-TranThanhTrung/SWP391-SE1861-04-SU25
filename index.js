@@ -528,7 +528,7 @@ app.post("/api/booking-sessions", authController.verifyToken, BookingSessionCont
  * Authentication: Required (Consultant/Admin)
  * Features: Includes member profile, slot timing, and booking status information
  */
-app.get("/api/booking-sessions/consultant/:consultantId", authController.verifyToken, BookingSessionController.getBookingSessionsByConsultant);
+app.get("/api/booking-sessions/consultant/:consultantId", authController.verifyToken, BookingSessionController.getDetailedBookingSessionsByConsultant);
 
 // ==================== ASSESSMENT ROUTES ====================
 /**
@@ -1154,3 +1154,9 @@ All API responses follow this structure:
 
 =====================================================================
 */
+
+// Debug: Check if controllers are properly imported before setting up routes.
+console.log("🔍 Debug: Checking controller imports...");
+console.log("ProgramController:", typeof ProgramController);
+console.log("ProgramController.getAllPrograms:", typeof ProgramController.getAllPrograms);
+console.log("ProgramController.getProgramSurveyAnalytics:", typeof ProgramController.getProgramSurveyAnalytics);

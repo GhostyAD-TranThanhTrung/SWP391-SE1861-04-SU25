@@ -463,14 +463,16 @@ class ProgramController {
                         program_id: parseInt(programId),
                         program_title: program.title,
                         total_surveys: 0,
+                        total_responses: 0,
                         surveys: []
                     },
                     message: 'No surveys found for this program'
                 });
             }
 
-            // 3. Process each survey and get its responses
+            // 3. Process each survey and get its responses using the existing pattern
             const surveyAnalytics = [];
+            let totalResponses = 0;
 
             for (const survey of surveys) {
                 try {
@@ -488,11 +490,13 @@ class ProgramController {
                         questions = [];
                     }
 
-                    // Get all responses for this survey
+                    // Get all responses for this survey using the existing method pattern
                     const responses = await surveyResponseRepository.find({
                         where: { survey_id: survey.survey_id },
                         relations: ['user']
                     });
+
+                    totalResponses += responses.length;
 
                     // Create a 2D matrix of responses [responseIndex][questionIndex]
                     const responseMatrix = [];
@@ -517,6 +521,20 @@ class ProgramController {
                                     });
                                     
                                     // Map answers to question indices (question_id - 1 for 0-based indexing)
+                                    questions.forEach((question, questionIndex) => {
+                                        const questionId = question.id || (questionIndex + 1);
+                                        answers[questionIndex] = answerMap[questionId];
+                                    });
+                                } else if (parsed.responses && Array.isArray(parsed.responses)) {
+                                    // Handle new key-value format: { responses: [{id, question, answer}, ...] }
+                                    const answerMap = {};
+                                    parsed.responses.forEach(item => {
+                                        if (item.id && item.answer !== undefined) {
+                                            answerMap[item.id] = item.answer;
+                                        }
+                                    });
+                                    
+                                    // Map answers to question indices
                                     questions.forEach((question, questionIndex) => {
                                         const questionId = question.id || (questionIndex + 1);
                                         answers[questionIndex] = answerMap[questionId];
@@ -626,36 +644,25 @@ class ProgramController {
                 }
             }
 
-            // 6. Calculate overall program statistics
-            const totalResponses = surveyAnalytics.reduce((sum, survey) => 
-                sum + (survey.total_responses || 0), 0);
-            
-            const averageResponsesPerSurvey = surveys.length > 0 ? 
-                (totalResponses / surveys.length).toFixed(2) : 0;
-
-            // 7. Return comprehensive analytics
+            // 6. Return the analytics data
             res.status(200).json({
                 success: true,
                 data: {
                     program_id: parseInt(programId),
                     program_title: program.title,
-                    program_description: program.description,
                     total_surveys: surveys.length,
                     total_responses: totalResponses,
-                    average_responses_per_survey: parseFloat(averageResponsesPerSurvey),
-                    analytics_generated_at: new Date().toISOString(),
                     surveys: surveyAnalytics
                 },
-                message: 'Program survey analytics generated successfully'
+                message: 'Survey analytics retrieved successfully'
             });
 
         } catch (error) {
-            console.error('Error generating program survey analytics:', error);
+            console.error('Error getting program survey analytics:', error);
             res.status(500).json({
                 success: false,
-                message: 'Failed to generate program survey analytics',
-                error: error.message,
-                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+                message: 'Failed to retrieve survey analytics',
+                error: error.message
             });
         }
     }
