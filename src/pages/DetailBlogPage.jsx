@@ -8,17 +8,13 @@ const DetailBlogPage = () => {
     const [blog, setBlog] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isFavorite, setIsFavorite] = useState(false);
 
     useEffect(() => {
         const fetchBlog = async () => {
             setLoading(true);
             try {
-                const res = await fetch(`http://localhost:3000/api/blogs/${id}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                });
+                const res = await fetch(`http://localhost:3000/api/blogs/${id}`);
                 if (!res.ok) throw new Error('Không thể tải dữ liệu bài viết');
                 const data = await res.json();
                 setBlog(data.data);
@@ -32,46 +28,36 @@ const DetailBlogPage = () => {
         fetchBlog();
     }, [id]);
 
-    if (loading) return (
-        <div className="detail-blog-page">
-            <div className="container text-center loading-container">
-                <div className="spinner-border text-primary" role="status">
-                    <span className="visually-hidden">Đang tải...</span>
-                </div>
-                <p className="mt-2">Đang tải bài viết...</p>
-            </div>
-        </div>
-    );
+    const toggleFavorite = () => {
+        setIsFavorite(prev => !prev);
+    };
 
-    if (error) return (
-        <div className="detail-blog-page">
-            <div className="container text-center error-container">
-                <div className="alert alert-warning" role="alert">
-                    <i className="bi bi-exclamation-triangle me-1"></i>
-                    {error}
+    if (loading || error || !blog) {
+        return (
+            <div className="detail-blog-page">
+                <div className="container text-center mt-5">
+                    {loading && (
+                        <>
+                            <div className="spinner-border text-primary" role="status"></div>
+                            <p className="mt-2">Đang tải bài viết...</p>
+                        </>
+                    )}
+                    {error && (
+                        <>
+                            <div className="alert alert-danger">{error}</div>
+                            <Link to="/blog" className="btn btn-primary mt-2">Quay lại</Link>
+                        </>
+                    )}
+                    {!loading && !error && !blog && (
+                        <>
+                            <div className="alert alert-info">Không tìm thấy bài viết.</div>
+                            <Link to="/blog" className="btn btn-primary mt-2">Quay lại</Link>
+                        </>
+                    )}
                 </div>
-                <Link to="/blog" className="btn btn-primary btn-sm mt-2">
-                    <i className="bi bi-arrow-left me-1"></i>
-                    Quay lại
-                </Link>
             </div>
-        </div>
-    );
-
-    if (!blog) return (
-        <div className="detail-blog-page">
-            <div className="container text-center not-found-container">
-                <div className="alert alert-info" role="alert">
-                    <i className="bi bi-info-circle me-1"></i>
-                    Không tìm thấy bài viết.
-                </div>
-                <Link to="/blog" className="btn btn-primary btn-sm mt-2">
-                    <i className="bi bi-arrow-left me-1"></i>
-                    Quay lại
-                </Link>
-            </div>
-        </div>
-    );
+        );
+    }
 
     const formattedDate = blog.date
         ? new Date(blog.date).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
@@ -79,74 +65,62 @@ const DetailBlogPage = () => {
 
     return (
         <div className="detail-blog-page">
-            <div className="blog-header">
-                <div className="container">
-                    <nav aria-label="breadcrumb" className="blog-breadcrumb">
-                        <ol className="breadcrumb">
-                            <li className="breadcrumb-item"><Link to="/">Trang chủ</Link></li>
-                            <li className="breadcrumb-item"><Link to="/blog">Blog</Link></li>
-                        </ol>
-                    </nav>
-                </div>
-            </div>
-
             <div className="container blog-container">
-                <div className="row">
-                    <div className="col-lg-8 mx-auto">
-                        <article className="blog-article">
-                            <div className="blog-meta-top">
-                                <span className="blog-category">Sức khỏe tinh thần</span>
-                                <span className="blog-date">
-                                    <i className="bi bi-calendar3 me-1"></i>
-                                    {formattedDate}
-                                </span>
-                            </div>
+                <nav className="breadcrumb-nav">
+                    <Link to="/">Trang chủ</Link> / <Link to="/blog">Blog</Link> / <span className="current-blog">{blog.title}</span>
+                </nav>
 
-                            <h1 className="blog-title">{blog.title}</h1>
-
-                            <div className="blog-author-info">
-                                <div className="author-avatar">
-                                    <i className="bi bi-person-circle"></i>
-                                </div>
-                                <div className="author-details">
-                                    <span className="author-name">{blog.author || 'Tác giả'}</span>
-                                    <span className="author-role">Chuyên gia tư vấn</span>
-                                </div>
-                            </div>
-
-                            <div className="blog-image">
-                                <img
-                                    src={blog.image || DefaultImage}
-                                    alt={blog.title}
-                                    className="img-fluid"
-                                    onError={e => { e.target.onerror = null; e.target.src = DefaultImage; }}
-                                />
-                            </div>
-
-                            <div className="blog-content">
-                                {blog.content ? (
-                                    <div dangerouslySetInnerHTML={{ __html: blog.content }} />
-                                ) : (
-                                    <p>{blog.body || 'Nội dung bài viết sẽ được cập nhật sớm.'}</p>
-                                )}
-                            </div>
-
-                            <div className="blog-tags">
-                                <i className="bi bi-tags me-1"></i>
-                                <span className="tag">Sức khỏe</span>
-                                <span className="tag">Tâm lý</span>
-                                <span className="tag">Tư vấn</span>
-                            </div>
-
-                            <div className="blog-footer">
-                                <Link to="/blog" className="btn btn-outline-primary">
-                                    <i className="bi bi-arrow-left me-1"></i>
-                                    Quay lại danh sách bài viết
-                                </Link>
-                            </div>
-                        </article>
+                <article className="blog-article">
+                    <div className="blog-header improved-blog-header">
+                        <span className="blog-category">Sức khỏe tinh thần</span>
+                        <span className="blog-date">
+                            <i className="bi bi-calendar3 me-1"></i> {formattedDate}
+                        </span>
+                        <button className={`btn-flag ${isFavorite ? 'favorited' : ''}`} onClick={toggleFavorite} title={isFavorite ? 'Bỏ yêu thích' : 'Thêm vào yêu thích'}>
+                            <i className={`bi ${isFavorite ? 'bi-flag-fill' : 'bi-flag'}`}></i>
+                        </button>
                     </div>
-                </div>
+
+                    <h1 className="blog-title improved-blog-title">{blog.title}</h1>
+
+                    <div className="blog-author-info improved-blog-author">
+                        <i className="bi bi-person-circle avatar"></i>
+                        <div>
+                            <div className="author-name">{blog.author || 'Tác giả'}</div>
+                            <div className="author-role">Chuyên gia tư vấn</div>
+                        </div>
+                    </div>
+
+                    <div className="blog-image improved-blog-image">
+                        <img
+                            src={blog.image || DefaultImage}
+                            alt={blog.title}
+                            onError={e => { e.target.onerror = null; e.target.src = DefaultImage; }}
+                            className="blog-img-thumb"
+                        />
+                    </div>
+
+                    <div className="blog-content improved-blog-content">
+                        {blog.content ? (
+                            <div dangerouslySetInnerHTML={{ __html: blog.content }} />
+                        ) : (
+                            <p>{blog.body || 'Nội dung bài viết sẽ được cập nhật sớm.'}</p>
+                        )}
+                    </div>
+
+                    <div className="blog-tags mt-3 improved-blog-tags">
+                        <i className="bi bi-tags me-1"></i>
+                        <span className="tag">Sức khỏe</span>
+                        <span className="tag">Tâm lý</span>
+                        <span className="tag">Tư vấn</span>
+                    </div>
+
+                    <div className="text-center mt-4">
+                        <Link to="/blog" className="btn btn-outline-primary">
+                            <i className="bi bi-arrow-left me-1"></i> Quay lại danh sách
+                        </Link>
+                    </div>
+                </article>
             </div>
         </div>
     );

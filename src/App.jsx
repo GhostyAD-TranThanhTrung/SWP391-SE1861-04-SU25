@@ -35,7 +35,9 @@ import CourseListPage from "./pages/admin/CourseListPage";
 import BlogListPage from "./pages/admin/BlogListPage";
 import ProfilePage from "./pages/ProfilePage";
 import SettingLayout from "./layout/SettingLayout";
-
+import AssessmentResultPage from "./pages/AssessmentResultPage";
+import WriteBlogs from "./pages/WriteBlogs";
+import CompleteCourse from "./pages/CompleteCourse";
 //Import layout
 import AdminLayout from "./layout/AdminLayout";
 import ConsultantLayout from "./layout/ConsultantLayout";
@@ -74,7 +76,9 @@ const AppLayout = () => {
           <Route path="/content/:contentId" element={<ContentViewPage />} />
           <Route path="/setting" element={<SettingLayout />}>
             <Route path="profile" element={<ProfilePage />} />
-            {/* Thêm các route khác nếu cần */}
+            <Route path="assessment-result" element={<AssessmentResultPage />} />
+            <Route path="write-blogs" element={<WriteBlogs />} />
+            <Route path="completed-courses" element={<CompleteCourse />} />
           </Route>
 
           {/* Admin */}
