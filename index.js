@@ -36,6 +36,7 @@ const MemberController = require("./Controller/MemberController");
 const ConsultantController = require("./Controller/consultantController");
 const AssessmentController = require("./Controller/assessmentController");
 const ConsultantSlotController = require("./Controller/consultantSlotController");
+const SlotController = require("./Controller/slotController");
 const BookingSessionController = require("./Controller/bookingSessionController");
 const ProgramController = require("./Controller/programController");
 const ContentController = require("./Controller/contentController");
@@ -484,6 +485,19 @@ app.put("/api/booking-sessions/:bookingId/status-link", authController.verifyTok
  */
 app.get("/api/consultant-slots/:consultantId", ConsultantSlotController.getSlotsByConsultantId);
 
+/**
+ * SLOTS: Get all time slots
+ * Purpose: Retrieve all available time slots in the system
+ * Method: GET /api/slots
+ * Input: None
+ * Output: { success: boolean, data: Array<SlotObject>, message: string }
+ * Authentication: None (Public for viewing scheduling options)
+ * Features: Ordered by start time for easy scheduling interface display
+ */
+app.get("/api/slots", SlotController.getAllSlots);
+
+
+
 // ==================== BOOKING SESSION ROUTES ====================
 /**
  * BOOKING SESSIONS: Get scheduled sessions
@@ -504,6 +518,17 @@ app.get("/api/booking-sessions/scheduled", authController.verifyToken, BookingSe
  * Authentication: Required (Member)
  */
 app.post("/api/booking-sessions", authController.verifyToken, BookingSessionController.createBookingSession);
+
+/**
+ * BOOKING SESSIONS BY CONSULTANT: Get consultant's bookings with detailed information
+ * Purpose: Retrieve all booking sessions for a specific consultant with member and slot details
+ * Method: GET /api/booking-sessions/consultant/:consultantId
+ * Input: Path params: { consultantId: number }
+ * Output: { success: boolean, data: Array<DetailedBookingObject>, count: number, message: string }
+ * Authentication: Required (Consultant/Admin)
+ * Features: Includes member profile, slot timing, and booking status information
+ */
+app.get("/api/booking-sessions/consultant/:consultantId", authController.verifyToken, BookingSessionController.getBookingSessionsByConsultant);
 
 // ==================== ASSESSMENT ROUTES ====================
 /**
@@ -572,37 +597,30 @@ app.delete('/api/assessments/:id', authController.verifyToken, AssessmentControl
  * 
  * GET    /api/programs                           - Get all programs
  * GET    /api/programs/my-enrollment-status      - Get programs with user enrollment status (requires auth)
- * GET    /api/programs/search                    - Search programs by title/description
  * GET    /api/programs/community-events          - Get Community Event programs only
- * GET    /api/programs/recent                    - Get recent programs
- * GET    /api/programs/popular                   - Get popular programs (by enrollment count)
  * GET    /api/programs/:id                       - Get program by ID
- * GET    /api/programs/:id/statistics            - Get program statistics (enrollments, completion rates)
  * GET    /api/programs/category/:categoryId      - Get programs by category
- * GET    /api/programs/creator/:creatorId        - Get programs by creator
- * GET    /api/programs/status/:status            - Get programs by status (active, draft, etc.)
- * GET    /api/programs/age-group/:ageGroup       - Get programs by age group
- * POST   /api/programs                           - Create new program (requires auth)
- * PUT    /api/programs/:id                       - Update program (requires auth)
- * DELETE /api/programs/:id                       - Delete program (requires auth)
  */
 
 // Program retrieval routes
+// Program retrieval routes
 app.get("/api/programs", ProgramController.getAllPrograms);
-app.get("/api/programs/search", ProgramController.searchPrograms);
+app.get("/api/programs/category-details", ProgramController.getAllProgramsWithCategoryDetails);
 app.get("/api/programs/community-events", ProgramController.getCommunityEventPrograms); // MUST be before :id route
-app.get("/api/programs/recent", ProgramController.getRecentPrograms);
-app.get("/api/programs/popular", ProgramController.getPopularPrograms);
 app.get("/api/programs/my-enrollment-status", authController.verifyToken, ProgramController.getUserProgramsWithEnrollmentStatus);
 app.get("/api/programs/category/:categoryId", ProgramController.getProgramsByCategory);
-app.get("/api/programs/creator/:creatorId", ProgramController.getProgramsByCreator);
-app.get("/api/programs/status/:status", ProgramController.getProgramsByStatus);
-app.get("/api/programs/age-group/:ageGroup", ProgramController.getProgramsByAgeGroup);
+app.get("/api/programs/:programId/survey-analytics", ProgramController.getProgramSurveyAnalytics);
 app.get("/api/programs/:id", ProgramController.getProgramById);
-app.get("/api/programs/:id/statistics", ProgramController.getProgramStatistics);
 
-// Program management routes
-app.post("/api/programs", authController.verifyToken, ProgramController.createProgram);
+// Program CRUD routes (Admin/Staff only)
+app.post("/api/programs", authController.verifyToken, (req, res, next) => {
+    console.log("POST /api/programs request received:", {
+        headers: req.headers,
+        body: req.body,
+        user: req.user
+    });
+    next();
+}, ProgramController.createProgram);
 app.put("/api/programs/:id", authController.verifyToken, ProgramController.updateProgram);
 app.delete("/api/programs/:id", authController.verifyToken, ProgramController.deleteProgram);
 // ==================== CONTENT ROUTES ====================
@@ -924,35 +942,34 @@ app.delete("/api/enrollments/my/:programId", authController.verifyToken, EnrollC
 /**
  * SURVEY API STRUCTURE:
  * 
- * GET    /api/surveys                           - Get all surveys
- * GET    /api/surveys/:id                       - Get survey by ID
- * GET    /api/surveys/:id/parsed                - Get parsed survey by ID (with JSON questions)
- * GET    /api/surveys/:id/with-program          - Get survey with program information
- * GET    /api/surveys/:id/with-responses        - Get survey with all responses
- * GET    /api/surveys/:id/response-stats        - Get survey response statistics
- * GET    /api/surveys/program/:programId        - Get surveys by program ID
- * GET    /api/surveys/type/:type                - Get surveys by type (pre-assessment, post-assessment)
  * GET    /api/surveys/program/:programId/type/:type - Get surveys by program ID and type
- * POST   /api/surveys                           - Create new survey
- * PUT    /api/surveys/:id                       - Update survey
- * DELETE /api/surveys/:id                       - Delete survey
- * POST   /api/surveys/:id/clone                 - Clone existing survey
+ * POST   /api/surveys                               - Create new survey (Admin/Staff)
+ * PUT    /api/surveys/:id                           - Update survey and delete all responses (Admin/Staff)
  */
 
 // Core survey routes
-app.get("/api/surveys", authController.verifyToken, SurveyController.getAllSurveys);
-app.get("/api/surveys/type/:type", authController.verifyToken, SurveyController.getSurveysByType);
-app.get("/api/surveys/program/:programId", authController.verifyToken, SurveyController.getSurveysByProgramId);
 app.get("/api/surveys/program/:programId/type/:type", authController.verifyToken, SurveyController.getSurveysByTypeAndProgramId);
-app.get("/api/surveys/:id", authController.verifyToken, SurveyController.getSurveyById);
-app.get("/api/surveys/:id/parsed", authController.verifyToken, SurveyController.getParsedSurveyById);
-app.get("/api/surveys/:id/with-program", authController.verifyToken, SurveyController.getSurveyWithProgram);
-app.get("/api/surveys/:id/with-responses", authController.verifyToken, SurveyController.getSurveyWithResponses);
-app.get("/api/surveys/:id/response-stats", authController.verifyToken, SurveyController.getSurveyResponseStats);
+app.get("/api/surveys/program/:programId", authController.verifyToken, SurveyController.getSurveysByProgramId);
 app.post("/api/surveys", authController.verifyToken, SurveyController.createSurvey);
 app.put("/api/surveys/:id", authController.verifyToken, SurveyController.updateSurvey);
-app.delete("/api/surveys/:id", authController.verifyToken, SurveyController.deleteSurvey);
-app.post("/api/surveys/:id/clone", authController.verifyToken, SurveyController.cloneSurvey);
+
+// Test endpoint for survey updates (temporary for debugging)
+app.put("/api/surveys-test/:id", (req, res) => {
+  console.log("🧪 Test survey update endpoint called");
+  console.log("🧪 Request params:", req.params);
+  console.log("🧪 Request body:", req.body);
+  console.log("🧪 Request headers:", req.headers);
+  
+  res.status(200).json({
+    success: true,
+    message: "Test endpoint working",
+    received_data: {
+      id: req.params.id,
+      body: req.body,
+      headers: req.headers
+    }
+  });
+});
 
 // ==================== SURVEY RESPONSE ROUTES ====================
 /**
@@ -1074,10 +1091,15 @@ Members (Admin/Staff):
 
 🎓 PROGRAM ROUTES:
 - GET /api/programs - List all programs
+- GET /api/programs/category-details - Programs organized by category with statistics
 - GET /api/programs/community-events - Community event programs
 - GET /api/programs/:id - Get program details
-- POST /api/programs - Create new program (auth required)
+- GET /api/programs/category/:categoryId - Get programs by category
+- GET /api/programs/:programId/survey-analytics - Comprehensive survey analytics
 - GET /api/programs/my-enrollment-status - User's enrollment status
+- POST /api/programs - Create new program (auth)
+- PUT /api/programs/:id - Update program (auth)
+- DELETE /api/programs/:id - Delete program (auth)
 
 📚 CONTENT ROUTES:
 - GET /api/content/program/:programId - Get program content
@@ -1092,9 +1114,9 @@ Members (Admin/Staff):
 - PATCH /api/blogs/:id/approve - Approve blog (admin/staff)
 
 📊 SURVEY ROUTES:
-- GET /api/surveys - List surveys
+- GET /api/surveys/program/:programId/type/:type - Get surveys by program and type
 - POST /api/surveys - Create survey (auth)
-- GET /api/surveys/:id/parsed - Get survey with parsed JSON
+- PUT /api/surveys/:id - Update survey and delete all responses (auth)
 
 📋 SURVEY RESPONSE ROUTES:
 - GET /api/survey-responses/me - My survey responses

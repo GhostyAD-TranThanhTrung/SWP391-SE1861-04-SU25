@@ -44,65 +44,6 @@ class BookingSessionController {
     }
 
     /**
-     * Get booking session by ID
-     */
-    static async getBookingSessionById(req, res) {
-        try {
-            const { id } = req.params;
-            const bookingRepository = AppDataSource.getRepository(BookingSession);
-            const booking = await bookingRepository.findOne({
-                where: { booking_id: parseInt(id) }
-            });
-
-            if (!booking) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Không tìm thấy lịch hẹn'
-                });
-            }
-
-            res.status(200).json({
-                success: true,
-                data: booking,
-                message: 'Lấy thông tin lịch hẹn thành công'
-            });
-        } catch (error) {
-            console.error('Error getting booking session:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Không thể lấy thông tin lịch hẹn',
-                error: error.message
-            });
-        }
-    }
-
-    /**
-     * Get booking sessions by consultant ID
-     */
-    static async getBookingSessionsByConsultant(req, res) {
-        try {
-            const { consultantId } = req.params;
-            const bookingRepository = AppDataSource.getRepository(BookingSession);
-            const bookings = await bookingRepository.find({
-                where: { consultant_id: parseInt(consultantId) },
-            });
-
-            res.status(200).json({
-                success: true,
-                data: bookings,
-                message: 'Lấy danh sách lịch hẹn thành công'
-            });
-        } catch (error) {
-            console.error('Error getting booking sessions by consultant:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Không thể lấy danh sách lịch hẹn',
-                error: error.message
-            });
-        }
-    }
-
-    /**
      * Get booking sessions by authenticated member
      */
     static async getBookingSessionsByMember(req, res) {
@@ -166,47 +107,6 @@ class BookingSessionController {
             });
         }
     }
-
-    static async CreateLink(startDate, endDate) {
-        if (!startDate) {
-            return { error: 'startDate and endDate are required' };
-        }
-
-
-        try {
-            const startDateTime = new Date(startDate).toISOString();
-            const endDateTime = new Date(endDate).toISOString(); // 30 minutes later
-            const event = {
-                summary: null,
-                description: null,
-                start: {
-                    dateTime: startDateTime,
-                },
-                end: {
-                    dateTime: endDateTime,
-                },
-                conferenceData: {
-                    createRequest: {
-                        requestId: `meet-${Date.now()}`,
-                        conferenceSolutionKey: { type: 'hangoutsMeet' }
-                    }
-                }
-            };
-
-            const response = await calendar.events.insert({
-                calendarId: 'primary',
-                resource: event,
-                conferenceDataVersion: 1
-            });
-
-            return response.data.hangoutLink;
-        } catch (error) {
-            return {
-                error: 'Failed to create Google Meet',
-                details: error.message
-            };
-        }
-    };
 
 
     /**
@@ -465,59 +365,6 @@ class BookingSessionController {
     }
 
     /**
-     * Update booking session
-     */
-    static async updateBookingSession(req, res) {
-        try {
-            const { id } = req.params;
-            const { consultant_id, member_id, slot_id, booking_date, status, notes, google_meet_link } = req.body;
-
-            const bookingRepository = AppDataSource.getRepository(BookingSession);
-
-            // Check if booking exists
-            const booking = await bookingRepository.findOne({
-                where: { booking_id: parseInt(id) }
-            });
-
-            if (!booking) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Không tìm thấy lịch hẹn'
-                });
-            }
-
-            // Update booking session
-            await bookingRepository.update(parseInt(id), {
-                consultant_id: consultant_id !== undefined ? parseInt(consultant_id) : booking.consultant_id,
-                member_id: member_id !== undefined ? parseInt(member_id) : booking.member_id,
-                slot_id: slot_id !== undefined ? parseInt(slot_id) : booking.slot_id,
-                booking_date: booking_date || booking.booking_date,
-                status: status || booking.status,
-                notes: notes !== undefined ? notes : booking.notes,
-                google_meet_link: google_meet_link !== undefined ? google_meet_link : booking.google_meet_link
-            });
-
-            // Fetch updated booking with relations
-            const updatedBooking = await bookingRepository.findOne({
-                where: { booking_id: parseInt(id) }
-            });
-
-            res.status(200).json({
-                success: true,
-                data: updatedBooking,
-                message: 'Cập nhật lịch hẹn thành công'
-            });
-        } catch (error) {
-            console.error('Error updating booking session:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Không thể cập nhật lịch hẹn',
-                error: error.message
-            });
-        }
-    }
-
-    /**
      * Delete booking session
      */
     static async deleteBookingSession(req, res) {
@@ -553,70 +400,7 @@ class BookingSessionController {
         }
     }
 
-    /**
-     * Get booking sessions by status
-     */
-    static async getBookingSessionsByStatus(req, res) {
-        try {
-            const { status } = req.params;
-            const bookingRepository = AppDataSource.getRepository(BookingSession);
-            const bookings = await bookingRepository.find({
-                where: { status }
-            });
 
-            res.status(200).json({
-                success: true,
-                data: bookings,
-                message: 'Lấy danh sách lịch hẹn thành công'
-            });
-        } catch (error) {
-            console.error('Error getting booking sessions by status:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Không thể lấy danh sách lịch hẹn',
-                error: error.message
-            });
-        }
-    }
-
-    /**
-     * Get booking sessions by date range
-     */
-    static async getBookingSessionsByDateRange(req, res) {
-        try {
-            const { startDate, endDate } = req.query;
-
-            if (!startDate || !endDate) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Both startDate and endDate are required'
-                });
-            }
-
-            const bookingRepository = AppDataSource.getRepository(BookingSession);
-            const bookings = await bookingRepository.createQueryBuilder('booking')
-                .leftJoinAndSelect('booking.consultant', 'consultant')
-                .leftJoinAndSelect('booking.member', 'member')
-                .leftJoinAndSelect('booking.slot', 'slot')
-                .where('booking.booking_date >= :startDate', { startDate })
-                .andWhere('booking.booking_date <= :endDate', { endDate })
-                .orderBy('booking.booking_date', 'ASC')
-                .getMany();
-
-            res.status(200).json({
-                success: true,
-                data: bookings,
-                message: 'Lấy danh sách lịch hẹn thành công'
-            });
-        } catch (error) {
-            console.error('Error getting booking sessions by date range:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Không thể lấy danh sách lịch hẹn',
-                error: error.message
-            });
-        }
-    }
 
     /**
      * Get scheduled booking sessions for authenticated member
@@ -736,7 +520,80 @@ class BookingSessionController {
         }
     }
 
-    
+
+    /**
+     * Get detailed booking sessions by consultant ID with User and Slot information
+     */
+    static async getDetailedBookingSessionsByConsultant(req, res) {
+        try {
+            const { consultantId } = req.params;
+
+            const detailedBookingQuery = `
+                SELECT 
+                    b.booking_id,
+                    b.consultant_id,
+                    b.member_id,
+                    b.slot_id,
+                    CONVERT(varchar(10), b.booking_date, 120) as booking_date,
+                    b.status,
+                    b.notes,
+                    b.google_meet_link,
+                    -- User/Member information
+                    u.email as member_email,
+                    u.img_link as member_img_link,
+                    u.date_create as member_date_create,
+                    u.status as member_status,
+                    p.name as member_name,
+                    p.phone_number as member_phone,
+                    p.gender as member_gender,
+                    p.date_of_birth as member_date_of_birth,
+                    -- Slot information
+                    CONVERT(varchar(8), s.start_time, 108) as start_time,
+                    CONVERT(varchar(8), s.end_time, 108) as end_time,
+                    -- Consultant Slot information
+                    cs.day_of_week
+                FROM Booking_Session b
+                INNER JOIN [Users] u ON b.member_id = u.user_id
+                INNER JOIN Profile p ON u.user_id = p.user_id
+                INNER JOIN Slot s ON b.slot_id = s.slot_id
+                LEFT JOIN Consultant_Slot cs ON (b.consultant_id = cs.consultant_id AND b.slot_id = cs.slot_id)
+                WHERE b.consultant_id = @0
+                ORDER BY b.booking_date DESC, s.start_time ASC
+            `;
+
+            console.log('Detailed booking sessions query:', detailedBookingQuery);
+            console.log('Detailed booking sessions parameters:', [parseInt(consultantId)]);
+
+            const bookings = await AppDataSource.query(
+                detailedBookingQuery,
+                [parseInt(consultantId)]
+            );
+
+            if (!bookings || bookings.length === 0) {
+                return res.status(200).json({
+                    success: true,
+                    data: [],
+                    count: 0,
+                    message: 'Không có lịch hẹn nào cho chuyên gia này'
+                });
+            }
+
+            res.status(200).json({
+                success: true,
+                data: bookings,
+                count: bookings.length,
+                message: 'Lấy thông tin chi tiết lịch hẹn thành công'
+            });
+        } catch (error) {
+            console.error('Error getting detailed booking sessions by consultant:', error);
+            res.status(500).json({
+                success: false,
+                data: [],
+                count: 0,
+                message: error.message || 'Không thể lấy thông tin chi tiết lịch hẹn'
+            });
+        }
+    }
 }
 
 module.exports = BookingSessionController;

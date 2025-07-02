@@ -6,6 +6,8 @@ const AppDataSource = require('../src/data-source');
 const Program = require('../src/entities/Program');
 const Enroll = require('../src/entities/Enroll');
 const Category = require('../src/entities/Category');
+const Survey = require('../src/entities/Survey');
+const SurveyResponse = require('../src/entities/SurveyResponse');
 
 class ProgramController {
     /**
@@ -32,6 +34,156 @@ class ProgramController {
             res.status(500).json({
                 success: false,
                 message: 'Failed to retrieve programs',
+                error: error.message
+            });
+        }
+    }
+
+    /**
+     * Get all programs with enhanced category details and organization
+     * Returns programs organized by category with detailed statistics
+     */
+    static async getAllProgramsWithCategoryDetails(req, res) {
+        try {
+            const programRepository = AppDataSource.getRepository(Program);
+            const categoryRepository = AppDataSource.getRepository(Category);
+
+            // Get all categories first
+            const categories = await categoryRepository.find({
+                order: { name: 'ASC' }
+            });
+
+            // Get all programs with full relations
+            const programs = await programRepository.find({
+                relations: ['creator', 'category', 'enrollments', 'contents', 'surveys'],
+                order: {
+                    create_at: 'DESC'
+                }
+            });
+
+            // Organize programs by category
+            const programsByCategory = {};
+            const categoryStats = {};
+
+            // Initialize category structure
+            categories.forEach(category => {
+                programsByCategory[category.name] = {
+                    category_id: category.category_id,
+                    category_name: category.name,
+                    category_description: category.description || '',
+                    programs: [],
+                    statistics: {
+                        total_programs: 0,
+                        active_programs: 0,
+                        total_enrollments: 0,
+                        total_contents: 0,
+                        total_surveys: 0
+                    }
+                };
+                categoryStats[category.category_id] = {
+                    name: category.name,
+                    program_count: 0,
+                    enrollment_count: 0
+                };
+            });
+
+            // Add programs to their respective categories
+            programs.forEach(program => {
+                const categoryName = program.category ? program.category.name : 'Uncategorized';
+                
+                // Create uncategorized category if needed
+                if (!programsByCategory[categoryName]) {
+                    programsByCategory[categoryName] = {
+                        category_id: null,
+                        category_name: categoryName,
+                        category_description: 'Programs without assigned category',
+                        programs: [],
+                        statistics: {
+                            total_programs: 0,
+                            active_programs: 0,
+                            total_enrollments: 0,
+                            total_contents: 0,
+                            total_surveys: 0
+                        }
+                    };
+                }
+
+                // Calculate program-level statistics
+                const enrollmentCount = program.enrollments ? program.enrollments.length : 0;
+                const contentCount = program.contents ? program.contents.length : 0;
+                const surveyCount = program.surveys ? program.surveys.length : 0;
+                const isActive = program.status === 'active';
+
+                // Enhanced program object with additional metadata
+                const enhancedProgram = {
+                    ...program,
+                    statistics: {
+                        total_enrollments: enrollmentCount,
+                        total_contents: contentCount,
+                        total_surveys: surveyCount,
+                        completion_rate: enrollmentCount > 0 ? 
+                            Math.round((program.enrollments.filter(e => e.complete_at).length / enrollmentCount) * 100) : 0
+                    }
+                };
+
+                // Add to category
+                programsByCategory[categoryName].programs.push(enhancedProgram);
+                
+                // Update category statistics
+                programsByCategory[categoryName].statistics.total_programs++;
+                if (isActive) programsByCategory[categoryName].statistics.active_programs++;
+                programsByCategory[categoryName].statistics.total_enrollments += enrollmentCount;
+                programsByCategory[categoryName].statistics.total_contents += contentCount;
+                programsByCategory[categoryName].statistics.total_surveys += surveyCount;
+
+                // Update global category stats if category exists
+                if (program.category && categoryStats[program.category.category_id]) {
+                    categoryStats[program.category.category_id].program_count++;
+                    categoryStats[program.category.category_id].enrollment_count += enrollmentCount;
+                }
+            });
+
+            // Remove empty categories (optional - comment out if you want to show all categories)
+            Object.keys(programsByCategory).forEach(categoryName => {
+                if (programsByCategory[categoryName].statistics.total_programs === 0) {
+                    delete programsByCategory[categoryName];
+                }
+            });
+
+            // Calculate overall statistics
+            const totalPrograms = programs.length;
+            const totalEnrollments = programs.reduce((sum, p) => sum + (p.enrollments ? p.enrollments.length : 0), 0);
+            const totalContents = programs.reduce((sum, p) => sum + (p.contents ? p.contents.length : 0), 0);
+            const totalSurveys = programs.reduce((sum, p) => sum + (p.surveys ? p.surveys.length : 0), 0);
+            const activePrograms = programs.filter(p => p.status === 'active').length;
+
+            res.status(200).json({
+                success: true,
+                data: {
+                    programs_by_category: programsByCategory,
+                    categories: Object.keys(programsByCategory).map(categoryName => ({
+                        name: categoryName,
+                        ...programsByCategory[categoryName].statistics
+                    })),
+                    overall_statistics: {
+                        total_programs: totalPrograms,
+                        active_programs: activePrograms,
+                        total_categories: Object.keys(programsByCategory).length,
+                        total_enrollments: totalEnrollments,
+                        total_contents: totalContents,
+                        total_surveys: totalSurveys,
+                        average_enrollments_per_program: totalPrograms > 0 ? (totalEnrollments / totalPrograms).toFixed(2) : 0,
+                        average_contents_per_program: totalPrograms > 0 ? (totalContents / totalPrograms).toFixed(2) : 0
+                    }
+                },
+                message: 'Programs with category details retrieved successfully',
+                generated_at: new Date().toISOString()
+            });
+        } catch (error) {
+            console.error('Error getting programs with category details:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to retrieve programs with category details',
                 error: error.message
             });
         }
@@ -72,37 +224,6 @@ class ProgramController {
     }
 
     /**
-     * Get programs by creator ID
-     */
-    static async getProgramsByCreator(req, res) {
-        try {
-            const { creatorId } = req.params;
-            const programRepository = AppDataSource.getRepository(Program);
-            const programs = await programRepository.find({
-                where: { create_by: parseInt(creatorId) },
-                relations: ['creator', 'category', 'enrollments', 'contents'],
-                order: {
-                    create_at: 'DESC'
-                }
-            });
-
-            res.status(200).json({
-                success: true,
-                data: programs,
-                count: programs.length,
-                message: 'Programs retrieved successfully'
-            });
-        } catch (error) {
-            console.error('Error getting programs by creator:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Failed to retrieve programs',
-                error: error.message
-            });
-        }
-    }
-
-    /**
      * Get programs by category
      */
     static async getProgramsByCategory(req, res) {
@@ -128,373 +249,6 @@ class ProgramController {
             res.status(500).json({
                 success: false,
                 message: 'Failed to retrieve programs by category',
-                error: error.message
-            });
-        }
-    }
-
-    /**
-     * Get programs by status
-     */
-    static async getProgramsByStatus(req, res) {
-        try {
-            const { status } = req.params;
-            const programRepository = AppDataSource.getRepository(Program);
-            const programs = await programRepository.find({
-                where: { status },
-                relations: ['creator', 'category', 'enrollments', 'contents'],
-                order: {
-                    create_at: 'DESC'
-                }
-            });
-
-            res.status(200).json({
-                success: true,
-                data: programs,
-                count: programs.length,
-                message: `Programs with status ${status} retrieved successfully`
-            });
-        } catch (error) {
-            console.error('Error getting programs by status:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Failed to retrieve programs',
-                error: error.message
-            });
-        }
-    }
-
-    /**
-     * Get programs by age group
-     */
-    static async getProgramsByAgeGroup(req, res) {
-        try {
-            const { ageGroup } = req.params;
-            const programRepository = AppDataSource.getRepository(Program);
-            const programs = await programRepository.find({
-                where: { age_group: ageGroup },
-                relations: ['creator', 'category', 'enrollments', 'contents'],
-                order: {
-                    create_at: 'DESC'
-                }
-            });
-
-            res.status(200).json({
-                success: true,
-                data: programs,
-                count: programs.length,
-                message: `Programs for age group ${ageGroup} retrieved successfully`
-            });
-        } catch (error) {
-            console.error('Error getting programs by age group:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Failed to retrieve programs',
-                error: error.message
-            });
-        }
-    }
-
-    /**
-     * Create new program
-     */
-    static async createProgram(req, res) {
-        try {
-            const { title, description, create_by, status, age_group, category_id, img_link } = req.body;
-
-            // Validate required fields
-            if (!title || !create_by || !category_id) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Missing required fields: title, create_by, and category_id are required'
-                });
-            }
-
-            const programRepository = AppDataSource.getRepository(Program);
-
-            // Create new program
-            const newProgram = programRepository.create({
-                title,
-                description,
-                create_by: parseInt(create_by),
-                status: status || 'draft',
-                age_group,
-                create_at: new Date(),
-                category_id: parseInt(category_id),
-                img_link
-            });
-
-            const savedProgram = await programRepository.save(newProgram);
-
-            // Fetch the complete program with relations
-            const completeProgram = await programRepository.findOne({
-                where: { program_id: savedProgram.program_id },
-                relations: ['creator', 'category', 'contents']
-            });
-
-            res.status(201).json({
-                success: true,
-                data: completeProgram,
-                message: 'Program created successfully'
-            });
-        } catch (error) {
-            console.error('Error creating program:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Failed to create program',
-                error: error.message
-            });
-        }
-    }
-
-    /**
-     * Update program
-     */
-    static async updateProgram(req, res) {
-        try {
-            const { id } = req.params;
-            const { title, description, status, age_group, category_id, img_link } = req.body;
-
-            const programRepository = AppDataSource.getRepository(Program);
-
-            // Check if program exists
-            const program = await programRepository.findOne({
-                where: { program_id: parseInt(id) }
-            });
-
-            if (!program) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Program not found'
-                });
-            }
-
-            // Update program
-            await programRepository.update(parseInt(id), {
-                title: title || program.title,
-                description: description !== undefined ? description : program.description,
-                status: status || program.status,
-                age_group: age_group !== undefined ? age_group : program.age_group,
-                category_id: category_id !== undefined ? parseInt(category_id) : program.category_id,
-                img_link: img_link !== undefined ? img_link : program.img_link
-            });
-
-            // Fetch updated program with relations
-            const updatedProgram = await programRepository.findOne({
-                where: { program_id: parseInt(id) },
-                relations: ['creator', 'category', 'enrollments', 'contents']
-            });
-
-            res.status(200).json({
-                success: true,
-                data: updatedProgram,
-                message: 'Program updated successfully'
-            });
-        } catch (error) {
-            console.error('Error updating program:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Failed to update program',
-                error: error.message
-            });
-        }
-    }
-
-    /**
-     * Delete program
-     */
-    static async deleteProgram(req, res) {
-        try {
-            const { id } = req.params;
-            const programRepository = AppDataSource.getRepository(Program);
-
-            // Check if program exists
-            const program = await programRepository.findOne({
-                where: { program_id: parseInt(id) }
-            });
-
-            if (!program) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Program not found'
-                });
-            }
-
-            await programRepository.delete(parseInt(id));
-
-            res.status(200).json({
-                success: true,
-                message: 'Program deleted successfully'
-            });
-        } catch (error) {
-            console.error('Error deleting program:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Failed to delete program',
-                error: error.message
-            });
-        }
-    }
-
-    /**
-     * Search programs by title or description
-     */
-    static async searchPrograms(req, res) {
-        try {
-            const { query } = req.query;
-
-            if (!query) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Search query is required'
-                });
-            }
-
-            const programRepository = AppDataSource.getRepository(Program);
-            const programs = await programRepository.createQueryBuilder('program')
-                .leftJoinAndSelect('program.creator', 'creator')
-                .leftJoinAndSelect('program.category', 'category')
-                .leftJoinAndSelect('program.enrollments', 'enrollments')
-                .leftJoinAndSelect('program.contents', 'contents')
-                .where('program.title LIKE :query', { query: `%${query}%` })
-                .orWhere('program.description LIKE :query', { query: `%${query}%` })
-                .orderBy('program.create_at', 'DESC')
-                .getMany();
-
-            res.status(200).json({
-                success: true,
-                data: programs,
-                count: programs.length,
-                message: 'Programs retrieved successfully'
-            });
-        } catch (error) {
-            console.error('Error searching programs:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Failed to search programs',
-                error: error.message
-            });
-        }
-    }
-
-    /**
-     * Get program statistics
-     */
-    static async getProgramStatistics(req, res) {
-        try {
-            const { id } = req.params;
-            const programRepository = AppDataSource.getRepository(Program);
-
-            const program = await programRepository.findOne({
-                where: { program_id: parseInt(id) },
-                relations: ['enrollments', 'contents']
-            });
-
-            if (!program) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Program not found'
-                });
-            }
-
-            const totalEnrollments = program.enrollments.length;
-            const completedEnrollments = program.enrollments.filter(e => e.progress === 1.0).length;
-            const inProgressEnrollments = program.enrollments.filter(e => e.progress > 0 && e.progress < 1.0).length;
-            const notStartedEnrollments = program.enrollments.filter(e => e.progress === 0).length;
-
-            const averageProgress = totalEnrollments > 0
-                ? program.enrollments.reduce((sum, e) => sum + e.progress, 0) / totalEnrollments
-                : 0;
-
-            const statistics = {
-                program_id: program.program_id,
-                title: program.title,
-                total_enrollments: totalEnrollments,
-                completed_enrollments: completedEnrollments,
-                in_progress_enrollments: inProgressEnrollments,
-                not_started_enrollments: notStartedEnrollments,
-                completion_rate: totalEnrollments > 0 ? (completedEnrollments / totalEnrollments) * 100 : 0,
-                average_progress: averageProgress * 100,
-                total_contents: program.contents.length
-            };
-
-            res.status(200).json({
-                success: true,
-                data: statistics,
-                message: 'Program statistics retrieved successfully'
-            });
-        } catch (error) {
-            console.error('Error getting program statistics:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Failed to retrieve program statistics',
-                error: error.message
-            });
-        }
-    }
-
-    /**
-     * Get recent programs
-     */
-    static async getRecentPrograms(req, res) {
-        try {
-            const { limit = 10 } = req.query;
-            const programRepository = AppDataSource.getRepository(Program);
-
-            const programs = await programRepository.find({
-                relations: ['creator', 'category', 'enrollments', 'contents'],
-                order: { create_at: 'DESC' },
-                take: parseInt(limit)
-            });
-
-            res.status(200).json({
-                success: true,
-                data: programs,
-                count: programs.length,
-                message: 'Recent programs retrieved successfully'
-            });
-        } catch (error) {
-            console.error('Error getting recent programs:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Failed to retrieve recent programs',
-                error: error.message
-            });
-        }
-    }
-
-    /**
-     * Get popular programs (by enrollment count)
-     */
-    static async getPopularPrograms(req, res) {
-        try {
-            const { limit = 10 } = req.query;
-            const programRepository = AppDataSource.getRepository(Program);
-
-            const programs = await programRepository.createQueryBuilder('program')
-                .leftJoinAndSelect('program.creator', 'creator')
-                .leftJoinAndSelect('program.category', 'category')
-                .leftJoinAndSelect('program.enrollments', 'enrollments')
-                .leftJoinAndSelect('program.contents', 'contents')
-                .addSelect('COUNT(enrollments.user_id)', 'enrollment_count')
-                .groupBy('program.program_id')
-                .addGroupBy('creator.user_id')
-                .addGroupBy('category.category_id')
-                .orderBy('enrollment_count', 'DESC')
-                .limit(parseInt(limit))
-                .getMany();
-
-            res.status(200).json({
-                success: true,
-                data: programs,
-                count: programs.length,
-                message: 'Popular programs retrieved successfully'
-            });
-        } catch (error) {
-            console.error('Error getting popular programs:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Failed to retrieve popular programs',
                 error: error.message
             });
         }
@@ -667,6 +421,483 @@ class ProgramController {
             res.status(500).json({
                 success: false,
                 message: 'Failed to retrieve Community Event programs',
+                error: error.message
+            });
+        }
+    }
+
+    /**
+     * Get comprehensive survey analytics for a program
+     * This complex function analyzes all survey responses for a program and returns detailed statistics
+     */
+    static async getProgramSurveyAnalytics(req, res) {
+        try {
+            const { programId } = req.params;
+
+            const programRepository = AppDataSource.getRepository(Program);
+            const surveyRepository = AppDataSource.getRepository(Survey);
+            const surveyResponseRepository = AppDataSource.getRepository(SurveyResponse);
+
+            // 1. Verify program exists
+            const program = await programRepository.findOne({
+                where: { program_id: parseInt(programId) }
+            });
+
+            if (!program) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Program not found'
+                });
+            }
+
+            // 2. Get all surveys for this program
+            const surveys = await surveyRepository.find({
+                where: { program_id: parseInt(programId) },
+                order: { survey_id: 'ASC' }
+            });
+
+            if (surveys.length === 0) {
+                return res.status(200).json({
+                    success: true,
+                    data: {
+                        program_id: parseInt(programId),
+                        program_title: program.title,
+                        total_surveys: 0,
+                        surveys: []
+                    },
+                    message: 'No surveys found for this program'
+                });
+            }
+
+            // 3. Process each survey and get its responses
+            const surveyAnalytics = [];
+
+            for (const survey of surveys) {
+                try {
+                    // Parse questions JSON (always expect { questions: [...] })
+                    let questions = [];
+                    try {
+                        if (survey.questions_json) {
+                            const parsed = JSON.parse(survey.questions_json);
+                            questions = Array.isArray(parsed) ? parsed : (parsed.questions || []);
+                        } else {
+                            questions = [];
+                        }
+                    } catch (parseError) {
+                        console.error(`Error parsing questions JSON for survey ${survey.survey_id}:`, parseError);
+                        questions = [];
+                    }
+
+                    // Get all responses for this survey
+                    const responses = await surveyResponseRepository.find({
+                        where: { survey_id: survey.survey_id },
+                        relations: ['user']
+                    });
+
+                    // Create a 2D matrix of responses [responseIndex][questionIndex]
+                    const responseMatrix = [];
+                    const validResponses = [];
+
+                    responses.forEach((response, responseIndex) => {
+                        try {
+                            let answers = [];
+                            if (response.answer_json) {
+                                const parsed = JSON.parse(response.answer_json);
+                                if (Array.isArray(parsed)) {
+                                    // Handle flat array format
+                                    answers = parsed;
+                                } else if (parsed.answers && Array.isArray(parsed.answers)) {
+                                    // Handle structured format: { answers: [{question_id, answer}, ...] }
+                                    // Create a map from question_id to answer
+                                    const answerMap = {};
+                                    parsed.answers.forEach(item => {
+                                        if (item.question_id && item.answer !== undefined) {
+                                            answerMap[item.question_id] = item.answer;
+                                        }
+                                    });
+                                    
+                                    // Map answers to question indices (question_id - 1 for 0-based indexing)
+                                    questions.forEach((question, questionIndex) => {
+                                        const questionId = question.id || (questionIndex + 1);
+                                        answers[questionIndex] = answerMap[questionId];
+                                    });
+                                } else {
+                                    answers = [];
+                                }
+                            }
+                            responseMatrix[responseIndex] = answers;
+                            validResponses.push({
+                                response_id: response.response_id,
+                                user_id: response.user_id,
+                                submitted_at: response.submitted_at,
+                                answers: answers
+                            });
+                        } catch (parseError) {
+                            console.error(`Error parsing answer JSON for response ${response.response_id}:`, parseError);
+                            responseMatrix[responseIndex] = [];
+                        }
+                    });
+
+                    // 4. Analyze responses and count options for each question
+                    const questionAnalytics = {};
+
+                    questions.forEach((question, questionIndex) => {
+                        const questionText = question.question || question.text || `Question ${questionIndex + 1}`;
+                        const questionType = question.type || 'multiple-choice';
+                        const options = question.options || question.choices || [];
+
+                        // Initialize option counts
+                        const optionCounts = {};
+                        if (Array.isArray(options)) {
+                            options.forEach(option => {
+                                const optionText = typeof option === 'string' ? option : (option.text || option.value || option);
+                                optionCounts[optionText] = 0;
+                            });
+                        }
+
+                        // Count responses for this question
+                        responseMatrix.forEach(responseRow => {
+                            if (responseRow && responseRow[questionIndex] !== undefined) {
+                                const answer = responseRow[questionIndex];
+                                
+                                if (questionType === 'multiple-choice' || questionType === 'single-choice') {
+                                    // Handle single answer
+                                    const answerText = typeof answer === 'string' ? answer : 
+                                                     (answer.value || answer.text || answer.answer || String(answer));
+                                    
+                                    if (optionCounts.hasOwnProperty(answerText)) {
+                                        optionCounts[answerText]++;
+                                    } else {
+                                        // Handle case where answer doesn't match predefined options
+                                        optionCounts[answerText] = (optionCounts[answerText] || 0) + 1;
+                                    }
+                                } else if (questionType === 'multiple-select' || questionType === 'checkbox') {
+                                    // Handle multiple answers
+                                    const answers = Array.isArray(answer) ? answer : [answer];
+                                    answers.forEach(ans => {
+                                        const answerText = typeof ans === 'string' ? ans : 
+                                                          (ans.value || ans.text || ans.answer || String(ans));
+                                        
+                                        if (optionCounts.hasOwnProperty(answerText)) {
+                                            optionCounts[answerText]++;
+                                        } else {
+                                            optionCounts[answerText] = (optionCounts[answerText] || 0) + 1;
+                                        }
+                                    });
+                                } else {
+                                    // Handle text/open-ended questions
+                                    const answerText = typeof answer === 'string' ? answer : String(answer);
+                                    optionCounts[answerText] = (optionCounts[answerText] || 0) + 1;
+                                }
+                            }
+                        });
+
+                        questionAnalytics[questionText] = optionCounts;
+                    });
+
+                    // 5. Compile survey analytics
+                    surveyAnalytics.push({
+                        id: survey.survey_id,
+                        type: survey.type || 'unknown',
+                        total_questions: questions.length,
+                        total_responses: validResponses.length,
+                        response_rate: validResponses.length > 0 ? 
+                            ((validResponses.length / Math.max(1, responses.length)) * 100).toFixed(2) + '%' : '0%',
+                        questions_metadata: questions.map((q, index) => ({
+                            index: index,
+                            question: q.question || q.text || `Question ${index + 1}`,
+                            type: q.type || 'multiple-choice',
+                            required: q.required || false
+                        })),
+                        responses: questionAnalytics,
+                        raw_responses: validResponses // Include raw data for debugging
+                    });
+
+                } catch (surveyError) {
+                    console.error(`Error processing survey ${survey.survey_id}:`, surveyError);
+                    // Add error entry for this survey
+                    surveyAnalytics.push({
+                        id: survey.survey_id,
+                        type: survey.type || 'unknown',
+                        error: 'Failed to process survey data',
+                        error_details: surveyError.message,
+                        responses: {}
+                    });
+                }
+            }
+
+            // 6. Calculate overall program statistics
+            const totalResponses = surveyAnalytics.reduce((sum, survey) => 
+                sum + (survey.total_responses || 0), 0);
+            
+            const averageResponsesPerSurvey = surveys.length > 0 ? 
+                (totalResponses / surveys.length).toFixed(2) : 0;
+
+            // 7. Return comprehensive analytics
+            res.status(200).json({
+                success: true,
+                data: {
+                    program_id: parseInt(programId),
+                    program_title: program.title,
+                    program_description: program.description,
+                    total_surveys: surveys.length,
+                    total_responses: totalResponses,
+                    average_responses_per_survey: parseFloat(averageResponsesPerSurvey),
+                    analytics_generated_at: new Date().toISOString(),
+                    surveys: surveyAnalytics
+                },
+                message: 'Program survey analytics generated successfully'
+            });
+
+        } catch (error) {
+            console.error('Error generating program survey analytics:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to generate program survey analytics',
+                error: error.message,
+                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            });
+        }
+    }
+
+    /**
+     * Create new program
+     */
+    static async createProgram(req, res) {
+        try {
+            console.log("Received create program request:", {
+                body: req.body,
+                user: req.user,
+                headers: req.headers
+            });
+
+            const { title, description, age_group, category_id, status, img_link } = req.body;
+
+            // Validate required fields
+            if (!title || !category_id) {
+                console.log("Validation failed: Missing required fields");
+                return res.status(400).json({
+                    success: false,
+                    message: 'Missing required fields: title and category_id are required'
+                });
+            }
+
+            // Check if category exists
+            const categoryRepository = AppDataSource.getRepository(Category);
+            const category = await categoryRepository.findOne({
+                where: { category_id: parseInt(category_id) }
+            });
+
+            if (!category) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Category not found'
+                });
+            }
+
+            const programRepository = AppDataSource.getRepository(Program);
+
+            // Check if program with same title already exists
+            const existingProgram = await programRepository.findOne({
+                where: { title: title }
+            });
+
+            if (existingProgram) {
+                return res.status(409).json({
+                    success: false,
+                    message: 'Program with this title already exists'
+                });
+            }
+
+            // Get user ID from token for create_by field
+            const createBy = req.user ? req.user.userId : null;
+
+            // Create new program
+            const newProgram = programRepository.create({
+                title,
+                description: description || null,
+                age_group: age_group || null,
+                category_id: parseInt(category_id),
+                status: status || 'active',
+                img_link: img_link || null,
+                create_by: createBy,
+                create_at: new Date()
+            });
+
+            const savedProgram = await programRepository.save(newProgram);
+
+            // Fetch the saved program with relations
+            const programWithRelations = await programRepository.findOne({
+                where: { program_id: savedProgram.program_id },
+                relations: ['creator', 'category', 'enrollments', 'contents', 'surveys']
+            });
+
+            res.status(201).json({
+                success: true,
+                data: programWithRelations,
+                message: 'Program created successfully'
+            });
+        } catch (error) {
+            console.error('Error creating program:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to create program',
+                error: error.message
+            });
+        }
+    }
+
+    /**
+     * Update program
+     */
+    static async updateProgram(req, res) {
+        try {
+            const { id } = req.params;
+            const { title, description, age_group, category_id, status, img_link } = req.body;
+
+            if (!id || isNaN(parseInt(id))) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid program ID provided'
+                });
+            }
+
+            const programRepository = AppDataSource.getRepository(Program);
+
+            // Check if program exists
+            const program = await programRepository.findOne({
+                where: { program_id: parseInt(id) },
+                relations: ['category', 'creator']
+            });
+
+            if (!program) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Program not found'
+                });
+            }
+
+            // Check if category exists if category_id is provided
+            if (category_id !== undefined) {
+                const categoryRepository = AppDataSource.getRepository(Category);
+                const category = await categoryRepository.findOne({
+                    where: { category_id: parseInt(category_id) }
+                });
+
+                if (!category) {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Category not found'
+                    });
+                }
+            }
+
+            // Check if title already exists for other programs
+            if (title && title !== program.title) {
+                const existingProgram = await programRepository.findOne({
+                    where: { 
+                        title: title,
+                        program_id: { $ne: parseInt(id) } // Exclude current program
+                    }
+                });
+
+                if (existingProgram) {
+                    return res.status(409).json({
+                        success: false,
+                        message: 'Another program with this title already exists'
+                    });
+                }
+            }
+
+            // Update program fields
+            if (title !== undefined) program.title = title;
+            if (description !== undefined) program.description = description;
+            if (age_group !== undefined) program.age_group = age_group;
+            if (category_id !== undefined) program.category_id = parseInt(category_id);
+            if (status !== undefined) program.status = status;
+            if (img_link !== undefined) program.img_link = img_link;
+
+            const updatedProgram = await programRepository.save(program);
+
+            // Fetch updated program with relations
+            const programWithRelations = await programRepository.findOne({
+                where: { program_id: updatedProgram.program_id },
+                relations: ['creator', 'category', 'enrollments', 'contents', 'surveys']
+            });
+
+            res.status(200).json({
+                success: true,
+                data: programWithRelations,
+                message: 'Program updated successfully'
+            });
+        } catch (error) {
+            console.error('Error updating program:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to update program',
+                error: error.message
+            });
+        }
+    }
+
+    /**
+     * Delete program (with safety checks)
+     */
+    static async deleteProgram(req, res) {
+        try {
+            const { id } = req.params;
+
+            if (!id || isNaN(parseInt(id))) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid program ID provided'
+                });
+            }
+
+            const programRepository = AppDataSource.getRepository(Program);
+
+            // Check if program exists with all related data
+            const program = await programRepository.findOne({
+                where: { program_id: parseInt(id) },
+                relations: ['enrollments', 'contents', 'surveys']
+            });
+
+            if (!program) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Program not found'
+                });
+            }
+
+            // Safety checks - prevent deletion if program has related data
+            const hasEnrollments = program.enrollments && program.enrollments.length > 0;
+            const hasContents = program.contents && program.contents.length > 0;
+            const hasSurveys = program.surveys && program.surveys.length > 0;
+
+            if (hasEnrollments || hasContents || hasSurveys) {
+                return res.status(409).json({
+                    success: false,
+                    message: 'Cannot delete program with existing enrollments, contents, or surveys',
+                    details: {
+                        enrollments: hasEnrollments ? program.enrollments.length : 0,
+                        contents: hasContents ? program.contents.length : 0,
+                        surveys: hasSurveys ? program.surveys.length : 0
+                    }
+                });
+            }
+
+            // Delete the program
+            await programRepository.remove(program);
+
+            res.status(200).json({
+                success: true,
+                message: `Program '${program.title}' deleted successfully`
+            });
+        } catch (error) {
+            console.error('Error deleting program:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to delete program',
                 error: error.message
             });
         }
