@@ -403,6 +403,16 @@ app.put("/api/consultants/:consultantId", ConsultantController.updateConsultant)
  */
 app.delete("/api/consultants/:consultantId", authController.verifyToken, ConsultantController.deleteConsultant);
 
+/**
+ * CONSULTANT ID BY USER: Get consultant ID for authenticated user
+ * Purpose: Retrieve consultant ID for the currently authenticated user (from token)
+ * Method: GET /api/consultants/my-id
+ * Input: None (user ID from token)
+ * Output: { success: boolean, data: { consultant_id: number, user_id: number }, message: string }
+ * Authentication: Required (Consultant)
+ */
+app.get("/api/consultants/my-id", authController.verifyToken, ConsultantController.getConsultantIdByUserId);
+
 // ==================== CONSULTANT COMPLETE MANAGEMENT ROUTES ====================
 /**
  * CONSULTANTS COMPLETE LIST: Get all consultants with complete data

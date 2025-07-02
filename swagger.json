@@ -753,6 +753,32 @@
                 }
             }
         },
+        "/api/consultants/my-id": {
+            "get": {
+                "tags": [
+                    "Consultants"
+                ],
+                "summary": "Get consultant ID for authenticated user",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Consultant ID retrieved successfully"
+                    },
+                    "404": {
+                        "description": "Consultant not found for this user"
+                    }
+                }
+            }
+        },
         "/api/consultants/{consultantId}": {
             "get": {
                 "tags": [

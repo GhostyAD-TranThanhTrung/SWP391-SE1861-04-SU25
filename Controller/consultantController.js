@@ -556,6 +556,56 @@ class ConsultantController {
   }
 
   /**
+   * Get consultant ID by user ID (from token)
+   */
+  static async getConsultantIdByUserId(req, res) {
+    try {
+      // Get user_id from the authenticated user token
+      const userId = req.user.userId;
+
+      if (!userId) {
+        return res.status(400).json({
+          success: false,
+          message: "User ID is required"
+        });
+      }
+
+      const consultantRepository = AppDataSource.getRepository(Consultant);
+
+      // Find consultant by user_id
+      const consultant = await consultantRepository.findOne({
+        where: { user_id: parseInt(userId) },
+        select: ['id_consultant', 'user_id'] // Only select necessary fields
+      });
+
+      if (!consultant) {
+        return res.status(404).json({
+          success: false,
+          message: "Consultant not found for this user",
+          data: null
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        data: {
+          consultant_id: consultant.id_consultant,
+          user_id: consultant.user_id
+        },
+        message: "Consultant ID retrieved successfully"
+      });
+
+    } catch (error) {
+      console.error("Error getting consultant ID by user ID:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to retrieve consultant ID",
+        error: error.message,
+      });
+    }
+  }
+
+  /**
    * Delete consultant
    */
   static async deleteConsultant(req, res) {
