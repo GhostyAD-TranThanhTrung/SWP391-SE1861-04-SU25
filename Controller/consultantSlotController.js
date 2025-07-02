@@ -48,6 +48,112 @@ class ConsultantSlotController {
       });
     }
   }
+
+  /**
+   * Update consultant slots for specific days
+   * Deletes existing slots for consultant on specified days and creates new ones
+   */
+  static async updateConsultantSlots(req, res) {
+    const queryRunner = AppDataSource.createQueryRunner();
+    
+    try {
+      const { consultant_id, daysofweek, slot } = req.body;
+
+      // Validate input
+      if (!consultant_id || !daysofweek || !slot || !Array.isArray(slot)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid input. Required: consultant_id, daysofweek, and slot array"
+        });
+      }
+
+      // Validate consultant exists
+      const consultantRepository = AppDataSource.getRepository(Consultant);
+      const consultant = await consultantRepository.findOne({
+        where: { id_consultant: parseInt(consultant_id) }
+      });
+
+      if (!consultant) {
+        return res.status(404).json({
+          success: false,
+          message: "Consultant not found"
+        });
+      }
+
+      // Validate slots exist
+      const slotRepository = AppDataSource.getRepository(Slot);
+      const existingSlots = await slotRepository.findByIds(slot);
+      
+      if (existingSlots.length !== slot.length) {
+        return res.status(400).json({
+          success: false,
+          message: "Some slot IDs do not exist"
+        });
+      }
+
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+
+      const consultantSlotRepository = queryRunner.manager.getRepository(ConsultantSlot);
+
+      // Convert daysofweek to array if it's a single string
+      const daysArray = Array.isArray(daysofweek) ? daysofweek : [daysofweek];
+
+      // Delete existing consultant slots for the specified consultant and days
+      await consultantSlotRepository.delete({
+        consultant_id: parseInt(consultant_id),
+        day_of_week: daysArray
+      });
+
+      // Create new consultant slots
+      const newConsultantSlots = [];
+      
+      for (const day of daysArray) {
+        for (const slotId of slot) {
+          const newConsultantSlot = consultantSlotRepository.create({
+            consultant_id: parseInt(consultant_id),
+            slot_id: parseInt(slotId),
+            day_of_week: day
+          });
+          newConsultantSlots.push(newConsultantSlot);
+        }
+      }
+
+      // Save all new consultant slots
+      const savedSlots = await consultantSlotRepository.save(newConsultantSlots);
+
+      await queryRunner.commitTransaction();
+
+      // Format response
+      const formattedSlots = savedSlots.map(cs => ({
+        consultant_id: cs.consultant_id,
+        slot_id: cs.slot_id,
+        day_of_week: cs.day_of_week
+      }));
+
+      res.status(200).json({
+        success: true,
+        data: {
+          consultant_id: parseInt(consultant_id),
+          days_updated: daysArray,
+          slots_created: formattedSlots,
+          total_slots_created: formattedSlots.length
+        },
+        message: `Successfully updated consultant slots for consultant ID ${consultant_id}`
+      });
+
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      console.error("Error updating consultant slots:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to update consultant slots",
+        error: error.message,
+      });
+    } finally {
+      await queryRunner.release();
+    }
+  }
 }
 
 module.exports = ConsultantSlotController;

@@ -520,6 +520,143 @@ class BookingSessionController {
         }
     }
 
+    /**
+     * Update booking session
+     * Allows updating consultant_id, slot_id, booking_date, status, notes, and google_meet_link
+     */
+    static async updateBookingSession(req, res) {
+        const queryRunner = AppDataSource.createQueryRunner();
+        
+        try {
+            const { bookingId } = req.params;
+            const { consultant_id, slot_id, booking_date, status, notes, google_meet_link } = req.body;
+
+            // Validate booking exists
+            const bookingRepository = queryRunner.manager.getRepository(BookingSession);
+            const existingBooking = await bookingRepository.findOne({
+                where: { booking_id: parseInt(bookingId) }
+            });
+
+            if (!existingBooking) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Booking session not found'
+                });
+            }
+
+            // Validate consultant exists if provided
+            if (consultant_id) {
+                const consultantRepository = queryRunner.manager.getRepository(require('../src/entities/Consultant'));
+                const consultant = await consultantRepository.findOne({
+                    where: { id_consultant: parseInt(consultant_id) }
+                });
+
+                if (!consultant) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Consultant not found'
+                    });
+                }
+            }
+
+            // Validate slot exists if provided
+            if (slot_id) {
+                const slotRepository = queryRunner.manager.getRepository(require('../src/entities/Slot'));
+                const slot = await slotRepository.findOne({
+                    where: { slot_id: parseInt(slot_id) }
+                });
+
+                if (!slot) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Slot not found'
+                    });
+                }
+            }
+
+            // Validate date format if provided
+            if (booking_date) {
+                const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+                if (!dateRegex.test(booking_date)) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Invalid date format. Use YYYY-MM-DD'
+                    });
+                }
+            }
+
+            // Validate status if provided
+            const validStatuses = ['Đang chờ xác nhận', 'Đã xác nhận', 'Đã hoàn thành', 'Đã hủy', 'Đã từ chối'];
+            if (status && !validStatuses.includes(status)) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Invalid status. Must be one of: ${validStatuses.join(', ')}`
+                });
+            }
+
+            await queryRunner.connect();
+            await queryRunner.startTransaction();
+
+            // Prepare update data
+            const updateData = {};
+            if (consultant_id !== undefined) updateData.consultant_id = parseInt(consultant_id);
+            if (slot_id !== undefined) updateData.slot_id = parseInt(slot_id);
+            if (booking_date !== undefined) updateData.booking_date = booking_date;
+            if (status !== undefined) updateData.status = status;
+            if (notes !== undefined) updateData.notes = notes;
+            if (google_meet_link !== undefined) updateData.google_meet_link = google_meet_link;
+
+            // Update the booking
+            await bookingRepository.update(parseInt(bookingId), updateData);
+
+            // Get the updated booking
+            const updatedBooking = await bookingRepository.findOne({
+                where: { booking_id: parseInt(bookingId) },
+                relations: {
+                    consultant: {
+                        user: {
+                            profile: true
+                        }
+                    },
+                    slot: true
+                }
+            });
+
+            await queryRunner.commitTransaction();
+
+            res.status(200).json({
+                success: true,
+                data: {
+                    booking_id: updatedBooking.booking_id,
+                    consultant_id: updatedBooking.consultant_id,
+                    member_id: updatedBooking.member_id,
+                    slot_id: updatedBooking.slot_id,
+                    booking_date: updatedBooking.booking_date,
+                    status: updatedBooking.status,
+                    notes: updatedBooking.notes,
+                    google_meet_link: updatedBooking.google_meet_link,
+                    consultant_name: updatedBooking.consultant?.user?.profile?.name || 'Unknown',
+                    slot_time: updatedBooking.slot ? {
+                        start_time: updatedBooking.slot.start_time,
+                        end_time: updatedBooking.slot.end_time
+                    } : null
+                },
+                message: 'Booking session updated successfully'
+            });
+
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            console.error('Error updating booking session:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to update booking session',
+                error: error.message,
+            });
+        } finally {
+            await queryRunner.release();
+        }
+    }
+
 
     /**
      * Get detailed booking sessions by consultant ID with User and Slot information

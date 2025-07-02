@@ -486,6 +486,16 @@ app.put("/api/booking-sessions/:bookingId/status-link", authController.verifyTok
 app.get("/api/consultant-slots/:consultantId", ConsultantSlotController.getSlotsByConsultantId);
 
 /**
+ * CONSULTANT SLOTS: Update consultant availability
+ * Purpose: Update consultant slots for specific days by deleting existing slots and creating new ones
+ * Method: PUT /api/consultant-slots
+ * Input: { consultant_id: number, daysofweek: string|Array<string>, slot: Array<number> }
+ * Output: { success: boolean, data: object, message: string }
+ * Authentication: Required (Consultant/Admin)
+ */
+app.put("/api/consultant-slots", authController.verifyToken, ConsultantSlotController.updateConsultantSlots);
+
+/**
  * SLOTS: Get all time slots
  * Purpose: Retrieve all available time slots in the system
  * Method: GET /api/slots
@@ -529,6 +539,17 @@ app.post("/api/booking-sessions", authController.verifyToken, BookingSessionCont
  * Features: Includes member profile, slot timing, and booking status information
  */
 app.get("/api/booking-sessions/consultant/:consultantId", authController.verifyToken, BookingSessionController.getDetailedBookingSessionsByConsultant);
+
+/**
+ * BOOKING UPDATE: Update booking session
+ * Purpose: Update booking session details including consultant, slot, date, status, notes, and Google Meet link
+ * Method: PUT /api/booking-sessions/:bookingId
+ * Input: Path params: { bookingId: number }, Body: { consultant_id?: number, slot_id?: number, booking_date?: string, status?: string, notes?: string, google_meet_link?: string }
+ * Output: { success: boolean, data: object, message: string }
+ * Authentication: Required (Member/Consultant/Admin)
+ * Features: Validates all inputs, supports partial updates, includes transaction safety
+ */
+app.put("/api/booking-sessions/:bookingId", authController.verifyToken, BookingSessionController.updateBookingSession);
 
 // ==================== ASSESSMENT ROUTES ====================
 /**

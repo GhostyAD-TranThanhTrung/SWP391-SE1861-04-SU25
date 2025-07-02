@@ -849,6 +849,79 @@
                 }
             }
         },
+        "/api/consultant-slots": {
+            "put": {
+                "tags": [
+                    "Booking"
+                ],
+                "summary": "Update consultant availability slots",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "consultant_id": {
+                                        "type": "integer",
+                                        "description": "ID of the consultant"
+                                    },
+                                    "daysofweek": {
+                                        "oneOf": [
+                                            {
+                                                "type": "string",
+                                                "description": "Single day of the week"
+                                            },
+                                            {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "string"
+                                                },
+                                                "description": "Array of days of the week"
+                                            }
+                                        ],
+                                        "description": "Day(s) of the week to update"
+                                    },
+                                    "slot": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        },
+                                        "description": "Array of slot IDs to assign"
+                                    }
+                                },
+                                "required": [
+                                    "consultant_id",
+                                    "daysofweek",
+                                    "slot"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Consultant slots updated successfully"
+                    },
+                    "400": {
+                        "description": "Invalid input or slot IDs do not exist"
+                    },
+                    "404": {
+                        "description": "Consultant not found"
+                    }
+                }
+            }
+        },
         "/api/booking-sessions/scheduled": {
             "get": {
                 "tags": [
@@ -918,6 +991,82 @@
                 "responses": {
                     "201": {
                         "description": "Booking created"
+                    }
+                }
+            }
+        },
+        "/api/booking-sessions/{bookingId}": {
+            "put": {
+                "tags": [
+                    "Booking"
+                ],
+                "summary": "Update booking session",
+                "parameters": [
+                    {
+                        "name": "bookingId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "ID of the booking session to update"
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "consultant_id": {
+                                        "type": "integer",
+                                        "description": "ID of the consultant (optional)"
+                                    },
+                                    "slot_id": {
+                                        "type": "integer",
+                                        "description": "ID of the time slot (optional)"
+                                    },
+                                    "booking_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Booking date in YYYY-MM-DD format (optional)"
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "enum": ["Đang chờ xác nhận", "Đã xác nhận", "Đã hoàn thành", "Đã hủy", "Đã từ chối"],
+                                        "description": "Booking status (optional)"
+                                    },
+                                    "notes": {
+                                        "type": "string",
+                                        "description": "Additional notes for the booking (optional)"
+                                    },
+                                    "google_meet_link": {
+                                        "type": "string",
+                                        "description": "Google Meet link for the session (optional)"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Booking session updated successfully"
+                    },
+                    "400": {
+                        "description": "Invalid input data (consultant not found, slot not found, invalid date format, invalid status)"
+                    },
+                    "404": {
+                        "description": "Booking session not found"
                     }
                 }
             }
