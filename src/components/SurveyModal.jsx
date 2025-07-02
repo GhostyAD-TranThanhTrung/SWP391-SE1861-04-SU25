@@ -25,6 +25,11 @@ const SurveyModal = ({
             setSurveyNotFound(false);
             setAlreadyResponded(false);
             setError(null);
+            setCurrentQuestionIndex(0);
+            setQuestions([]);
+            setSurvey(null);
+            setAnswers({});
+            console.log('[SurveyModal] Modal opened. programId:', programId, 'surveyType:', surveyType);
             checkExistingResponse();
         }
     }, [isOpen, programId, surveyType]);
@@ -41,6 +46,7 @@ const SurveyModal = ({
             }
 
             // First fetch the survey to get survey_id
+            console.log('[SurveyModal] Fetching survey for check:', programId, surveyType);
             const surveyResponse = await fetch(
                 `http://localhost:3000/api/surveys/program/${programId}/type/${surveyType}`,
                 {
@@ -51,19 +57,23 @@ const SurveyModal = ({
                 }
             );
 
+            console.log('[SurveyModal] Survey fetch response status:', surveyResponse.status);
             if (!surveyResponse.ok) {
                 if (surveyResponse.status === 404) {
                     setSurveyNotFound(true);
                     setCheckingResponse(false);
+                    console.log('[SurveyModal] Survey not found (404)');
                     return;
                 }
                 throw new Error(`Failed to fetch survey: ${surveyResponse.status}`);
             }
 
             const surveyData = await surveyResponse.json();
+            console.log('[SurveyModal] Survey fetch data:', surveyData);
             
             if (surveyData.success && surveyData.data && surveyData.data.length > 0) {
                 const survey = surveyData.data[0];
+                console.log('[SurveyModal] Survey found:', survey);
                 
                 // Now check if user has already responded to this survey
                 const checkResponse = await fetch(
@@ -75,25 +85,29 @@ const SurveyModal = ({
                         }
                     }
                 );
-
+                console.log('[SurveyModal] Check response status:', checkResponse.status);
                 if (checkResponse.ok) {
                     const checkData = await checkResponse.json();
+                    console.log('[SurveyModal] Check response data:', checkData);
                     if (checkData.success && checkData.hasResponded) {
                         setAlreadyResponded(true);
                         setCheckingResponse(false);
+                        console.log('[SurveyModal] User has already responded to this survey.');
                         return;
                     }
                 }
 
                 // If user hasn't responded, proceed to fetch survey details
-                fetchSurvey();
+                await fetchSurvey();
+                setCheckingResponse(false);
             } else {
                 // No survey found in response data
                 setSurveyNotFound(true);
                 setCheckingResponse(false);
+                console.log('[SurveyModal] No survey found in response data.');
             }
         } catch (err) {
-            console.error('Error checking existing response:', err);
+            console.error('[SurveyModal] Error checking existing response:', err);
             setError(err.message);
             setCheckingResponse(false);
         }
@@ -110,6 +124,7 @@ const SurveyModal = ({
                 throw new Error('Authentication required');
             }
 
+            console.log('[SurveyModal] Fetching survey details:', programId, surveyType);
             const response = await fetch(
                 `http://localhost:3000/api/surveys/program/${programId}/type/${surveyType}`,
                 {
@@ -120,28 +135,33 @@ const SurveyModal = ({
                 }
             );
 
+            console.log('[SurveyModal] Survey details fetch status:', response.status);
             if (!response.ok) {
                 if (response.status === 404) {
                     setSurveyNotFound(true);
                     setLoading(false);
+                    console.log('[SurveyModal] Survey details not found (404)');
                     return;
                 }
                 throw new Error(`Failed to fetch survey: ${response.status}`);
             }
 
             const data = await response.json();
+            console.log('[SurveyModal] Survey details fetch data:', data);
             
             if (data.success && data.data && data.data.length > 0) {
                 const surveyData = data.data[0]; // Get the first survey
                 setSurvey(surveyData);
+                console.log('[SurveyModal] Survey data set:', surveyData);
                 
                 // Parse questions from JSON
                 let parsedQuestions = [];
                 try {
                     const questionsData = JSON.parse(surveyData.questions_json);
                     parsedQuestions = questionsData.questions || [];
+                    console.log('[SurveyModal] Parsed questions:', parsedQuestions);
                 } catch (e) {
-                    console.error('Error parsing survey questions:', e);
+                    console.error('[SurveyModal] Error parsing survey questions:', e);
                     throw new Error('Survey data is corrupted. Please contact support.');
                 }
                 
@@ -150,19 +170,20 @@ const SurveyModal = ({
                 }
                 
                 setQuestions(parsedQuestions);
-                
                 // Initialize answers object
                 const initialAnswers = {};
                 parsedQuestions.forEach(q => {
                     initialAnswers[q.id] = '';
                 });
                 setAnswers(initialAnswers);
+                console.log('[SurveyModal] Answers initialized:', initialAnswers);
             } else {
                 // No survey found for this program and type
                 setSurveyNotFound(true);
+                console.log('[SurveyModal] No survey found for this program and type.');
             }
         } catch (err) {
-            console.error('Error fetching survey:', err);
+            console.error('[SurveyModal] Error fetching survey:', err);
             setError(err.message);
         } finally {
             setLoading(false);
@@ -174,17 +195,20 @@ const SurveyModal = ({
             ...prev,
             [questionId]: answer
         }));
+        console.log('[SurveyModal] Answer changed:', questionId, answer);
     };
 
     const handleNext = () => {
         if (currentQuestionIndex < questions.length - 1) {
             setCurrentQuestionIndex(prev => prev + 1);
+            console.log('[SurveyModal] Next question:', currentQuestionIndex + 2);
         }
     };
 
     const handlePrevious = () => {
         if (currentQuestionIndex > 0) {
             setCurrentQuestionIndex(prev => prev - 1);
+            console.log('[SurveyModal] Previous question:', currentQuestionIndex);
         }
     };
 
@@ -213,6 +237,7 @@ const SurveyModal = ({
                 total_questions: questions.length
             };
 
+            console.log('[SurveyModal] Submitting survey:', submissionData);
             const response = await fetch('http://localhost:3000/api/survey-responses', {
                 method: 'POST',
                 headers: {
@@ -222,11 +247,13 @@ const SurveyModal = ({
                 body: JSON.stringify(submissionData)
             });
 
+            console.log('[SurveyModal] Survey submit response status:', response.status);
             if (!response.ok) {
                 throw new Error('Failed to submit survey');
             }
 
             const result = await response.json();
+            console.log('[SurveyModal] Survey submit result:', result);
             if (result.success) {
                 alert('Survey submitted successfully! Thank you for your feedback.');
                 if (onComplete) onComplete();
@@ -235,7 +262,7 @@ const SurveyModal = ({
                 throw new Error(result.message || 'Failed to submit survey');
             }
         } catch (err) {
-            console.error('Error submitting survey:', err);
+            console.error('[SurveyModal] Error submitting survey:', err);
             alert('Error submitting survey: ' + err.message);
         } finally {
             setSubmitting(false);

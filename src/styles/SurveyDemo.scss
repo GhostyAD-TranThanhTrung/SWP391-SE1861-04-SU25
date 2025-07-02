@@ -1,0 +1,165 @@
+.survey-demo {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+
+  .demo-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 2px solid #f8f9fa;
+
+    h3 {
+      color: #495057;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+
+    p {
+      color: #6c757d;
+      font-size: 1.1rem;
+      margin-bottom: 2rem;
+    }
+
+    .demo-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+
+      .tab-btn {
+        padding: 0.75rem 1.5rem;
+        border: 2px solid #dee2e6;
+        background: white;
+        color: #495057;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        cursor: pointer;
+
+        &:hover {
+          border-color: #007bff;
+          color: #007bff;
+        }
+
+        &.active {
+          background: #007bff;
+          border-color: #007bff;
+          color: white;
+        }
+      }
+    }
+  }
+
+  .demo-content {
+    margin-bottom: 3rem;
+
+    .viewer-demo,
+    .creator-demo {
+      h4 {
+        color: #495057;
+        margin-bottom: 1rem;
+        font-weight: 600;
+      }
+
+      p {
+        color: #6c757d;
+        margin-bottom: 1.5rem;
+        font-size: 1rem;
+      }
+
+      .demo-controls {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        justify-content: center;
+
+        .btn {
+          font-size: 0.875rem;
+          padding: 0.5rem 1rem;
+        }
+      }
+    }
+  }
+
+  .demo-info {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 2rem;
+    border-left: 4px solid #007bff;
+
+    h5 {
+      color: #495057;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+
+    ul {
+      margin-bottom: 2rem;
+      padding-left: 1.5rem;
+
+      li {
+        color: #495057;
+        margin-bottom: 0.5rem;
+        line-height: 1.5;
+
+        strong {
+          color: #007bff;
+        }
+      }
+    }
+
+    p {
+      color: #6c757d;
+      margin-bottom: 1rem;
+    }
+
+    pre {
+      background: #2d3748;
+      color: #e2e8f0;
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 0.875rem;
+      line-height: 1.4;
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .survey-demo {
+    padding: 1rem;
+
+    .demo-header {
+      .demo-tabs {
+        flex-direction: column;
+        align-items: center;
+
+        .tab-btn {
+          width: 100%;
+          max-width: 300px;
+        }
+      }
+    }
+
+    .demo-content {
+      .demo-controls {
+        flex-direction: column;
+        align-items: center;
+
+        .btn {
+          width: 100%;
+          max-width: 200px;
+        }
+      }
+    }
+
+    .demo-info {
+      padding: 1rem;
+
+      pre {
+        font-size: 0.75rem;
+      }
+    }
+  }
+} 
