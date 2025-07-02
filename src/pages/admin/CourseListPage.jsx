@@ -86,39 +86,6 @@ const CourseListPage = () => {
     fetchCategories();
   }, []);
 
-  // Render charts when surveyCharts data changes
-  useEffect(() => {
-    if (surveyCharts && Object.keys(surveyCharts).length > 0) {
-      console.log("🔄 CourseListPage - Rendering charts for surveys:", Object.keys(surveyCharts));
-      
-      // Small delay to ensure DOM elements are ready
-      setTimeout(() => {
-        Object.keys(surveyCharts).forEach(surveyId => {
-          const surveyChartData = surveyCharts[surveyId];
-          Object.keys(surveyChartData).forEach(questionId => {
-            const chartKey = `${surveyId}-${questionId}`;
-            const canvas = document.getElementById(`chart-${chartKey}`);
-            
-            if (canvas) {
-              console.log("🔄 CourseListPage - Rendering chart:", chartKey);
-              const ctx = canvas.getContext('2d');
-              
-              // Destroy existing chart if it exists
-              if (canvas.chart) {
-                canvas.chart.destroy();
-              }
-              
-              // Create new chart
-              canvas.chart = new ChartJS(ctx, surveyChartData[questionId]);
-            } else {
-              console.warn("⚠️ CourseListPage - Canvas not found for chart:", chartKey);
-            }
-          });
-        });
-      }, 100);
-    }
-  }, [surveyCharts]);
-
   const fetchPrograms = async () => {
     setLoading(true);
     try {
@@ -280,49 +247,80 @@ const CourseListPage = () => {
     setShowDetailModal(true);
     setAnalyticsLoading(true);
     
-    // Fetch survey analytics using the survey response statistics API
+    // Fetch survey analytics from program controller
     try {
-      console.log("🔄 CourseListPage - Fetching survey response statistics for program:", program.program_id);
-      const res = await axios.get(`http://localhost:3000/api/survey-responses/statistics?programId=${program.program_id}`, {
+      console.log("🔄 CourseListPage - Fetching survey analytics for program:", program.program_id);
+      const res = await axios.get(`http://localhost:3000/api/programs/${program.program_id}/survey-analytics`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
       if (res.data.success) {
-        console.log("✅ CourseListPage - Survey response statistics:", res.data.data);
-        setSurveyAnalytics({
-          total_surveys: res.data.data.length,
-          total_responses: res.data.data.reduce((sum, survey) => sum + survey.totalResponses, 0),
-          surveys: res.data.data.map(survey => ({
-            id: survey.surveyId,
-            type: survey.surveyType,
-            totalResponses: survey.totalResponses,
-            responses: survey.questionStatistics
-          }))
-        });
+        console.log("✅ CourseListPage - Survey analytics response:", res.data.data);
+        setSurveyAnalytics(res.data.data);
         
         // Generate charts for each survey with improved error handling
         const charts = {};
-        if (res.data.data && Array.isArray(res.data.data)) {
-          res.data.data.forEach(survey => {
-            console.log("🔄 CourseListPage - Processing survey:", survey.surveyId);
-            const surveyCharts = generateSurveyChartsFromStatistics(survey);
-            if (Object.keys(surveyCharts).length > 0) {
-              charts[survey.surveyId] = surveyCharts;
+        if (res.data.data.surveys && Array.isArray(res.data.data.surveys)) {
+          res.data.data.surveys.forEach(survey => {
+            if (survey.responses && Object.keys(survey.responses).length > 0 && !survey.error) {
+              charts[survey.id] = generateSurveyCharts(survey);
+            } else if (survey.error) {
+              console.warn(`⚠️ CourseListPage - Survey ${survey.id} has error:`, survey.error);
             }
           });
         }
-        
         setSurveyCharts(charts);
         console.log("✅ CourseListPage - Generated charts:", charts);
       } else {
-        console.error("❌ CourseListPage - Failed to fetch survey statistics:", res.data.message);
-        setSurveyAnalytics(null);
+        console.warn("⚠️ CourseListPage - Survey analytics request failed:", res.data.message);
       }
-    } catch (error) {
-      console.error("❌ CourseListPage - Error fetching survey statistics:", error);
-      setSurveyAnalytics(null);
+    } catch (err) {
+      console.error("❌ CourseListPage - Error fetching survey analytics:", {
+        error: err,
+        response: err.response,
+        data: err.response?.data
+      });
+      // Don't show alert for analytics errors as they're not critical
+    }
+
+    // Also fetch detailed survey response statistics for additional insights
+    try {
+      console.log("🔄 CourseListPage - Fetching detailed survey response statistics for program:", program.program_id);
+      const statsRes = await axios.get(`http://localhost:3000/api/survey-responses/statistics?programId=${program.program_id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (statsRes.data.success) {
+        console.log("✅ CourseListPage - Survey response statistics:", statsRes.data.data);
+        // Store detailed statistics for potential use
+        setSurveyAnalytics(prev => ({
+          ...prev,
+          detailed_statistics: statsRes.data.data
+        }));
+      } else {
+        console.warn("⚠️ CourseListPage - Survey response statistics request failed:", statsRes.data.message);
+      }
+    } catch (err) {
+      console.error("❌ CourseListPage - Error fetching survey response statistics:", {
+        error: err,
+        response: err.response,
+        data: err.response?.data
+      });
+      // Don't show alert for statistics errors as they're not critical
     } finally {
       setAnalyticsLoading(false);
+    }
+
+    // Fetch program contents
+    try {
+      const res = await axios.get(`http://localhost:3000/api/content/program/${program.program_id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data.success) {
+        setProgramContents(res.data.data);
+      }
+    } catch (err) {
+      console.error("❌ CourseListPage - Error fetching program contents:", err);
     }
   };
 
@@ -423,6 +421,26 @@ const CourseListPage = () => {
     setShowSurveyModal(false);
   };
 
+  const fetchSurveyResponses = async (surveyId) => {
+    try {
+      console.log("🔄 CourseListPage - Fetching responses for survey:", surveyId);
+      const res = await axios.get(`http://localhost:3000/api/survey-responses/survey/${surveyId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (res.data.success) {
+        console.log("✅ CourseListPage - Survey responses:", res.data.data);
+        return res.data.data;
+      } else {
+        console.warn("⚠️ CourseListPage - Failed to fetch survey responses:", res.data.message);
+        return [];
+      }
+    } catch (err) {
+      console.error("❌ CourseListPage - Error fetching survey responses:", err);
+      return [];
+    }
+  };
+
   const openSurveyCreator = (survey = null, hasPre = null, hasPost = null) => {
     // If editing, allow as normal
     if (survey) {
@@ -443,124 +461,6 @@ const CourseListPage = () => {
     setSelectedSurvey({ type });
     setShowSurveyCreator(true);
     setShowSurveyModal(false);
-  };
-
-  const generateSurveyChartsFromStatistics = (survey) => {
-    console.log("🔄 CourseListPage - Generating charts from statistics for survey:", survey.surveyId);
-    console.log("🔄 CourseListPage - Survey statistics:", survey);
-    
-    const charts = {};
-    
-    if (!survey.questionStatistics || typeof survey.questionStatistics !== 'object') {
-      console.warn("⚠️ CourseListPage - No valid question statistics for survey:", survey.surveyId);
-      return charts;
-    }
-    
-    Object.keys(survey.questionStatistics).forEach(questionId => {
-      const questionStats = survey.questionStatistics[questionId];
-      console.log("🔄 CourseListPage - Processing question:", questionId, questionStats);
-      
-      if (!questionStats.answerCounts || Object.keys(questionStats.answerCounts).length === 0) {
-        console.warn("⚠️ CourseListPage - No answer counts for question:", questionId);
-        return;
-      }
-      
-      const labels = Object.keys(questionStats.answerCounts);
-      const data = Object.values(questionStats.answerCounts);
-      
-      console.log("🔄 CourseListPage - Question chart data:", {
-        questionId,
-        questionText: questionStats.questionText,
-        labels,
-        data
-      });
-      
-      // Create chart configuration
-      const chartConfig = {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: `Responses for "${questionStats.questionText}"`,
-            data: data,
-            backgroundColor: [
-              'rgba(255, 99, 132, 0.8)',
-              'rgba(54, 162, 235, 0.8)',
-              'rgba(255, 206, 86, 0.8)',
-              'rgba(75, 192, 192, 0.8)',
-              'rgba(153, 102, 255, 0.8)',
-              'rgba(255, 159, 64, 0.8)',
-              'rgba(199, 199, 199, 0.8)',
-              'rgba(83, 102, 255, 0.8)',
-              'rgba(78, 252, 3, 0.8)',
-              'rgba(252, 3, 244, 0.8)'
-            ],
-            borderColor: [
-              'rgba(255, 99, 132, 1)',
-              'rgba(54, 162, 235, 1)',
-              'rgba(255, 206, 86, 1)',
-              'rgba(75, 192, 192, 1)',
-              'rgba(153, 102, 255, 1)',
-              'rgba(255, 159, 64, 1)',
-              'rgba(199, 199, 199, 1)',
-              'rgba(83, 102, 255, 1)',
-              'rgba(78, 252, 3, 1)',
-              'rgba(252, 3, 244, 1)'
-            ],
-            borderWidth: 2
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            title: {
-              display: true,
-              text: `Question ${questionId}: ${questionStats.questionText}`,
-              font: {
-                size: 14,
-                weight: 'bold'
-              }
-            },
-            legend: {
-              display: false
-            },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                  const percentage = ((context.parsed.y / total) * 100).toFixed(1);
-                  return `${context.parsed.y} responses (${percentage}%)`;
-                }
-              }
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              title: {
-                display: true,
-                text: 'Number of Responses'
-              },
-              ticks: {
-                stepSize: 1
-              }
-            },
-            x: {
-              title: {
-                display: true,
-                text: 'Answer Options'
-              }
-            }
-          }
-        }
-      };
-      
-      charts[questionId] = chartConfig;
-    });
-    
-    console.log("✅ CourseListPage - Generated charts for survey:", survey.surveyId, charts);
-    return charts;
   };
 
   const generateSurveyCharts = (survey) => {
@@ -1136,56 +1036,13 @@ const CourseListPage = () => {
                       </div>
                       <div className="col-md-3">
                         <div className="stat-card">
-                          <div className="stat-number">
-                            {surveyAnalytics.total_surveys > 0 
-                              ? Math.round(surveyAnalytics.total_responses / surveyAnalytics.total_surveys) 
-                              : 0}
-                          </div>
-                          <div className="stat-label">Avg Responses/Survey</div>
-                        </div>
-                      </div>
-                      <div className="col-md-3">
-                        <div className="stat-card">
-                          <div className="stat-number">
-                            {surveyAnalytics.surveys ? surveyAnalytics.surveys.length : 0}
-                          </div>
-                          <div className="stat-label">Active Surveys</div>
+                          <div className="stat-number">{surveyAnalytics.analytics_generated_at ? 
+                            new Date(surveyAnalytics.analytics_generated_at).toLocaleString() : 'N/A'}</div>
+                          <div className="stat-label">Last Updated</div>
                         </div>
                       </div>
                     </div>
-
-                    {/* Survey List with Response Counts */}
-                    {surveyAnalytics.surveys && surveyAnalytics.surveys.length > 0 && (
-                      <div className="survey-list mb-4">
-                        <h6>Survey Details</h6>
-                        <div className="row">
-                          {surveyAnalytics.surveys.map(survey => (
-                            <div key={survey.id} className="col-md-6 mb-3">
-                              <div className="card">
-                                <div className="card-body">
-                                  <div className="d-flex justify-content-between align-items-center">
-                                    <div>
-                                      <h6 className="mb-1">Survey #{survey.id}</h6>
-                                      <p className="mb-0 text-muted">
-                                        Type: <span className="badge bg-primary">{survey.type}</span>
-                                      </p>
-                                      <p className="mb-0 text-muted">
-                                        Questions: {survey.responses ? Object.keys(survey.responses).length : 0}
-                                      </p>
-                                    </div>
-                                    <div className="text-end">
-                                      <div className="h5 mb-0 text-primary">{survey.totalResponses}</div>
-                                      <small className="text-muted">Responses</small>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
+                    
                     {/* Survey Charts */}
                     {surveyAnalytics.surveys && surveyAnalytics.surveys.length > 0 && (
                       <div className="survey-charts mt-4">
@@ -1194,98 +1051,100 @@ const CourseListPage = () => {
                         {/* Debug Section - Remove in production */}
                         <div className="debug-section mb-3">
                           <details>
-                            <summary className="text-muted">🔍 Debug: Survey Response Statistics</summary>
+                            <summary className="text-muted">🔍 Debug: Raw Survey Data</summary>
                             <div className="debug-content p-3 bg-light border rounded">
                               <pre className="mb-0" style={{ fontSize: '12px', maxHeight: '200px', overflow: 'auto' }}>
-                                {JSON.stringify(surveyAnalytics, null, 2)}
+                                {JSON.stringify(surveyAnalytics.surveys, null, 2)}
                               </pre>
                             </div>
                           </details>
                         </div>
-
+                        
                         {surveyAnalytics.surveys.map(survey => (
                           <div key={survey.id} className="survey-chart-section mb-4">
-                            <h6 className="mb-3">
-                              Survey #{survey.id} - {survey.type} 
-                              <span className="badge bg-secondary ms-2">{survey.totalResponses} responses</span>
+                            <h6 className="survey-title">
+                              {survey.type} Survey (ID: {survey.id})
+                              <span className="badge bg-info ms-2">
+                                {survey.total_responses} responses
+                              </span>
+                              {survey.error && (
+                                <span className="badge bg-warning ms-2">
+                                  Error: {survey.error}
+                                </span>
+                              )}
                             </h6>
                             
                             {/* Debug individual survey */}
-                            <details className="mb-3">
-                              <summary className="text-muted">🔍 Debug: Survey #{survey.id} Data</summary>
-                              <div className="debug-content p-3 bg-light border rounded">
-                                <pre className="mb-0" style={{ fontSize: '12px', maxHeight: '200px', overflow: 'auto' }}>
+                            <details className="mb-2">
+                              <summary className="text-muted">🔍 Debug Survey {survey.id}</summary>
+                              <div className="debug-content p-2 bg-light border rounded">
+                                <pre className="mb-0" style={{ fontSize: '11px', maxHeight: '150px', overflow: 'auto' }}>
                                   {JSON.stringify(survey, null, 2)}
                                 </pre>
                               </div>
                             </details>
-
-                            {survey.responses && Object.keys(survey.responses).length > 0 ? (
+                            
+                            {survey.error ? (
+                              <div className="alert alert-warning">
+                                <strong>Survey Processing Error:</strong> {survey.error}
+                                {survey.error_details && (
+                                  <div className="mt-1">
+                                    <small>Details: {survey.error_details}</small>
+                                  </div>
+                                )}
+                              </div>
+                            ) : surveyCharts[survey.id] && Object.keys(surveyCharts[survey.id]).length > 0 ? (
                               <div className="row">
-                                {Object.keys(survey.responses).map(questionId => {
-                                  const questionStats = survey.responses[questionId];
-                                  const chartKey = `${survey.id}-${questionId}`;
+                                {Object.keys(surveyCharts[survey.id]).map(questionText => {
+                                  const chartData = surveyCharts[survey.id][questionText];
+                                  const maxResponses = Math.max(...chartData.datasets[0].data);
+                                  const totalResponses = chartData.datasets[0].data.reduce((a, b) => a + b, 0);
                                   
                                   return (
-                                    <div key={chartKey} className="col-md-6 mb-3">
-                                      <div className="card">
-                                        <div className="card-body">
-                                          <h6 className="card-title">Question {questionId}</h6>
-                                          <p className="card-text text-muted mb-3">
-                                            {questionStats.questionText || `Question ${questionId}`}
-                                          </p>
-                                          
-                                          {/* Response Summary */}
-                                          <div className="response-summary mb-3">
-                                            <div className="row text-center">
-                                              <div className="col-4">
-                                                <div className="h6 mb-0 text-primary">{questionStats.totalResponses}</div>
-                                                <small className="text-muted">Total</small>
-                                              </div>
-                                              <div className="col-4">
-                                                <div className="h6 mb-0 text-success">{questionStats.uniqueAnswers}</div>
-                                                <small className="text-muted">Unique</small>
-                                              </div>
-                                              <div className="col-4">
-                                                <div className="h6 mb-0 text-info">
-                                                  {questionStats.mostCommonAnswer || 'N/A'}
-                                                </div>
-                                                <small className="text-muted">Most Common</small>
-                                              </div>
-                                            </div>
-                                          </div>
-
-                                          {/* Answer Breakdown */}
-                                          {questionStats.answerCounts && Object.keys(questionStats.answerCounts).length > 0 && (
-                                            <div className="answer-breakdown">
-                                              <h6 className="mb-2">Answer Distribution:</h6>
-                                              <div className="row">
-                                                {Object.entries(questionStats.answerCounts).map(([answer, count]) => (
-                                                  <div key={answer} className="col-6 mb-2">
-                                                    <div className="d-flex justify-content-between">
-                                                      <span className="text-truncate me-2">{answer}</span>
-                                                      <span className="badge bg-primary">{count}</span>
-                                                    </div>
-                                                    <div className="progress mt-1" style={{ height: '4px' }}>
-                                                      <div 
-                                                        className="progress-bar" 
-                                                        style={{ 
-                                                          width: `${questionStats.percentages[answer] || 0}%` 
-                                                        }}
-                                                      ></div>
-                                                    </div>
-                                                  </div>
-                                                ))}
-                                              </div>
-                                            </div>
-                                          )}
-
-                                          {/* Chart */}
-                                          {surveyCharts[survey.id] && surveyCharts[survey.id][questionId] && (
-                                            <div className="chart-container mt-3" style={{ height: '200px' }}>
-                                              <canvas id={`chart-${chartKey}`}></canvas>
-                                            </div>
-                                          )}
+                                    <div key={questionText} className="col-md-6 col-lg-4 mb-3">
+                                      <div className="chart-card">
+                                        <h6 className="chart-title">{questionText}</h6>
+                                        <div className="chart-container" style={{ height: '200px' }}>
+                                          <Bar
+                                            data={chartData}
+                                            options={{
+                                              responsive: true,
+                                              maintainAspectRatio: false,
+                                              plugins: {
+                                                legend: {
+                                                  display: false,
+                                                },
+                                                tooltip: {
+                                                  callbacks: {
+                                                    label: function(context) {
+                                                      const percentage = ((context.parsed.y / totalResponses) * 100).toFixed(1);
+                                                      return `${context.parsed.y} responses (${percentage}%)`;
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              scales: {
+                                                y: {
+                                                  beginAtZero: true,
+                                                  max: maxResponses + 1,
+                                                  ticks: {
+                                                    stepSize: 1
+                                                  }
+                                                },
+                                                x: {
+                                                  ticks: {
+                                                    maxRotation: 45,
+                                                    minRotation: 0
+                                                  }
+                                                }
+                                              }
+                                            }}
+                                          />
+                                        </div>
+                                        <div className="chart-summary text-center mt-2">
+                                          <small className="text-muted">
+                                            Total: {totalResponses} responses
+                                          </small>
                                         </div>
                                       </div>
                                     </div>
@@ -1293,12 +1152,42 @@ const CourseListPage = () => {
                                 })}
                               </div>
                             ) : (
-                              <div className="text-center py-4">
-                                <p className="text-muted">No response data available for this survey.</p>
+                              <div className="text-center py-3">
+                                <p className="text-muted">
+                                  {survey.total_responses > 0 
+                                    ? "No response data available for this survey." 
+                                    : "No responses recorded for this survey yet."}
+                                </p>
+                                {/* Debug: Show what we have */}
+                                <details>
+                                  <summary className="text-muted">🔍 Why no charts?</summary>
+                                  <div className="debug-content p-2 bg-light border rounded">
+                                    <p><strong>Survey responses object:</strong></p>
+                                    <pre style={{ fontSize: '11px' }}>
+                                      {JSON.stringify(survey.responses, null, 2)}
+                                    </pre>
+                                    <p><strong>Generated charts:</strong></p>
+                                    <pre style={{ fontSize: '11px' }}>
+                                      {JSON.stringify(surveyCharts[survey.id], null, 2)}
+                                    </pre>
+                                  </div>
+                                </details>
                               </div>
                             )}
                           </div>
                         ))}
+                      </div>
+                    )}
+                    
+                    {(!surveyAnalytics.surveys || surveyAnalytics.surveys.length === 0) && (
+                      <div className="text-center py-4">
+                        <p className="text-muted">No surveys found for this program.</p>
+                        <button 
+                          className="btn btn-primary"
+                          onClick={openSurveyModal}
+                        >
+                          <FaQuestion className="me-1" /> Create Survey
+                        </button>
                       </div>
                     )}
                   </div>
