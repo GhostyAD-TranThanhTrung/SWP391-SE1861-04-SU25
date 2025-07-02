@@ -116,72 +116,72 @@ INSERT INTO Category (name, description) VALUES
 -- Insert Programs
 INSERT INTO Programs (img_link, title, description, create_by, status, age_group, create_at, category_id) VALUES
 -- Addiction Science Programs
-('https://example.com/addiction-science.jpg', 'Understanding Addiction Science', 'Comprehensive exploration of the neuroscience behind addiction, brain changes, and recovery mechanisms', 1, 'active', '18+', GETDATE(), 1),
-('https://example.com/brain-addiction.jpg', 'Brain and Addiction: A Scientific Perspective', 'Deep dive into how substances affect brain chemistry and neural pathways', 1, 'active', '18+', GETDATE(), 1),
+('https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', 'Understanding Addiction Science', 'Comprehensive exploration of the neuroscience behind addiction, brain changes, and recovery mechanisms', 1, 'active', '18+', GETDATE(), 1),
+('https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', 'Brain and Addiction: A Scientific Perspective', 'Deep dive into how substances affect brain chemistry and neural pathways', 1, 'active', '18+', GETDATE(), 1),
 
 -- Cannabis Programs
-('https://example.com/cannabis-education.jpg', 'Cannabis Education and Awareness', 'Evidence-based information about marijuana use, effects, and legal considerations', 1, 'active', '18+', GETDATE(), 2),
-('https://example.com/marijuana-youth.jpg', 'Marijuana and Youth Development', 'Understanding the impact of cannabis use on developing brains', 1, 'active', '13-25', GETDATE(), 2),
+('https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', 'Cannabis Education and Awareness', 'Evidence-based information about marijuana use, effects, and legal considerations', 1, 'active', '18+', GETDATE(), 2),
+('https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', 'Marijuana and Youth Development', 'Understanding the impact of cannabis use on developing brains', 1, 'active', '13-25', GETDATE(), 2),
 
 -- Emerging Drug Trends Programs
-('https://example.com/emerging-drugs.jpg', 'New Psychoactive Substances Alert', 'Stay informed about emerging synthetic drugs and novel substances', 1, 'active', '18+', GETDATE(), 3),
-('https://example.com/synthetic-drugs.jpg', 'Synthetic Drug Awareness Program', 'Education about designer drugs, their risks, and identification', 1, 'active', '16+', GETDATE(), 3),
+('https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', 'New Psychoactive Substances Alert', 'Stay informed about emerging synthetic drugs and novel substances', 1, 'active', '18+', GETDATE(), 3),
+('https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', 'Synthetic Drug Awareness Program', 'Education about designer drugs, their risks, and identification', 1, 'active', '16+', GETDATE(), 3),
 
 -- Fentanyl Programs
-('https://example.com/fentanyl-crisis.jpg', 'Fentanyl Crisis Response', 'Critical education about fentanyl dangers, overdose prevention, and naloxone training', 1, 'active', '16+', GETDATE(), 4),
-('https://example.com/overdose-prevention.jpg', 'Overdose Prevention and Response', 'Life-saving techniques and emergency response for opioid overdoses', 1, 'active', '16+', GETDATE(), 4),
+('https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', 'Fentanyl Crisis Response', 'Critical education about fentanyl dangers, overdose prevention, and naloxone training', 1, 'active', '16+', GETDATE(), 4),
+('https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', 'Overdose Prevention and Response', 'Life-saving techniques and emergency response for opioid overdoses', 1, 'active', '16+', GETDATE(), 4),
 
 -- Harm Reduction Programs
-('https://example.com/harm-reduction.jpg', 'Harm Reduction Strategies', 'Practical approaches to minimize health risks associated with substance use', 1, 'active', '18+', GETDATE(), 5),
-('https://example.com/safer-use.jpg', 'Safer Use Education', 'Evidence-based harm reduction techniques and safety protocols', 1, 'active', '18+', GETDATE(), 5),
+('https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', 'Harm Reduction Strategies', 'Practical approaches to minimize health risks associated with substance use', 1, 'active', '18+', GETDATE(), 5),
+('https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', 'Safer Use Education', 'Evidence-based harm reduction techniques and safety protocols', 1, 'active', '18+', GETDATE(), 5),
 
 -- Heroin Programs
-('https://example.com/heroin-treatment.jpg', 'Heroin Addiction Treatment Options', 'Comprehensive guide to heroin addiction treatment and recovery pathways', 1, 'active', '18+', GETDATE(), 6),
-('https://example.com/opioid-substitution.jpg', 'Medication-Assisted Treatment for Heroin', 'Understanding methadone, buprenorphine, and other treatment medications', 1, 'active', '18+', GETDATE(), 6),
+('https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', 'Heroin Addiction Treatment Options', 'Comprehensive guide to heroin addiction treatment and recovery pathways', 1, 'active', '18+', GETDATE(), 6),
+('https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', 'Medication-Assisted Treatment for Heroin', 'Understanding methadone, buprenorphine, and other treatment medications', 1, 'active', '18+', GETDATE(), 6),
 
 -- HIV Programs
-('https://example.com/hiv-prevention.jpg', 'HIV Prevention in Substance Use', 'Preventing HIV transmission among people who use drugs', 1, 'active', '18+', GETDATE(), 7),
-('https://example.com/hiv-testing.jpg', 'HIV Testing and Care Services', 'Access to HIV testing, treatment, and support services', 1, 'active', '18+', GETDATE(), 7),
+('https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', 'HIV Prevention in Substance Use', 'Preventing HIV transmission among people who use drugs', 1, 'active', '18+', GETDATE(), 7),
+('https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', 'HIV Testing and Care Services', 'Access to HIV testing, treatment, and support services', 1, 'active', '18+', GETDATE(), 7),
 
 -- Kratom Programs
-('https://example.com/kratom-education.jpg', 'Kratom: Facts and Risks', 'Educational content about kratom use, effects, and potential health risks', 1, 'active', '18+', GETDATE(), 8),
+('https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', 'Kratom: Facts and Risks', 'Educational content about kratom use, effects, and potential health risks', 1, 'active', '18+', GETDATE(), 8),
 
 -- Methamphetamine Programs
-('https://example.com/meth-addiction.jpg', 'Methamphetamine Addiction Recovery', 'Treatment approaches and recovery strategies for methamphetamine addiction', 1, 'active', '18+', GETDATE(), 9),
-('https://example.com/meth-effects.jpg', 'Understanding Methamphetamine Effects', 'Comprehensive education about meth use, health impacts, and risks', 1, 'active', '16+', GETDATE(), 9),
+('https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', 'Methamphetamine Addiction Recovery', 'Treatment approaches and recovery strategies for methamphetamine addiction', 1, 'active', '18+', GETDATE(), 9),
+('https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', 'Understanding Methamphetamine Effects', 'Comprehensive education about meth use, health impacts, and risks', 1, 'active', '16+', GETDATE(), 9),
 
 -- Opioids Programs
-('https://example.com/opioid-crisis.jpg', 'Opioid Crisis Awareness', 'Understanding the opioid epidemic, prescription drug misuse, and solutions', 1, 'active', '16+', GETDATE(), 10),
-('https://example.com/prescription-safety.jpg', 'Prescription Opioid Safety', 'Safe use, storage, and disposal of prescription opioid medications', 1, 'active', 'All Ages', GETDATE(), 10),
+('https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', 'Opioid Crisis Awareness', 'Understanding the opioid epidemic, prescription drug misuse, and solutions', 1, 'active', '16+', GETDATE(), 10),
+('https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', 'Prescription Opioid Safety', 'Safe use, storage, and disposal of prescription opioid medications', 1, 'active', 'All Ages', GETDATE(), 10),
 
 -- Prevention Programs
-('https://example.com/youth-prevention.jpg', 'Youth Drug Prevention Program', 'Evidence-based prevention strategies for teenagers and young adults', 1, 'active', '13-18', GETDATE(), 11),
-('https://example.com/community-prevention.jpg', 'Community Prevention Initiative', 'Building community resilience and prevention capacity', 1, 'active', 'All Ages', GETDATE(), 11),
+('https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', 'Youth Drug Prevention Program', 'Evidence-based prevention strategies for teenagers and young adults', 1, 'active', '13-18', GETDATE(), 11),
+('https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', 'Community Prevention Initiative', 'Building community resilience and prevention capacity', 1, 'active', 'All Ages', GETDATE(), 11),
 
 -- Psychedelic Programs
-('https://example.com/psychedelics-education.jpg', 'Psychedelic Substances Education', 'Educational content about psychedelics, dissociatives, and their effects', 1, 'active', '18+', GETDATE(), 12),
+('https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', 'Psychedelic Substances Education', 'Educational content about psychedelics, dissociatives, and their effects', 1, 'active', '18+', GETDATE(), 12),
 
 -- Psilocybin Programs
-('https://example.com/psilocybin-safety.jpg', 'Psilocybin Safety and Effects', 'Information about magic mushrooms, effects, and safety considerations', 1, 'active', '18+', GETDATE(), 13),
+('https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', 'Psilocybin Safety and Effects', 'Information about magic mushrooms, effects, and safety considerations', 1, 'active', '18+', GETDATE(), 13),
 
 -- Stigma Programs
-('https://example.com/stigma-reduction.jpg', 'Reducing Addiction Stigma', 'Addressing stigma, promoting understanding, and reducing discrimination', 1, 'active', 'All Ages', GETDATE(), 14),
-('https://example.com/language-matters.jpg', 'Language Matters in Addiction', 'Using person-first language and reducing stigmatizing terminology', 1, 'active', '16+', GETDATE(), 14),
+('https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', 'Reducing Addiction Stigma', 'Addressing stigma, promoting understanding, and reducing discrimination', 1, 'active', 'All Ages', GETDATE(), 14),
+('https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', 'Language Matters in Addiction', 'Using person-first language and reducing stigmatizing terminology', 1, 'active', '16+', GETDATE(), 14),
 
 -- Syringe Services Programs
-('https://example.com/syringe-services.jpg', 'Syringe Services Program Overview', 'Understanding needle exchange programs and harm reduction services', 1, 'active', '18+', GETDATE(), 15),
+('https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', 'Syringe Services Program Overview', 'Understanding needle exchange programs and harm reduction services', 1, 'active', '18+', GETDATE(), 15),
 
 -- Tobacco/Vaping Programs
-('https://example.com/tobacco-cessation.jpg', 'Tobacco Cessation Program', 'Comprehensive smoking cessation support and nicotine replacement therapy', 1, 'active', '16+', GETDATE(), 16),
-('https://example.com/vaping-risks.jpg', 'Vaping and E-cigarette Risks', 'Understanding the health risks of vaping and e-cigarette use', 1, 'active', '13+', GETDATE(), 16),
+('https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', 'Tobacco Cessation Program', 'Comprehensive smoking cessation support and nicotine replacement therapy', 1, 'active', '16+', GETDATE(), 16),
+('https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', 'Vaping and E-cigarette Risks', 'Understanding the health risks of vaping and e-cigarette use', 1, 'active', '13+', GETDATE(), 16),
 
 -- Treatment Programs
-('https://example.com/addiction-treatment.jpg', 'Comprehensive Addiction Treatment', 'Overview of treatment options, recovery programs, and support services', 1, 'active', '18+', GETDATE(), 17),
-('https://example.com/recovery-support.jpg', 'Recovery Support Services', 'Peer support, counseling, and long-term recovery maintenance', 1, 'active', '18+', GETDATE(), 17),
+('https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', 'Comprehensive Addiction Treatment', 'Overview of treatment options, recovery programs, and support services', 1, 'active', '18+', GETDATE(), 17),
+('https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', 'Recovery Support Services', 'Peer support, counseling, and long-term recovery maintenance', 1, 'active', '18+', GETDATE(), 17),
 
 -- Community Event Programs
-('/uploads/program-images/default-community.png', 'Community Prevention Fair', 'Interactive community event featuring prevention education booths, resource sharing, and family-friendly activities to build awareness and support networks', 1, 'active', 'All Ages', GETDATE(), 18),
-('/uploads/program-images/default-community.png', 'Recovery Walk & Support Rally', 'Community walking event to show solidarity with those in recovery, reduce stigma, and connect families with local support resources', 1, 'active', 'All Ages', GETDATE(), 18);
+('https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', 'Community Prevention Fair', 'Interactive community event featuring prevention education booths, resource sharing, and family-friendly activities to build awareness and support networks', 1, 'active', 'All Ages', GETDATE(), 18),
+('https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', 'Recovery Walk & Support Rally', 'Community walking event to show solidarity with those in recovery, reduce stigma, and connect families with local support resources', 1, 'active', 'All Ages', GETDATE(), 18);
 
 -- Insert User Enrollments with JSON progress tracking
 INSERT INTO Enroll (user_id, program_id, start_at, progress) VALUES

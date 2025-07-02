@@ -52,7 +52,7 @@ CREATE TABLE Consultant_Slot (
   slot_id INT NOT NULL,
   day_of_week NVARCHAR(20) NOT NULL,
   PRIMARY KEY (consultant_id, slot_id, day_of_week),
-  FOREIGN KEY (consultant_id) REFERENCES Consultant(id_consultant),
+  FOREIGN KEY (consultant_id) REFERENCES Consultant(id_consultant) ON DELETE CASCADE,
   FOREIGN KEY (slot_id) REFERENCES Slot(slot_id)
 );
 
@@ -67,7 +67,7 @@ CREATE TABLE Booking_Session (
   notes NVARCHAR(MAX),
   google_meet_link NVARCHAR(MAX),
   
-  FOREIGN KEY (consultant_id) REFERENCES Consultant(id_consultant),
+  FOREIGN KEY (consultant_id) REFERENCES Consultant(id_consultant) ON DELETE CASCADE,
   FOREIGN KEY (member_id) REFERENCES Users(user_id),
   FOREIGN KEY (slot_id) REFERENCES Slot(slot_id)
 );
@@ -101,7 +101,7 @@ CREATE TABLE Flags (
   flagged_by INT,
   reason NVARCHAR(255),
   created_at DATETIME,
-  FOREIGN KEY (blog_id) REFERENCES Blogs(blog_id),
+  FOREIGN KEY (blog_id) REFERENCES Blogs(blog_id) ON DELETE CASCADE,
   FOREIGN KEY (flagged_by) REFERENCES Users(user_id)
 );
 
@@ -148,7 +148,7 @@ CREATE TABLE Programs (
   create_at DATETIME,
   category_id INT,
   FOREIGN KEY (create_by) REFERENCES Users(user_id),
-  FOREIGN KEY (category_id) REFERENCES Category(category_id)
+  FOREIGN KEY (category_id) REFERENCES Category(category_id) ON DELETE CASCADE
 );
 
 CREATE TABLE Content (
@@ -160,7 +160,7 @@ CREATE TABLE Content (
     content_file_link NVARCHAR(MAX),
     content_type NVARCHAR(50),
     content_metadata_json NVARCHAR(MAX),
-    FOREIGN KEY (program_id) REFERENCES Programs(program_id)
+    FOREIGN KEY (program_id) REFERENCES Programs(program_id) ON DELETE CASCADE
 );
 
 
@@ -173,7 +173,7 @@ CREATE TABLE Enroll (
   progress NVARCHAR(MAX), -- JSON array of {content_id, complete} objects
   PRIMARY KEY (user_id, program_id),
   FOREIGN KEY (user_id) REFERENCES Users(user_id),
-  FOREIGN KEY (program_id) REFERENCES Programs(program_id)
+  FOREIGN KEY (program_id) REFERENCES Programs(program_id) ON DELETE CASCADE
 );
 
 -- SURVEYS
@@ -182,7 +182,7 @@ CREATE TABLE Surveys (
   program_id INT,
   type NVARCHAR(50),
   questions_json NVARCHAR(MAX),
-  FOREIGN KEY (program_id) REFERENCES Programs(program_id)
+  FOREIGN KEY (program_id) REFERENCES Programs(program_id) ON DELETE CASCADE
 );
 
 -- SURVEY RESPONSES
@@ -192,7 +192,7 @@ CREATE TABLE Survey_Responses (
   user_id INT,
   answer_json NVARCHAR(MAX),
   submitted_at DATETIME,
-  FOREIGN KEY (survey_id) REFERENCES Surveys(survey_id),
+  FOREIGN KEY (survey_id) REFERENCES Surveys(survey_id) ON DELETE CASCADE,
   FOREIGN KEY (user_id) REFERENCES Users(user_id)
 );
 
