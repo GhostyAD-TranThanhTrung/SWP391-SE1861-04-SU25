@@ -24,6 +24,7 @@ const StaffListPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const token = sessionStorage.getItem("token");
+  const isAdminEditing = editingStaffId && editStaffData?.role === 'admin';
 
   const fetchStaffs = async () => {
     try {
@@ -115,7 +116,7 @@ const StaffListPage = () => {
         job: staff.profile?.job || "",
       };
       setEditStaffData(flatData);
-      setEditingStaffId(String(staffId));
+      setEditingStaffId(staffId);
       setNewPassword(""); 
       setShowPopup(true);
     }
@@ -249,9 +250,11 @@ const StaffListPage = () => {
                   <button className="btn btn-light me-2" onClick={() => handleEdit(staff.user_id)}>
                     <FaEdit color="yellow" />
                   </button>
-                  <button className="btn btn-light" onClick={() => handleOpenDeleteDialog(staff.user_id)}>
-                    <FaTrash color="red" />
-                  </button>
+                  {staff.role !== 'admin' && (
+                    <button className="btn btn-light" onClick={() => handleOpenDeleteDialog(staff.user_id)}>
+                      <FaTrash color="red" />
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
@@ -273,6 +276,7 @@ const StaffListPage = () => {
                   value={editingStaffId ? editStaffData?.email || "" : newStaff.email}
                   onChange={editingStaffId ? handleEditChange : handleChange}
                   required
+                  disabled={isAdminEditing}
                 />
                 <input
                   type="password"
@@ -281,16 +285,19 @@ const StaffListPage = () => {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   required={!editingStaffId}
+                  disabled={isAdminEditing}
                 />
                 <select
                   name="role"
                   value={editingStaffId ? editStaffData?.role || "" : newStaff.role}
                   onChange={editingStaffId ? handleEditChange : handleChange}
                   required
+                  disabled={isAdminEditing}
                 >
                   <option value="">Chọn vai trò</option>
-                  <option value="admin">Admin</option>
-                  <option value="consultant">Tư vấn viên</option>
+                  {editingStaffId && editStaffData?.role === 'admin' && <option value="admin">Admin</option>}
+                  <option value="staff">Nhân viên</option>
+                  <option value="manager">Quản lý</option>
                 </select>
                 {editingStaffId && (
                   <select
@@ -298,6 +305,7 @@ const StaffListPage = () => {
                     value={editStaffData?.status || ""}
                     onChange={handleEditChange}
                     required
+                    disabled={isAdminEditing}
                   >
                     <option value="">Chọn trạng thái</option>
                     <option value="active">Hoạt động</option>
@@ -312,6 +320,7 @@ const StaffListPage = () => {
                   value={editingStaffId ? editStaffData?.name || "" : newStaff.name}
                   onChange={editingStaffId ? handleEditChange : handleChange}
                   required
+                  disabled={isAdminEditing}
                 />
                 <input
                   type="text"
@@ -319,6 +328,7 @@ const StaffListPage = () => {
                   placeholder="Tiểu sử"
                   value={editingStaffId ? editStaffData?.bio || "" : newStaff.bio}
                   onChange={editingStaffId ? handleEditChange : handleChange}
+                  disabled={isAdminEditing}
                 />
                 <input
                   type="text"
@@ -326,12 +336,14 @@ const StaffListPage = () => {
                   placeholder="Học vấn"
                   value={editingStaffId ? editStaffData?.education || "" : newStaff.education}
                   onChange={editingStaffId ? handleEditChange : handleChange}
+                  disabled={isAdminEditing}
                 />
                 <input
                   type="date"
                   name="date_of_birth"
                   value={editingStaffId ? editStaffData?.date_of_birth || "" : newStaff.date_of_birth}
                   onChange={editingStaffId ? handleEditChange : handleChange}
+                  disabled={isAdminEditing}
                 />
                 <input
                   type="text"
@@ -339,8 +351,9 @@ const StaffListPage = () => {
                   placeholder="Công việc"
                   value={editingStaffId ? editStaffData?.job || "" : newStaff.job}
                   onChange={editingStaffId ? handleEditChange : handleChange}
+                  disabled={isAdminEditing}
                 />
-                <button type="submit" className="form-button">
+                <button type="submit" className="form-button" disabled={isAdminEditing}>
                   {editingStaffId ? "Cập nhật" : "Tạo"}
                 </button>
               </form>

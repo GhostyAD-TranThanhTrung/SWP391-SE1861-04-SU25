@@ -10,7 +10,7 @@ const SidebarConsultant = ({ isOpen }) => {
 
   const handleLogout = (e) => {
     e.preventDefault();
-    localStorage.removeItem("emailconsultant");
+    localStorage.removeItem("email2");
     sessionStorage.removeItem("token");
     navigate("/admin/login");
   };

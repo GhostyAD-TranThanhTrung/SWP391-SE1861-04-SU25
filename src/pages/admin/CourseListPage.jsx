@@ -3,7 +3,7 @@ import axios from "axios";
 import { FaSearch, FaPlus, FaEdit } from "react-icons/fa";
 import { FaTrash } from "react-icons/fa6";
 import { MdCancel } from "react-icons/md";
-import "../../styles/ScoreListPage.scss";
+import "../../styles/CourseListPage.scss";
 
 const CourseListPage = () => {
   //const [showPopup, setShowPopup] = useState(false);
@@ -191,10 +191,16 @@ const CourseListPage = () => {
   return (
     <div className="staff-list-container">
       <div className="top-bar d-flex justify-content-between align-items-center mb-3">
-        <button className="btn btn-primary">
-          <FaPlus style={{ marginRight: "5px", paddingBottom: "2px" }} /> Create
-          new staff
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button className="btn btn-primary">
+            <FaPlus style={{ marginRight: "5px", paddingBottom: "2px" }} /> Create
+            new staff
+          </button>
+          <button className="btn btn-primary">
+            <FaPlus style={{ paddingBottom: "2px" }} /> Create
+            new staff
+          </button>
+        </div>
         <div className="search-box">
           <input 
             type="text" 

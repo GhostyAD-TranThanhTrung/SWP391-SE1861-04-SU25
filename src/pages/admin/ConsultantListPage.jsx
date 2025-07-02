@@ -25,6 +25,8 @@ const ConsultantListPage = () => {
   const [newPassword, setNewPassword] = useState('');
   const [editingConsultantId, setEditingConsultantId] = useState(null);
   const [editConsultantData, setEditConsultantData] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [consultantIdToDelete, setConsultantIdToDelete] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const token = sessionStorage.getItem("token");
 
@@ -41,15 +43,15 @@ const ConsultantListPage = () => {
     setNewConsultant({
       email: "",
       password: "",
-      role: "",
-      cost: 0,
-      certification: "",
-      speciality: "",
+      role: "consultant",
       name: "",
       bio: "",
       education: "",
       date_of_birth: "",
       job: "",
+      cost: 0,
+      certification: "",
+      speciality: ""
     });
   };
 
@@ -129,6 +131,96 @@ const ConsultantListPage = () => {
     }
   };
 
+  const handleOpenDeleteDialog = (consultantId) => {
+    setConsultantIdToDelete(consultantId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleCloseDeleteDialog = () => {
+    setDeleteDialogOpen(false);
+    setConsultantIdToDelete(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!consultantIdToDelete) return;
+    try {
+      const res = await axios.delete(
+        `http://localhost:3000/api/consultants/${consultantIdToDelete}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (res.data.success) {
+        fetchConsultants();
+      }
+    } catch (err) {
+      console.error("Lỗi khi xóa consultant:", err);
+    }
+    handleCloseDeleteDialog();
+  };
+
+  // Fetch consultant by ID and open edit popup
+  const handleEdit = async (consultantId) => {
+    try {
+      const res = await axios.get(`http://localhost:3000/api/consultants/${consultantId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data.success) {
+        const consultant = res.data.data;
+        let bio = "";
+        let education = "";
+        if (consultant && consultant.bio_json) {
+          try {
+            let bioObj = typeof consultant.bio_json === "string"
+              ? JSON.parse(consultant.bio_json)
+              : consultant.bio_json;
+            bio = bioObj?.bio || "";
+            education = bioObj?.education || "";
+          } catch {
+            bio = "";
+            education = "";
+          }
+        }
+        setEditConsultantData({
+          ...consultant,
+          bio,
+          education,
+        });
+        setEditingConsultantId(consultantId);
+        setShowPopup(true);
+      }
+    } catch (err) {
+      console.error("Lỗi khi lấy thông tin consultant:", err);
+    }
+  };
+
+  // Update consultant info
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    if (!editingConsultantId) return;
+    try {
+      const payload = {
+        ...editConsultantData,
+        bio_json: {
+          bio: editConsultantData.bio,
+          education: editConsultantData.education,
+        },
+      };
+      delete payload.bio;
+      delete payload.education;
+
+      console.log("ID cần update:", editingConsultantId);
+      console.log("Payload gửi:", payload);
+
+      const res = await axios.put(`http://localhost:3000/api/consultants/${editingConsultantId}`, payload, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data.success) {
+        fetchConsultants();
+        handleClosePopup();
+      }
+    } catch (err) {
+      console.error("Lỗi khi cập nhật consultant:", err);
+    }
+  };
 
   return (
     <div className="consultant-list-container">
@@ -174,10 +266,10 @@ const ConsultantListPage = () => {
                 <td>{new Date(consultant.date_create).toLocaleDateString()}</td>
                 <td className="action-buttons">
                   <button className="btn btn-light me-2">
-                    <FaEdit color="yellow" />
+                    <FaEdit color="yellow" onClick={() => handleEdit(consultant.id_consultant)}/>
                   </button>
                   <button className="btn btn-light">
-                    <FaTrash color="red" />
+                    <FaTrash color="red" onClick={() => handleOpenDeleteDialog(consultant.id_consultant)} />
                   </button>
                 </td>
               </tr>
@@ -192,12 +284,12 @@ const ConsultantListPage = () => {
             <span className="close" onClick={handleClosePopup}><MdCancel /></span>
             <div className="form">
               <h2>{editingConsultantId ? "Chỉnh sửa Tư vấn viên" : "Tạo mới Tư vấn viên"}</h2>
-              <form className="form-grid" onSubmit={editingConsultantId ? () => {} : handleSubmit}>
+              <form className="form-grid" onSubmit={editingConsultantId ? handleUpdate : handleSubmit}>
                 <input
                   type="text"
                   name="name"
                   placeholder="Họ và tên"
-                  value={editingConsultantId ? editConsultantData?.name || "" : newConsultant.name}
+                  value={editingConsultantId ? editConsultantData?.name ?? '' : newConsultant.name}
                   onChange={editingConsultantId ? handleEditChange : handleChange}
                   required
                 />
@@ -205,7 +297,7 @@ const ConsultantListPage = () => {
                   type="email"
                   name="email"
                   placeholder="Email"
-                  value={editingConsultantId ? editConsultantData?.email || "" : newConsultant.email}
+                  value={editingConsultantId ? editConsultantData?.email ?? '' : newConsultant.email}
                   onChange={editingConsultantId ? handleEditChange : handleChange}
                   required
                 />
@@ -213,23 +305,22 @@ const ConsultantListPage = () => {
                   type="password"
                   name="password"
                   placeholder="Mật khẩu"
-                  value={newPassword}
+                  value={editingConsultantId ? '' : newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   required={!editingConsultantId}
                 />
-                <select
+                <input
+                  type="text"
                   name="role"
-                  value={editingConsultantId ? editConsultantData?.role || "" : newConsultant.role}
-                  onChange={editingConsultantId ? handleEditChange : handleChange}
-                  required
-                >
-                  <option value="">Chọn vai trò</option>
-                  <option value="consultant">Consultant</option>
-                </select>
+                  value="Consultant"
+                  disabled
+                  readOnly
+                />
+                <input type="hidden" name="role" value="consultant" />
                 {editingConsultantId && (
                   <select
                     name="status"
-                    value={editConsultantData?.status || ""}
+                    value={editConsultantData?.status ?? ''}
                     onChange={handleEditChange}
                     required
                   >
@@ -239,12 +330,13 @@ const ConsultantListPage = () => {
                     <option value="banned">Banned</option>
                   </select>
                 )}
-                 <input
+                <input
                   type="number"
                   name="cost"
-                  step="1000"
+                  step="10"
+                  min="100"
                   placeholder="Chi phí (VND)"
-                  value={editingConsultantId ? editConsultantData?.cost || "" : newConsultant.cost}
+                  value={editingConsultantId ? editConsultantData?.cost ?? '' : newConsultant.cost}
                   onChange={editingConsultantId ? handleEditChange : handleChange}
                   required
                 />
@@ -252,42 +344,42 @@ const ConsultantListPage = () => {
                   type="text"
                   name="certification"
                   placeholder="Chứng chỉ"
-                  value={editingConsultantId ? editConsultantData?.certification || "" : newConsultant.certification}
+                  value={editingConsultantId ? editConsultantData?.certification ?? '' : newConsultant.certification}
                   onChange={editingConsultantId ? handleEditChange : handleChange}
                 />
                 <input
                   type="text"
                   name="speciality"
                   placeholder="Chuyên môn"
-                  value={editingConsultantId ? editConsultantData?.speciality || "" : newConsultant.speciality}
+                  value={editingConsultantId ? editConsultantData?.speciality ?? '' : newConsultant.speciality}
                   onChange={editingConsultantId ? handleEditChange : handleChange}
                 />
                 <input
                   type="date"
                   name="date_of_birth"
                   placeholder="Ngày sinh"
-                  value={editingConsultantId ? editConsultantData?.date_of_birth || "" : newConsultant.date_of_birth}
+                  value={editingConsultantId ? editConsultantData?.date_of_birth ?? '' : newConsultant.date_of_birth}
                   onChange={editingConsultantId ? handleEditChange : handleChange}
                 />
                 <input
                   type="text"
                   name="job"
                   placeholder="Nghề nghiệp"
-                  value={editingConsultantId ? editConsultantData?.job || "" : newConsultant.job}
+                  value={editingConsultantId ? editConsultantData?.job ?? '' : newConsultant.job}
                   onChange={editingConsultantId ? handleEditChange : handleChange}
                 />
                 <input
                   name="bio"
                   placeholder="Tiểu sử"
                   className="form-grid-col-span-2"
-                  value={editingConsultantId ? editConsultantData?.bio || "" : newConsultant.bio}
+                  value={editingConsultantId ? editConsultantData?.bio ?? '' : newConsultant.bio}
                   onChange={editingConsultantId ? handleEditChange : handleChange}
                 />
                 <input
                   name="education"
                   placeholder="Học vấn"
                   className="form-grid-col-span-2"
-                  value={editingConsultantId ? editConsultantData?.education || "" : newConsultant.education}
+                  value={editingConsultantId ? editConsultantData?.education ?? '' : newConsultant.education}
                   onChange={editingConsultantId ? handleEditChange : handleChange}
                 />
                 <button type="submit" className="form-button form-grid-col-span-2">
@@ -299,7 +391,7 @@ const ConsultantListPage = () => {
         </div>
       )}
 
-      {/* {deleteDialogOpen && (
+      {deleteDialogOpen && (
         <div className="modal fade show" style={{ display: 'block', background: 'rgba(0,0,0,0.3)' }} tabIndex="-1" role="dialog">
           <div className="modal-dialog modal-dialog-centered" role="document">
             <div className="modal-content position-relative">
@@ -322,7 +414,7 @@ const ConsultantListPage = () => {
             </div>
           </div>
         </div>
-      )}  */}
+      )} 
     </div>
   );
 };

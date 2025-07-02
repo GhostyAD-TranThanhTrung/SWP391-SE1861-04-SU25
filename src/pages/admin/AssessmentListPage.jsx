@@ -3,11 +3,11 @@ import axios from "axios";
 import { FaSearch, FaPlus, FaEdit } from "react-icons/fa";
 import { FaEye, FaTrash } from "react-icons/fa6";
 import { MdCancel } from "react-icons/md";
-import "../../styles/ScoreListPage.scss";
+import "../../styles/AssessmentListPage.scss";
 
 const AssessmentListPage = () => {
   const [assessments, setAssessments] = useState([]);
-  //const token = sessionStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
   
   //const [showPopup, setShowPopup] = useState(false);
 
@@ -24,7 +24,8 @@ const AssessmentListPage = () => {
 
   const fetchAssessments = async () => {
     try {
-      const res = await axios.get("http://localhost:3000/api/assessments");
+      const res = await axios.get("http://localhost:3000/api/assessments",
+        { headers: { Authorization: `Bearer ${token}` } });
       if (res.data.success) {
         setAssessments(res.data.data);
       }

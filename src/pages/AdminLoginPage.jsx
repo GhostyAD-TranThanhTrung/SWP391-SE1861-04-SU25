@@ -24,21 +24,17 @@ const AdminLoginPage = () => {
             console.log('Phản hồi từ API (status):', response.status);
             console.log('Dữ liệu trả về từ API:', response.data);
 
-            if (response.data.user.role === 'admin') {
-                console.log('Đăng nhập thành công, email:', email);
+            console.log('Đăng nhập thành công, email:', email);
                 emailRef.current.value = '';
                 passwordRef.current.value = '';                
                 localStorage.setItem("email2", email);
                 sessionStorage.setItem("token", response.data.token);
+
+            if (response.data.user.role === 'admin') {
                 navigate('/dashboard');
             } 
 
             else if (response.data.user.role === 'consultant') {
-                console.log('Đăng nhập thành công, email:', email);
-                emailRef.current.value = '';
-                passwordRef.current.value = '';                
-                localStorage.setItem("emailconsultant", email);
-                sessionStorage.setItem("token", response.data.token);
                 navigate('/manage-booking');
             } 
             
