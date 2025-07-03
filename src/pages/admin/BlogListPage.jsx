@@ -2,10 +2,8 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { FaSearch, FaPlus, FaEdit, FaEye, FaFlag } from "react-icons/fa";
 import { FaTrash } from "react-icons/fa6";
-import { MdCancel, MdVisibility, MdVisibilityOff } from "react-icons/md";
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
-import "../../styles/StaffListPage.scss";
+import { MdCancel, MdApproval, MdBlock } from "react-icons/md";
+
 
 const BlogListPage = () => {
   const [showPopup, setShowPopup] = useState(false);
@@ -13,99 +11,57 @@ const BlogListPage = () => {
   const [newBlog, setNewBlog] = useState({
     title: "",
     body: "",
-    status: "published"
+    status: "draft",
+    img_link: "",
   });
   const [editingBlogId, setEditingBlogId] = useState(null);
   const [editBlogData, setEditBlogData] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [blogIdToDelete, setBlogIdToDelete] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [viewBlogModal, setViewBlogModal] = useState(false);
-  const [selectedBlog, setSelectedBlog] = useState(null);
-  const [flagDetailsModal, setFlagDetailsModal] = useState(false);
-  const [selectedBlogFlags, setSelectedBlogFlags] = useState([]);
+  const [viewMode, setViewMode] = useState('all'); // 'all', 'pending', 'published', 'draft'
   const token = sessionStorage.getItem("token");
-
-  // React Quill modules configuration
-  const modules = {
-    toolbar: [
-      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-      ['bold', 'italic', 'underline', 'strike'],
-      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-      [{ 'indent': '-1' }, { 'indent': '+1' }],
-      [{ 'color': [] }, { 'background': [] }],
-      ['link'],
-      ['clean']
-    ],
-  };
-
-  const formats = [
-    'header', 'bold', 'italic', 'underline', 'strike',
-    'list', 'bullet', 'indent', 'color', 'background', 'link'
-  ];
 
   const fetchBlogs = async () => {
     try {
-      setLoading(true);
-      const res = await axios.get("http://localhost:3000/api/blogs/admin", {
-        headers: { Authorization: `Bearer ${token}` }
+      let endpoint = "http://localhost:3000/api/admin/blogs";
+
+      // Choose endpoint based on view mode
+      switch (viewMode) {
+        case 'pending':
+          endpoint = "http://localhost:3000/api/blogs/pending";
+          break;
+        case 'my':
+          endpoint = "http://localhost:3000/api/blogs/my";
+          break;
+        case 'draft':
+          endpoint = "http://localhost:3000/api/blogs/draft";
+          break;
+        case 'published':
+          endpoint = "http://localhost:3000/api/blogs/published";
+          break;
+        default:
+          endpoint = "http://localhost:3000/api/admin/blogs";
+      }
+
+      const res = await axios.get(endpoint, {
+        headers: viewMode !== 'all' ? { Authorization: `Bearer ${token}` } : {}
       });
+
       if (res.data.success) {
         setBlogs(res.data.data);
       }
     } catch (err) {
-      console.error("Lỗi khi gọi API blogs:", err);
-      // Fallback to regular blogs endpoint if admin endpoint doesn't exist
-      try {
-        const res = await axios.get("http://localhost:3000/api/blogs", {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (res.data.success) {
-          setBlogs(res.data.data);
-        }
-      } catch (fallbackErr) {
-        console.error("Lỗi khi gọi API blogs fallback:", fallbackErr);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchBlogFlags = async (blogId) => {
-    try {
-      const res = await axios.get(`http://localhost:3000/api/flags/blog/${blogId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (res.data.success) {
-        setSelectedBlogFlags(res.data.data);
-        setFlagDetailsModal(true);
-      }
-    } catch (err) {
-      console.error("Lỗi khi lấy flags:", err);
-      alert("Không thể tải thông tin flags");
+      console.error("Lỗi khi gọi API:", err);
     }
   };
 
   useEffect(() => {
     fetchBlogs();
-  }, []);
+  }, [viewMode]);
 
   const handleOpenPopup = () => {
     setShowPopup(true);
-    setEditingBlogId(null);
-    setEditBlogData(null);
-    setNewBlog({
-      title: "",
-      body: "",
-      status: "published"
-    });
-    setSelectedImage(null);
-    setImagePreview(null);
   };
 
   const handleClosePopup = () => {
@@ -115,10 +71,9 @@ const BlogListPage = () => {
     setNewBlog({
       title: "",
       body: "",
-      status: "published"
+      status: "draft",
+      img_link: "",
     });
-    setSelectedImage(null);
-    setImagePreview(null);
   };
 
   const handleChange = (e) => {
@@ -129,85 +84,41 @@ const BlogListPage = () => {
     setEditBlogData({ ...editBlogData, [e.target.name]: e.target.value });
   };
 
-  const handleEditorChange = (content) => {
-    if (editingBlogId) {
-      setEditBlogData({ ...editBlogData, body: content });
-    } else {
-      setNewBlog({ ...newBlog, body: content });
-    }
-  };
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (!file.type.startsWith('image/')) {
-        alert('Vui lòng chọn file hình ảnh!');
-        return;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        alert('Kích thước file không được vượt quá 5MB!');
-        return;
-      }
-      setSelectedImage(file);
-      const reader = new FileReader();
-      reader.onload = (e) => setImagePreview(e.target.result);
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const removeImage = () => {
-    setSelectedImage(null);
-    setImagePreview(null);
-    const fileInput = document.getElementById('image');
-    if (fileInput) fileInput.value = '';
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const payload = {
-        ...newStaff,
-        bio_json: {
-          bio: newStaff.bio,
-          education: newStaff.education,
-        },
-        password: newPassword,
+        ...newBlog,
+        created_at: new Date().toISOString(),
       };
-      delete payload.bio;
-      delete payload.education;
 
       console.log("Payload gửi:", payload);
 
-
-      const res = await axios.post("http://localhost:3000/api/staff", payload, {
+      const res = await axios.post("http://localhost:3000/api/blogs", payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
       if (res.data.success) {
-        fetchStaffs();
+        fetchBlogs();
         handleClosePopup();
+        alert("Tạo blog thành công!");
       }
     } catch (err) {
-      console.error("Lỗi khi thêm staff:", err);
+      console.error("Lỗi khi thêm blog:", err);
+      alert("Có lỗi xảy ra khi tạo blog");
     }
   };
 
-  const handleEdit = (staffId) => {
-    const staff = staffs.find((s) => s.user_id === staffId);
-    if (staff) {
-      const flatData = {
-        email: staff.email,
-        role: staff.role,
-        status: staff.status,
-        name: staff.profile?.name || "",
-        bio: staff.profile?.bio_json?.bio || "",
-        education: staff.profile?.bio_json?.education || "",
-        date_of_birth: staff.profile?.date_of_birth?.slice(0, 10) || "",
-        job: staff.profile?.job || "",
-      };
-      setEditStaffData(flatData);
-      setEditingStaffId(String(staffId));
-      setNewPassword("");
+  const handleEdit = (blogId) => {
+    const blog = blogs.find((b) => b.blog_id === blogId);
+    if (blog) {
+      setEditBlogData({
+        title: blog.title || "",
+        body: blog.body || "",
+        status: blog.status || "draft",
+        img_link: blog.img_link || "",
+      });
+      setEditingBlogId(String(blogId));
       setShowPopup(true);
     }
   };
@@ -216,61 +127,75 @@ const BlogListPage = () => {
     e.preventDefault();
     try {
       const payload = {
-        ...editStaffData,
-        bio_json: {
-          bio: editStaffData.bio,
-          education: editStaffData.education,
-        },
+        ...editBlogData,
       };
-      delete payload.bio;
-      delete payload.education;
-
-
-      if (newPassword.trim() !== "") {
-        payload.password = newPassword;
-      }
 
       console.log("Payload gửi:", payload);
-      console.log("Editing Staff ID:", editingStaffId);
+      console.log("Editing Blog ID:", editingBlogId);
 
       const res = await axios.put(
-        `http://localhost:3000/api/staff/${editingStaffId}`,
+        `http://localhost:3000/api/blogs/${editingBlogId}`,
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
       if (res.data.success) {
-        fetchStaffs();
+        fetchBlogs();
         handleClosePopup();
+        alert("Cập nhật blog thành công!");
       }
     } catch (err) {
-      console.error("Lỗi khi cập nhật staff:", err);
+      console.error("Lỗi khi cập nhật blog:", err);
+      alert("Có lỗi xảy ra khi cập nhật blog");
     }
   };
 
-  const handleOpenDeleteDialog = (staffId) => {
-    setStaffIdToDelete(staffId);
+  const handleOpenDeleteDialog = (blogId) => {
+    setBlogIdToDelete(blogId);
     setDeleteDialogOpen(true);
   };
 
   const handleCloseDeleteDialog = () => {
     setDeleteDialogOpen(false);
-    setStaffIdToDelete(null);
+    setBlogIdToDelete(null);
   };
 
   const handleConfirmDelete = async () => {
-    if (!staffIdToDelete) return;
+    if (!blogIdToDelete) return;
     try {
       const res = await axios.delete(
-        `http://localhost:3000/api/staff/${staffIdToDelete}`,
+        `http://localhost:3000/api/blogs/${blogIdToDelete}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (res.data.success) {
-        fetchStaffs();
+        fetchBlogs();
+        alert("Xóa blog thành công!");
       }
     } catch (err) {
-      console.error("Lỗi khi xóa staff:", err);
+      console.error("Lỗi khi xóa blog:", err);
+      alert("Có lỗi xảy ra khi xóa blog");
     }
     handleCloseDeleteDialog();
+  };
+
+  const handleStatusChange = async (blogId, newStatus) => {
+    try {
+      const endpoint = newStatus === 'published'
+        ? `http://localhost:3000/api/blogs/${blogId}/approve`
+        : `http://localhost:3000/api/blogs/${blogId}/reject`;
+
+      const res = await axios.patch(endpoint, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (res.data.success) {
+        fetchBlogs();
+        alert(`Blog đã được ${newStatus === 'published' ? 'phê duyệt' : 'từ chối'}!`);
+      }
+    } catch (err) {
+      console.error("Lỗi khi thay đổi trạng thái blog:", err);
+      alert("Có lỗi xảy ra khi thay đổi trạng thái blog");
+    }
   };
 
   const handleSearch = (e) => {
@@ -279,32 +204,77 @@ const BlogListPage = () => {
 
   const handleSearchClick = async () => {
     if (searchTerm.trim() === "") {
-      fetchStaffs();
+      fetchBlogs();
       return;
     }
     try {
       const res = await axios.get(
-        `http://localhost:3000/api/staff/${searchTerm}`,
+        `http://localhost:3000/api/blogs/${searchTerm}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (res.data.success) {
-        setStaffs(res.data.data);
+        setBlogs([res.data.data]);
       }
     } catch (err) {
-      console.error("Lỗi khi tìm kiếm staff:", err);
+      console.error("Lỗi khi tìm kiếm blog:", err);
+      // If single blog search fails, try to filter current blogs
+      const filtered = blogs.filter(blog =>
+        blog.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        blog.body?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setBlogs(filtered);
     }
   };
 
+  const getStatusBadge = (status) => {
+    const statusColors = {
+      'published': 'success',
+      'draft': 'secondary',
+      'pending': 'warning',
+      'rejected': 'danger'
+    };
+    return statusColors[status] || 'secondary';
+  };
+
+  const truncateText = (text, maxLength = 100) => {
+    if (!text) return '';
+    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+  };
+
   return (
-    <div className="staff-list-container">
+    <div className="blog-list-container">
       <div className="top-bar d-flex justify-content-between align-items-center mb-3">
-        <button className="btn btn-primary" onClick={handleOpenPopup}>
-          <FaPlus style={{ marginRight: "5px" }} /> Tạo nhân viên mới
-        </button>
+        <div className="d-flex align-items-center gap-3">
+          <button className="btn btn-primary" onClick={handleOpenPopup}>
+            <FaPlus style={{ marginRight: "5px" }} /> Tạo blog mới
+          </button>
+
+          <div className="view-mode-buttons">
+            <button
+              className={`btn btn-sm ${viewMode === 'all' ? 'btn-primary' : 'btn-outline-primary'}`}
+              onClick={() => setViewMode('all')}
+            >
+              Tất cả
+            </button>
+            <button
+              className={`btn btn-sm ${viewMode === 'pending' ? 'btn-warning' : 'btn-outline-warning'}`}
+              onClick={() => setViewMode('pending')}
+            >
+              Chờ duyệt
+            </button>
+            <button
+              className={`btn btn-sm ${viewMode === 'my' ? 'btn-info' : 'btn-outline-info'}`}
+              onClick={() => setViewMode('my')}
+            >
+              Blog của tôi
+            </button>
+          </div>
+        </div>
+
         <div className="search-box">
           <input
             type="text"
-            placeholder="Tìm kiếm..."
+            placeholder="Tìm kiếm blog..."
             value={searchTerm}
             onChange={handleSearch}
           />
@@ -319,28 +289,91 @@ const BlogListPage = () => {
           <thead>
             <tr>
               <th>#</th>
-              <th>Tên</th>
-              <th>Email</th>
-              <th>Vai trò</th>
+              <th>Tiêu đề</th>
+              <th>Nội dung</th>
               <th>Trạng thái</th>
+              <th>Tác giả</th>
               <th>Ngày tạo</th>
+              <th>Hình ảnh</th>
               <th>Thao tác</th>
             </tr>
           </thead>
           <tbody>
-            {staffs.map((staff, index) => (
-              <tr key={staff.user_id}>
+            {blogs.map((blog, index) => (
+              <tr key={blog.blog_id}>
                 <td>{index + 1}</td>
-                <td>{staff.profile?.name}</td>
-                <td>{staff.email}</td>
-                <td>{staff.role}</td>
-                <td>{staff.status}</td>
-                <td>{new Date(staff.date_create).toLocaleDateString()}</td>
+                <td>
+                  <div style={{ maxWidth: '200px' }}>
+                    {truncateText(blog.title, 50)}
+                  </div>
+                </td>
+                <td>
+                  <div style={{ maxWidth: '300px' }}>
+                    {truncateText(blog.body, 100)}
+                  </div>
+                </td>
+                <td>
+                  <span className={`badge bg-${getStatusBadge(blog.status)}`}>
+                    {blog.status || 'draft'}
+                  </span>
+                </td>
+                <td>{blog.author?.name || blog.author_id}</td>
+                <td>{blog.created_at ? new Date(blog.created_at).toLocaleDateString() : 'N/A'}</td>
+                <td>
+                  {blog.img_link ? (
+                    <img
+                      src={blog.img_link}
+                      alt="Blog"
+                      style={{ width: '50px', height: '30px', objectFit: 'cover' }}
+                      onError={(e) => { e.target.style.display = 'none' }}
+                    />
+                  ) : 'Không có'}
+                </td>
                 <td className="action-buttons">
-                  <button className="btn btn-light me-2" onClick={() => handleEdit(staff.user_id)}>
-                    <FaEdit color="yellow" />
+                  <button
+                    className="btn btn-light btn-sm me-1"
+                    onClick={() => window.open(`/blog/${blog.blog_id}`, '_blank')}
+                    title="Xem blog"
+                  >
+                    <FaEye color="blue" />
                   </button>
-                  <button className="btn btn-light" onClick={() => handleOpenDeleteDialog(staff.user_id)}>
+                  <button
+                    className="btn btn-light btn-sm me-1"
+                    onClick={() => handleEdit(blog.blog_id)}
+                    title="Chỉnh sửa"
+                  >
+                    <FaEdit color="orange" />
+                  </button>
+                  {blog.status === 'pending' && (
+                    <>
+                      <button
+                        className="btn btn-light btn-sm me-1"
+                        onClick={() => handleStatusChange(blog.blog_id, 'published')}
+                        title="Phê duyệt"
+                      >
+                        <MdApproval color="green" />
+                      </button>
+                      <button
+                        className="btn btn-light btn-sm me-1"
+                        onClick={() => handleStatusChange(blog.blog_id, 'rejected')}
+                        title="Từ chối"
+                      >
+                        <MdBlock color="red" />
+                      </button>
+                    </>
+                  )}
+                  <button
+                    className="btn btn-light btn-sm me-1"
+                    onClick={() => window.open(`/admin/flags/blog/${blog.blog_id}`, '_blank')}
+                    title="Xem báo cáo"
+                  >
+                    <FaFlag color="purple" />
+                  </button>
+                  <button
+                    className="btn btn-light btn-sm"
+                    onClick={() => handleOpenDeleteDialog(blog.blog_id)}
+                    title="Xóa"
+                  >
                     <FaTrash color="red" />
                   </button>
                 </td>
@@ -348,6 +381,12 @@ const BlogListPage = () => {
             ))}
           </tbody>
         </table>
+
+        {blogs.length === 0 && (
+          <div className="text-center py-4">
+            <p>Không có blog nào để hiển thị.</p>
+          </div>
+        )}
       </div>
 
       {showPopup && (
@@ -355,84 +394,47 @@ const BlogListPage = () => {
           <div className="popup-content">
             <span className="close" onClick={handleClosePopup}><MdCancel /></span>
             <div className="form">
-              <h2>{editingStaffId ? "Chỉnh sửa nhân viên" : "Tạo nhân viên mới"}</h2>
-              <form className="form-grid" onSubmit={editingStaffId ? handleUpdateSubmit : handleSubmit}>
+              <h2>{editingBlogId ? "Chỉnh sửa blog" : "Tạo blog mới"}</h2>
+              <form className="form-grid" onSubmit={editingBlogId ? handleUpdateSubmit : handleSubmit}>
                 <input
                   type="text"
-                  name="email"
-                  placeholder="Email"
-                  value={editingStaffId ? editStaffData?.email || "" : newStaff.email}
-                  onChange={editingStaffId ? handleEditChange : handleChange}
+                  name="title"
+                  placeholder="Tiêu đề blog"
+                  value={editingBlogId ? editBlogData?.title || "" : newBlog.title}
+                  onChange={editingBlogId ? handleEditChange : handleChange}
                   required
+                  style={{ gridColumn: 'span 2' }}
+                />
+                <textarea
+                  name="body"
+                  placeholder="Nội dung blog"
+                  value={editingBlogId ? editBlogData?.body || "" : newBlog.body}
+                  onChange={editingBlogId ? handleEditChange : handleChange}
+                  required
+                  rows="6"
+                  style={{ gridColumn: 'span 2', resize: 'vertical' }}
                 />
                 <input
-                  type="password"
-                  name="password"
-                  placeholder="Mật khẩu"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  required={!editingStaffId}
+                  type="url"
+                  name="img_link"
+                  placeholder="Link hình ảnh (không bắt buộc)"
+                  value={editingBlogId ? editBlogData?.img_link || "" : newBlog.img_link}
+                  onChange={editingBlogId ? handleEditChange : handleChange}
+                  style={{ gridColumn: 'span 2' }}
                 />
                 <select
-                  name="role"
-                  value={editingStaffId ? editStaffData?.role || "" : newStaff.role}
-                  onChange={editingStaffId ? handleEditChange : handleChange}
+                  name="status"
+                  value={editingBlogId ? editBlogData?.status || "" : newBlog.status}
+                  onChange={editingBlogId ? handleEditChange : handleChange}
                   required
                 >
-                  <option value="">Chọn vai trò</option>
-                  <option value="admin">Admin</option>
-                  <option value="consultant">Tư vấn viên</option>
+                  <option value="draft">Bản nháp</option>
+                  <option value="pending">Chờ duyệt</option>
+                  <option value="published">Đã xuất bản</option>
+                  <option value="rejected">Bị từ chối</option>
                 </select>
-                {editingStaffId && (
-                  <select
-                    name="status"
-                    value={editStaffData?.status || ""}
-                    onChange={handleEditChange}
-                    required
-                  >
-                    <option value="">Chọn trạng thái</option>
-                    <option value="active">Hoạt động</option>
-                    <option value="inactive">Không hoạt động</option>
-                    <option value="banned">Bị cấm</option>
-                  </select>
-                )}
-                <input
-                  type="text"
-                  name="name"
-                  placeholder="Tên"
-                  value={editingStaffId ? editStaffData?.name || "" : newStaff.name}
-                  onChange={editingStaffId ? handleEditChange : handleChange}
-                  required
-                />
-                <input
-                  type="text"
-                  name="bio"
-                  placeholder="Tiểu sử"
-                  value={editingStaffId ? editStaffData?.bio || "" : newStaff.bio}
-                  onChange={editingStaffId ? handleEditChange : handleChange}
-                />
-                <input
-                  type="text"
-                  name="education"
-                  placeholder="Học vấn"
-                  value={editingStaffId ? editStaffData?.education || "" : newStaff.education}
-                  onChange={editingStaffId ? handleEditChange : handleChange}
-                />
-                <input
-                  type="date"
-                  name="date_of_birth"
-                  value={editingStaffId ? editStaffData?.date_of_birth || "" : newStaff.date_of_birth}
-                  onChange={editingStaffId ? handleEditChange : handleChange}
-                />
-                <input
-                  type="text"
-                  name="job"
-                  placeholder="Công việc"
-                  value={editingStaffId ? editStaffData?.job || "" : newStaff.job}
-                  onChange={editingStaffId ? handleEditChange : handleChange}
-                />
                 <button type="submit" className="form-button">
-                  {editingStaffId ? "Cập nhật" : "Tạo"}
+                  {editingBlogId ? "Cập nhật" : "Tạo"}
                 </button>
               </form>
             </div>
@@ -454,11 +456,11 @@ const BlogListPage = () => {
                 <h5 className="modal-title">Xác nhận xóa</h5>
               </div>
               <div className="modal-body">
-                <p>Bạn có chắc chắn muốn xóa nhân viên này không?</p>
+                <p>Bạn có chắc chắn muốn xóa blog này không? Hành động này không thể hoàn tác.</p>
               </div>
               <div className="modal-footer border-0 pt-0">
-                <button type="button" className="btn btn-secondary" onClick={handleCloseDeleteDialog}>Không</button>
-                <button type="button" className="btn btn-danger" onClick={handleConfirmDelete}>Có</button>
+                <button type="button" className="btn btn-secondary" onClick={handleCloseDeleteDialog}>Hủy</button>
+                <button type="button" className="btn btn-danger" onClick={handleConfirmDelete}>Xóa</button>
               </div>
             </div>
           </div>

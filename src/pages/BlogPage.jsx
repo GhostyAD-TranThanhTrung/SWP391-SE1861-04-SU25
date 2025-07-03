@@ -36,10 +36,10 @@ const BlogPage = () => {
         // Filter out React Quill deprecation warnings
         console.warn = (...args) => {
             const message = args[0];
-            if (typeof message === 'string' && 
-                (message.includes('findDOMNode') || 
-                 message.includes('DOMNodeInserted') ||
-                 message.includes('react-quill'))) {
+            if (typeof message === 'string' &&
+                (message.includes('findDOMNode') ||
+                    message.includes('DOMNodeInserted') ||
+                    message.includes('react-quill'))) {
                 return; // Suppress these warnings
             }
             originalWarn.apply(console, args);
@@ -47,10 +47,10 @@ const BlogPage = () => {
 
         console.error = (...args) => {
             const message = args[0];
-            if (typeof message === 'string' && 
-                (message.includes('findDOMNode') || 
-                 message.includes('DOMNodeInserted') ||
-                 message.includes('react-quill'))) {
+            if (typeof message === 'string' &&
+                (message.includes('findDOMNode') ||
+                    message.includes('DOMNodeInserted') ||
+                    message.includes('react-quill'))) {
                 return; // Suppress these errors
             }
             originalError.apply(console, args);
@@ -109,7 +109,7 @@ const BlogPage = () => {
             setLoading(true);
             const endpoint = 'http://localhost:3000/api/blogs';
             console.log('📡 Fetching blogs from:', endpoint);
-            
+
             const response = await fetch(endpoint, {
                 method: 'GET',
                 headers: {
@@ -127,7 +127,7 @@ const BlogPage = () => {
 
             const data = await response.json();
             console.log('📊 Blogs data received:', data);
-            
+
             // Filter out hidden blogs for public view
             const visibleBlogs = data.data.filter(blog => blog.status !== 'hidden');
             setPosts(visibleBlogs);
@@ -297,7 +297,7 @@ const BlogPage = () => {
     const handleSubmitBlog = async (e) => {
         e.preventDefault();
 
-                // Validate required fields
+        // Validate required fields
         if (!newBlog.title.trim()) {
             alert('Vui lòng nhập tiêu đề câu chuyện');
             return;
@@ -324,7 +324,7 @@ const BlogPage = () => {
 
         if (hasTitleBannedWords || hasBodyBannedWords) {
             alert('Nội dung chứa từ ngữ không phù hợp. Vui lòng chỉnh sửa trước khi đăng.');
-            return;  
+            return;
         }
 
         setIsSubmitting(true);
@@ -904,13 +904,13 @@ const BlogPage = () => {
                                                                                 Gửi để duyệt
                                                                             </button>
                                                                         </li>
-                                                                    <li>
-                                                                        <button
-                                                                            className="dropdown-item"
-                                                                            onClick={() => handleUpdateBlogStatus(blog.blog_id, 'published')}
-                                                                        >
-                                                                            <i className="bi bi-share me-2"></i>
-                                                                            Chia sẻ công khai
+                                                                        <li>
+                                                                            <button
+                                                                                className="dropdown-item"
+                                                                                onClick={() => handleUpdateBlogStatus(blog.blog_id, 'published')}
+                                                                            >
+                                                                                <i className="bi bi-share me-2"></i>
+                                                                                Chia sẻ công khai
                                                                             </button>
                                                                         </li>
                                                                     </>
@@ -1192,7 +1192,7 @@ const BlogPage = () => {
                                                     <option value="pending">Gửi để duyệt (chờ nhân viên phê duyệt)</option>
                                                 </select>
                                                 <div className="form-text">
-                                                    <strong>Bản nháp:</strong> Chỉ bạn có thể xem và chỉnh sửa<br/>
+                                                    <strong>Bản nháp:</strong> Chỉ bạn có thể xem và chỉnh sửa<br />
                                                     <strong>Gửi để duyệt:</strong> Nhân viên sẽ kiểm tra và phê duyệt trước khi xuất bản công khai
                                                 </div>
                                             </div>
