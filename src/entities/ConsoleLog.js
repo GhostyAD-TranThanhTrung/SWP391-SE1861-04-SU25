@@ -18,12 +18,12 @@ const ConsoleLog = new EntitySchema({
             nullable: true
         },
         action: {
-            type: "varchar",
+            type: "nvarchar",
             length: 100,
             nullable: true
         },
         status: {
-            type: "varchar",
+            type: "nvarchar",
             length: 50,
             nullable: true
         },

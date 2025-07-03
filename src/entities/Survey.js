@@ -18,7 +18,7 @@ const Survey = new EntitySchema({
             nullable: true
         },
         type: {
-            type: "varchar",
+            type: "nvarchar",
             length: 50,
             nullable: true
         },

@@ -90,7 +90,7 @@ class ProgramController {
             // Add programs to their respective categories
             programs.forEach(program => {
                 const categoryName = program.category ? program.category.name : 'Uncategorized';
-                
+
                 // Create uncategorized category if needed
                 if (!programsByCategory[categoryName]) {
                     programsByCategory[categoryName] = {
@@ -112,7 +112,7 @@ class ProgramController {
                 const enrollmentCount = program.enrollments ? program.enrollments.length : 0;
                 const contentCount = program.contents ? program.contents.length : 0;
                 const surveyCount = program.surveys ? program.surveys.length : 0;
-                const isActive = program.status === 'active';
+                const isActive = program.status === 'Hoạt động';
 
                 // Enhanced program object with additional metadata
                 const enhancedProgram = {
@@ -121,14 +121,14 @@ class ProgramController {
                         total_enrollments: enrollmentCount,
                         total_contents: contentCount,
                         total_surveys: surveyCount,
-                        completion_rate: enrollmentCount > 0 ? 
+                        completion_rate: enrollmentCount > 0 ?
                             Math.round((program.enrollments.filter(e => e.complete_at).length / enrollmentCount) * 100) : 0
                     }
                 };
 
                 // Add to category
                 programsByCategory[categoryName].programs.push(enhancedProgram);
-                
+
                 // Update category statistics
                 programsByCategory[categoryName].statistics.total_programs++;
                 if (isActive) programsByCategory[categoryName].statistics.active_programs++;
@@ -155,7 +155,7 @@ class ProgramController {
             const totalEnrollments = programs.reduce((sum, p) => sum + (p.enrollments ? p.enrollments.length : 0), 0);
             const totalContents = programs.reduce((sum, p) => sum + (p.contents ? p.contents.length : 0), 0);
             const totalSurveys = programs.reduce((sum, p) => sum + (p.surveys ? p.surveys.length : 0), 0);
-            const activePrograms = programs.filter(p => p.status === 'active').length;
+            const activePrograms = programs.filter(p => p.status === 'Hoạt động').length;
 
             res.status(200).json({
                 success: true,
@@ -361,23 +361,23 @@ class ProgramController {
     }
 
     /**
-     * Get Community Event programs only
-     * Specifically designed to retrieve programs from the Community Event category (category_id: 18)
+     * Get Sự kiện cộng đồng programs only
+     * Specifically designed to retrieve programs from the Sự kiện cộng đồng category (category_id: 18)
      */
     static async getCommunityEventPrograms(req, res) {
         try {
             const programRepository = AppDataSource.getRepository(Program);
             const categoryRepository = AppDataSource.getRepository(Category);
 
-            // Find the Community Event category by name instead of hardcoded ID
+            // Find the Sự kiện cộng đồng category by name instead of hardcoded ID
             const communityEventCategory = await categoryRepository.findOne({
-                where: { name: 'Community Event' }
+                where: { name: 'Sự kiện cộng đồng' }
             });
 
             if (!communityEventCategory) {
                 return res.status(404).json({
                     success: false,
-                    message: 'Community Event category not found',
+                    message: 'Sự kiện cộng đồng category not found',
                     data: []
                 });
             }
@@ -385,7 +385,7 @@ class ProgramController {
             const programs = await programRepository.find({
                 where: {
                     category_id: communityEventCategory.category_id,
-                    status: 'active' // Only return active community event programs
+                    status: 'active' // Only return active Sự kiện cộng đồng programs
                 },
                 relations: ['creator', 'category', 'enrollments', 'contents'],
                 order: {
@@ -413,14 +413,14 @@ class ProgramController {
                 success: true,
                 data: programsWithMetadata,
                 count: programsWithMetadata.length,
-                category: 'Community Event',
-                message: 'Community Event programs retrieved successfully'
+                category: 'Sự kiện cộng đồng',
+                message: 'Sự kiện cộng đồng programs retrieved successfully'
             });
         } catch (error) {
-            console.error('Error getting Community Event programs:', error);
+            console.error('Error getting Sự kiện cộng đồng programs:', error);
             res.status(500).json({
                 success: false,
-                message: 'Failed to retrieve Community Event programs',
+                message: 'Failed to retrieve Sự kiện cộng đồng programs',
                 error: error.message
             });
         }
@@ -519,7 +519,7 @@ class ProgramController {
                                             answerMap[item.question_id] = item.answer;
                                         }
                                     });
-                                    
+
                                     // Map answers to question indices (question_id - 1 for 0-based indexing)
                                     questions.forEach((question, questionIndex) => {
                                         const questionId = question.id || (questionIndex + 1);
@@ -533,7 +533,7 @@ class ProgramController {
                                             answerMap[item.id] = item.answer;
                                         }
                                     });
-                                    
+
                                     // Map answers to question indices
                                     questions.forEach((question, questionIndex) => {
                                         const questionId = question.id || (questionIndex + 1);
@@ -577,12 +577,12 @@ class ProgramController {
                         responseMatrix.forEach(responseRow => {
                             if (responseRow && responseRow[questionIndex] !== undefined) {
                                 const answer = responseRow[questionIndex];
-                                
+
                                 if (questionType === 'multiple-choice' || questionType === 'single-choice') {
                                     // Handle single answer
-                                    const answerText = typeof answer === 'string' ? answer : 
-                                                     (answer.value || answer.text || answer.answer || String(answer));
-                                    
+                                    const answerText = typeof answer === 'string' ? answer :
+                                        (answer.value || answer.text || answer.answer || String(answer));
+
                                     if (optionCounts.hasOwnProperty(answerText)) {
                                         optionCounts[answerText]++;
                                     } else {
@@ -593,9 +593,9 @@ class ProgramController {
                                     // Handle multiple answers
                                     const answers = Array.isArray(answer) ? answer : [answer];
                                     answers.forEach(ans => {
-                                        const answerText = typeof ans === 'string' ? ans : 
-                                                          (ans.value || ans.text || ans.answer || String(ans));
-                                        
+                                        const answerText = typeof ans === 'string' ? ans :
+                                            (ans.value || ans.text || ans.answer || String(ans));
+
                                         if (optionCounts.hasOwnProperty(answerText)) {
                                             optionCounts[answerText]++;
                                         } else {
@@ -619,7 +619,7 @@ class ProgramController {
                         type: survey.type || 'unknown',
                         total_questions: questions.length,
                         total_responses: validResponses.length,
-                        response_rate: validResponses.length > 0 ? 
+                        response_rate: validResponses.length > 0 ?
                             ((validResponses.length / Math.max(1, responses.length)) * 100).toFixed(2) + '%' : '0%',
                         questions_metadata: questions.map((q, index) => ({
                             index: index,
@@ -802,7 +802,7 @@ class ProgramController {
             // Check if title already exists for other programs
             if (title && title !== program.title) {
                 const existingProgram = await programRepository.findOne({
-                    where: { 
+                    where: {
                         title: title,
                         program_id: { $ne: parseInt(id) } // Exclude current program
                     }

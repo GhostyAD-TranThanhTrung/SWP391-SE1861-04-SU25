@@ -23,7 +23,7 @@ const Content = new EntitySchema({
             nullable: true
         },
         type: {
-            type: "varchar",
+            type: "nvarchar",
             length: 50,
             nullable: true
         },
@@ -37,7 +37,7 @@ const Content = new EntitySchema({
             nullable: true
         },
         content_type: {
-            type: "varchar",
+            type: "nvarchar",
             length: 50,
             nullable: true
         },

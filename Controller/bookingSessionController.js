@@ -57,12 +57,12 @@ class BookingSessionController {
                     b.consultant_id,
                     b.member_id,
                     b.slot_id,
-                    CONVERT(varchar(10), b.booking_date, 120) as booking_date,
+                    CONVERT(nvarchar(10), b.booking_date, 120) as booking_date,
                     b.status,
                     b.notes,
                     cs.day_of_week,
-                    CONVERT(varchar(8), s.start_time, 108) as start_time,
-                    CONVERT(varchar(8), s.end_time, 108) as end_time,
+                    CONVERT(nvarchar(8), s.start_time, 108) as start_time,
+                    CONVERT(nvarchar(8), s.end_time, 108) as end_time,
                     p.name as consultant_name
                 FROM Booking_Session b
                 LEFT JOIN Consultant c ON b.consultant_id = c.id_consultant
@@ -316,13 +316,13 @@ class BookingSessionController {
                     b.consultant_id,
                     b.member_id,
                     b.slot_id,
-                    CONVERT(varchar(10), b.booking_date, 120) as booking_date,
+                    CONVERT(nvarchar(10), b.booking_date, 120) as booking_date,
                     b.status,
                     b.notes,
                     b.google_meet_link,
                     cs.day_of_week,
-                    CONVERT(varchar(8), s.start_time, 108) as start_time,
-                    CONVERT(varchar(8), s.end_time, 108) as end_time,
+                    CONVERT(nvarchar(8), s.start_time, 108) as start_time,
+                    CONVERT(nvarchar(8), s.end_time, 108) as end_time,
                     p.name as consultant_name
                 FROM Booking_Session b
                 LEFT JOIN Consultant c ON b.consultant_id = c.id_consultant
@@ -671,7 +671,7 @@ class BookingSessionController {
                     b.consultant_id,
                     b.member_id,
                     b.slot_id,
-                    CONVERT(varchar(10), b.booking_date, 120) as booking_date,
+                    CONVERT(nvarchar(10), b.booking_date, 120) as booking_date,
                     b.status,
                     b.notes,
                     b.google_meet_link,
@@ -685,8 +685,8 @@ class BookingSessionController {
                     p.gender as member_gender,
                     p.date_of_birth as member_date_of_birth,
                     -- Slot information
-                    CONVERT(varchar(8), s.start_time, 108) as start_time,
-                    CONVERT(varchar(8), s.end_time, 108) as end_time,
+                    CONVERT(nvarchar(8), s.start_time, 108) as start_time,
+                    CONVERT(nvarchar(8), s.end_time, 108) as end_time,
                     -- Consultant Slot information
                     cs.day_of_week
                 FROM Booking_Session b
