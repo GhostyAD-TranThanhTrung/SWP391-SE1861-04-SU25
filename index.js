@@ -47,6 +47,7 @@ const SurveyController = require("./Controller/surveyController");
 const SurveyResponseController = require("./Controller/surveyResponseController");
 const UserController = require("./Controller/userController");
 const ConsultantCompleteController = require("./Controller/consultantCompleteController");
+const FlagController = require("./Controller/flagController");
 
 // ==================== APP SETUP ====================
 const app = express();
@@ -712,13 +713,13 @@ app.get("/api/images/:filename", (req, res) => {
     const { filename } = req.params;
     const path = require('path');
     const fs = require('fs');
-    
+
     console.log('🖼️ Image request for:', filename);
-    
+
     // Construct the full path to the image
     const imagePath = path.join(__dirname, 'content', 'image', filename);
     console.log('📁 Looking for image at:', imagePath);
-    
+
     // Check if file exists
     if (!fs.existsSync(imagePath)) {
         console.log('❌ Image not found:', imagePath);
@@ -729,7 +730,7 @@ app.get("/api/images/:filename", (req, res) => {
             path: imagePath
         });
     }
-    
+
     // Get file extension to determine content type
     const ext = path.extname(filename).toLowerCase();
     const contentType = {
@@ -740,14 +741,14 @@ app.get("/api/images/:filename", (req, res) => {
         '.webp': 'image/webp',
         '.svg': 'image/svg+xml'
     }[ext] || 'image/jpeg';
-    
+
     console.log('✅ Serving image:', filename, 'as', contentType);
-    
+
     // Set appropriate headers
     res.setHeader('Content-Type', contentType);
     res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
     res.setHeader('Access-Control-Allow-Origin', '*');
-    
+
     // Send the file
     res.sendFile(imagePath, (err) => {
         if (err) {
@@ -895,6 +896,47 @@ app.patch("/api/blogs/:id/approve", authController.verifyStaffOrAdmin, BlogContr
  */
 app.patch("/api/blogs/:id/reject", authController.verifyStaffOrAdmin, BlogController.rejectBlog);
 
+// ==================== FLAG ROUTES ====================
+/**
+ * FLAG CREATE: Report blog post
+ * Purpose: Create a new flag report for inappropriate content
+ * Method: POST /api/flags
+ * Input: { blog_id: number, reason: string }
+ * Output: { success: boolean, data: object, message: string, blogHidden?: boolean, authorBanned?: boolean }
+ * Authentication: Required
+ */
+app.post("/api/flags", authController.verifyToken, FlagController.createFlag);
+
+/**
+ * FLAGS BY BLOG: Get flags for specific blog
+ * Purpose: Retrieve all flag reports for a specific blog
+ * Method: GET /api/flags/blog/:blogId
+ * Input: Path params: { blogId: number }
+ * Output: { success: boolean, data: Array<FlagObject>, count: number, message: string }
+ * Authentication: Required (Admin/Staff)
+ */
+app.get("/api/flags/blog/:blogId", authController.verifyStaffOrAdmin, FlagController.getFlagsByBlogId);
+
+/**
+ * FLAGS BY USER: Get flags created by user
+ * Purpose: Retrieve all flag reports created by a specific user
+ * Method: GET /api/flags/user/:userId
+ * Input: Path params: { userId: number }
+ * Output: { success: boolean, data: Array<FlagObject>, count: number, message: string }
+ * Authentication: Required (User/Admin/Staff)
+ */
+app.get("/api/flags/user/:userId", authController.verifyToken, FlagController.getFlagsByUser);
+
+/**
+ * FLAG DELETE: Remove flag report
+ * Purpose: Delete a flag report from the system
+ * Method: DELETE /api/flags/:id
+ * Input: Path params: { id: number }
+ * Output: { success: boolean, message: string }
+ * Authentication: Required (Flag creator/Admin/Staff)
+ */
+app.delete("/api/flags/:id", authController.verifyToken, FlagController.deleteFlag);
+
 // ==================== ENROLLMENT ROUTES ====================
 /**
  * USER ENROLLMENTS: Get enrollments by user
@@ -986,20 +1028,20 @@ app.put("/api/surveys/:id", authController.verifyToken, SurveyController.updateS
 
 // Test endpoint for survey updates (temporary for debugging)
 app.put("/api/surveys-test/:id", (req, res) => {
-  console.log("🧪 Test survey update endpoint called");
-  console.log("🧪 Request params:", req.params);
-  console.log("🧪 Request body:", req.body);
-  console.log("🧪 Request headers:", req.headers);
-  
-  res.status(200).json({
-    success: true,
-    message: "Test endpoint working",
-    received_data: {
-      id: req.params.id,
-      body: req.body,
-      headers: req.headers
-    }
-  });
+    console.log("🧪 Test survey update endpoint called");
+    console.log("🧪 Request params:", req.params);
+    console.log("🧪 Request body:", req.body);
+    console.log("🧪 Request headers:", req.headers);
+
+    res.status(200).json({
+        success: true,
+        message: "Test endpoint working",
+        received_data: {
+            id: req.params.id,
+            body: req.body,
+            headers: req.headers
+        }
+    });
 });
 
 // ==================== SURVEY RESPONSE ROUTES ====================

@@ -243,6 +243,19 @@ class FlagController {
 
       const savedFlag = await flagRepository.save(newFlag);
 
+      // Check if blog should be auto-hidden (≥1 flag)
+      const flagCount = await flagRepository.count({
+        where: { blog_id: parseInt(blog_id) }
+      });
+
+      let blogHidden = false;
+      if (flagCount >= 1 && blog.status !== 'hidden') {
+        blog.status = 'hidden';
+        await blogRepository.save(blog);
+        blogHidden = true;
+        console.log(`Blog ${blog_id} has been auto-hidden due to ${flagCount} flag(s)`);
+      }
+
       // Check if the blog author has more than 5 flagged posts
       if (blog.author_id) {
         // Count flagged posts by this author
@@ -252,31 +265,32 @@ class FlagController {
           JOIN Flags f ON b.blog_id = f.blog_id
           WHERE b.author_id = @0
         `;
-        
+
         const [result] = await AppDataSource.query(query, [blog.author_id]);
         const flaggedCount = result ? result.flagged_count : 0;
-        
+
         console.log(`Author ${blog.author_id} has ${flaggedCount} flagged posts`);
-        
+
         // If author has more than 5 flagged posts, ban the user
         if (flaggedCount >= 5) {
           // Get the author user
           const author = await userRepository.findOne({
             where: { user_id: blog.author_id }
           });
-          
+
           if (author) {
             // Update user status to banned
             author.status = 'banned';
             await userRepository.save(author);
-            
+
             console.log(`User ${blog.author_id} has been banned for having ${flaggedCount} flagged posts`);
-            
+
             // Return success with additional info about the ban
             return res.status(201).json({
               success: true,
               data: savedFlag,
               message: "Blog flagged successfully",
+              blogHidden: blogHidden,
               authorBanned: true,
               authorId: blog.author_id,
               flaggedPostsCount: flaggedCount,
@@ -536,7 +550,7 @@ class FlagController {
   static async unbanUser(req, res) {
     try {
       const { userId } = req.params;
-      
+
       if (!userId || isNaN(parseInt(userId))) {
         return res.status(400).json({
           success: false,
@@ -545,7 +559,7 @@ class FlagController {
       }
 
       const userRepository = AppDataSource.getRepository(User);
-      
+
       // Check if user exists
       const user = await userRepository.findOne({
         where: { user_id: parseInt(userId) }

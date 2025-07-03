@@ -115,7 +115,7 @@ exports.googleLogin = async (req, res) => {
                 { expiresIn: '24h' }
             );
 
-            console.log('✅ JWT token generated successfully');
+            console.log('✅ JWT token generated successfully ');
             console.log(`🎯 Token payload: userId=${user.user_id}, email=${user.email}, role=${user.role || 'Member'}`);
             console.log('🎉 GOOGLE LOGIN SUCCESSFUL');
             console.log('📤 Sending response to client...');

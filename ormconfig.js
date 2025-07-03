@@ -11,7 +11,7 @@ const config = {
   password: "12345",
   database: "SWP391-demo",
   synchronize: false, // Set to true only in development to auto-create tables
-  logging: true, // Shows SQL queries in console for debugging
+  logging: false, // Shows SQL queries in console for debugging
   entities: [
     "/entities/*.js", // Path to your entity files
   ],
