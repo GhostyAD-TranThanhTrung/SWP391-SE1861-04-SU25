@@ -148,8 +148,8 @@ class DashboardService {
       cancelledBookings,
     ] = await Promise.all([
       bookingRepository.count(),
-      bookingRepository.count({ where: { status: "pending" } }),
-      bookingRepository.count({ where: { status: "confirmed" } }),
+      bookingRepository.count({ where: { status: "Đang chờ xác nhận" } }),
+      bookingRepository.count({ where: { status: "Đã xác nhận" } }),
       bookingRepository.count({ where: { status: "completed" } }),
       bookingRepository.count({ where: { status: "cancelled" } }),
     ]);
@@ -311,8 +311,8 @@ class DashboardController {
         // Booking metrics
         bookingStats: {
           total: await booking.getCount(),
-          pending: await booking.where('booking.status = :status ', { status: 'pending' }).getCount(),
-          confirmed: await booking.where('booking.status = :status ', { status: 'confirmed' }).getCount({ where: { status: "confirmed" } }),
+          pending: await booking.where('booking.status = :status ', { status: "Đang chờ xác nhận" }).getCount(),
+          confirmed: await booking.where('booking.status = :status ', { status: 'Đã xác nhận' }).getCount({ where: { status: "confirmed" } }),
           completed: await booking.where('booking.status = :status ', { status: 'completed' }).getCount({ where: { status: "completed" } }),
           cancelled: await booking.where('booking.status = :status ', { status: 'cancelled' }).getCount(),
         },

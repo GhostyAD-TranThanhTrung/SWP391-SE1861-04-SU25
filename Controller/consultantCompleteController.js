@@ -14,6 +14,7 @@ const Profile = require("../src/entities/Profile");
 const ConsultantSlot = require("../src/entities/ConsultantSlot");
 const Slot = require("../src/entities/Slot");
 const BookingSession = require("../src/entities/BookingSession");
+const bcrypt = require('bcryptjs');
 
 class ConsultantCompleteController {
   /**
@@ -211,10 +212,27 @@ class ConsultantCompleteController {
       } = req.body;
 
       // Validate required fields
-      if (!email || !password || !role) {
+      if (!email || !password) {
         return res.status(400).json({
           success: false,
-          message: "Email, password, and role are required",
+          message: "Email and password are required",
+        });
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid email format",
+        });
+      }
+
+      // Validate password strength
+      if (password.length < 6) {
+        return res.status(400).json({
+          success: false,
+          message: "Password must be at least 6 characters long",
         });
       }
 
@@ -244,8 +262,8 @@ class ConsultantCompleteController {
       try {
         // 1. Create new user
         const newUser = queryRunner.manager.create(User, {
-          role: role,
-          password: password, // Note: In production, this should be hashed
+          role: role || 'consultant',
+          password: await bcrypt.hash(password, 10),
           status: status || 'active',
           email: email,
           img_link: img_link || null,
@@ -266,11 +284,17 @@ class ConsultantCompleteController {
         // 3. Create profile if profile data is provided
         let savedProfile = null;
         if (name || bio_json || date_of_birth || job) {
+          // Handle bio_json serialization
+          let bioJsonString = null;
+          if (bio_json) {
+            bioJsonString = typeof bio_json === 'string' ? bio_json : JSON.stringify(bio_json);
+          }
+
           const newProfile = queryRunner.manager.create(Profile, {
             user_id: savedUser.user_id,
             name: name || null,
-            bio_json: bio_json || null,
-            date_of_birth: date_of_birth || null,
+            bio_json: bioJsonString,
+            date_of_birth: date_of_birth ? new Date(date_of_birth) : null,
             job: job || null,
           });
 
@@ -315,6 +339,16 @@ class ConsultantCompleteController {
 
         await queryRunner.commitTransaction();
 
+        // Parse bio_json for response if it exists
+        if (savedProfile && savedProfile.bio_json) {
+          try {
+            savedProfile.bio_json = JSON.parse(savedProfile.bio_json);
+          } catch (error) {
+            // Keep as string if parsing fails
+            console.warn(`Failed to parse bio_json for new consultant ${savedUser.user_id}:`, error);
+          }
+        }
+
         // Return complete consultant data
         const completeConsultantData = {
           // Consultant table fields
@@ -344,7 +378,7 @@ class ConsultantCompleteController {
         res.status(201).json({
           success: true,
           data: completeConsultantData,
-          message: "Consultant created successfully with complete profile and availability",
+          message: `Consultant created successfully with email: ${email}`,
         });
 
       } catch (error) {
@@ -434,18 +468,27 @@ class ConsultantCompleteController {
 
         if (!profile && (name || bio_json || date_of_birth || job)) {
           // Create new profile if it doesn't exist and we have profile data
+          let bioJsonString = null;
+          if (bio_json) {
+            bioJsonString = typeof bio_json === 'string' ? bio_json : JSON.stringify(bio_json);
+          }
+
           profile = queryRunner.manager.create(Profile, {
             user_id: consultant.user_id,
             name: name || null,
-            bio_json: bio_json || null,
-            date_of_birth: date_of_birth || null,
+            bio_json: bioJsonString,
+            date_of_birth: date_of_birth ? new Date(date_of_birth) : null,
             job: job || null,
           });
         } else if (profile) {
           // Update existing profile
           if (name !== undefined) profile.name = name;
-          if (bio_json !== undefined) profile.bio_json = bio_json;
-          if (date_of_birth !== undefined) profile.date_of_birth = date_of_birth;
+          if (bio_json !== undefined) {
+            profile.bio_json = typeof bio_json === 'string' ? bio_json : JSON.stringify(bio_json);
+          }
+          if (date_of_birth !== undefined) {
+            profile.date_of_birth = date_of_birth ? new Date(date_of_birth) : null;
+          }
           if (job !== undefined) profile.job = job;
         }
 
@@ -516,6 +559,16 @@ class ConsultantCompleteController {
         const updatedUser = await userRepository.findOne({
           where: { user_id: consultant.user_id },
         });
+
+        // Parse bio_json for response if it exists
+        if (profile && profile.bio_json) {
+          try {
+            profile.bio_json = JSON.parse(profile.bio_json);
+          } catch (error) {
+            // Keep as string if parsing fails
+            console.warn(`Failed to parse bio_json for updated consultant ${consultant.user_id}:`, error);
+          }
+        }
 
         // Return complete updated data
         const completeUpdatedData = {
@@ -747,7 +800,7 @@ class ConsultantCompleteController {
         status: updatedBooking.status,
         notes: updatedBooking.notes,
         google_meet_link: updatedBooking.google_meet_link,
-        
+
         // Additional related data
         consultant_info: updatedBooking.consultant ? {
           id_consultant: updatedBooking.consultant.id_consultant,
@@ -757,14 +810,14 @@ class ConsultantCompleteController {
           consultant_name: updatedBooking.consultant.user?.name,
           consultant_email: updatedBooking.consultant.user?.email,
         } : null,
-        
+
         member_info: updatedBooking.member ? {
           user_id: updatedBooking.member.user_id,
           email: updatedBooking.member.email,
           role: updatedBooking.member.role,
           status: updatedBooking.member.status,
         } : null,
-        
+
         slot_info: updatedBooking.slot ? {
           slot_id: updatedBooking.slot.slot_id,
           start_time: updatedBooking.slot.start_time,

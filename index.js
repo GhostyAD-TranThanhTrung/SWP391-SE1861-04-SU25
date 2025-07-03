@@ -937,6 +937,56 @@ app.get("/api/flags/user/:userId", authController.verifyToken, FlagController.ge
  */
 app.delete("/api/flags/:id", authController.verifyToken, FlagController.deleteFlag);
 
+/**
+ * FLAGS LIST: Get all flags
+ * Purpose: Retrieve all flag reports for admin review
+ * Method: GET /api/flags
+ * Input: None
+ * Output: { success: boolean, data: Array<FlagObject>, message: string }
+ * Authentication: Required (Admin/Staff)
+ */
+app.get("/api/flags", authController.verifyStaffOrAdmin, FlagController.getAllFlags);
+
+/**
+ * MOST FLAGGED BLOGS: Get blogs with most flags
+ * Purpose: Retrieve blogs sorted by number of flags for moderation priority
+ * Method: GET /api/flags/most-flagged-blogs
+ * Input: None
+ * Output: { success: boolean, data: Array<BlogFlagCount>, message: string }
+ * Authentication: Required (Admin/Staff)
+ */
+app.get("/api/flags/most-flagged-blogs", authController.verifyStaffOrAdmin, FlagController.getMostFlaggedBlogs);
+
+/**
+ * CLEAR BLOG FLAGS: Remove all flags from a blog
+ * Purpose: Clear all flag reports for a specific blog
+ * Method: DELETE /api/flags/blog/:blogId/clear
+ * Input: Path params: { blogId: number }
+ * Output: { success: boolean, deletedCount: number, message: string }
+ * Authentication: Required (Admin/Staff)
+ */
+app.delete("/api/flags/blog/:blogId/clear", authController.verifyStaffOrAdmin, FlagController.clearBlogFlags);
+
+/**
+ * BANNED USERS: Get users banned due to flags
+ * Purpose: Retrieve users who were banned due to flagged content
+ * Method: GET /api/flags/banned-users
+ * Input: None
+ * Output: { success: boolean, data: Array<BannedUserObject>, count: number, message: string }
+ * Authentication: Required (Admin/Staff)
+ */
+app.get("/api/flags/banned-users", authController.verifyStaffOrAdmin, FlagController.getBannedUsers);
+
+/**
+ * UNBAN USER: Remove ban from user
+ * Purpose: Unban a user who was banned due to flagged content
+ * Method: PATCH /api/flags/unban-user/:userId
+ * Input: Path params: { userId: number }
+ * Output: { success: boolean, data: object, message: string }
+ * Authentication: Required (Admin)
+ */
+app.patch("/api/flags/unban-user/:userId", authController.verifyToken, FlagController.unbanUser);
+
 // ==================== ENROLLMENT ROUTES ====================
 /**
  * USER ENROLLMENTS: Get enrollments by user
@@ -1108,6 +1158,7 @@ app.listen(3000, () => {
     console.log("   Content: /api/content/*");
     console.log("   Categories: /api/categories");
     console.log("   Blogs: /api/blogs/*");
+    console.log("   Flags: /api/flags/*");
     console.log("   Enrollments: /api/enrollments/*");
     console.log("   Surveys: /api/surveys/*");
     console.log("   Survey Responses: /api/survey-responses/*");
