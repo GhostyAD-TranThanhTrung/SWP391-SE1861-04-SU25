@@ -62,10 +62,29 @@
             color: #cbd5e1;
             transition: color 0.2s;
             position: relative;
+            margin-right: 8px;
 
             &:hover,
             &.favorited {
                 color: #f59e42;
+            }
+        }
+
+        .btn-report {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 22px;
+            color: #cbd5e1;
+            transition: all 0.2s;
+            position: relative;
+
+            &:hover {
+                color: #dc2626;
+            }
+
+            &.flagged {
+                color: #dc2626;
             }
         }
     }

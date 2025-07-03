@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import '../styles/DetailBlogPage.scss';
 import DefaultImage from '../images/Images.jpg';
+import FlagModal from '../components/FlagModal';
+import { flagBlog, removeFlag, checkUserFlaggedBlog, isAuthenticated, getUserFromToken } from '../service/api';
 
 const DetailBlogPage = () => {
     const { id } = useParams();
@@ -9,6 +11,11 @@ const DetailBlogPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isFavorite, setIsFavorite] = useState(false);
+    const [flagModalOpen, setFlagModalOpen] = useState(false);
+    const [userFlagInfo, setUserFlagInfo] = useState({ flagged: false, flagId: null });
+    const [userAuthenticated, setUserAuthenticated] = useState(false);
+    const [currentUser, setCurrentUser] = useState(null);
+    const [isOwnBlog, setIsOwnBlog] = useState(false);
 
     useEffect(() => {
         const fetchBlog = async () => {
@@ -25,11 +32,102 @@ const DetailBlogPage = () => {
                 setLoading(false);
             }
         };
+
+        const checkAuthAndFlagStatus = async () => {
+            const authenticated = isAuthenticated();
+            setUserAuthenticated(authenticated);
+
+            if (authenticated) {
+                try {
+                    const user = getUserFromToken();
+                    setCurrentUser(user);
+
+                    const flagInfo = await checkUserFlaggedBlog(id);
+                    setUserFlagInfo(flagInfo);
+                } catch (error) {
+                    console.error('Error checking flag status:', error);
+                }
+            }
+        };
+
         fetchBlog();
+        checkAuthAndFlagStatus();
     }, [id]);
+
+    // Check if the current user is the author of this blog
+    useEffect(() => {
+        if (blog && currentUser) {
+            setIsOwnBlog(blog.author_id === currentUser.userId);
+        }
+    }, [blog, currentUser]);
 
     const toggleFavorite = () => {
         setIsFavorite(prev => !prev);
+    };
+
+    const handleFlagSubmit = async (reason) => {
+        try {
+            const response = await flagBlog(id, reason);
+
+            if (response.success) {
+                setUserFlagInfo({ flagged: true, flagId: response.data.flag_id });
+                alert('Báo cáo đã được gửi thành công. Cảm ơn bạn đã đóng góp để cải thiện chất lượng nội dung.');
+
+                // Check if blog was hidden
+                if (response.blogHidden) {
+                    alert('Bài viết đã bị ẩn do nhận báo cáo.');
+                }
+
+                // Check if author was banned
+                if (response.authorBanned) {
+                    alert(`Thông báo: Tác giả của bài viết này đã bị khóa tài khoản do có ${response.flaggedPostsCount} bài viết bị báo cáo.`);
+                }
+            }
+        } catch (error) {
+            if (error.message.includes('already flagged')) {
+                alert('Bạn đã báo cáo bài viết này rồi.');
+                // Refresh flag status
+                const flagInfo = await checkUserFlaggedBlog(id);
+                setUserFlagInfo(flagInfo);
+            } else {
+                alert('Có lỗi xảy ra khi gửi báo cáo: ' + error.message);
+            }
+        }
+    };
+
+    const handleRemoveFlag = async () => {
+        if (!userFlagInfo.flagId) return;
+
+        if (!window.confirm('Bạn có chắc muốn gỡ báo cáo này không?')) return;
+
+        try {
+            const response = await removeFlag(userFlagInfo.flagId);
+
+            if (response.success) {
+                setUserFlagInfo({ flagged: false, flagId: null });
+                alert('Đã gỡ báo cáo thành công.');
+            }
+        } catch (error) {
+            alert('Có lỗi xảy ra khi gỡ báo cáo: ' + error.message);
+        }
+    };
+
+    const handleFlagClick = () => {
+        if (!userAuthenticated) {
+            alert('Vui lòng đăng nhập để báo cáo bài viết.');
+            return;
+        }
+
+        if (isOwnBlog) {
+            alert('Bạn không thể báo cáo bài viết của chính mình.');
+            return;
+        }
+
+        if (userFlagInfo.flagged) {
+            handleRemoveFlag();
+        } else {
+            setFlagModalOpen(true);
+        }
     };
 
     if (loading || error || !blog) {
@@ -77,8 +175,18 @@ const DetailBlogPage = () => {
                             <i className="bi bi-calendar3 me-1"></i> {formattedDate}
                         </span>
                         <button className={`btn-flag ${isFavorite ? 'favorited' : ''}`} onClick={toggleFavorite} title={isFavorite ? 'Bỏ yêu thích' : 'Thêm vào yêu thích'}>
-                            <i className={`bi ${isFavorite ? 'bi-flag-fill' : 'bi-flag'}`}></i>
+                            <i className={`bi ${isFavorite ? 'bi-heart-fill' : 'bi-heart'}`}></i>
                         </button>
+
+                        {/* !isOwnBlog && (
+                            <button
+                                className={`btn-report ${userFlagInfo.flagged ? 'flagged' : ''}`}
+                                onClick={handleFlagClick}
+                                title={userFlagInfo.flagged ? 'Gỡ báo cáo' : 'Báo cáo bài viết'}
+                            >
+                                <i className={`bi ${userFlagInfo.flagged ? 'bi-flag-fill' : 'bi-flag'}`}></i>
+                            </button>
+                        )*/}
                     </div>
 
                     <h1 className="blog-title improved-blog-title">{blog.title}</h1>
@@ -122,6 +230,14 @@ const DetailBlogPage = () => {
                     </div>
                 </article>
             </div>
+
+            <FlagModal
+                isOpen={flagModalOpen}
+                onClose={() => setFlagModalOpen(false)}
+                onSubmit={handleFlagSubmit}
+                blogId={id}
+                blogTitle={blog?.title || 'Bài viết'}
+            />
         </div>
     );
 };

@@ -20,13 +20,13 @@ const DetailCoursePage = () => {
     const [progressPercentage, setProgressPercentage] = useState(0);
     const [isCompleted, setIsCompleted] = useState(false);
     const [deleting, setDeleting] = useState(false);
-    
+
     // Survey modal states
     const [showSurveyModal, setShowSurveyModal] = useState(false);
     const [surveyType, setSurveyType] = useState(''); // 'pre-assessment' or 'post-assessment'
     const [justEnrolled, setJustEnrolled] = useState(false);
     const [justCompleted, setJustCompleted] = useState(false);
-    
+
     // Survey status states
     const [preAssessmentCompleted, setPreAssessmentCompleted] = useState(false);
     const [postAssessmentCompleted, setPostAssessmentCompleted] = useState(false);
@@ -70,7 +70,7 @@ const DetailCoursePage = () => {
         };
 
         const checkEnrollmentStatus = async () => {
-            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             if (!token) {
                 setCheckingEnrollment(false);
                 return;
@@ -94,22 +94,22 @@ const DetailCoursePage = () => {
                     const enrollmentInProgram = data.data && data.data.find(enrollment =>
                         enrollment.program_id === parseInt(id)
                     );
-                    
+
                     if (enrollmentInProgram) {
                         setIsEnrolled(true);
                         setEnrollmentData(enrollmentInProgram);
-                        
+
                         // Calculate progress percentage
                         if (enrollmentInProgram.progress && Array.isArray(enrollmentInProgram.progress)) {
                             const totalContent = enrollmentInProgram.progress.length;
                             const completedContent = enrollmentInProgram.progress.filter(item => item.complete).length;
                             const percentage = totalContent > 0 ? (completedContent / totalContent) * 100 : 0;
                             setProgressPercentage(percentage);
-                            
+
                             // Check if course is completed
                             const allCompleted = totalContent > 0 && completedContent === totalContent;
                             setIsCompleted(!!enrollmentInProgram.complete_at || allCompleted);
-                            
+
                             // If all content is complete but complete_at is not set, update it
                             if (allCompleted && !enrollmentInProgram.complete_at) {
                                 updateEnrollmentCompletion(tokenPayload.userId, parseInt(id));
@@ -150,7 +150,7 @@ const DetailCoursePage = () => {
             alert('Post-course assessment is not available for this program yet.');
             return;
         }
-        
+
         setSurveyType(type);
         setShowSurveyModal(true);
     };
@@ -195,7 +195,7 @@ const DetailCoursePage = () => {
                 if (preData.success && preData.data && preData.data.length > 0) {
                     preExists = true;
                     const preSurvey = preData.data[0];
-                    
+
                     // Check if user has responded
                     const preCheckResponse = await fetch(
                         `http://localhost:3000/api/survey-responses/check/${preSurvey.survey_id}`,
@@ -233,7 +233,7 @@ const DetailCoursePage = () => {
                 if (postData.success && postData.data && postData.data.length > 0) {
                     postExists = true;
                     const postSurvey = postData.data[0];
-                    
+
                     // Check if user has responded
                     const postCheckResponse = await fetch(
                         `http://localhost:3000/api/survey-responses/check/${postSurvey.survey_id}`,
@@ -294,7 +294,7 @@ const DetailCoursePage = () => {
                 setProgressPercentage(100);
                 setJustCompleted(true);
                 console.log('Course completion updated successfully');
-                
+
                 // Trigger post-assessment survey
                 setTimeout(() => {
                     triggerSurvey('post-assessment');
@@ -367,12 +367,12 @@ const DetailCoursePage = () => {
                 alert('Đăng ký khóa học thành công!');
                 setIsEnrolled(true);
                 setJustEnrolled(true);
-                
+
                 // Check survey status after enrollment
                 setTimeout(() => {
                     checkSurveyStatus();
                 }, 500);
-                
+
                 // Trigger pre-assessment survey after successful enrollment
                 setTimeout(() => {
                     triggerSurvey('pre-assessment');
@@ -506,7 +506,7 @@ const DetailCoursePage = () => {
                                             </>
                                         )}
                                     </div>
-                                    
+
                                     {/* Progress Bar */}
                                     <div className="progress-section">
                                         <div className="progress-header">
@@ -515,8 +515,8 @@ const DetailCoursePage = () => {
                                         </div>
                                         <div className="progress-bar-container">
                                             <div className="progress-bar">
-                                                <div 
-                                                    className="progress-fill" 
+                                                <div
+                                                    className="progress-fill"
                                                     style={{ width: `${progressPercentage}%` }}
                                                 ></div>
                                             </div>
@@ -544,7 +544,7 @@ const DetailCoursePage = () => {
                                                         Take Pre-Course Assessment
                                                     </button>
                                                 )}
-                                                
+
                                                 {/* Show post-assessment button if survey exists and course completed */}
                                                 {postAssessmentExists && isCompleted && !postAssessmentCompleted && (
                                                     <button
@@ -596,7 +596,7 @@ const DetailCoursePage = () => {
                                                 )}
                                             </>
                                         )}
-                                        
+
                                         {checkingSurveyStatus && (
                                             <div className="survey-loading">
                                                 <span className="loading-icon">⏳</span>
@@ -619,8 +619,8 @@ const DetailCoursePage = () => {
                                                 </>
                                             ) : (
                                                 <>
-                                                                                                <span className="delete-icon"></span>
-                                            Hủy đăng ký khóa học
+                                                    <span className="delete-icon"></span>
+                                                    Hủy đăng ký khóa học
                                                 </>
                                             )}
                                         </button>
@@ -642,8 +642,8 @@ const DetailCoursePage = () => {
                                             </>
                                         ) : (
                                             <>
-                                                                                            <span className="enroll-icon"></span>
-                                            Đăng ký ngay
+                                                <span className="enroll-icon"></span>
+                                                Đăng ký ngay
                                             </>
                                         )}
                                     </button>

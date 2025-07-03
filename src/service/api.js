@@ -187,3 +187,66 @@ export const getContentPreview = async (programId) => {
         throw error;
     }
 };
+
+// Flag functionality
+export const flagBlog = async (blogId, reason) => {
+    try {
+        const response = await fetchWithAuth(`${API_URL}/api/flags`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                blog_id: blogId,
+                reason: reason
+            }),
+        });
+
+        return response;
+    } catch (error) {
+        throw error;
+    }
+};
+
+// Get flags for a specific blog
+export const getBlogFlags = async (blogId) => {
+    try {
+        const response = await fetchWithAuth(`${API_URL}/api/flags/blog/${blogId}`);
+        return response;
+    } catch (error) {
+        throw error;
+    }
+};
+
+// Remove flag
+export const removeFlag = async (flagId) => {
+    try {
+        const response = await fetchWithAuth(`${API_URL}/api/flags/${flagId}`, {
+            method: 'DELETE'
+        });
+        return response;
+    } catch (error) {
+        throw error;
+    }
+};
+
+// Check if current user has flagged a blog
+export const checkUserFlaggedBlog = async (blogId) => {
+    try {
+        const user = getUserFromToken();
+        if (!user) return { flagged: false, flagId: null };
+
+        const response = await fetchWithAuth(`${API_URL}/api/flags/user/${user.userId}`);
+
+        // Find if user has flagged this specific blog
+        const userFlag = response.data.find(flag => flag.blog_id === parseInt(blogId));
+
+        return {
+            flagged: !!userFlag,
+            flagId: userFlag ? userFlag.flag_id : null
+        };
+    } catch (error) {
+        console.error('Error checking flag status:', error);
+        return { flagged: false, flagId: null };
+    }
+};

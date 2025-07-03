@@ -1,0 +1,274 @@
+// Flag Modal Styles
+.flag-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1050;
+    padding: 20px;
+}
+
+.flag-modal {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: flagModalSlideIn 0.3s ease-out;
+
+    .flag-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 24px 16px;
+        border-bottom: 1px solid #eee;
+
+        h4 {
+            margin: 0;
+            color: #d73027;
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: #666;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+
+            &:hover:not(:disabled) {
+                background-color: #f5f5f5;
+                color: #333;
+            }
+
+            &:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+        }
+    }
+
+    .flag-modal-body {
+        padding: 20px 24px;
+
+        .blog-info {
+            margin-bottom: 20px;
+            padding: 12px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #17a2b8;
+
+            p {
+                margin: 0;
+
+                &:first-child {
+                    margin-bottom: 8px;
+                }
+
+                &.text-muted {
+                    color: #6c757d !important;
+                    font-size: 0.9rem;
+                }
+            }
+        }
+
+        .reason-options {
+            margin-bottom: 20px;
+
+            .reason-option {
+                display: flex;
+                align-items: flex-start;
+                margin-bottom: 12px;
+                cursor: pointer;
+                position: relative;
+                padding-left: 28px;
+                transition: all 0.2s ease;
+
+                &:hover {
+                    background-color: #f8f9fa;
+                    border-radius: 6px;
+                    padding: 8px 12px 8px 36px;
+                    margin: 4px -4px;
+                }
+
+                input[type="radio"] {
+                    position: absolute;
+                    left: 0;
+                    top: 3px;
+                    margin: 0;
+                    transform: scale(1.1);
+                    accent-color: #d73027;
+                    cursor: pointer;
+
+                    &:disabled {
+                        cursor: not-allowed;
+                        opacity: 0.5;
+                    }
+                }
+
+                .reason-text {
+                    color: #333;
+                    font-size: 0.95rem;
+                    line-height: 1.4;
+                    margin-left: 4px;
+                }
+            }
+        }
+
+        .custom-reason {
+            margin-top: 16px;
+
+            label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: 500;
+                color: #333;
+            }
+
+            textarea {
+                width: 100%;
+                padding: 10px 12px;
+                border: 1px solid #ddd;
+                border-radius: 6px;
+                font-family: inherit;
+                font-size: 0.9rem;
+                resize: vertical;
+                min-height: 80px;
+                transition: border-color 0.2s ease;
+
+                &:focus {
+                    outline: none;
+                    border-color: #d73027;
+                    box-shadow: 0 0 0 2px rgba(215, 48, 39, 0.1);
+                }
+
+                &:disabled {
+                    background-color: #f5f5f5;
+                    cursor: not-allowed;
+                }
+            }
+
+            small {
+                display: block;
+                margin-top: 4px;
+                text-align: right;
+                font-size: 0.8rem;
+            }
+        }
+    }
+
+    .flag-modal-footer {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        padding: 16px 24px 24px;
+        border-top: 1px solid #eee;
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+
+            &:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+            }
+
+            &.btn-cancel {
+                background-color: #6c757d;
+                color: white;
+
+                &:hover:not(:disabled) {
+                    background-color: #5a6268;
+                }
+            }
+
+            &.btn-flag {
+                background-color: #d73027;
+                color: white;
+
+                &:hover:not(:disabled) {
+                    background-color: #c02622;
+                }
+
+                &:disabled {
+                    background-color: #e9606b;
+                }
+            }
+
+            .spinner-border-sm {
+                width: 1rem;
+                height: 1rem;
+                border-width: 2px;
+            }
+        }
+    }
+}
+
+@keyframes flagModalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+// Responsive design
+@media (max-width: 576px) {
+    .flag-modal-overlay {
+        padding: 10px;
+    }
+
+    .flag-modal {
+        max-height: 95vh;
+
+        .flag-modal-header {
+            padding: 16px 20px 12px;
+
+            h4 {
+                font-size: 1.1rem;
+            }
+        }
+
+        .flag-modal-body {
+            padding: 16px 20px;
+
+            .reason-options .reason-option {
+                .reason-text {
+                    font-size: 0.9rem;
+                }
+            }
+        }
+
+        .flag-modal-footer {
+            padding: 12px 20px 20px;
+            flex-direction: column;
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    }
+}

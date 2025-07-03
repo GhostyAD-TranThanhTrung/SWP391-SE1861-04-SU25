@@ -1,74 +1,165 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { FaSearch, FaPlus, FaEdit } from "react-icons/fa";
+import { FaSearch, FaPlus, FaEdit, FaEye, FaFlag } from "react-icons/fa";
 import { FaTrash } from "react-icons/fa6";
-import { MdCancel } from "react-icons/md";
+import { MdCancel, MdVisibility, MdVisibilityOff } from "react-icons/md";
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 import "../../styles/StaffListPage.scss";
 
 const BlogListPage = () => {
   const [showPopup, setShowPopup] = useState(false);
-  const [staffs, setStaffs] = useState([]);
-  const [newStaff, setNewStaff] = useState({
-    email: "",
-    role: "",
-    name: "",
-    bio: "",
-    education: "",
-    date_of_birth: "",
-    job: "",
+  const [blogs, setBlogs] = useState([]);
+  const [newBlog, setNewBlog] = useState({
+    title: "",
+    body: "",
+    status: "published"
   });
-  const [editingStaffId, setEditingStaffId] = useState(null);
-  const [editStaffData, setEditStaffData] = useState(null);
+  const [editingBlogId, setEditingBlogId] = useState(null);
+  const [editBlogData, setEditBlogData] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [staffIdToDelete, setStaffIdToDelete] = useState(null);
+  const [blogIdToDelete, setBlogIdToDelete] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [newPassword, setNewPassword] = useState('');
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [viewBlogModal, setViewBlogModal] = useState(false);
+  const [selectedBlog, setSelectedBlog] = useState(null);
+  const [flagDetailsModal, setFlagDetailsModal] = useState(false);
+  const [selectedBlogFlags, setSelectedBlogFlags] = useState([]);
   const token = sessionStorage.getItem("token");
 
-  const fetchStaffs = async () => {
+  // React Quill modules configuration
+  const modules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+      [{ 'indent': '-1' }, { 'indent': '+1' }],
+      [{ 'color': [] }, { 'background': [] }],
+      ['link'],
+      ['clean']
+    ],
+  };
+
+  const formats = [
+    'header', 'bold', 'italic', 'underline', 'strike',
+    'list', 'bullet', 'indent', 'color', 'background', 'link'
+  ];
+
+  const fetchBlogs = async () => {
     try {
-      const res = await axios.get("http://localhost:3000/api/staff", {
+      setLoading(true);
+      const res = await axios.get("http://localhost:3000/api/blogs/admin", {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data.success) {
-        setStaffs(res.data.data);
+        setBlogs(res.data.data);
       }
     } catch (err) {
-      console.error("Lỗi khi gọi API:", err);
+      console.error("Lỗi khi gọi API blogs:", err);
+      // Fallback to regular blogs endpoint if admin endpoint doesn't exist
+      try {
+        const res = await axios.get("http://localhost:3000/api/blogs", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.data.success) {
+          setBlogs(res.data.data);
+        }
+      } catch (fallbackErr) {
+        console.error("Lỗi khi gọi API blogs fallback:", fallbackErr);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchBlogFlags = async (blogId) => {
+    try {
+      const res = await axios.get(`http://localhost:3000/api/flags/blog/${blogId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data.success) {
+        setSelectedBlogFlags(res.data.data);
+        setFlagDetailsModal(true);
+      }
+    } catch (err) {
+      console.error("Lỗi khi lấy flags:", err);
+      alert("Không thể tải thông tin flags");
     }
   };
 
   useEffect(() => {
-    fetchStaffs();
+    fetchBlogs();
   }, []);
 
   const handleOpenPopup = () => {
     setShowPopup(true);
-    setNewPassword(""); // reset khi tạo mới
+    setEditingBlogId(null);
+    setEditBlogData(null);
+    setNewBlog({
+      title: "",
+      body: "",
+      status: "published"
+    });
+    setSelectedImage(null);
+    setImagePreview(null);
   };
 
   const handleClosePopup = () => {
     setShowPopup(false);
-    setNewPassword("");
-    setEditingStaffId(null);
-    setEditStaffData(null);
-    setNewStaff({
-      email: "",
-      role: "",
-      name: "",
-      bio: "",
-      education: "",
-      date_of_birth: "",
-      job: "",
+    setEditingBlogId(null);
+    setEditBlogData(null);
+    setNewBlog({
+      title: "",
+      body: "",
+      status: "published"
     });
+    setSelectedImage(null);
+    setImagePreview(null);
   };
 
   const handleChange = (e) => {
-    setNewStaff({ ...newStaff, [e.target.name]: e.target.value });
+    setNewBlog({ ...newBlog, [e.target.name]: e.target.value });
   };
 
   const handleEditChange = (e) => {
-    setEditStaffData({ ...editStaffData, [e.target.name]: e.target.value });
+    setEditBlogData({ ...editBlogData, [e.target.name]: e.target.value });
+  };
+
+  const handleEditorChange = (content) => {
+    if (editingBlogId) {
+      setEditBlogData({ ...editBlogData, body: content });
+    } else {
+      setNewBlog({ ...newBlog, body: content });
+    }
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        alert('Vui lòng chọn file hình ảnh!');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Kích thước file không được vượt quá 5MB!');
+        return;
+      }
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onload = (e) => setImagePreview(e.target.result);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+    const fileInput = document.getElementById('image');
+    if (fileInput) fileInput.value = '';
   };
 
   const handleSubmit = async (e) => {
@@ -116,7 +207,7 @@ const BlogListPage = () => {
       };
       setEditStaffData(flatData);
       setEditingStaffId(String(staffId));
-      setNewPassword(""); 
+      setNewPassword("");
       setShowPopup(true);
     }
   };
