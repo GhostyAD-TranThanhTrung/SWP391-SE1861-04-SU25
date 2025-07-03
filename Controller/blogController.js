@@ -71,7 +71,30 @@ class BlogController {
       });
     }
   }
+  static async getAllBlogsForAdmin(req, res) {
+    try {
+      const blogRepository = AppDataSource.getRepository(Blog);
+      const blogs = await blogRepository.find({
+        order: {
+          created_at: "DESC",
+        },
+      });
 
+      res.status(200).json({
+        success: true,
+        data: blogs,
+        count: blogs.length,
+        message: "Published blogs retrieved successfully",
+      });
+    } catch (error) {
+      console.error("Error getting published blogs:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to retrieve published blogs",
+        error: error.message,
+      });
+    }
+  }
   /**
    * Get blogs authored by the currently authenticated user
    * Uses the user ID from the JWT token

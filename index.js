@@ -785,7 +785,7 @@ app.get("/api/categories", CategoryController.getAllCategories);
  * Authentication: None (Public)
  */
 app.get("/api/blogs", BlogController.getAllBlogs);
-
+app.get("/api/admin/blogs", BlogController.getAllBlogsForAdmin)
 /**
  * MY BLOGS: Get current user's blogs
  * Purpose: Retrieve all blog posts created by the authenticated user
