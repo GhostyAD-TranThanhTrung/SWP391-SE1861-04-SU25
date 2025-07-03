@@ -79,7 +79,7 @@ class DashboardService {
     const userRepository = AppDataSource.getRepository(User);
     return await userRepository.count({
       where: {
-        status: "active",
+        status: "Hoạt động",
         role: "member",
       },
     });
@@ -121,8 +121,8 @@ class DashboardService {
     const [totalUsers, inactiveUsers, bannedUsers, roleDistribution] =
       await Promise.all([
         userRepository.count(),
-        userRepository.count({ where: { status: "inactive" } }),
-        userRepository.count({ where: { status: "banned" } }),
+        userRepository.count({ where: { status: "Không hoạt động" } }),
+        userRepository.count({ where: { status: "Bị cấm" } }),
         userRepository
           .createQueryBuilder("user")
           .select("user.role", "role")
@@ -150,8 +150,8 @@ class DashboardService {
       bookingRepository.count(),
       bookingRepository.count({ where: { status: "Đang chờ xác nhận" } }),
       bookingRepository.count({ where: { status: "Đã xác nhận" } }),
-      bookingRepository.count({ where: { status: "completed" } }),
-      bookingRepository.count({ where: { status: "cancelled" } }),
+      bookingRepository.count({ where: { status: "Đã hoàn thành" } }),
+      bookingRepository.count({ where: { status: "Đã hủy" } }),
     ]);
 
     return {
@@ -277,7 +277,7 @@ class DashboardController {
         .getCount();
       memberActiveCount = await AppDataSource.getRepository(User)
         .createQueryBuilder("user")
-        .where("user.status = :status", { status: "active" })
+        .where("user.status = :status", { status: "Hoạt động" })
         .andWhere("user.date_create >= :startDate", { startDate })
         .andWhere("user.date_create <= :endDate", { endDate })
         .andWhere("user.role = :role", { role: "member" })
@@ -302,19 +302,18 @@ class DashboardController {
         // Additional user metrics
         userStats: {
           total: await user.getCount(),
-          active: await user.where('user.status = :status', { status: "active" }).getCount(),
-          inactive: await user.where('user.status = :status', { status: "inactive" }).getCount(),
-          banned: await user.where('user.status = :status', { status: "banned" }).getCount(),
+          active: await user.where('user.status = :status', { status: "Hoạt động" }).getCount(),
+          inactive: await user.where('user.status = :status', { status: "Không hoạt động" }).getCount(),
+          banned: await user.where('user.status = :status', { status: "Bị cấm" }).getCount(),
           roleDistribution: await user_dis,
         },
 
         // Booking metrics
         bookingStats: {
           total: await booking.getCount(),
-          pending: await booking.where('booking.status = :status ', { status: "Đang chờ xác nhận" }).getCount(),
-          confirmed: await booking.where('booking.status = :status ', { status: 'Đã xác nhận' }).getCount({ where: { status: "confirmed" } }),
-          completed: await booking.where('booking.status = :status ', { status: 'completed' }).getCount({ where: { status: "completed" } }),
-          cancelled: await booking.where('booking.status = :status ', { status: 'cancelled' }).getCount(),
+          confirmed: await booking.where('booking.status = :status ', { status: 'Lên lịch' }).getCount(),
+          completed: await booking.where('booking.status = :status ', { status: 'Hoàn thành' }).getCount(),
+          cancelled: await booking.where('booking.status = :status ', { status: 'Đã hủy' }).getCount(),
         },
 
         // Date range info
