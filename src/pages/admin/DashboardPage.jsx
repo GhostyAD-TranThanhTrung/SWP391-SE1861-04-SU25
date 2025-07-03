@@ -126,11 +126,7 @@ const DashboardPage = () => {
           <h4>{dashboardData.totalMonthlyCourseEnrollment}</h4>
           <small>thành viên/tháng</small>
         </div>
-        <div className="card">
-          <div>Tổng thành viên hoàn thành khóa học</div>
-          <h4>{dashboardData.totalMonthlyCourseCompletion}</h4>
-          <small>thành viên/tháng</small>
-        </div>
+
         <div className="card">
           <div>Tổng người dùng</div>
           <h4>{dashboardData.monthlyCreatedMember}</h4>

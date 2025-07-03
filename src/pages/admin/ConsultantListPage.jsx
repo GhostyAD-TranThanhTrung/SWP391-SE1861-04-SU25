@@ -20,7 +20,7 @@ const ConsultantListPage = () => {
     date_of_birth: "",
     job: "",
   });
-  
+
   const [showPopup, setShowPopup] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [editingConsultantId, setEditingConsultantId] = useState(null);
@@ -32,7 +32,7 @@ const ConsultantListPage = () => {
 
   const handleOpenPopup = () => {
     setShowPopup(true);
-    setNewPassword(""); 
+    setNewPassword("");
   };
 
   const handleClosePopup = () => {
@@ -57,7 +57,7 @@ const ConsultantListPage = () => {
 
   const fetchConsultants = async () => {
     try {
-      const res = await axios.get("http://localhost:3000/api/consultants");
+      const res = await axios.get("http://localhost:3000/api/consultants-complete");
       if (res.data.success) {
         setConsultants(res.data.data.consultants);
       }
@@ -80,31 +80,54 @@ const ConsultantListPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate required fields
+    if (!newConsultant.email || !newConsultant.name || !newPassword) {
+      alert("Vui lòng điền đầy đủ thông tin bắt buộc (Email, Tên, Mật khẩu)");
+      return;
+    }
+
     try {
       const payload = {
-        ...newConsultant,
-        bio_json: {
-          bio: newConsultant.bio,
-          education: newConsultant.education,
-        },
+        // User table fields
+        email: newConsultant.email,
         password: newPassword,
+        role: "consultant",
+        status: "active",
+
+        // Consultant table fields
+        cost: newConsultant.cost || 0,
+        certification: newConsultant.certification || "",
+        speciality: newConsultant.speciality || "",
+
+        // Profile table fields
+        name: newConsultant.name,
+        bio_json: JSON.stringify({
+          bio: newConsultant.bio || "",
+          education: newConsultant.education || "",
+        }),
+        date_of_birth: newConsultant.date_of_birth || null,
+        job: newConsultant.job || "",
       };
-      delete payload.bio;
-      delete payload.education;
 
       console.log("Payload gửi:", payload);
 
-
-      const res = await axios.post("http://localhost:3000/api/consultants", payload, {
+      const res = await axios.post("http://localhost:3000/api/consultants-complete", payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
       if (res.data.success) {
+        alert("Tạo tư vấn viên thành công!");
         fetchConsultants();
         handleClosePopup();
       }
     } catch (err) {
       console.error("Lỗi khi thêm consultant:", err);
+      if (err.response?.data?.message) {
+        alert(`Lỗi: ${err.response.data.message}`);
+      } else {
+        alert("Có lỗi xảy ra khi tạo tư vấn viên. Vui lòng thử lại.");
+      }
     }
   };
 
@@ -113,18 +136,22 @@ const ConsultantListPage = () => {
   };
 
   const handleSearchClick = async () => {
-
     if (searchTerm.trim() === "") {
       fetchConsultants();
       return;
     }
+
     try {
-      const res = await axios.get(
-        `http://localhost:3000/api/consultants/search/${searchTerm}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      // For now, we'll filter on the frontend since there's no search endpoint for complete consultants
+      // You could implement a search endpoint in the backend later
+      const res = await axios.get("http://localhost:3000/api/consultants-complete");
       if (res.data.success) {
-        setConsultants(res.data.data.consultants);
+        const filteredConsultants = res.data.data.consultants.filter(consultant =>
+          consultant.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          consultant.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          consultant.speciality?.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        setConsultants(filteredConsultants);
       }
     } catch (err) {
       console.error("Lỗi khi tìm kiếm consultant:", err);
@@ -145,14 +172,20 @@ const ConsultantListPage = () => {
     if (!consultantIdToDelete) return;
     try {
       const res = await axios.delete(
-        `http://localhost:3000/api/consultants/${consultantIdToDelete}`,
+        `http://localhost:3000/api/consultants-complete/${consultantIdToDelete}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (res.data.success) {
+        alert("Xóa tư vấn viên thành công!");
         fetchConsultants();
       }
     } catch (err) {
       console.error("Lỗi khi xóa consultant:", err);
+      if (err.response?.data?.message) {
+        alert(`Lỗi: ${err.response.data.message}`);
+      } else {
+        alert("Có lỗi xảy ra khi xóa tư vấn viên. Vui lòng thử lại.");
+      }
     }
     handleCloseDeleteDialog();
   };
@@ -160,7 +193,7 @@ const ConsultantListPage = () => {
   // Fetch consultant by ID and open edit popup
   const handleEdit = async (consultantId) => {
     try {
-      const res = await axios.get(`http://localhost:3000/api/consultants/${consultantId}`, {
+      const res = await axios.get(`http://localhost:3000/api/consultants-complete/${consultantId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data.success) {
@@ -183,6 +216,7 @@ const ConsultantListPage = () => {
           ...consultant,
           bio,
           education,
+          date_of_birth: consultant.date_of_birth ? consultant.date_of_birth.slice(0, 10) : "",
         });
         setEditingConsultantId(consultantId);
         setShowPopup(true);
@@ -196,47 +230,65 @@ const ConsultantListPage = () => {
   const handleUpdate = async (e) => {
     e.preventDefault();
     if (!editingConsultantId) return;
+
     try {
       const payload = {
-        ...editConsultantData,
-        bio_json: {
-          bio: editConsultantData.bio,
-          education: editConsultantData.education,
-        },
+        // User table fields
+        email: editConsultantData.email,
+        role: "consultant",
+        status: editConsultantData.status,
+
+        // Consultant table fields
+        cost: editConsultantData.cost,
+        certification: editConsultantData.certification,
+        speciality: editConsultantData.speciality,
+
+        // Profile table fields
+        name: editConsultantData.name,
+        bio_json: JSON.stringify({
+          bio: editConsultantData.bio || "",
+          education: editConsultantData.education || "",
+        }),
+        date_of_birth: editConsultantData.date_of_birth,
+        job: editConsultantData.job,
       };
-      delete payload.bio;
-      delete payload.education;
 
       console.log("ID cần update:", editingConsultantId);
       console.log("Payload gửi:", payload);
 
-      const res = await axios.put(`http://localhost:3000/api/consultants/${editingConsultantId}`, payload, {
+      const res = await axios.put(`http://localhost:3000/api/consultants-complete/${editingConsultantId}`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data.success) {
+        alert("Cập nhật tư vấn viên thành công!");
         fetchConsultants();
         handleClosePopup();
       }
     } catch (err) {
       console.error("Lỗi khi cập nhật consultant:", err);
+      if (err.response?.data?.message) {
+        alert(`Lỗi: ${err.response.data.message}`);
+      } else {
+        alert("Có lỗi xảy ra khi cập nhật tư vấn viên. Vui lòng thử lại.");
+      }
     }
   };
 
   return (
     <div className="consultant-list-container">
-      <div className="top-bar d-flex justify-content-between align-items-center mb-3">
-        <button className="btn btn-primary" onClick={handleOpenPopup}>
-          <FaPlus style={{ marginRight: "5px" }} /> Tạo
-          tư vấn viên mới
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <button className="btn btn-secondary" disabled title="Tạo tư vấn viên tạm thời bị tắt">
+          <FaPlus className="me-1" /> Tạo tư vấn viên mới (Tạm tắt)
         </button>
-        <div className="search-box">
+        <div className="input-group" style={{ maxWidth: '300px' }}>
           <input
             type="text"
-            placeholder="Tìm kiếm..."
+            className="form-control"
+            placeholder="Tìm kiếm tư vấn viên..."
             value={searchTerm}
             onChange={handleSearch}
           />
-          <button onClick={handleSearchClick}>
+          <button className="btn btn-outline-secondary" onClick={handleSearchClick}>
             <FaSearch />
           </button>
         </div>
@@ -265,11 +317,11 @@ const ConsultantListPage = () => {
                 <td>{consultant.status}</td>
                 <td>{new Date(consultant.date_create).toLocaleDateString()}</td>
                 <td className="action-buttons">
-                  <button className="btn btn-light me-2">
-                    <FaEdit color="yellow" onClick={() => handleEdit(consultant.id_consultant)}/>
+                  <button className="btn btn-outline-warning btn-sm me-2" onClick={() => handleEdit(consultant.id_consultant)}>
+                    <FaEdit />
                   </button>
-                  <button className="btn btn-light">
-                    <FaTrash color="red" onClick={() => handleOpenDeleteDialog(consultant.id_consultant)} />
+                  <button className="btn btn-outline-danger btn-sm" onClick={() => handleOpenDeleteDialog(consultant.id_consultant)}>
+                    <FaTrash />
                   </button>
                 </td>
               </tr>
@@ -408,13 +460,13 @@ const ConsultantListPage = () => {
                 <p>Bạn có chắc chắn muốn xóa tư vấn viên này không?</p>
               </div>
               <div className="modal-footer border-0 pt-0">
-                <button type="button" className="btn btn-secondary" onClick={handleCloseDeleteDialog}>No</button>
-                <button type="button" className="btn btn-danger" onClick={handleConfirmDelete}>Yes</button>
+                <button type="button" className="btn btn-secondary" onClick={handleCloseDeleteDialog}>Không</button>
+                <button type="button" className="btn btn-danger" onClick={handleConfirmDelete}>Có</button>
               </div>
             </div>
           </div>
         </div>
-      )} 
+      )}
     </div>
   );
 };

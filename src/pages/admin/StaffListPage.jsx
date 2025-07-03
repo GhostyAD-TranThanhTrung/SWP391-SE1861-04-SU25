@@ -74,6 +74,13 @@ const StaffListPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate required fields
+    if (!newStaff.email || !newStaff.role || !newStaff.name || !newPassword) {
+      alert("Vui lòng điền đầy đủ thông tin bắt buộc (Email, Vai trò, Tên, Mật khẩu)");
+      return;
+    }
+
     try {
       const payload = {
         ...newStaff,
@@ -88,17 +95,22 @@ const StaffListPage = () => {
 
       console.log("Payload gửi:", payload);
 
-
       const res = await axios.post("http://localhost:3000/api/staff", payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
       if (res.data.success) {
+        alert("Tạo nhân viên thành công!");
         fetchStaffs();
         handleClosePopup();
       }
     } catch (err) {
       console.error("Lỗi khi thêm staff:", err);
+      if (err.response?.data?.message) {
+        alert(`Lỗi: ${err.response.data.message}`);
+      } else {
+        alert("Có lỗi xảy ra khi tạo nhân viên. Vui lòng thử lại.");
+      }
     }
   };
 
@@ -117,7 +129,7 @@ const StaffListPage = () => {
       };
       setEditStaffData(flatData);
       setEditingStaffId(staffId);
-      setNewPassword(""); 
+      setNewPassword("");
       setShowPopup(true);
     }
   };
@@ -207,18 +219,19 @@ const StaffListPage = () => {
 
   return (
     <div className="staff-list-container">
-      <div className="top-bar d-flex justify-content-between align-items-center mb-3">
+      <div className="d-flex justify-content-between align-items-center mb-3">
         <button className="btn btn-primary" onClick={handleOpenPopup}>
-          <FaPlus style={{ marginRight: "5px" }} /> Tạo nhân viên mới
+          <FaPlus className="me-1" /> Tạo nhân viên mới
         </button>
-        <div className="search-box">
+        <div className="input-group" style={{ maxWidth: '300px' }}>
           <input
             type="text"
-            placeholder="Tìm kiếm..."
+            className="form-control"
+            placeholder="Tìm kiếm nhân viên..."
             value={searchTerm}
             onChange={handleSearch}
           />
-          <button onClick={handleSearchClick}>
+          <button className="btn btn-outline-secondary" onClick={handleSearchClick}>
             <FaSearch />
           </button>
         </div>
@@ -247,12 +260,12 @@ const StaffListPage = () => {
                 <td>{staff.status}</td>
                 <td>{new Date(staff.date_create).toLocaleDateString()}</td>
                 <td className="action-buttons">
-                  <button className="btn btn-light me-2" onClick={() => handleEdit(staff.user_id)}>
-                    <FaEdit color="yellow" />
+                  <button className="btn btn-outline-warning btn-sm me-2" onClick={() => handleEdit(staff.user_id)}>
+                    <FaEdit />
                   </button>
                   {staff.role !== 'admin' && (
-                    <button className="btn btn-light" onClick={() => handleOpenDeleteDialog(staff.user_id)}>
-                      <FaTrash color="red" />
+                    <button className="btn btn-outline-danger btn-sm" onClick={() => handleOpenDeleteDialog(staff.user_id)}>
+                      <FaTrash />
                     </button>
                   )}
                 </td>
@@ -296,6 +309,7 @@ const StaffListPage = () => {
                 >
                   <option value="">Chọn vai trò</option>
                   {editingStaffId && editStaffData?.role === 'admin' && <option value="admin">Admin</option>}
+                  {!editingStaffId && <option value="admin">Admin</option>}
                   <option value="staff">Nhân viên</option>
                   <option value="manager">Quản lý</option>
                 </select>

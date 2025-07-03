@@ -8,7 +8,7 @@ import "../../styles/AssessmentListPage.scss";
 const AssessmentListPage = () => {
   const [assessments, setAssessments] = useState([]);
   const token = sessionStorage.getItem("token");
-  
+
   //const [showPopup, setShowPopup] = useState(false);
 
   //const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -99,10 +99,12 @@ const AssessmentListPage = () => {
                 <td>{assessment.user_id}</td>
                 <td>{(() => {
                   try {
-                    const result = JSON.parse(assessment.result_json);
-                    return result.total_score;
+                    const resultData = typeof assessment.result_json === 'string'
+                      ? JSON.parse(assessment.result_json)
+                      : assessment.result_json;
+                    return resultData && resultData.score !== undefined ? resultData.score : '';
                   } catch {
-                    return "";
+                    return '';
                   }
                 })()}</td>
                 <td>{assessment.type}</td>

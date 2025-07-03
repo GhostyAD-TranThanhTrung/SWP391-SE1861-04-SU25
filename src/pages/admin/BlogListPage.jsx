@@ -14,8 +14,7 @@ const BlogListPage = () => {
     status: "draft",
     img_link: "",
   });
-  const [editingBlogId, setEditingBlogId] = useState(null);
-  const [editBlogData, setEditBlogData] = useState(null);
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [blogIdToDelete, setBlogIdToDelete] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -66,8 +65,6 @@ const BlogListPage = () => {
 
   const handleClosePopup = () => {
     setShowPopup(false);
-    setEditingBlogId(null);
-    setEditBlogData(null);
     setNewBlog({
       title: "",
       body: "",
@@ -80,9 +77,7 @@ const BlogListPage = () => {
     setNewBlog({ ...newBlog, [e.target.name]: e.target.value });
   };
 
-  const handleEditChange = (e) => {
-    setEditBlogData({ ...editBlogData, [e.target.name]: e.target.value });
-  };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -109,46 +104,7 @@ const BlogListPage = () => {
     }
   };
 
-  const handleEdit = (blogId) => {
-    const blog = blogs.find((b) => b.blog_id === blogId);
-    if (blog) {
-      setEditBlogData({
-        title: blog.title || "",
-        body: blog.body || "",
-        status: blog.status || "draft",
-        img_link: blog.img_link || "",
-      });
-      setEditingBlogId(String(blogId));
-      setShowPopup(true);
-    }
-  };
 
-  const handleUpdateSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const payload = {
-        ...editBlogData,
-      };
-
-      console.log("Payload gửi:", payload);
-      console.log("Editing Blog ID:", editingBlogId);
-
-      const res = await axios.put(
-        `http://localhost:3000/api/blogs/${editingBlogId}`,
-        payload,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      if (res.data.success) {
-        fetchBlogs();
-        handleClosePopup();
-        alert("Cập nhật blog thành công!");
-      }
-    } catch (err) {
-      console.error("Lỗi khi cập nhật blog:", err);
-      alert("Có lỗi xảy ra khi cập nhật blog");
-    }
-  };
 
   const handleOpenDeleteDialog = (blogId) => {
     setBlogIdToDelete(blogId);
@@ -244,12 +200,12 @@ const BlogListPage = () => {
   return (
     <div className="blog-list-container">
       <div className="top-bar d-flex justify-content-between align-items-center mb-3">
-        <div className="d-flex align-items-center gap-3">
-          <button className="btn btn-primary" onClick={handleOpenPopup}>
-            <FaPlus style={{ marginRight: "5px" }} /> Tạo blog mới
+        <div className="d-flex align-items-center">
+          <button className="btn btn-primary me-3" onClick={handleOpenPopup}>
+            <FaPlus className="me-2" /> Tạo blog mới
           </button>
 
-          <div className="view-mode-buttons">
+          <div className="btn-group" role="group">
             <button
               className={`btn btn-sm ${viewMode === 'all' ? 'btn-primary' : 'btn-outline-primary'}`}
               onClick={() => setViewMode('all')}
@@ -271,14 +227,15 @@ const BlogListPage = () => {
           </div>
         </div>
 
-        <div className="search-box">
+        <div className="input-group" style={{ maxWidth: '300px' }}>
           <input
             type="text"
+            className="form-control"
             placeholder="Tìm kiếm blog..."
             value={searchTerm}
             onChange={handleSearch}
           />
-          <button onClick={handleSearchClick}>
+          <button className="btn btn-outline-secondary" onClick={handleSearchClick}>
             <FaSearch />
           </button>
         </div>
@@ -331,50 +288,43 @@ const BlogListPage = () => {
                 </td>
                 <td className="action-buttons">
                   <button
-                    className="btn btn-light btn-sm me-1"
+                    className="btn btn-outline-info btn-sm me-1"
                     onClick={() => window.open(`/blog/${blog.blog_id}`, '_blank')}
                     title="Xem blog"
                   >
-                    <FaEye color="blue" />
-                  </button>
-                  <button
-                    className="btn btn-light btn-sm me-1"
-                    onClick={() => handleEdit(blog.blog_id)}
-                    title="Chỉnh sửa"
-                  >
-                    <FaEdit color="orange" />
+                    <FaEye />
                   </button>
                   {blog.status === 'pending' && (
                     <>
                       <button
-                        className="btn btn-light btn-sm me-1"
+                        className="btn btn-outline-success btn-sm me-1"
                         onClick={() => handleStatusChange(blog.blog_id, 'published')}
                         title="Phê duyệt"
                       >
-                        <MdApproval color="green" />
+                        <MdApproval />
                       </button>
                       <button
-                        className="btn btn-light btn-sm me-1"
+                        className="btn btn-outline-danger btn-sm me-1"
                         onClick={() => handleStatusChange(blog.blog_id, 'rejected')}
                         title="Từ chối"
                       >
-                        <MdBlock color="red" />
+                        <MdBlock />
                       </button>
                     </>
                   )}
                   <button
-                    className="btn btn-light btn-sm me-1"
+                    className="btn btn-outline-warning btn-sm me-1"
                     onClick={() => window.open(`/admin/flags/blog/${blog.blog_id}`, '_blank')}
                     title="Xem báo cáo"
                   >
-                    <FaFlag color="purple" />
+                    <FaFlag />
                   </button>
                   <button
-                    className="btn btn-light btn-sm"
+                    className="btn btn-outline-danger btn-sm"
                     onClick={() => handleOpenDeleteDialog(blog.blog_id)}
                     title="Xóa"
                   >
-                    <FaTrash color="red" />
+                    <FaTrash />
                   </button>
                 </td>
               </tr>
@@ -394,22 +344,22 @@ const BlogListPage = () => {
           <div className="popup-content">
             <span className="close" onClick={handleClosePopup}><MdCancel /></span>
             <div className="form">
-              <h2>{editingBlogId ? "Chỉnh sửa blog" : "Tạo blog mới"}</h2>
-              <form className="form-grid" onSubmit={editingBlogId ? handleUpdateSubmit : handleSubmit}>
+              <h2>Tạo blog mới</h2>
+              <form className="form-grid" onSubmit={handleSubmit}>
                 <input
                   type="text"
                   name="title"
                   placeholder="Tiêu đề blog"
-                  value={editingBlogId ? editBlogData?.title || "" : newBlog.title}
-                  onChange={editingBlogId ? handleEditChange : handleChange}
+                  value={newBlog.title}
+                  onChange={handleChange}
                   required
                   style={{ gridColumn: 'span 2' }}
                 />
                 <textarea
                   name="body"
                   placeholder="Nội dung blog"
-                  value={editingBlogId ? editBlogData?.body || "" : newBlog.body}
-                  onChange={editingBlogId ? handleEditChange : handleChange}
+                  value={newBlog.body}
+                  onChange={handleChange}
                   required
                   rows="6"
                   style={{ gridColumn: 'span 2', resize: 'vertical' }}
@@ -418,14 +368,14 @@ const BlogListPage = () => {
                   type="url"
                   name="img_link"
                   placeholder="Link hình ảnh (không bắt buộc)"
-                  value={editingBlogId ? editBlogData?.img_link || "" : newBlog.img_link}
-                  onChange={editingBlogId ? handleEditChange : handleChange}
+                  value={newBlog.img_link}
+                  onChange={handleChange}
                   style={{ gridColumn: 'span 2' }}
                 />
                 <select
                   name="status"
-                  value={editingBlogId ? editBlogData?.status || "" : newBlog.status}
-                  onChange={editingBlogId ? handleEditChange : handleChange}
+                  value={newBlog.status}
+                  onChange={handleChange}
                   required
                 >
                   <option value="draft">Bản nháp</option>
@@ -434,7 +384,7 @@ const BlogListPage = () => {
                   <option value="rejected">Bị từ chối</option>
                 </select>
                 <button type="submit" className="form-button">
-                  {editingBlogId ? "Cập nhật" : "Tạo"}
+                  Tạo
                 </button>
               </form>
             </div>
