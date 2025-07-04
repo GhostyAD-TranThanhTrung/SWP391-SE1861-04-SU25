@@ -373,7 +373,6 @@ class ProgramController {
             const communityEventCategory = await categoryRepository.findOne({
                 where: { name: 'Sự kiện cộng đồng' }
             });
-
             if (!communityEventCategory) {
                 return res.status(404).json({
                     success: false,
@@ -385,7 +384,7 @@ class ProgramController {
             const programs = await programRepository.find({
                 where: {
                     category_id: communityEventCategory.category_id,
-                    status: 'active' // Only return active Sự kiện cộng đồng programs
+                    status: 'Hoạt động' // Only return Hoạt động Sự kiện cộng đồng programs
                 },
                 relations: ['creator', 'category', 'enrollments', 'contents'],
                 order: {
@@ -725,7 +724,7 @@ class ProgramController {
                 description: description || null,
                 age_group: age_group || null,
                 category_id: parseInt(category_id),
-                status: status || 'active',
+                status: status || 'Hoạt động',
                 img_link: img_link || null,
                 create_by: createBy,
                 create_at: new Date()

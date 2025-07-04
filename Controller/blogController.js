@@ -50,7 +50,7 @@ class BlogController {
     try {
       const blogRepository = AppDataSource.getRepository(Blog);
       const blogs = await blogRepository.find({
-        where: { status: "published" },
+        where: { status: "Đã xuất bản" },
         order: {
           created_at: "DESC",
         },
@@ -423,10 +423,10 @@ class BlogController {
       }
 
       // Validate status if provided
-      if (status !== undefined && !["draft", "published", "archived", "hidden", "pending"].includes(status)) {
+      if (status !== undefined && !["draft", "Đã xuất bản", "archived", "hidden", "pending"].includes(status)) {
         return res.status(400).json({
           success: false,
-          message: "Invalid status. Must be one of: draft, published, archived, hidden, pending",
+          message: "Invalid status. Must be one of: draft, Đã xuất bản, archived, hidden, pending",
         });
       }
 
@@ -527,7 +527,7 @@ class BlogController {
       const blogRepository = AppDataSource.getRepository(Blog);
 
       const blogs = await blogRepository.find({
-        where: { status: "published" },
+        where: { status: "Đã xuất bản" },
         order: {
           created_at: "DESC",
         },
@@ -567,10 +567,10 @@ class BlogController {
         });
       }
 
-      if (!status || !["draft", "published", "archived", "hidden", "pending"].includes(status)) {
+      if (!status || !["draft", "Đã xuất bản", "archived", "hidden", "pending"].includes(status)) {
         return res.status(400).json({
           success: false,
-          message: "Valid status is required (draft, published, archived, hidden, pending)",
+          message: "Valid status is required (draft, Đã xuất bản, archived, hidden, pending)",
         });
       }
 
@@ -881,8 +881,8 @@ class BlogController {
         });
       }
 
-      // Update blog status to published
-      blog.status = "published";
+      // Update blog status to Đã xuất bản
+      blog.status = "Đã xuất bản";
 
       // Add approval metadata to body or create a separate approval log
       // For now, we'll add it as a comment in the existing structure
@@ -1010,7 +1010,7 @@ class BlogController {
 
       // Get counts for each status
       const totalBlogs = await blogRepository.count();
-      const publishedBlogs = await blogRepository.count({ where: { status: "published" } });
+      const publishedBlogs = await blogRepository.count({ where: { status: "Đã xuất bản" } });
       const draftBlogs = await blogRepository.count({ where: { status: "draft" } });
       const pendingBlogs = await blogRepository.count({ where: { status: "pending" } });
       const hiddenBlogs = await blogRepository.count({ where: { status: "hidden" } });
