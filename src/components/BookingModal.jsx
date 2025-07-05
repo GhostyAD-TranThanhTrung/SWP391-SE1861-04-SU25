@@ -112,7 +112,7 @@ const BookingModal = ({ isOpen, onClose, consultantId }) => {
 
     // Filter slots for the selected day of week (using English day names for comparison)
     const filteredSlots = selectedDate ? availableSlots.filter(slot =>
-        slot.day_of_week === getEnglishDayOfWeek(selectedDate)
+        slot.day_of_week === getVietnameseDayOfWeek(selectedDate)
     ) : [];
 
     // Remove duplicate time slots
