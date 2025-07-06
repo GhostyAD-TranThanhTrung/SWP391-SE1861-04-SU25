@@ -6,21 +6,67 @@ import "../../styles/ManageBookingPage.scss";
 import axios from "axios";
 
 const ManageBookingPage = () => {
-  const [showPopup, setShowPopup] = useState(false);
-  const [members, setMembers] = useState([]);
-  const [selectedMember, setSelectedMember] = useState(null);
+  const [showViewPopup, setShowViewPopup] = useState(false);
+  const [showEditPopup, setShowEditPopup] = useState(false);
+  const [originalBookingSessions, setOriginalBookingSessions] = useState([]);
+  const [bookingSessions, setBookingSessions] = useState([]);
+  const [selectedBooking, setSelectedBooking] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [memberIdToDelete, setMemberIdToDelete] = useState(null);
+  const [bookingIdToDelete, setBookingIdToDelete] = useState(null);
+  const [editFormData, setEditFormData] = useState({
+    status: '',
+    notes: '',
+    google_meet_link: '',
+    booking_date: ''
+  });
   const token = sessionStorage.getItem("token");
 
-  const handleClosePopup = () => setShowPopup(false);
+  const statusOptions = ['Hoàn thành', 'Lên lịch', 'Đã hủy', 'Đang xác nhận', 'Xác nhận thành công'];
 
-  const fetchMembers = async () => {
+  const handleCloseViewPopup = () => setShowViewPopup(false);
+  const handleCloseEditPopup = () => {
+    setShowEditPopup(false);
+    setEditFormData({ status: '', notes: '', google_meet_link: '', booking_date: '' });
+  };
+
+  const fetchBookingSessions = async () => {
     try {
-      const res = await axios.get("http://localhost:3000/api/members", { headers: { Authorization: `Bearer ${token}` } });
+      // Get consultant ID from email
+      const email = localStorage.getItem('email2');
+      if (!email) {
+        console.error("No email found in localStorage");
+        return;
+      }
+
+      // Get consultant ID by email
+      const consultantResponse = await axios.get(`http://localhost:3000/api/consultants/email/${email}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!consultantResponse.data.success) {
+        console.error("Failed to get consultant ID");
+        return;
+      }
+
+      const consultantId = consultantResponse.data.data.consultant_id;
+
+      // Get booking sessions for this consultant
+      const res = await axios.get(`http://localhost:3000/api/booking-sessions/consultant/${consultantId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       if (res.data.success) {
-        setMembers(res.data.data);
+        console.log('Raw booking data:', res.data.data);
+
+        // Remove duplicates based on booking_id
+        const uniqueBookings = res.data.data.filter((booking, index, self) =>
+          index === self.findIndex(b => b.booking_id === booking.booking_id)
+        );
+
+        console.log('Unique bookings after filtering:', uniqueBookings);
+        console.log('Original count:', res.data.data.length, 'Unique count:', uniqueBookings.length);
+
+        setOriginalBookingSessions(uniqueBookings);
+        setBookingSessions(uniqueBookings);
       }
     } catch (err) {
       console.error("Lỗi khi gọi API:", err);
@@ -33,60 +79,100 @@ const ManageBookingPage = () => {
 
   const handleSearchClick = async () => {
     if (searchTerm.trim() === '') {
-      fetchMembers();
+      // Reset to original data instead of making another API call
+      setBookingSessions(originalBookingSessions);
       return;
     }
-    try {
-      const res = await axios.get(`http://localhost:3000/api/members/search/${searchTerm}`, { headers: { Authorization: `Bearer ${token}` } });
-      if (res.data.success) {
-        setMembers(res.data.data);
-      }
-    } catch (err) {
-      console.error("Lỗi khi tìm kiếm thành viên:", err);
-    }
+    // Filter bookings locally by member name or status
+    const filtered = originalBookingSessions.filter(booking =>
+      booking.member_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      booking.status?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setBookingSessions(filtered);
   };
 
   useEffect(() => {
-    fetchMembers();
-  }, []);
+    fetchBookingSessions();
+  }, []); // Empty dependency array to run only once
 
 
-  const handleOpenDeleteDialog = (memberId) => {
-    setMemberIdToDelete(memberId);
+  const handleOpenDeleteDialog = (bookingId) => {
+    setBookingIdToDelete(bookingId);
     setDeleteDialogOpen(true);
+
   };
 
   const handleCloseDeleteDialog = () => {
     setDeleteDialogOpen(false);
-    setMemberIdToDelete(null);
+    setBookingIdToDelete(null);
   };
 
   const handleConfirmDelete = async () => {
-    if (!memberIdToDelete) return;
+
+    if (!bookingIdToDelete) return;
+    alert(bookingIdToDelete + 'is the id')
     try {
       const res = await axios.delete(
-        `http://localhost:3000/api/members/${memberIdToDelete}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        "http://localhost:3000/api/booking-sessions/" + bookingIdToDelete,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
       );
       if (res.data.success) {
-        fetchMembers();
+        fetchBookingSessions();
       }
     } catch (err) {
-      console.error("Lỗi khi xóa thành viên:", err);
+      console.error("Lỗi khi xóa lịch hẹn:", err);
     }
     handleCloseDeleteDialog();
   };
 
+  const handleView = async (bookingId) => {
+    const booking = bookingSessions.find(b => b.booking_id === bookingId);
+    if (booking) {
+      setSelectedBooking(booking);
+      setShowViewPopup(true);
+    }
+  };
 
-  const handleView = async (memberId) => {
+  const handleEdit = async (bookingId) => {
+    const booking = bookingSessions.find(b => b.booking_id === bookingId);
+    if (booking) {
+      setSelectedBooking(booking);
+      setEditFormData({
+        status: booking.status || '',
+        notes: booking.notes || '',
+        google_meet_link: booking.google_meet_link || '',
+        booking_date: booking.booking_date ? new Date(booking.booking_date).toISOString().split('T')[0] : ''
+      });
+      setShowEditPopup(true);
+    }
+  };
+
+  const handleEditFormChange = (e) => {
+    const { name, value } = e.target;
+    setEditFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSaveEdit = async () => {
+    if (!selectedBooking) return;
+
     try {
-      const res = await axios.get(`http://localhost:3000/api/members/${memberId}`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await axios.put(
+        `http://localhost:3000/api/booking-sessions/${selectedBooking.booking_id}`,
+        editFormData,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
       if (res.data.success) {
-        setSelectedMember(res.data.data);
-        setShowPopup(true);
-      }
+        await fetchBookingSessions(); // Refresh the list
+        handleCloseEditPopup();
+      } else alert(res.data.success)
     } catch (err) {
-      console.error("Lỗi khi lấy thông tin thành viên:", err);
+      console.error("Lỗi khi cập nhật lịch hẹn:", err);
     }
   };
 
@@ -104,7 +190,7 @@ const ManageBookingPage = () => {
         >
           <input
             type="text"
-            placeholder="Tìm kiếm..."
+            placeholder="Tìm kiếm theo tên thành viên hoặc trạng thái..."
             style={{ background: "white" }}
             value={searchTerm}
             onChange={handleSearch}
@@ -120,28 +206,37 @@ const ManageBookingPage = () => {
           <thead>
             <tr>
               <th>#</th>
-              <th>Tên</th>
+              <th>Tên thành viên</th>
               <th>Email</th>
-              <th>Vai trò</th>
+              <th>Ngày đặt lịch</th>
+              <th>Thời gian</th>
               <th>Trạng thái</th>
-              <th>Ngày tạo</th>
+              <th>Ghi chú</th>
               <th>Hành động</th>
             </tr>
           </thead>
           <tbody>
-            {members.map((member, index) => (
-              <tr key={member.user_id}>
+            {bookingSessions.map((booking, index) => (
+              <tr key={`booking-${booking.booking_id}-${index}`}>
                 <td>{index + 1}</td>
-                <td>{member.profile.name}</td>
-                <td>{member.email}</td>
-                <td>{member.role}</td>
-                <td>{member.status}</td>
-                <td>{new Date(member.date_create).toLocaleDateString()}</td>
+                <td>{booking.member_name}</td>
+                <td>{booking.member_email}</td>
+                <td>{new Date(booking.booking_date).toLocaleDateString('vi-VN')}</td>
+                <td>{`${booking.start_time} - ${booking.end_time}`}</td>
+                <td>
+                  <span className={`status-badge ${booking.status?.toLowerCase().replace(/\s+/g, '-')}`}>
+                    {booking.status}
+                  </span>
+                </td>
+                <td>{booking.notes || 'Không có'}</td>
                 <td className="action-buttons">
-                  <button className="btn btn-light me-2" onClick={() => handleView(member.user_id)}>
-                    <FaEye color="yellow" />
+                  <button className="btn btn-light me-2" onClick={() => handleView(booking.booking_id)}>
+                    <FaEye color="blue" />
                   </button>
-                  <button className="btn btn-light" onClick={() => handleOpenDeleteDialog(member.user_id)}>
+                  <button className="btn btn-light me-2" onClick={() => handleEdit(booking.booking_id)}>
+                    <FaWrench color="green" />
+                  </button>
+                  <button className="btn btn-light" onClick={() => handleOpenDeleteDialog(booking.booking_id)}>
                     <FaTrash color="red" />
                   </button>
                 </td>
@@ -151,44 +246,124 @@ const ManageBookingPage = () => {
         </table>
       </div>
 
-      {showPopup && selectedMember && (
+      {showViewPopup && selectedBooking && (
         <div className="popup">
           <div className="popup-content">
-            <span className="close" onClick={handleClosePopup}>
+            <span className="close" onClick={handleCloseViewPopup}>
               <MdCancel />
             </span>
-            <h4>Chi tiết thành viên</h4>
+            <h4>Chi tiết lịch hẹn</h4>
             <div className="member-detail-row">
-              <span className="member-detail-label">Tên:</span>
-              <span className="member-detail-value">{selectedMember.profile?.name}</span>
+              <span className="member-detail-label">ID lịch hẹn:</span>
+              <span className="member-detail-value">{selectedBooking.booking_id}</span>
             </div>
             <div className="member-detail-row">
-              <span className="member-detail-label">Email:</span>
-              <span className="member-detail-value">{selectedMember.email}</span>
+              <span className="member-detail-label">Tên thành viên:</span>
+              <span className="member-detail-value">{selectedBooking.member_name}</span>
             </div>
             <div className="member-detail-row">
-              <span className="member-detail-label">Vai trò:</span>
-              <span className="member-detail-value">{selectedMember.role}</span>
+              <span className="member-detail-label">Email thành viên:</span>
+              <span className="member-detail-value">{selectedBooking.member_email}</span>
             </div>
             <div className="member-detail-row">
-              <span className="member-detail-label">Ngày sinh:</span>
-              <span className="member-detail-value">{selectedMember.profile?.date_of_birth}</span>
+              <span className="member-detail-label">Số điện thoại:</span>
+              <span className="member-detail-value">{selectedBooking.member_phone || 'Chưa cập nhật'}</span>
             </div>
             <div className="member-detail-row">
-              <span className="member-detail-label">Nghề nghiệp:</span>
-              <span className="member-detail-value">{selectedMember.profile?.job}</span>
+              <span className="member-detail-label">Ngày đặt lịch:</span>
+              <span className="member-detail-value">{new Date(selectedBooking.booking_date).toLocaleDateString('vi-VN')}</span>
             </div>
             <div className="member-detail-row">
-              <span className="member-detail-label">Tiểu sử:</span>
-              <span className="member-detail-value">{selectedMember.profile?.bio_json?.bio}</span>
+              <span className="member-detail-label">Thời gian:</span>
+              <span className="member-detail-value">{`${selectedBooking.start_time} - ${selectedBooking.end_time}`}</span>
             </div>
             <div className="member-detail-row">
-              <span className="member-detail-label">Sở thích:</span>
+              <span className="member-detail-label">Trạng thái:</span>
+              <span className="member-detail-value">{selectedBooking.status}</span>
+            </div>
+            <div className="member-detail-row">
+              <span className="member-detail-label">Ghi chú:</span>
+              <span className="member-detail-value">{selectedBooking.notes || 'Không có'}</span>
+            </div>
+            <div className="member-detail-row">
+              <span className="member-detail-label">Google Meet Link:</span>
               <span className="member-detail-value">
-                {Array.isArray(selectedMember.profile?.bio_json?.interests)
-                  ? selectedMember.profile.bio_json.interests.join(', ')
-                  : selectedMember.profile?.bio_json?.interests}
+                {selectedBooking.google_meet_link ? (
+                  <a href={selectedBooking.google_meet_link} target="_blank" rel="noopener noreferrer">
+                    {selectedBooking.google_meet_link}
+                  </a>
+                ) : 'Chưa có'}
               </span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showEditPopup && selectedBooking && (
+        <div className="popup">
+          <div className="popup-content">
+            <span className="close" onClick={handleCloseEditPopup}>
+              <MdCancel />
+            </span>
+            <h4>Chỉnh sửa lịch hẹn</h4>
+
+            <div className="form-group mb-3">
+              <label className="form-label">Trạng thái:</label>
+              <select
+                name="status"
+                value={editFormData.status}
+                onChange={handleEditFormChange}
+                className="form-control"
+              >
+                <option value="">Chọn trạng thái</option>
+                {statusOptions.map(status => (
+                  <option key={status} value={status}>{status}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group mb-3">
+              <label className="form-label">Ngày đặt lịch:</label>
+              <input
+                type="date"
+                name="booking_date"
+                value={editFormData.booking_date}
+                onChange={handleEditFormChange}
+                className="form-control"
+              />
+            </div>
+
+            <div className="form-group mb-3">
+              <label className="form-label">Ghi chú:</label>
+              <textarea
+                name="notes"
+                value={editFormData.notes}
+                onChange={handleEditFormChange}
+                className="form-control"
+                rows="3"
+                placeholder="Nhập ghi chú..."
+              />
+            </div>
+
+            <div className="form-group mb-3">
+              <label className="form-label">Google Meet Link:</label>
+              <input
+                type="url"
+                name="google_meet_link"
+                value={editFormData.google_meet_link}
+                onChange={handleEditFormChange}
+                className="form-control"
+                placeholder="https://meet.google.com/..."
+              />
+            </div>
+
+            <div className="form-actions">
+              <button type="button" className="btn btn-secondary me-2" onClick={handleCloseEditPopup}>
+                Hủy
+              </button>
+              <button type="button" className="btn btn-primary" onClick={handleSaveEdit}>
+                Lưu thay đổi
+              </button>
             </div>
           </div>
         </div>
@@ -208,7 +383,7 @@ const ManageBookingPage = () => {
                 <h5 className="modal-title">Xác nhận xóa</h5>
               </div>
               <div className="modal-body">
-                <p>Bạn có chắc chắn muốn xóa thành viên này không?</p>
+                <p>Bạn có chắc chắn muốn xóa lịch hẹn này không?</p>
               </div>
               <div className="modal-footer border-0 pt-0">
                 <button type="button" className="btn btn-secondary" onClick={handleCloseDeleteDialog}>Không</button>

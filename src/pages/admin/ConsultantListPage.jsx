@@ -11,6 +11,7 @@ const ConsultantListPage = () => {
     email: "",
     password: "",
     role: "",
+    status: "Hoạt động",
     cost: 0,
     certification: "",
     speciality: "",
@@ -44,8 +45,9 @@ const ConsultantListPage = () => {
       email: "",
       password: "",
       role: "consultant",
+      status: "Hoạt động",
       name: "",
-      bio: "",
+      bio_json: "",
       education: "",
       date_of_birth: "",
       job: "",
@@ -93,7 +95,7 @@ const ConsultantListPage = () => {
         email: newConsultant.email,
         password: newPassword,
         role: "consultant",
-        status: "active",
+        status: "Hoạt động", // Vietnamese status value
 
         // Consultant table fields
         cost: newConsultant.cost || 0,
@@ -192,6 +194,10 @@ const ConsultantListPage = () => {
 
   // Fetch consultant by ID and open edit popup
   const handleEdit = async (consultantId) => {
+    if (!consultantId) {
+      setShowPopup(true)
+      return;
+    }
     try {
       const res = await axios.get(`http://localhost:3000/api/consultants-complete/${consultantId}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -277,8 +283,8 @@ const ConsultantListPage = () => {
   return (
     <div className="consultant-list-container">
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <button className="btn btn-secondary" disabled title="Tạo tư vấn viên tạm thời bị tắt">
-          <FaPlus className="me-1" /> Tạo tư vấn viên mới (Tạm tắt)
+        <button onClick={() => { handleEdit(null) }} className="btn btn-primary" title="Tạo tư vấn viên tạm thời">
+          <FaPlus className="me-1" /> Tạo tư vấn viên mới
         </button>
         <div className="input-group" style={{ maxWidth: '300px' }}>
           <input
@@ -377,9 +383,9 @@ const ConsultantListPage = () => {
                     required
                   >
                     <option value="">Chọn trạng thái</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                    <option value="banned">Banned</option>
+                    <option value="Hoạt Động">Hoạt Động</option>
+                    <option value="Không Hoạt Động">Không Hoạt Động</option>
+                    <option value="Bị Cấm">Bị Cấm</option>
                   </select>
                 )}
                 <input

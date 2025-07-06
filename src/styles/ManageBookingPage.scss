@@ -47,6 +47,47 @@
     }
   }
 
+  // ===== Status Badge Styles =====
+  .status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    display: inline-block;
+    min-width: 80px;
+    text-align: center;
+
+    &.hoàn-thành {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    &.lên-lịch {
+      background-color: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+
+    &.đã-hủy {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    &.đang-xác-nhận {
+      background-color: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeaa7;
+    }
+
+    &.xác-nhận-thành-công {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+  }
+
   // ===== Table Wrapper =====
   .table-wrapper {
     background: white;
@@ -90,8 +131,8 @@
     }
   }
 
-// ===== Popup Overlay =====
-.popup {
+  // ===== Popup Overlay =====
+  .popup {
     position: fixed;
     top: 0;
     left: 0;
@@ -102,26 +143,27 @@
     align-items: center;
     justify-content: center;
 
-    h2, p{
-        margin-bottom: 5px;
+    h2,
+    p {
+      margin-bottom: 5px;
     }
 
     .close {
-    position: absolute;
-    top: 5px;
-    right: 15px;
-    font-size: 37px;
-    cursor: pointer;
-    color: #aaa;
+      position: absolute;
+      top: 5px;
+      right: 15px;
+      font-size: 37px;
+      cursor: pointer;
+      color: #aaa;
 
-    &:hover{
+      &:hover {
         color: #777;
+      }
     }
-    }
-}
+  }
 
-// ===== Popup Content =====
-.popup-content {
+  // ===== Popup Content =====
+  .popup-content {
     background-color: #fff;
     padding: 40px 32px 32px 32px;
     border-radius: 12px;
@@ -129,35 +171,107 @@
     width: 100%;
     text-align: center;
     position: relative;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
     border: 1.5px solid #e0e0e0;
-}
+  }
 
-.popup-content h2, .popup-content h4 {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 24px;
-  color: #222;
-}
+  .popup-content h2,
+  .popup-content h4 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 24px;
+    color: #222;
+  }
 
-.popup-content .member-detail-row {
-  display: flex;
-  justify-content: flex-start;
-  align-items: flex-start;
-  margin-bottom: 12px;
-  gap: 8px;
-}
+  .popup-content .member-detail-row {
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    gap: 8px;
+  }
 
-.popup-content .member-detail-label {
-  font-weight: 600;
-  color: #333;
-  min-width: 120px;
-  text-align: right;
-}
+  .popup-content .member-detail-label {
+    font-weight: 600;
+    color: #333;
+    min-width: 120px;
+    text-align: right;
+  }
 
-.popup-content .member-detail-value {
-  color: #444;
-  text-align: left;
-  word-break: break-word;
-}
+  .popup-content .member-detail-value {
+    color: #444;
+    text-align: left;
+    word-break: break-word;
+  }
+
+  // Form styles for edit popup
+  .form-group {
+    margin-bottom: 1rem;
+
+    .form-label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 0.9rem;
+
+      &:focus {
+        outline: none;
+        border-color: #66B0C6;
+        box-shadow: 0 0 0 2px rgba(102, 176, 198, 0.2);
+      }
+    }
+
+    select.form-control {
+      cursor: pointer;
+    }
+
+    textarea.form-control {
+      resize: vertical;
+      min-height: 80px;
+    }
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+
+    .btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+
+      &.btn-secondary {
+        background-color: #6c757d;
+        color: white;
+
+        &:hover {
+          background-color: #5a6268;
+        }
+      }
+
+      &.btn-primary {
+        background-color: #66B0C6;
+        color: white;
+
+        &:hover {
+          background-color: #5a9bb1;
+        }
+      }
+    }
+  }
 }

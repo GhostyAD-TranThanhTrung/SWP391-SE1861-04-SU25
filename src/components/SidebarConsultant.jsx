@@ -6,8 +6,8 @@ import { ManageAccountsOutlined } from "@mui/icons-material";
 const SidebarConsultant = ({ isOpen }) => {
   const location = useLocation();
   const currentPath = location.pathname;
+  const email = localStorage.getItem('email2')
   const navigate = useNavigate();
-
   const handleLogout = (e) => {
     e.preventDefault();
     localStorage.removeItem("email2");
@@ -44,7 +44,7 @@ const SidebarConsultant = ({ isOpen }) => {
           alt="Admin Avatar"
         />
         <div>
-          <strong>Tư vấn viên</strong>
+          <strong>{email ? email : 'Tư vấn viêsdfdsn'}</strong>
           <Link to="#">
             <div className="text-muted">Xem hồ sơ</div>
           </Link>
