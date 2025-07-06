@@ -141,16 +141,6 @@ const DetailCoursePage = () => {
 
     // Survey modal functions
     const triggerSurvey = (type) => {
-        // Check if survey exists before opening modal
-        if (type === 'pre-assessment' && !preAssessmentExists) {
-            alert('Pre-course assessment is not available for this program yet.');
-            return;
-        }
-        if (type === 'post-assessment' && !postAssessmentExists) {
-            alert('Post-course assessment is not available for this program yet.');
-            return;
-        }
-
         setSurveyType(type);
         setShowSurveyModal(true);
     };
@@ -534,8 +524,8 @@ const DetailCoursePage = () => {
                                     <div className="survey-section">
                                         {!checkingSurveyStatus && surveysChecked && (
                                             <>
-                                                {/* Show pre-assessment button if survey exists and not completed */}
-                                                {preAssessmentExists && !isCompleted && !preAssessmentCompleted && (
+                                                {/* Show pre-assessment button if not completed and course not completed */}
+                                                {!isCompleted && !preAssessmentCompleted && (
                                                     <button
                                                         className="survey-btn pre-assessment-btn"
                                                         onClick={() => triggerSurvey('pre-assessment')}
@@ -545,8 +535,8 @@ const DetailCoursePage = () => {
                                                     </button>
                                                 )}
 
-                                                {/* Show post-assessment button if survey exists and course completed */}
-                                                {postAssessmentExists && isCompleted && !postAssessmentCompleted && (
+                                                {/* Show post-assessment button if course completed and not completed */}
+                                                {isCompleted && !postAssessmentCompleted && (
                                                     <button
                                                         className="survey-btn post-assessment-btn"
                                                         onClick={() => triggerSurvey('post-assessment')}
@@ -572,26 +562,11 @@ const DetailCoursePage = () => {
                                                     </div>
                                                 )}
 
-                                                {/* Show message when no surveys are available */}
-                                                {!preAssessmentExists && !postAssessmentExists && (
+                                                {/* Show message when no surveys are available and none completed */}
+                                                {!preAssessmentExists && !postAssessmentExists && !preAssessmentCompleted && !postAssessmentCompleted && (
                                                     <div className="no-surveys-message">
                                                         <span className="info-icon">ℹ️</span>
                                                         No assessments are currently available for this course.
-                                                    </div>
-                                                )}
-
-                                                {/* Show partial survey availability messages */}
-                                                {!preAssessmentExists && postAssessmentExists && !isCompleted && (
-                                                    <div className="survey-info">
-                                                        <span className="info-icon">📝</span>
-                                                        Post-course assessment will be available after completion.
-                                                    </div>
-                                                )}
-
-                                                {!postAssessmentExists && preAssessmentExists && isCompleted && (
-                                                    <div className="survey-info">
-                                                        <span className="info-icon">📝</span>
-                                                        Post-course assessment is not available for this program.
                                                     </div>
                                                 )}
                                             </>
@@ -605,26 +580,28 @@ const DetailCoursePage = () => {
                                         )}
                                     </div>
 
-                                    {/* Delete Enrollment Button */}
-                                    <div className="enrollment-actions">
-                                        <button
-                                            className={`delete-enrollment-btn ${deleting ? 'deleting' : ''}`}
-                                            onClick={handleDeleteEnrollment}
-                                            disabled={deleting}
-                                        >
-                                            {deleting ? (
-                                                <>
-                                                    <span className="delete-spinner"></span>
-                                                    Đang hủy đăng ký...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <span className="delete-icon"></span>
-                                                    Hủy đăng ký khóa học
-                                                </>
-                                            )}
-                                        </button>
-                                    </div>
+                                    {/* Delete Enrollment Button - Only show if course is not completed */}
+                                    {!isCompleted && (
+                                        <div className="enrollment-actions">
+                                            <button
+                                                className={`delete-enrollment-btn ${deleting ? 'deleting' : ''}`}
+                                                onClick={handleDeleteEnrollment}
+                                                disabled={deleting}
+                                            >
+                                                {deleting ? (
+                                                    <>
+                                                        <span className="delete-spinner"></span>
+                                                        Đang hủy đăng ký...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <span className="delete-icon"></span>
+                                                        Hủy đăng ký khóa học
+                                                    </>
+                                                )}
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             ) : userId ? (
                                 <div className="enroll-info">
