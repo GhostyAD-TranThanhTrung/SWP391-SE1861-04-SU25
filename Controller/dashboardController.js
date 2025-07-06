@@ -79,7 +79,7 @@ class DashboardService {
     const userRepository = AppDataSource.getRepository(User);
     return await userRepository.count({
       where: {
-        status: "Hoạt động",
+        status: "active",
         role: "member",
       },
     });
@@ -121,7 +121,7 @@ class DashboardService {
     const [totalUsers, inactiveUsers, bannedUsers, roleDistribution] =
       await Promise.all([
         userRepository.count(),
-        userRepository.count({ where: { status: "Không hoạt động" } }),
+        userRepository.count({ where: { status: "inactive" } }),
         userRepository.count({ where: { status: "Bị cấm" } }),
         userRepository
           .createQueryBuilder("user")
@@ -277,7 +277,7 @@ class DashboardController {
         .getCount();
       memberActiveCount = await AppDataSource.getRepository(User)
         .createQueryBuilder("user")
-        .where("user.status = :status", { status: "Hoạt động" })
+        .where("user.status = :status", { status: "active" })
         .andWhere("user.date_create >= :startDate", { startDate })
         .andWhere("user.date_create <= :endDate", { endDate })
         .andWhere("user.role = :role", { role: "member" })
@@ -302,8 +302,8 @@ class DashboardController {
         // Additional user metrics
         userStats: {
           total: await user.getCount(),
-          active: await user.where('user.status = :status', { status: "Hoạt động" }).getCount(),
-          inactive: await user.where('user.status = :status', { status: "Không hoạt động" }).getCount(),
+          active: await user.where('user.status = :status', { status: "active" }).getCount(),
+          inactive: await user.where('user.status = :status', { status: "inactive" }).getCount(),
           banned: await user.where('user.status = :status', { status: "Bị cấm" }).getCount(),
           roleDistribution: await user_dis,
         },

@@ -605,6 +605,50 @@ class ConsultantController {
     }
   }
 
+  static async getConsultantIdByUserEmail(req, res) {
+    try {
+      // Get user_id from the authenticated user token
+
+      const { email } = req.params;
+      if (!email) {
+        return res.status(400).json({
+          success: false,
+          message: "Email is required"
+        });
+      }
+
+      const UserRepository = AppDataSource.getRepository(User);
+
+      // Find consultant by user_id
+      const consultant = await UserRepository.findOne({
+        where: { email: email },
+        select: ['user_id'] // Only select necessary fields
+      });
+
+      if (!consultant) {
+        return res.status(404).json({
+          success: false,
+          message: "Consultant not found for this user",
+          data: null
+        });
+      }
+      res.status(200).json({
+        success: true,
+        data: {
+          consultant_id: consultant.user_id
+        },
+        message: "Consultant ID retrieved successfully"
+      });
+
+    } catch (error) {
+      console.error("Error getting consultant ID by user ID:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to retrieve consultant ID",
+        error: error.message,
+      });
+    }
+  }
   /**
    * Delete consultant
    */

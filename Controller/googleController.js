@@ -235,7 +235,7 @@ async function googleRegisterInternal(req, res) {
                 email: email,
                 password: googleId,
                 role: 'Member',
-                status: 'Hoạt động'
+                status: 'active'
             });
 
             const savedUser = await userRepository.save(newUser);
@@ -267,7 +267,7 @@ async function googleRegisterInternal(req, res) {
             console.log(`🆔 New User ID: ${userId}`);
             console.log(`📧 Email: ${email}`);
             console.log(`👥 Role: Member`);
-            console.log(`✅ Status: Hoạt động`);
+            console.log(`✅ Status: active`);
             console.log(`🖼️ Profile Picture: ${savedUser.img_link || 'Not saved'}`);
             console.log('📝 Profile creation skipped - user can create profile later through ChooseRolePage');
 
@@ -277,7 +277,7 @@ async function googleRegisterInternal(req, res) {
             console.log(`   👤 Name: ${name}`);
             console.log(`   🆔 User ID: ${userId}`);
             console.log(`   👥 Role: Member`);
-            console.log(`   ✅ Status: Hoạt động`);
+            console.log(`   ✅ Status: active`);
             console.log(`   📅 Created: ${new Date().toLocaleString()}`);
             console.log(`   📝 Profile: Not created - user will create via ChooseRolePage`);
 

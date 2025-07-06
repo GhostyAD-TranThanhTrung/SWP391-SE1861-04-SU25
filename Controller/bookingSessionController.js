@@ -370,21 +370,19 @@ class BookingSessionController {
     static async deleteBookingSession(req, res) {
         try {
             const { id } = req.params;
-            const bookingRepository = AppDataSource.getRepository(BookingSession);
-
+            console.log('ID: ' + id)
             // Check if booking exists
-            const booking = await bookingRepository.findOne({
-                where: { booking_id: parseInt(id) }
-            });
+            const booking = await AppDataSource.query('select * from Booking_Session where booking_id= @0 ', [id]);
 
-            if (!booking) {
+            if (booking.length === 0) {
                 return res.status(404).json({
                     success: false,
                     message: 'Không tìm thấy lịch hẹn'
                 });
             }
 
-            await bookingRepository.delete(parseInt(id));
+
+            await AppDataSource.query('delete Booking_Session where booking_id= @0 ', [id]);
 
             res.status(200).json({
                 success: true,
@@ -526,7 +524,7 @@ class BookingSessionController {
      */
     static async updateBookingSession(req, res) {
         const queryRunner = AppDataSource.createQueryRunner();
-        
+
         try {
             const { bookingId } = req.params;
             const { consultant_id, slot_id, booking_date, status, notes, google_meet_link } = req.body;
@@ -681,8 +679,6 @@ class BookingSessionController {
                     u.date_create as member_date_create,
                     u.status as member_status,
                     p.name as member_name,
-                    p.phone_number as member_phone,
-                    p.gender as member_gender,
                     p.date_of_birth as member_date_of_birth,
                     -- Slot information
                     CONVERT(nvarchar(8), s.start_time, 108) as start_time,

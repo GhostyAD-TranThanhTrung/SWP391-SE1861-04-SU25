@@ -4,17 +4,17 @@
 -- Insert Users (Admin, Consultants, Members)
 -- Status options: 'active' (can login), 'inactive' (soft deleted, cannot login), 'banned' (cannot login)
 INSERT INTO Users (role, password, status, email, img_link) VALUES
-(N'admin', N'hashed_password_123', N'Hoạt động', N'admin@drugprevention.com', N'/uploads/profile-pictures/default-admin.png'),
-(N'consultant', N'hashed_password_456', N'Hoạt động', N'dr.smith@drugprevention.com', N'/uploads/profile-pictures/default-consultant.png'),
-(N'consultant', N'hashed_password_789', N'Hoạt động', N'therapist.johnson@drugprevention.com', N'/uploads/profile-pictures/default-consultant.png'),
-(N'consultant', N'hashed_password_321', N'Hoạt động', N'counselor.williams@drugprevention.com', N'/uploads/profile-pictures/default-consultant.png'),
-(N'consultant', N'hashed_password_654', N'Không hoạt động', N'dr.brown@drugprevention.com', N'/uploads/profile-pictures/default-consultant.png'), -- Deactivated account
-(N'member', N'hashed_password_987', N'Hoạt động', N'john.doe@email.com', N'/uploads/profile-pictures/default-member.png'),
-(N'member', N'hashed_password_147', N'Hoạt động', N'jane.smith@email.com', N'/uploads/profile-pictures/default-member.png'),
-(N'member', N'hashed_password_258', N'Hoạt động', N'mike.wilson@email.com', N'/uploads/profile-pictures/default-member.png'),
-(N'member', N'hashed_password_369', N'Hoạt động', N'sarah.davis@email.com', N'/uploads/profile-pictures/default-member.png'),
-(N'member', N'hashed_password_741', N'Bị cấm', N'banned.user@email.com', NULL), -- Banned account
-(N'member', N'hashed_password_999', N'Không hoạt động', N'deleted.user@email.com', NULL); -- Soft deleted account (user "deleted" their account)
+(N'admin', N'hashed_password_123', N'active', N'admin@drugprevention.com', N'/uploads/profile-pictures/default-admin.png'),
+(N'admin', N'hashed_password_456', N'active', N'dr.smith@drugprevention.com', N'/uploads/profile-pictures/default-consultant.png'),
+(N'consultant', N'hashed_password_789', N'active', N'therapist.johnson@drugprevention.com', N'/uploads/profile-pictures/default-consultant.png'),
+(N'consultant', N'hashed_password_321', N'active', N'counselor.williams@drugprevention.com', N'/uploads/profile-pictures/default-consultant.png'),
+(N'consultant', N'hashed_password_654', N'inactive', N'dr.brown@drugprevention.com', N'/uploads/profile-pictures/default-consultant.png'), -- Deactivated account
+(N'member', N'hashed_password_987', N'active', N'john.doe@email.com', N'/uploads/profile-pictures/default-member.png'),
+(N'member', N'hashed_password_147', N'active', N'jane.smith@email.com', N'/uploads/profile-pictures/default-member.png'),
+(N'member', N'hashed_password_258', N'active', N'mike.wilson@email.com', N'/uploads/profile-pictures/default-member.png'),
+(N'member', N'hashed_password_369', N'active', N'sarah.davis@email.com', N'/uploads/profile-pictures/default-member.png'),
+(N'member', N'hashed_password_741', N'banned', N'banned.user@email.com', NULL), -- Banned account
+(N'member', N'hashed_password_999', N'inactive', N'deleted.user@email.com', NULL); -- Soft deleted account (user "deleted" their account)
 
 -- Insert Profiles for all users
 INSERT INTO Profile (user_id, name, bio_json, date_of_birth, job) VALUES
@@ -116,72 +116,72 @@ INSERT INTO Category (name, description) VALUES
 -- Insert Programs
 INSERT INTO Programs (img_link, title, description, create_by, status, age_group, create_at, category_id) VALUES
 -- Chương trình Khoa học Nghiện
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Hiểu biết Khoa học về Nghiện', N'Khám phá toàn diện về khoa học thần kinh đằng sau nghiện, thay đổi não và cơ chế phục hồi', 1, N'Hoạt động', N'18+', GETDATE(), 1),
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Não và Nghiện: Góc nhìn Khoa học', N'Tìm hiểu sâu về cách chất tác động đến hóa học não và đường dẫn thần kinh', 1, N'Hoạt động', N'18+', GETDATE(), 1),
+(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Hiểu biết Khoa học về Nghiện', N'Khám phá toàn diện về khoa học thần kinh đằng sau nghiện, thay đổi não và cơ chế phục hồi', 1, N'active', N'18+', GETDATE(), 1),
+(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Não và Nghiện: Góc nhìn Khoa học', N'Tìm hiểu sâu về cách chất tác động đến hóa học não và đường dẫn thần kinh', 1, N'active', N'18+', GETDATE(), 1),
 
 -- Chương trình Cần sa
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Giáo dục và Nhận thức về Cần sa', N'Thông tin dựa trên bằng chứng về sử dụng cần sa, tác dụng và cân nhắc pháp lý', 1, N'Hoạt động', N'18+', GETDATE(), 2),
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Cần sa và Phát triển Thanh thiếu niên', N'Hiểu tác động của sử dụng cần sa lên não đang phát triển', 1, N'Hoạt động', N'13-25', GETDATE(), 2),
+(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Giáo dục và Nhận thức về Cần sa', N'Thông tin dựa trên bằng chứng về sử dụng cần sa, tác dụng và cân nhắc pháp lý', 1, N'active', N'18+', GETDATE(), 2),
+(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Cần sa và Phát triển Thanh thiếu niên', N'Hiểu tác động của sử dụng cần sa lên não đang phát triển', 1, N'active', N'13-25', GETDATE(), 2),
 
 -- Chương trình Xu hướng Ma túy Mới
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Cảnh báo Chất Tâm thần Mới', N'Cập nhật về các loại ma túy tổng hợp và chất mới nổi', 1, N'Hoạt động', N'18+', GETDATE(), 3),
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Chương trình Nhận thức Ma túy Tổng hợp', N'Giáo dục về ma túy thiết kế, rủi ro và cách nhận biết', 1, N'Hoạt động', N'16+', GETDATE(), 3),
+(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Cảnh báo Chất Tâm thần Mới', N'Cập nhật về các loại ma túy tổng hợp và chất mới nổi', 1, N'active', N'18+', GETDATE(), 3),
+(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Chương trình Nhận thức Ma túy Tổng hợp', N'Giáo dục về ma túy thiết kế, rủi ro và cách nhận biết', 1, N'active', N'16+', GETDATE(), 3),
 
 -- Chương trình Fentanyl
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Ứng phó Khủng hoảng Fentanyl', N'Giáo dục quan trọng về sự nguy hiểm của fentanyl, phòng ngừa quá liều và đào tạo naloxone', 1, N'Hoạt động', N'16+', GETDATE(), 4),
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Phòng ngừa và Ứng phó Quá liều', N'Kỹ thuật cứu sống và phản ứng khẩn cấp cho quá liều opioid', 1, N'Hoạt động', N'16+', GETDATE(), 4),
+(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Ứng phó Khủng hoảng Fentanyl', N'Giáo dục quan trọng về sự nguy hiểm của fentanyl, phòng ngừa quá liều và đào tạo naloxone', 1, N'active', N'16+', GETDATE(), 4),
+(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Phòng ngừa và Ứng phó Quá liều', N'Kỹ thuật cứu sống và phản ứng khẩn cấp cho quá liều opioid', 1, N'active', N'16+', GETDATE(), 4),
 
 -- Chương trình Giảm Tác hại
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Chiến lược Giảm Tác hại', N'Cách tiếp cận thực tế để giảm thiểu rủi ro sức khỏe liên quan đến sử dụng chất', 1, N'Hoạt động', N'18+', GETDATE(), 5),
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Giáo dục Sử dụng An toàn', N'Kỹ thuật giảm tác hại dựa trên bằng chứng và giao thức an toàn', 1, N'Hoạt động', N'18+', GETDATE(), 5),
+(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Chiến lược Giảm Tác hại', N'Cách tiếp cận thực tế để giảm thiểu rủi ro sức khỏe liên quan đến sử dụng chất', 1, N'active', N'18+', GETDATE(), 5),
+(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Giáo dục Sử dụng An toàn', N'Kỹ thuật giảm tác hại dựa trên bằng chứng và giao thức an toàn', 1, N'active', N'18+', GETDATE(), 5),
 
 -- Chương trình Heroin
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Lựa chọn Điều trị Nghiện Heroin', N'Hướng dẫn toàn diện về điều trị nghiện heroin và con đường phục hồi', 1, N'Hoạt động', N'18+', GETDATE(), 6),
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Điều trị Hỗ trợ bằng Thuốc cho Heroin', N'Hiểu về methadone, buprenorphine và các loại thuốc điều trị khác', 1, N'Hoạt động', N'18+', GETDATE(), 6),
+(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Lựa chọn Điều trị Nghiện Heroin', N'Hướng dẫn toàn diện về điều trị nghiện heroin và con đường phục hồi', 1, N'active', N'18+', GETDATE(), 6),
+(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Điều trị Hỗ trợ bằng Thuốc cho Heroin', N'Hiểu về methadone, buprenorphine và các loại thuốc điều trị khác', 1, N'active', N'18+', GETDATE(), 6),
 
 -- Chương trình HIV
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Phòng ngừa HIV trong Sử dụng Chất', N'Ngăn ngừa lây truyền HIV giữa những người sử dụng ma túy', 1, N'Hoạt động', N'18+', GETDATE(), 7),
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Dịch vụ Xét nghiệm và Chăm sóc HIV', N'Tiếp cận xét nghiệm HIV, điều trị và dịch vụ hỗ trợ', 1, N'Hoạt động', N'18+', GETDATE(), 7),
+(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Phòng ngừa HIV trong Sử dụng Chất', N'Ngăn ngừa lây truyền HIV giữa những người sử dụng ma túy', 1, N'active', N'18+', GETDATE(), 7),
+(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Dịch vụ Xét nghiệm và Chăm sóc HIV', N'Tiếp cận xét nghiệm HIV, điều trị và dịch vụ hỗ trợ', 1, N'active', N'18+', GETDATE(), 7),
 
 -- Chương trình Kratom
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Kratom: Sự thật và Rủi ro', N'Nội dung giáo dục về sử dụng kratom, tác dụng và rủi ro sức khỏe tiềm ẩn', 1, N'Hoạt động', N'18+', GETDATE(), 8),
+(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Kratom: Sự thật và Rủi ro', N'Nội dung giáo dục về sử dụng kratom, tác dụng và rủi ro sức khỏe tiềm ẩn', 1, N'active', N'18+', GETDATE(), 8),
 
 -- Chương trình Methamphetamine
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Phục hồi Nghiện Methamphetamine', N'Cách tiếp cận điều trị và chiến lược phục hồi cho nghiện methamphetamine', 1, N'Hoạt động', N'18+', GETDATE(), 9),
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Hiểu Tác dụng Methamphetamine', N'Giáo dục toàn diện về sử dụng meth, tác động sức khỏe và rủi ro', 1, N'Hoạt động', N'16+', GETDATE(), 9),
+(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Phục hồi Nghiện Methamphetamine', N'Cách tiếp cận điều trị và chiến lược phục hồi cho nghiện methamphetamine', 1, N'active', N'18+', GETDATE(), 9),
+(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Hiểu Tác dụng Methamphetamine', N'Giáo dục toàn diện về sử dụng meth, tác động sức khỏe và rủi ro', 1, N'active', N'16+', GETDATE(), 9),
 
 -- Chương trình Opioid
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Nhận thức Khủng hoảng Opioid', N'Hiểu về đại dịch opioid, lạm dụng thuốc theo toa và giải pháp', 1, N'Hoạt động', N'16+', GETDATE(), 10),
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'An toàn Thuốc Opioid Kê đơn', N'Sử dụng an toàn, bảo quản và tiêu hủy thuốc opioid kê đơn', 1, N'Hoạt động', N'Mọi lứa tuổi', GETDATE(), 10),
+(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Nhận thức Khủng hoảng Opioid', N'Hiểu về đại dịch opioid, lạm dụng thuốc theo toa và giải pháp', 1, N'active', N'16+', GETDATE(), 10),
+(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'An toàn Thuốc Opioid Kê đơn', N'Sử dụng an toàn, bảo quản và tiêu hủy thuốc opioid kê đơn', 1, N'active', N'Mọi lứa tuổi', GETDATE(), 10),
 
 -- Chương trình Phòng ngừa
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Chương trình Phòng ngừa Ma túy Thanh thiếu niên', N'Chiến lược phòng ngừa dựa trên bằng chứng cho thanh thiếu niên', 1, N'Hoạt động', N'13-18', GETDATE(), 11),
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Sáng kiến Phòng ngừa Cộng đồng', N'Xây dựng khả năng phục hồi và năng lực phòng ngừa cộng đồng', 1, N'Hoạt động', N'Mọi lứa tuổi', GETDATE(), 11),
+(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Chương trình Phòng ngừa Ma túy Thanh thiếu niên', N'Chiến lược phòng ngừa dựa trên bằng chứng cho thanh thiếu niên', 1, N'active', N'13-18', GETDATE(), 11),
+(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Sáng kiến Phòng ngừa Cộng đồng', N'Xây dựng khả năng phục hồi và năng lực phòng ngừa cộng đồng', 1, N'active', N'Mọi lứa tuổi', GETDATE(), 11),
 
 -- Chương trình Chất gây Ảo giác
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Giáo dục về Chất gây Ảo giác', N'Nội dung giáo dục về chất gây ảo giác, chất phân ly và tác dụng của chúng', 1, N'Hoạt động', N'18+', GETDATE(), 12),
+(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Giáo dục về Chất gây Ảo giác', N'Nội dung giáo dục về chất gây ảo giác, chất phân ly và tác dụng của chúng', 1, N'active', N'18+', GETDATE(), 12),
 
 -- Chương trình Psilocybin
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'An toàn và Tác dụng Psilocybin', N'Thông tin về nấm ma thuật, tác dụng và cân nhắc an toàn', 1, N'Hoạt động', N'18+', GETDATE(), 13),
+(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'An toàn và Tác dụng Psilocybin', N'Thông tin về nấm ma thuật, tác dụng và cân nhắc an toàn', 1, N'active', N'18+', GETDATE(), 13),
 
 -- Chương trình Kỳ thị
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Giảm Kỳ thị Nghiện', N'Giải quyết kỳ thị, thúc đẩy hiểu biết và giảm phân biệt đối xử', 1, N'Hoạt động', N'Mọi lứa tuổi', GETDATE(), 14),
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Ngôn ngữ trong Nghiện', N'Sử dụng ngôn ngữ lấy người làm trung tâm và giảm thuật ngữ kỳ thị', 1, N'Hoạt động', N'16+', GETDATE(), 14),
+(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Giảm Kỳ thị Nghiện', N'Giải quyết kỳ thị, thúc đẩy hiểu biết và giảm phân biệt đối xử', 1, N'active', N'Mọi lứa tuổi', GETDATE(), 14),
+(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Ngôn ngữ trong Nghiện', N'Sử dụng ngôn ngữ lấy người làm trung tâm và giảm thuật ngữ kỳ thị', 1, N'active', N'16+', GETDATE(), 14),
 
 -- Chương trình Dịch vụ Kim tiêm
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Tổng quan Chương trình Dịch vụ Kim tiêm', N'Hiểu về chương trình trao đổi kim tiêm và dịch vụ giảm tác hại', 1, N'Hoạt động', N'18+', GETDATE(), 15),
+(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Tổng quan Chương trình Dịch vụ Kim tiêm', N'Hiểu về chương trình trao đổi kim tiêm và dịch vụ giảm tác hại', 1, N'active', N'18+', GETDATE(), 15),
 
 -- Chương trình Thuốc lá/Vaping
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Chương trình Cai thuốc lá', N'Hỗ trợ cai thuốc toàn diện và liệu pháp thay thế nicotine', 1, N'Hoạt động', N'16+', GETDATE(), 16),
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Rủi ro Vaping và Thuốc lá điện tử', N'Hiểu về rủi ro sức khỏe của vaping và sử dụng thuốc lá điện tử', 1, N'Hoạt động', N'13+', GETDATE(), 16),
+(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Chương trình Cai thuốc lá', N'Hỗ trợ cai thuốc toàn diện và liệu pháp thay thế nicotine', 1, N'active', N'16+', GETDATE(), 16),
+(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Rủi ro Vaping và Thuốc lá điện tử', N'Hiểu về rủi ro sức khỏe của vaping và sử dụng thuốc lá điện tử', 1, N'active', N'13+', GETDATE(), 16),
 
 -- Chương trình Điều trị
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Điều trị Nghiện Toàn diện', N'Tổng quan về lựa chọn điều trị, chương trình phục hồi và dịch vụ hỗ trợ', 1, N'Hoạt động', N'18+', GETDATE(), 17),
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Dịch vụ Hỗ trợ Phục hồi', N'Hỗ trợ đồng đẳng, tư vấn và duy trì phục hồi dài hạn', 1, N'Hoạt động', N'18+', GETDATE(), 17),
+(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Điều trị Nghiện Toàn diện', N'Tổng quan về lựa chọn điều trị, chương trình phục hồi và dịch vụ hỗ trợ', 1, N'active', N'18+', GETDATE(), 17),
+(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Dịch vụ Hỗ trợ Phục hồi', N'Hỗ trợ đồng đẳng, tư vấn và duy trì phục hồi dài hạn', 1, N'active', N'18+', GETDATE(), 17),
 
 -- Chương trình Sự kiện Cộng đồng
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Hội chợ Phòng ngừa Cộng đồng', N'Sự kiện cộng đồng tương tác với các gian hàng giáo dục phòng ngừa, chia sẻ tài nguyên và hoạt động thân thiện với gia đình để xây dựng nhận thức và mạng lưới hỗ trợ', 1, N'Hoạt động', N'Mọi lứa tuổi', GETDATE(), 18),
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Đi bộ Phục hồi & Tập trung Hỗ trợ', N'Sự kiện đi bộ cộng đồng thể hiện tình đoàn kết với những người đang phục hồi, giảm kỳ thị và kết nối gia đình với các nguồn hỗ trợ địa phương', 1, N'Hoạt động', N'Mọi lứa tuổi', GETDATE(), 18);
+(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Hội chợ Phòng ngừa Cộng đồng', N'Sự kiện cộng đồng tương tác với các gian hàng giáo dục phòng ngừa, chia sẻ tài nguyên và hoạt động thân thiện với gia đình để xây dựng nhận thức và mạng lưới hỗ trợ', 1, N'active', N'Mọi lứa tuổi', GETDATE(), 18),
+(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Đi bộ Phục hồi & Tập trung Hỗ trợ', N'Sự kiện đi bộ cộng đồng thể hiện tình đoàn kết với những người đang phục hồi, giảm kỳ thị và kết nối gia đình với các nguồn hỗ trợ địa phương', 1, N'active', N'Mọi lứa tuổi', GETDATE(), 18);
 
 -- Insert User Enrollments with JSON progress tracking
 INSERT INTO Enroll (user_id, program_id, start_at, progress) VALUES

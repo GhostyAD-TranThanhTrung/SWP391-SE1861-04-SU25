@@ -414,6 +414,16 @@ app.delete("/api/consultants/:consultantId", authController.verifyToken, Consult
  */
 app.get("/api/consultants/my-id", authController.verifyToken, ConsultantController.getConsultantIdByUserId);
 
+/**
+ * CONSULTANT ID BY USER EMAIL: Get consultant ID from user email
+ * Purpose: Get consultant ID from user email address
+ * Method: GET /api/consultants/email/:email
+ * Input: email (string) - User's email address
+ * Output: { success: boolean, data: { consultant_id: number, user_id: number }, message: string }
+ * Authentication: None
+ */
+app.get("/api/consultants/email/:email", authController.verifyToken, ConsultantController.getConsultantIdByUserEmail);
+
 // ==================== CONSULTANT COMPLETE MANAGEMENT ROUTES ====================
 /**
  * CONSULTANTS COMPLETE LIST: Get all consultants with complete data
@@ -484,7 +494,7 @@ app.get("/api/consultants-complete/:consultantId/availability/:dayOfWeek", Consu
  * Authentication: Required (Consultant/Admin)
  */
 app.put("/api/booking-sessions/:bookingId/status-link", authController.verifyToken, ConsultantCompleteController.updateBookingSessionStatusAndLink);
-
+app.delete('/api/booking-sessions/:id', authController.verifyToken, BookingSessionController.deleteBookingSession)
 // ==================== CONSULTANT SCHEDULING ROUTES ====================
 /**
  * CONSULTANT SLOTS: Get consultant availability

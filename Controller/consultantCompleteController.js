@@ -440,96 +440,143 @@ class ConsultantCompleteController {
       await queryRunner.startTransaction();
 
       try {
-        // 1. Update consultant fields
-        if (cost !== undefined) consultant.cost = cost;
-        if (certification !== undefined) consultant.certification = certification;
-        if (speciality !== undefined) consultant.speciality = speciality;
-
-        const updatedConsultant = await queryRunner.manager.save(consultant);
-
-        // 2. Update user fields
-        const user = await queryRunner.manager.findOne(User, {
-          where: { user_id: consultant.user_id },
-        });
-
-        if (user) {
-          if (role !== undefined) user.role = role;
-          if (status !== undefined) user.status = status;
-          if (email !== undefined) user.email = email;
-          if (img_link !== undefined) user.img_link = img_link;
-
-          await queryRunner.manager.save(user);
+        // 1. Update consultant fields using raw query
+        if (cost !== undefined || certification !== undefined || speciality !== undefined) {
+          await queryRunner.query(`
+            UPDATE Consultant 
+            SET cost = COALESCE(@0, cost),
+                certification = COALESCE(@1, certification),
+                speciality = COALESCE(@2, speciality)
+            WHERE id_consultant = @3
+          `, [
+            cost !== undefined ? cost : null,
+            certification !== undefined ? certification : null,
+            speciality !== undefined ? speciality : null,
+            parseInt(id)
+          ]);
         }
 
-        // 3. Update or create profile
-        let profile = await queryRunner.manager.findOne(Profile, {
-          where: { user_id: consultant.user_id },
-        });
+        // Get updated consultant data
+        const consultantResult = await queryRunner.query(`
+          SELECT * FROM Consultant WHERE id_consultant = @0
+        `, [parseInt(id)]);
+        const updatedConsultant = consultantResult[0];
 
-        if (!profile && (name || bio_json || date_of_birth || job)) {
+        // 2. Update user fields using raw query
+        if (role !== undefined || status !== undefined || email !== undefined || img_link !== undefined) {
+          await queryRunner.query(`
+            UPDATE Users 
+            SET role = COALESCE(@0, role),
+                status = COALESCE(@1, status),
+                email = COALESCE(@2, email),
+                img_link = COALESCE(@3, img_link)
+            WHERE user_id = @4
+          `, [
+            role !== undefined ? role : null,
+            status !== undefined ? status : null,
+            email !== undefined ? email : null,
+            img_link !== undefined ? img_link : null,
+            parseInt(consultant.user_id)
+          ]);
+        }
+
+        // 3. Update or create profile using raw queries
+        let profile = null;
+
+        // Check if profile exists
+        const existingProfileResult = await queryRunner.query(`
+          SELECT * FROM Profile WHERE user_id = @0
+        `, [parseInt(consultant.user_id)]);
+
+        if (existingProfileResult.length === 0 && (name || bio_json || date_of_birth || job)) {
           // Create new profile if it doesn't exist and we have profile data
           let bioJsonString = null;
           if (bio_json) {
             bioJsonString = typeof bio_json === 'string' ? bio_json : JSON.stringify(bio_json);
           }
 
-          profile = queryRunner.manager.create(Profile, {
-            user_id: consultant.user_id,
-            name: name || null,
-            bio_json: bioJsonString,
-            date_of_birth: date_of_birth ? new Date(date_of_birth) : null,
-            job: job || null,
-          });
-        } else if (profile) {
+          const profileInsertResult = await queryRunner.query(`
+            INSERT INTO Profile (user_id, name, bio_json, date_of_birth, job)
+            OUTPUT INSERTED.user_id, INSERTED.name, INSERTED.bio_json, INSERTED.date_of_birth, INSERTED.job
+            VALUES (@0, @1, @2, @3, @4)
+          `, [
+            parseInt(consultant.user_id),
+            name || null,
+            bioJsonString,
+            date_of_birth ? new Date(date_of_birth) : null,
+            job || null
+          ]);
+          profile = profileInsertResult[0];
+        } else if (existingProfileResult.length > 0) {
           // Update existing profile
-          if (name !== undefined) profile.name = name;
-          if (bio_json !== undefined) {
-            profile.bio_json = typeof bio_json === 'string' ? bio_json : JSON.stringify(bio_json);
+          if (name !== undefined || bio_json !== undefined || date_of_birth !== undefined || job !== undefined) {
+            let bioJsonString = null;
+            if (bio_json !== undefined) {
+              bioJsonString = typeof bio_json === 'string' ? bio_json : JSON.stringify(bio_json);
+            }
+
+            await queryRunner.query(`
+              UPDATE Profile 
+              SET name = COALESCE(@0, name),
+                  bio_json = COALESCE(@1, bio_json),
+                  date_of_birth = COALESCE(@2, date_of_birth),
+                  job = COALESCE(@3, job)
+              WHERE user_id = @4
+            `, [
+              name !== undefined ? name : null,
+              bioJsonString,
+              date_of_birth !== undefined ? (date_of_birth ? new Date(date_of_birth) : null) : null,
+              job !== undefined ? job : null,
+              parseInt(consultant.user_id)
+            ]);
           }
-          if (date_of_birth !== undefined) {
-            profile.date_of_birth = date_of_birth ? new Date(date_of_birth) : null;
-          }
-          if (job !== undefined) profile.job = job;
+
+          // Get updated profile
+          const updatedProfileResult = await queryRunner.query(`
+            SELECT * FROM Profile WHERE user_id = @0
+          `, [parseInt(consultant.user_id)]);
+          profile = updatedProfileResult[0];
         }
 
-        if (profile) {
-          await queryRunner.manager.save(profile);
-        }
-
-        // 4. Update availability slots if provided
+        // 4. Update availability slots if provided using raw queries
         let updatedSlots = [];
         if (availability_slots !== undefined) {
           // Remove existing consultant slots
-          await queryRunner.manager.delete(ConsultantSlot, {
-            consultant_id: consultant.id_consultant,
-          });
+          await queryRunner.query(`
+            DELETE FROM Consultant_Slot WHERE consultant_id = @0
+          `, [parseInt(consultant.id_consultant)]);
 
           // Create new consultant slots
           for (const slotData of availability_slots) {
             const { day_of_week, start_time, end_time } = slotData;
 
             // Check if slot with these times already exists
-            let slot = await queryRunner.manager.findOne(Slot, {
-              where: { start_time, end_time },
-            });
+            const existingSlotResult = await queryRunner.query(`
+              SELECT slot_id, start_time, end_time FROM Slot WHERE start_time = @0 AND end_time = @1
+            `, [start_time, end_time]);
 
-            // Create slot if it doesn't exist
-            if (!slot) {
-              const newSlot = queryRunner.manager.create(Slot, {
-                start_time,
-                end_time,
-              });
-              slot = await queryRunner.manager.save(newSlot);
+            let slot;
+            if (existingSlotResult.length > 0) {
+              slot = existingSlotResult[0];
+            } else {
+              // Create slot if it doesn't exist
+              const slotInsertResult = await queryRunner.query(`
+                INSERT INTO Slot (start_time, end_time)
+                OUTPUT INSERTED.slot_id, INSERTED.start_time, INSERTED.end_time
+                VALUES (@0, @1)
+              `, [start_time, end_time]);
+              slot = slotInsertResult[0];
             }
 
             // Create consultant slot relationship
-            const consultantSlot = queryRunner.manager.create(ConsultantSlot, {
-              consultant_id: consultant.id_consultant,
-              slot_id: slot.slot_id,
-              day_of_week: day_of_week,
-            });
-
-            await queryRunner.manager.save(consultantSlot);
+            await queryRunner.query(`
+              INSERT INTO Consultant_Slot (consultant_id, slot_id, day_of_week)
+              VALUES (@0, @1, @2)
+            `, [
+              parseInt(consultant.id_consultant),
+              slot.slot_id,
+              day_of_week
+            ]);
 
             updatedSlots.push({
               slot_id: slot.slot_id,
@@ -540,25 +587,28 @@ class ConsultantCompleteController {
           }
         } else {
           // If slots not provided, get existing slots
-          const existingConsultantSlots = await queryRunner.manager.find(ConsultantSlot, {
-            where: { consultant_id: consultant.id_consultant },
-            relations: { slot: true },
-          });
+          const existingSlotsResult = await queryRunner.query(`
+            SELECT cs.slot_id, cs.day_of_week, s.start_time, s.end_time
+            FROM Consultant_Slot cs
+            INNER JOIN Slot s ON cs.slot_id = s.slot_id
+            WHERE cs.consultant_id = @0
+          `, [parseInt(consultant.id_consultant)]);
 
-          updatedSlots = existingConsultantSlots.map((cs) => ({
+          updatedSlots = existingSlotsResult.map((cs) => ({
             slot_id: cs.slot_id,
             day_of_week: cs.day_of_week,
-            start_time: cs.slot.start_time,
-            end_time: cs.slot.end_time,
+            start_time: cs.start_time,
+            end_time: cs.end_time,
           }));
         }
 
         await queryRunner.commitTransaction();
 
-        // Get updated user data
-        const updatedUser = await userRepository.findOne({
-          where: { user_id: consultant.user_id },
-        });
+        // Get updated user data using raw query
+        const updatedUserResult = await queryRunner.query(`
+          SELECT * FROM Users WHERE user_id = @0
+        `, [parseInt(consultant.user_id)]);
+        const updatedUser = updatedUserResult[0];
 
         // Parse bio_json for response if it exists
         if (profile && profile.bio_json) {
@@ -626,15 +676,12 @@ class ConsultantCompleteController {
     try {
       const { consultantId } = req.params;
 
-      const consultantRepository = AppDataSource.getRepository(Consultant);
-      const consultantSlotRepository = AppDataSource.getRepository(ConsultantSlot);
+      // Check if consultant exists using raw query
+      const existingConsultantResult = await AppDataSource.query(`
+        SELECT id_consultant FROM Consultant WHERE id_consultant = @0
+      `, [parseInt(consultantId)]);
 
-      // Check if consultant exists
-      const consultant = await consultantRepository.findOne({
-        where: { id_consultant: parseInt(consultantId) },
-      });
-
-      if (!consultant) {
+      if (existingConsultantResult.length === 0) {
         return res.status(404).json({
           success: false,
           message: "Consultant not found",
@@ -648,14 +695,14 @@ class ConsultantCompleteController {
 
       try {
         // Delete consultant slots first (foreign key constraint)
-        await queryRunner.manager.delete(ConsultantSlot, {
-          consultant_id: parseInt(consultantId),
-        });
+        await queryRunner.query(`
+          DELETE FROM ConsultantSlot WHERE consultant_id = @0
+        `, [parseInt(consultantId)]);
 
         // Delete the consultant (cascade will handle User and Profile)
-        await queryRunner.manager.delete(Consultant, {
-          id_consultant: parseInt(consultantId),
-        });
+        await queryRunner.query(`
+          DELETE FROM Consultant WHERE id_consultant = @0
+        `, [parseInt(consultantId)]);
 
         await queryRunner.commitTransaction();
 

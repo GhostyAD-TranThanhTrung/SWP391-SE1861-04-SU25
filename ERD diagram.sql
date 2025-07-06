@@ -25,7 +25,7 @@ CREATE TABLE Users (
   date_create DATETIME NOT NULL DEFAULT GETDATE(),
   role NVARCHAR(50) NOT NULL,
   password NVARCHAR(255) NOT NULL,
-  status NVARCHAR(50) NOT NULL CHECK (status IN (N'Hoạt động', N'Không hoạt động', N'Bị cấm')),
+  status NVARCHAR(50) NOT NULL CHECK (status IN (N'active', N'inactive', N'banned')),
   email NVARCHAR(255) NOT NULL UNIQUE
 );
 

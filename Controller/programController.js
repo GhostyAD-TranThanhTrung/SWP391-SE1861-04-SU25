@@ -112,7 +112,7 @@ class ProgramController {
                 const enrollmentCount = program.enrollments ? program.enrollments.length : 0;
                 const contentCount = program.contents ? program.contents.length : 0;
                 const surveyCount = program.surveys ? program.surveys.length : 0;
-                const isActive = program.status === 'Hoạt động';
+                const isActive = program.status === 'active';
 
                 // Enhanced program object with additional metadata
                 const enhancedProgram = {
@@ -155,7 +155,7 @@ class ProgramController {
             const totalEnrollments = programs.reduce((sum, p) => sum + (p.enrollments ? p.enrollments.length : 0), 0);
             const totalContents = programs.reduce((sum, p) => sum + (p.contents ? p.contents.length : 0), 0);
             const totalSurveys = programs.reduce((sum, p) => sum + (p.surveys ? p.surveys.length : 0), 0);
-            const activePrograms = programs.filter(p => p.status === 'Hoạt động').length;
+            const activePrograms = programs.filter(p => p.status === 'active').length;
 
             res.status(200).json({
                 success: true,
@@ -384,7 +384,7 @@ class ProgramController {
             const programs = await programRepository.find({
                 where: {
                     category_id: communityEventCategory.category_id,
-                    status: 'Hoạt động' // Only return Hoạt động Sự kiện cộng đồng programs
+                    status: 'active' // Only return active Sự kiện cộng đồng programs
                 },
                 relations: ['creator', 'category', 'enrollments', 'contents'],
                 order: {
@@ -724,7 +724,7 @@ class ProgramController {
                 description: description || null,
                 age_group: age_group || null,
                 category_id: parseInt(category_id),
-                status: status || 'Hoạt động',
+                status: status || 'active',
                 img_link: img_link || null,
                 create_by: createBy,
                 create_at: new Date()

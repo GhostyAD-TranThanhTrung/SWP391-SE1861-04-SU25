@@ -34,10 +34,10 @@ const User = new EntitySchema({
             nullable: false
         },
         status: {
-            type: "varchar",
+            type: "nvarchar",
             length: 20,
             nullable: false,
-            check: "status IN ('active', 'inactive', 'banned')"
+            check: "status IN (N'Hoạt động', N'Không hoạt động', N'Bị cấm')"
         },
         email: {
             type: "nvarchar",

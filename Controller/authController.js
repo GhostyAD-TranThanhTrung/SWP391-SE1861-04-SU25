@@ -45,7 +45,7 @@ class AuthController {
       }
 
       // Check if user status is active
-      if (user.status !== 'Hoạt động') {
+      if (user.status !== 'active') {
         console.log(`❌ LOGIN DENIED - User ${user.email} has status: ${user.status}`);
         return res.status(403).json({
           success: false,
@@ -130,7 +130,7 @@ class AuthController {
         email: email,
         password: password, // Note: In production, hash the password first
         role: role,
-        status: 'Hoạt động',
+        status: 'active',
         img_link: null // Initialize img_link as null for new users
       });
 

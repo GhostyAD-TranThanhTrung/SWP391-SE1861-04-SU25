@@ -136,7 +136,7 @@ class MemberController {
                 // Users table fields (ERD compliant)
                 email,
                 password,
-                status = 'Hoạt động',
+                status = 'active',
                 // Profile table fields (ERD compliant)
                 name,
                 bio_json,
@@ -154,11 +154,11 @@ class MemberController {
             }
 
             // Validate status
-            if (!['Hoạt động', 'Không hoạt động', 'Bị cấm'].includes(status)) {
+            if (!['active', 'inactive', 'banned'].includes(status)) {
                 await queryRunner.rollbackTransaction();
                 return res.status(400).json({
                     success: false,
-                    message: 'Status must be Hoạt động, Không hoạt động, or Bị cấm'
+                    message: 'Status must be active, inactive, or banned'
                 });
             }
 
@@ -277,10 +277,10 @@ class MemberController {
             if (email !== undefined) user.email = email;
             if (password !== undefined) user.password = await bcrypt.hash(password, 10);
             if (status !== undefined) {
-                if (!['Hoạt động', 'Không hoạt động', 'Bị cấm'].includes(status)) {
+                if (!['active', 'inactive', 'banned'].includes(status)) {
                     return res.status(400).json({
                         success: false,
-                        message: 'Status must be Hoạt động, Không hoạt động, or Bị cấm'
+                        message: 'Status must be active, inactive, or banned'
                     });
                 }
                 user.status = status;
@@ -532,15 +532,15 @@ class MemberController {
             });
 
             const activeMembers = await userRepository.count({
-                where: { role: 'member', status: 'Hoạt động' }
+                where: { role: 'member', status: 'active' }
             });
 
             const inactiveMembers = await userRepository.count({
-                where: { role: 'member', status: 'Không hoạt động' }
+                where: { role: 'member', status: 'inactive' }
             });
 
             const bannedMembers = await userRepository.count({
-                where: { role: 'member', status: 'Bị cấm' }
+                where: { role: 'member', status: 'banned' }
             });
 
             // Count members with profiles
