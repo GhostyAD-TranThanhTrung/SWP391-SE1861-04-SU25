@@ -211,6 +211,8 @@ class ConsultantCompleteController {
         availability_slots = []
       } = req.body;
 
+      console.log('Create consultant request:', req.body);
+
       // Validate required fields
       if (!email || !password) {
         return res.status(400).json({
@@ -236,50 +238,54 @@ class ConsultantCompleteController {
         });
       }
 
-      const userRepository = AppDataSource.getRepository(User);
-      const consultantRepository = AppDataSource.getRepository(Consultant);
-      const profileRepository = AppDataSource.getRepository(Profile);
-      const slotRepository = AppDataSource.getRepository(Slot);
-      const consultantSlotRepository = AppDataSource.getRepository(ConsultantSlot);
-
       // Check if user already exists with this email
-      const existingUser = await userRepository.findOne({
-        where: { email: email },
-      });
+      const existingUserQuery = 'SELECT user_id FROM Users WHERE email = @0';
+      const existingUsers = await AppDataSource.query(existingUserQuery, [email]);
 
-      if (existingUser) {
+      if (existingUsers.length > 0) {
         return res.status(409).json({
           success: false,
           message: "A user with this email already exists",
         });
       }
 
-      // Start transaction to ensure data integrity
-      const queryRunner = AppDataSource.createQueryRunner();
-      await queryRunner.connect();
-      await queryRunner.startTransaction();
+      // Hash password
 
       try {
-        // 1. Create new user
-        const newUser = queryRunner.manager.create(User, {
-          role: role || 'consultant',
-          password: await bcrypt.hash(password, 10),
-          status: status || 'active',
-          email: email,
-          img_link: img_link || null,
-        });
+        // 1. Create new user using raw SQL
+        const createUserQuery = `
+          INSERT INTO Users (role, password, status, email, img_link, date_create)
+          OUTPUT INSERTED.*
+          VALUES (@0, @1, @2, @3, @4, GETDATE())
+        `;
 
-        const savedUser = await queryRunner.manager.save(newUser);
+        const userResult = await AppDataSource.query(createUserQuery, [
+          role || 'consultant',
+          password,
+          status || 'active',
+          email,
+          img_link || null
+        ]);
 
-        // 2. Create consultant profile
-        const newConsultant = queryRunner.manager.create(Consultant, {
-          user_id: savedUser.user_id,
-          cost: cost || null,
-          certification: certification || null,
-          speciality: speciality || null,
-        });
+        const savedUser = userResult[0];
+        console.log('Created user:', savedUser);
 
-        const savedConsultant = await queryRunner.manager.save(newConsultant);
+        // 2. Create consultant profile using raw SQL
+        const createConsultantQuery = `
+          INSERT INTO Consultant (user_id, cost, certification, speciality)
+          OUTPUT INSERTED.*
+          VALUES (@0, @1, @2, @3)
+        `;
+
+        const consultantResult = await AppDataSource.query(createConsultantQuery, [
+          savedUser.user_id,
+          cost || null,
+          certification || null,
+          speciality || null
+        ]);
+
+        const savedConsultant = consultantResult[0];
+        console.log('Created consultant:', savedConsultant);
 
         // 3. Create profile if profile data is provided
         let savedProfile = null;
@@ -290,44 +296,58 @@ class ConsultantCompleteController {
             bioJsonString = typeof bio_json === 'string' ? bio_json : JSON.stringify(bio_json);
           }
 
-          const newProfile = queryRunner.manager.create(Profile, {
-            user_id: savedUser.user_id,
-            name: name || null,
-            bio_json: bioJsonString,
-            date_of_birth: date_of_birth ? new Date(date_of_birth) : null,
-            job: job || null,
-          });
+          const createProfileQuery = `
+            INSERT INTO Profile (user_id, name, bio_json, date_of_birth, job)
+            OUTPUT INSERTED.*
+            VALUES (@0, @1, @2, @3, @4)
+          `;
 
-          savedProfile = await queryRunner.manager.save(newProfile);
+          const profileResult = await AppDataSource.query(createProfileQuery, [
+            savedUser.user_id,
+            name || null,
+            bioJsonString,
+            date_of_birth ? new Date(date_of_birth) : null,
+            job || null
+          ]);
+
+          savedProfile = profileResult[0];
+          console.log('Created profile:', savedProfile);
         }
 
-        // 4. Create availability slots
+        // 4. Create availability slots using raw SQL
         const createdSlots = [];
         for (const slotData of availability_slots) {
           const { day_of_week, start_time, end_time } = slotData;
 
           // Check if slot with these times already exists
-          let slot = await queryRunner.manager.findOne(Slot, {
-            where: { start_time, end_time },
-          });
+          const existingSlotQuery = 'SELECT slot_id, start_time, end_time FROM Slot WHERE start_time = @0 AND end_time = @1';
+          const existingSlots = await AppDataSource.query(existingSlotQuery, [start_time, end_time]);
 
-          // Create slot if it doesn't exist
-          if (!slot) {
-            const newSlot = queryRunner.manager.create(Slot, {
-              start_time,
-              end_time,
-            });
-            slot = await queryRunner.manager.save(newSlot);
+          let slot;
+          if (existingSlots.length > 0) {
+            slot = existingSlots[0];
+          } else {
+            // Create slot if it doesn't exist
+            const createSlotQuery = `
+              INSERT INTO Slot (start_time, end_time)
+              OUTPUT INSERTED.*
+              VALUES (@0, @1)
+            `;
+            const slotResult = await AppDataSource.query(createSlotQuery, [start_time, end_time]);
+            slot = slotResult[0];
           }
 
           // Create consultant slot relationship
-          const consultantSlot = queryRunner.manager.create(ConsultantSlot, {
-            consultant_id: savedConsultant.id_consultant,
-            slot_id: slot.slot_id,
-            day_of_week: day_of_week,
-          });
+          const createConsultantSlotQuery = `
+            INSERT INTO Consultant_Slot (consultant_id, slot_id, day_of_week)
+            VALUES (@0, @1, @2)
+          `;
 
-          await queryRunner.manager.save(consultantSlot);
+          await AppDataSource.query(createConsultantSlotQuery, [
+            savedConsultant.id_consultant,
+            slot.slot_id,
+            day_of_week
+          ]);
 
           createdSlots.push({
             slot_id: slot.slot_id,
@@ -336,8 +356,6 @@ class ConsultantCompleteController {
             end_time: slot.end_time,
           });
         }
-
-        await queryRunner.commitTransaction();
 
         // Parse bio_json for response if it exists
         if (savedProfile && savedProfile.bio_json) {
@@ -382,10 +400,8 @@ class ConsultantCompleteController {
         });
 
       } catch (error) {
-        await queryRunner.rollbackTransaction();
+        console.error('Database error during consultant creation:', error);
         throw error;
-      } finally {
-        await queryRunner.release();
       }
 
     } catch (error) {
