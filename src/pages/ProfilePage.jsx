@@ -12,9 +12,10 @@ const ProfilePage = () => {
         name: '',
         job: '',
         date_of_birth: '',
-        bio: ''
+        bio_json: ''
     });
     const [updateStatus, setUpdateStatus] = useState({ success: false, message: '' });
+    const [bioJsonError, setBioJsonError] = useState('');
     const location = useLocation();
 
     // Helper function to format bio_json for display
@@ -46,7 +47,7 @@ const ProfilePage = () => {
                     name: profile.name || '',
                     job: profile.job || '',
                     date_of_birth: profile.date_of_birth ? new Date(profile.date_of_birth).toISOString().split('T')[0] : '',
-                    bio: profile.bio_json || ''
+                    bio_json: profile.bio_json || ''
                 });
             } else {
                 // Initialize empty form if no profile exists
@@ -79,6 +80,7 @@ const ProfilePage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setBioJsonError('');
+
         // Bọc dữ liệu vào object profile
         const submitData = {
             profile: {
@@ -88,6 +90,7 @@ const ProfilePage = () => {
                 bio_json: formData.bio_json
             }
         };
+
         try {
             const response = await axios.put('http://localhost:3000/api/user/profile-combined', submitData, {
                 headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }

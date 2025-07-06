@@ -1,18 +1,26 @@
-// AboutUsPage.scss - Unique Modern Theme
+// AboutUsPage.scss - Modern Clean Design
 .about-page {
-    width: 100vw;
+    width: 100%;
     min-height: 100vh;
-    background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+    background: #f8f9fa;
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+
+    // Typography improvements
+    * {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
 
     // Hero Section
     .about-hero {
-        background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        padding: 6rem 0 4rem 0;
+        padding: 5rem 0 4rem 0;
         margin-top: 60px;
         position: relative;
+        overflow: hidden;
 
-        // Add light overlay for better text contrast
+        // Modern overlay pattern
         &::before {
             content: '';
             position: absolute;
@@ -20,24 +28,26 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(255, 255, 255, 0.1);
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
             z-index: 1;
         }
 
         .container {
             position: relative;
             z-index: 2;
-            padding-left: 4rem;
-            padding-right: 4rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
         }
 
         .hero-title {
-            font-size: 3.5rem;
+            font-size: clamp(2.5rem, 5vw, 4rem);
             font-weight: 700;
             margin-bottom: 1.5rem;
             line-height: 1.2;
-            color: #2c3e50;
-            text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8);
+            color: white;
+            letter-spacing: -0.01em;
+            font-family: 'Poppins', sans-serif;
 
             @media (max-width: 768px) {
                 font-size: 2.5rem;
@@ -45,41 +55,52 @@
         }
 
         .hero-subtitle {
-            font-size: 1.25rem;
-            margin-bottom: 2rem;
-            color: #34495e;
-            line-height: 1.6;
-            text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.8);
+            font-size: 1.125rem;
+            margin-bottom: 2.5rem;
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.7;
+            font-weight: 400;
+            max-width: 600px;
+            font-family: 'Roboto', sans-serif;
         }
 
         .hero-buttons {
-            margin-top: 2rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
 
             .btn {
-                padding: 0.75rem 2rem;
+                padding: 0.875rem 2rem;
                 font-weight: 600;
-                border-radius: 25px;
-                transition: all 0.3s ease;
+                border-radius: 12px;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                font-size: 0.95rem;
+                text-decoration: none;
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                font-family: 'Poppins', sans-serif;
 
                 &.btn-primary {
-                    background: #2c3e50;
-                    border: 2px solid #2c3e50;
+                    background: white;
+                    color: #667eea;
+                    border: 2px solid white;
 
                     &:hover {
-                        background: #34495e;
+                        background: rgba(255, 255, 255, 0.9);
                         transform: translateY(-2px);
-                        box-shadow: 0 4px 15px rgba(44, 62, 80, 0.3);
+                        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
                     }
                 }
 
                 &.btn-outline-light {
-                    border: 2px solid #2c3e50;
-                    color: #2c3e50;
+                    border: 2px solid rgba(255, 255, 255, 0.8);
+                    color: white;
                     background: transparent;
 
                     &:hover {
-                        background: #2c3e50;
-                        color: white;
+                        background: rgba(255, 255, 255, 0.1);
+                        border-color: white;
                         transform: translateY(-2px);
                     }
                 }
@@ -88,143 +109,132 @@
 
         .hero-image {
             position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
 
             img {
-                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-                border: 3px solid rgba(255, 255, 255, 0.2);
+                width: 100%;
+                height: auto;
+                transition: transform 0.3s ease;
+            }
+
+            &:hover img {
+                transform: scale(1.02);
             }
         }
     }
 
     // Main Content Container
     .container {
-        background: white;
-        margin-top: 0;
-        position: relative;
-        z-index: 2;
-        width: 100%;
-        max-width: none;
-        margin-left: 0;
-        margin-right: 0;
-        padding-left: 4rem !important;
-        padding-right: 4rem !important;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+        background: transparent;
 
         .section {
             margin-bottom: 5rem;
-            padding: 0 4rem;
         }
     }
 
     // Section Headers
     .section-header {
-        margin-bottom: 3rem;
+        text-align: center;
+        margin-bottom: 4rem;
 
         .section-title {
-            font-size: 2.5rem;
+            font-size: clamp(2rem, 4vw, 3rem);
             font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 0.5rem;
-
-            @media (max-width: 768px) {
-                font-size: 2rem;
-            }
+            color: #1a202c;
+            margin-bottom: 1rem;
+            letter-spacing: -0.01em;
+            font-family: 'Poppins', sans-serif;
         }
 
         .section-subtitle {
-            font-size: 1.1rem;
-            color: #6c757d;
-            margin-bottom: 0;
-
-            @media (max-width: 768px) {
-                font-size: 1rem;
-            }
-        }
-    }
-
-    // Statistics Section
-    .stats-section {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border-radius: 20px;
-        margin: 0 2rem;
-        border: 1px solid rgba(23, 162, 184, 0.2);
-        box-shadow: 0 10px 30px rgba(23, 162, 184, 0.1);
-
-        .stat-item {
-            padding: 2rem 1rem;
-
-            .stat-icon {
-                font-size: 3rem;
-                color: #17a2b8;
-                margin-bottom: 1rem;
-            }
-
-            .stat-number {
-                font-size: 2.5rem;
-                font-weight: 700;
-                color: #2c3e50;
-                margin-bottom: 0.5rem;
-                display: block;
-            }
-
-            .stat-label {
-                font-size: 1rem;
-                color: #6c757d;
-                font-weight: 500;
-            }
+            font-size: 1.125rem;
+            color: #718096;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+            font-family: 'Roboto', sans-serif;
         }
     }
 
     // Mission Section
     .mission-section {
+        padding: 4rem 0;
+        background: white;
+        border-radius: 24px;
+        margin: 2rem 0;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+
         .mission-content {
+            padding: 0 2rem;
+
             .section-title {
                 font-size: 2.5rem;
                 font-weight: 700;
-                color: #2c3e50;
+                color: #1a202c;
                 margin-bottom: 1.5rem;
+                letter-spacing: -0.01em;
+                font-family: 'Poppins', sans-serif;
             }
 
             .section-description {
-                font-size: 1.1rem;
+                font-size: 1.125rem;
                 line-height: 1.7;
-                color: #6c757d;
+                color: #4a5568;
                 margin-bottom: 1.5rem;
+                font-family: 'Roboto', sans-serif;
             }
         }
 
         .mission-image {
+            padding: 2rem;
+
             img {
+                border-radius: 16px;
                 box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+                transition: transform 0.3s ease;
+
+                &:hover {
+                    transform: scale(1.02);
+                }
             }
         }
     }
 
     // Services Section
     .services-section {
+        padding: 4rem 0;
+
         .service-card {
             background: white;
             border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 8px 25px rgba(23, 162, 184, 0.15);
-            transition: all 0.4s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             height: 100%;
-            border: 2px solid transparent;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
 
             &:hover {
-                transform: translateY(-10px) scale(1.02);
-                box-shadow: 0 20px 50px rgba(23, 162, 184, 0.25);
-                border-color: rgba(23, 162, 184, 0.3);
+                transform: translateY(-8px);
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
             }
 
             .service-image {
-                height: 200px;
+                height: 220px;
                 overflow: hidden;
+                position: relative;
 
                 img {
                     width: 100%;
                     height: 100%;
                     object-fit: cover;
-                    transition: transform 0.3s ease;
+                    transition: transform 0.4s ease;
                 }
 
                 &:hover img {
@@ -234,29 +244,55 @@
 
             .service-content {
                 padding: 2rem;
+                display: flex;
+                flex-direction: column;
+                flex: 1 1 auto;
 
                 .service-title {
-                    font-size: 1.3rem;
+                    font-size: 1.25rem;
                     font-weight: 700;
-                    color: #2c3e50;
+                    color: #1a202c;
                     margin-bottom: 1rem;
+                    letter-spacing: -0.01em;
+                    font-family: 'Poppins', sans-serif;
                 }
 
                 .service-description {
-                    color: #6c757d;
+                    color: #4a5568;
                     line-height: 1.6;
                     margin-bottom: 1.5rem;
+                    font-size: 0.95rem;
+                    font-family: 'Roboto', sans-serif;
+                }
+
+                .service-features {
+                    .feature-item {
+                        display: flex;
+                        align-items: center;
+                        margin-bottom: 0.5rem;
+                        font-size: 0.9rem;
+                        color: #4a5568;
+                        font-family: 'Roboto', sans-serif;
+
+                        i {
+                            font-size: 0.8rem;
+                            margin-right: 0.5rem;
+                        }
+                    }
                 }
 
                 .btn {
-                    border-radius: 25px;
-                    padding: 0.5rem 1.5rem;
-                    font-weight: 500;
+                    border-radius: 10px;
+                    padding: 0.75rem 1.5rem;
+                    font-weight: 600;
                     transition: all 0.3s ease;
-
-                    &:hover {
-                        transform: translateY(-2px);
-                    }
+                    font-size: 0.9rem;
+                    text-decoration: none;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    font-family: 'Poppins', sans-serif;
+                    margin-top: auto;
                 }
             }
         }
@@ -264,59 +300,80 @@
 
     // Values Section
     .values-section {
-        background: #f8f9fa;
-        border-radius: 25px;
+        background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+        border-radius: 24px;
         padding: 4rem 2rem;
-        margin: 0 2rem;
+        margin: 2rem 0;
 
         .value-card {
+            text-align: center;
             padding: 2rem 1rem;
+            transition: transform 0.3s ease;
+
+            &:hover {
+                transform: translateY(-5px);
+            }
 
             .value-icon {
-                font-size: 3rem;
-                color: #17a2b8;
-                margin-bottom: 1.5rem;
+                width: 80px;
+                height: 80px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto 1.5rem;
+                font-size: 2rem;
+                color: white;
+                box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
             }
 
             .value-title {
-                font-size: 1.3rem;
+                font-size: 1.25rem;
                 font-weight: 700;
-                color: #2c3e50;
+                color: #1a202c;
                 margin-bottom: 1rem;
+                letter-spacing: -0.01em;
+                font-family: 'Poppins', sans-serif;
             }
 
             .value-description {
-                color: #6c757d;
+                color: #4a5568;
                 line-height: 1.6;
                 font-size: 0.95rem;
+                font-family: 'Roboto', sans-serif;
             }
         }
     }
 
     // Team Section
     .team-section {
+        padding: 4rem 0;
+
         .team-card {
             background: white;
-            border-radius: 15px;
+            border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             height: 100%;
+            border: 1px solid rgba(0, 0, 0, 0.05);
 
             &:hover {
                 transform: translateY(-8px);
-                box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
             }
 
             .team-image {
-                height: 250px;
+                height: 280px;
                 overflow: hidden;
+                position: relative;
 
                 img {
                     width: 100%;
                     height: 100%;
                     object-fit: cover;
-                    transition: transform 0.3s ease;
+                    transition: transform 0.4s ease;
                 }
 
                 &:hover img {
@@ -325,33 +382,45 @@
             }
 
             .team-content {
-                padding: 1.5rem;
+                padding: 2rem;
 
                 .team-name {
-                    font-size: 1.3rem;
+                    font-size: 1.25rem;
                     font-weight: 700;
-                    color: #2c3e50;
+                    color: #1a202c;
                     margin-bottom: 0.5rem;
+                    letter-spacing: -0.01em;
+                    font-family: 'Poppins', sans-serif;
                 }
 
                 .team-role {
                     font-size: 1rem;
                     font-weight: 600;
-                    color: #17a2b8;
+                    color: #667eea;
                     margin-bottom: 0.25rem;
+                    font-family: 'Poppins', sans-serif;
                 }
 
                 .team-specialization {
                     font-size: 0.9rem;
-                    color: #6c757d;
+                    color: #718096;
                     font-style: italic;
+                    margin-bottom: 0.5rem;
+                    font-family: 'Roboto', sans-serif;
+                }
+
+                .team-experience {
+                    font-size: 0.85rem;
+                    color: #718096;
                     margin-bottom: 1rem;
+                    font-family: 'Roboto', sans-serif;
                 }
 
                 .team-description {
-                    color: #6c757d;
+                    color: #4a5568;
                     line-height: 1.6;
                     font-size: 0.9rem;
+                    font-family: 'Roboto', sans-serif;
                 }
             }
         }
@@ -359,15 +428,15 @@
 
     // Call to Action Section
     .cta-section {
-        background: linear-gradient(135deg, #17a2b8, #20c997);
-        border-radius: 30px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 24px;
         color: white;
-        margin: 0 4rem;
-        padding: 4rem 4rem;
+        margin: 2rem 0;
+        padding: 4rem 3rem;
         position: relative;
-        border: 3px solid rgba(255, 255, 255, 0.2);
+        overflow: hidden;
 
-        // Add subtle overlay for depth
+        // Modern pattern overlay
         &::before {
             content: '';
             position: absolute;
@@ -375,8 +444,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 30px;
+            background: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M20 20c0 11.046-8.954 20-20 20v-20h20z'/%3E%3C/g%3E%3C/svg%3E");
             z-index: 1;
         }
 
@@ -386,36 +454,42 @@
         }
 
         .cta-title {
-            font-size: 2rem;
+            font-size: 2.25rem;
             font-weight: 700;
             margin-bottom: 1rem;
-            color: #ffffff;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+            color: white;
+            letter-spacing: -0.01em;
+            font-family: 'Poppins', sans-serif;
         }
 
         .cta-description {
-            font-size: 1.1rem;
-            color: #ffffff;
+            font-size: 1.125rem;
+            color: rgba(255, 255, 255, 0.9);
             margin-bottom: 0;
-            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+            line-height: 1.6;
+            font-family: 'Roboto', sans-serif;
         }
 
         .btn-cta {
             background: white;
-            color: #17a2b8;
-            border: 3px solid white;
-            border-radius: 30px;
-            padding: 1rem 2.5rem;
+            color: #667eea;
+            border: none;
+            border-radius: 12px;
+            padding: 1rem 2rem;
             font-weight: 700;
-            transition: all 0.4s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+            font-family: 'Poppins', sans-serif;
 
             &:hover {
-                background: rgba(255, 255, 255, 0.1);
-                color: white;
-                transform: translateY(-3px) scale(1.05);
-                box-shadow: 0 8px 25px rgba(255, 255, 255, 0.3);
+                background: rgba(255, 255, 255, 0.9);
+                transform: translateY(-3px);
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+                color: #667eea;
             }
         }
     }
@@ -425,57 +499,96 @@
 @media (max-width: 768px) {
     .about-page {
         .about-hero {
-            padding: 4rem 0 3rem 0;
+            padding: 3rem 0 2rem 0;
 
             .container {
-                padding-left: 2rem !important;
-                padding-right: 2rem !important;
+                padding: 0 1.5rem;
             }
 
             .hero-title {
-                font-size: 2rem;
+                font-size: 2.25rem;
             }
 
             .hero-subtitle {
-                font-size: 1.1rem;
+                font-size: 1rem;
             }
 
             .hero-buttons {
+                flex-direction: column;
+
                 .btn {
-                    display: block;
                     width: 100%;
-                    margin-bottom: 1rem;
+                    justify-content: center;
                 }
             }
         }
 
         .container {
-            padding-left: 2rem !important;
-            padding-right: 2rem !important;
+            padding: 0 1.5rem;
         }
 
-        .stats-section {
-            margin: 0 1rem;
-            padding: 2rem 1rem;
+        .mission-section {
+            margin: 1rem 0;
+            padding: 2rem 0;
+
+            .mission-content {
+                padding: 0 1.5rem;
+            }
+
+            .mission-image {
+                padding: 1.5rem;
+            }
+        }
+
+        .services-section {
+            padding: 2rem 0;
         }
 
         .values-section {
-            margin: 0 1rem;
-            padding: 3rem 1rem;
+            margin: 1rem 0;
+            padding: 2rem 1rem;
+        }
+
+        .team-section {
+            padding: 2rem 0;
         }
 
         .cta-section {
-            margin: 0 2rem;
-            padding: 2rem 2rem;
+            margin: 1rem 0;
+            padding: 2rem 1.5rem;
 
             .cta-title {
-                font-size: 1.5rem;
+                font-size: 1.75rem;
             }
 
             .btn-cta {
-                display: block;
                 width: 100%;
+                justify-content: center;
                 margin-top: 1rem;
+            }
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    .about-page {
+        .about-hero {
+            .hero-title {
+                font-size: 2rem;
+            }
+        }
+
+        .section-header {
+            .section-title {
+                font-size: 1.75rem;
+            }
+        }
+
+        .mission-section {
+            .mission-content {
+                .section-title {
+                    font-size: 2rem;
+                }
             }
         }
     }
