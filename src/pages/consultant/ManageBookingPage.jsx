@@ -14,11 +14,15 @@ const ManageBookingPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [bookingIdToDelete, setBookingIdToDelete] = useState(null);
+  const [consultants, setConsultants] = useState([]);
+  const [slots, setSlots] = useState([]);
   const [editFormData, setEditFormData] = useState({
+    consultant_id: '',
+    slot_id: '',
+    booking_date: '',
     status: '',
     notes: '',
-    google_meet_link: '',
-    booking_date: ''
+    google_meet_link: ''
   });
   const token = sessionStorage.getItem("token");
 
@@ -27,7 +31,7 @@ const ManageBookingPage = () => {
   const handleCloseViewPopup = () => setShowViewPopup(false);
   const handleCloseEditPopup = () => {
     setShowEditPopup(false);
-    setEditFormData({ status: '', notes: '', google_meet_link: '', booking_date: '' });
+    setEditFormData({ consultant_id: '', slot_id: '', booking_date: '', status: '', notes: '', google_meet_link: '' });
   };
 
   const fetchBookingSessions = async () => {
@@ -73,6 +77,32 @@ const ManageBookingPage = () => {
     }
   };
 
+  const fetchConsultants = async () => {
+    try {
+      const res = await axios.get('http://localhost:3000/api/consultants', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data.success) {
+        setConsultants(res.data.data.consultants);
+      }
+    } catch (err) {
+      console.error("Lỗi khi gọi API consultants:", err);
+    }
+  };
+
+  const fetchSlots = async () => {
+    try {
+      const res = await axios.get('http://localhost:3000/api/slots', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data.success) {
+        setSlots(res.data.data);
+      }
+    } catch (err) {
+      console.error("Lỗi khi gọi API slots:", err);
+    }
+  };
+
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
   };
@@ -93,6 +123,8 @@ const ManageBookingPage = () => {
 
   useEffect(() => {
     fetchBookingSessions();
+    fetchConsultants();
+    fetchSlots();
   }, []); // Empty dependency array to run only once
 
 
@@ -140,6 +172,8 @@ const ManageBookingPage = () => {
     if (booking) {
       setSelectedBooking(booking);
       setEditFormData({
+        consultant_id: booking.consultant_id || '',
+        slot_id: booking.slot_id || '',
         status: booking.status || '',
         notes: booking.notes || '',
         google_meet_link: booking.google_meet_link || '',
@@ -160,6 +194,19 @@ const ManageBookingPage = () => {
   const handleSaveEdit = async () => {
     if (!selectedBooking) return;
 
+    // Validate required fields
+    if (!editFormData.google_meet_link || editFormData.google_meet_link.trim() === '') {
+      alert('Google Meet Link là bắt buộc');
+      return;
+    }
+
+    // Validate Google Meet URL format
+    const meetUrlPattern = /^https:\/\/meet\.google\.com\/[a-z-]+$/;
+    if (!meetUrlPattern.test(editFormData.google_meet_link)) {
+      alert('Vui lòng nhập một Google Meet link hợp lệ (ví dụ: https://meet.google.com/abc-defg-hij)');
+      return;
+    }
+
     try {
       const res = await axios.put(
         `http://localhost:3000/api/booking-sessions/${selectedBooking.booking_id}`,
@@ -170,7 +217,8 @@ const ManageBookingPage = () => {
       if (res.data.success) {
         await fetchBookingSessions(); // Refresh the list
         handleCloseEditPopup();
-      } else alert(res.data.success)
+        alert('Successful edited booking session!!')
+      }
     } catch (err) {
       console.error("Lỗi khi cập nhật lịch hẹn:", err);
     }
@@ -308,6 +356,32 @@ const ManageBookingPage = () => {
             <h4>Chỉnh sửa lịch hẹn</h4>
 
             <div className="form-group mb-3">
+              <label className="form-label">Chuyên gia:</label>
+              <input
+                type="text"
+                value={consultants.find(c => c.id_consultant == editFormData.consultant_id)?.name ||
+                  consultants.find(c => c.id_consultant == editFormData.consultant_id)?.email ||
+                  'Không xác định'}
+                className="form-control"
+                readOnly
+                style={{ backgroundColor: '#f8f9fa', cursor: 'not-allowed' }}
+              />
+            </div>
+
+            <div className="form-group mb-3">
+              <label className="form-label">Khung giờ:</label>
+              <input
+                type="text"
+                value={slots.find(s => s.slot_id == editFormData.slot_id) ?
+                  `${slots.find(s => s.slot_id == editFormData.slot_id).start_time} - ${slots.find(s => s.slot_id == editFormData.slot_id).end_time}` :
+                  'Không xác định'}
+                className="form-control"
+                readOnly
+                style={{ backgroundColor: '#f8f9fa', cursor: 'not-allowed' }}
+              />
+            </div>
+
+            <div className="form-group mb-3">
               <label className="form-label">Trạng thái:</label>
               <select
                 name="status"
@@ -325,11 +399,11 @@ const ManageBookingPage = () => {
             <div className="form-group mb-3">
               <label className="form-label">Ngày đặt lịch:</label>
               <input
-                type="date"
-                name="booking_date"
-                value={editFormData.booking_date}
-                onChange={handleEditFormChange}
+                type="text"
+                value={editFormData.booking_date ? new Date(editFormData.booking_date).toLocaleDateString('vi-VN') : 'Không xác định'}
                 className="form-control"
+                readOnly
+                style={{ backgroundColor: '#f8f9fa', cursor: 'not-allowed' }}
               />
             </div>
 
@@ -346,7 +420,7 @@ const ManageBookingPage = () => {
             </div>
 
             <div className="form-group mb-3">
-              <label className="form-label">Google Meet Link:</label>
+              <label className="form-label">Google Meet Link: <span style={{ color: 'red' }}>*</span></label>
               <input
                 type="url"
                 name="google_meet_link"
@@ -354,7 +428,11 @@ const ManageBookingPage = () => {
                 onChange={handleEditFormChange}
                 className="form-control"
                 placeholder="https://meet.google.com/..."
+                required
               />
+              <small className="form-text text-muted">
+                Ví dụ: https://meet.google.com/abc-defg-hij
+              </small>
             </div>
 
             <div className="form-actions">
