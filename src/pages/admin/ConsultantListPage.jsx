@@ -11,7 +11,7 @@ const ConsultantListPage = () => {
     email: "",
     password: "",
     role: "",
-    status: "Hoạt động",
+    status: "active",
     cost: 0,
     certification: "",
     speciality: "",
@@ -45,7 +45,7 @@ const ConsultantListPage = () => {
       email: "",
       password: "",
       role: "consultant",
-      status: "Hoạt động",
+      status: "active",
       name: "",
       bio_json: "",
       education: "",
@@ -95,7 +95,7 @@ const ConsultantListPage = () => {
         email: newConsultant.email,
         password: newPassword,
         role: "consultant",
-        status: "Hoạt động", // Vietnamese status value
+        status: "active", // Vietnamese status value
 
         // Consultant table fields
         cost: newConsultant.cost || 0,
@@ -383,9 +383,9 @@ const ConsultantListPage = () => {
                     required
                   >
                     <option value="">Chọn trạng thái</option>
-                    <option value="Hoạt Động">Hoạt Động</option>
-                    <option value="Không Hoạt Động">Không Hoạt Động</option>
-                    <option value="Bị Cấm">Bị Cấm</option>
+                    <option value="active">Hoạt Động</option>
+                    <option value="inactive">Không Hoạt Động</option>
+                    <option value="banned">Bị Cấm</option>
                   </select>
                 )}
                 <input
