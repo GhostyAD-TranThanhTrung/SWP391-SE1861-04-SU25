@@ -548,7 +548,13 @@ class SurveyResponseController {
             let questions = [];
             try {
                 if (survey.questions_json) {
-                    questions = JSON.parse(survey.questions_json);
+                    const questionsData = JSON.parse(survey.questions_json);
+                    // Filter out deleted questions, similar to surveyController.js
+                    if (questionsData.questions && Array.isArray(questionsData.questions)) {
+                        questions = questionsData.questions.filter(question => 
+                            question.deleted === false || question.deleted === undefined
+                        );
+                    }
                 }
             } catch (error) {
                 return res.status(422).json({
@@ -991,7 +997,12 @@ class SurveyResponseController {
                 try {
                     if (survey.questions_json) {
                         const questionsData = JSON.parse(survey.questions_json);
-                        surveyQuestions = questionsData.questions || [];
+                        // Filter out deleted questions, similar to surveyController.js
+                        if (questionsData.questions && Array.isArray(questionsData.questions)) {
+                            surveyQuestions = questionsData.questions.filter(question => 
+                                question.deleted === false || question.deleted === undefined
+                            );
+                        }
                     }
                 } catch (error) {
                     console.warn(`Invalid JSON in survey ${survey.survey_id} questions:`, error);
