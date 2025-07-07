@@ -96,7 +96,7 @@ const DashboardPage = () => {
       bookingStatsChartInstance.current = new Chart(ctx, {
         type: 'bar',
         data: {
-          labels: ['Đang chờ', 'Đã xác nhận', 'Đã hoàn thành', 'Đã hủy'],
+          labels: ['Hoàn thành', 'Lên lịch', 'Đã hủy', 'Đang chờ xác nhận', 'Xác nhận thành công'],
           datasets: [
             {
               label: 'Thống kê đặt lịch',

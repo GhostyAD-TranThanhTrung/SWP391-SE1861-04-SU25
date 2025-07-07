@@ -26,7 +26,7 @@ const ManageBookingPage = () => {
   });
   const token = sessionStorage.getItem("token");
 
-  const statusOptions = ['Hoàn thành', 'Lên lịch', 'Đã hủy', 'Đang xác nhận', 'Xác nhận thành công'];
+  const statusOptions = ['Hoàn thành', 'Lên lịch', 'Đã hủy', 'Đang chờ xác nhận', 'Xác nhận thành công'];
 
   const handleCloseViewPopup = () => setShowViewPopup(false);
   const handleCloseEditPopup = () => {
