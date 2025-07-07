@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import '../styles/BookingPage.scss';
 import Image from '../images/Images.jpg';
 
 const BookingPage = () => {
+    const navigate = useNavigate();
     const [selectedSpecialization, setSelectedSpecialization] = useState('all');
     const [selectedDate, setSelectedDate] = useState('');
     const [consultants, setConsultants] = useState([]);
@@ -162,6 +163,28 @@ const BookingPage = () => {
 
         loadData();
     }, []);
+
+    // Hàm kiểm tra đăng nhập
+    const checkLoginStatus = () => {
+        const token = sessionStorage.getItem('token') || localStorage.getItem('authToken');
+        return !!token;
+    };
+
+    // Hàm xử lý khi click vào nút "Xem hồ sơ"
+    const handleViewProfile = (consultantId) => {
+        if (!checkLoginStatus()) {
+            // Lưu đường dẫn đích để redirect sau khi login
+            sessionStorage.setItem('redirectAfterLogin', `/consultant/${consultantId}`);
+
+            // Hiển thị cảnh báo và chuyển hướng
+            alert('Vui lòng đăng nhập để xem hồ sơ tư vấn viên');
+            navigate('/login');
+            return;
+        }
+
+        // Nếu đã đăng nhập, chuyển hướng trực tiếp
+        navigate(`/consultant/${consultantId}`);
+    };
 
     const bookConsultation = (consultantId, slotId) => {
         // Kiểm tra trạng thái xác thực (placeholder cho đến khi hệ thống auth được implement)
@@ -457,13 +480,13 @@ const BookingPage = () => {
                                         </div>
 
                                         <div className="consultant-footer">
-                                            <Link
-                                                to={`/consultant/${consultant.id_consultant}`}
+                                            <button
+                                                onClick={() => handleViewProfile(consultant.id_consultant)}
                                                 className="btn btn-outline-primary"
                                             >
                                                 <i className="bi bi-person me-2"></i>
                                                 Xem hồ sơ
-                                            </Link>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>

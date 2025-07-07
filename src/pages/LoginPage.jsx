@@ -37,6 +37,15 @@ const LoginPage = () => {
                 const data = await res.json();
                 console.log('✅ Profile data received:', data);
 
+                // Kiểm tra xem có redirectAfterLogin không
+                const redirectAfterLogin = sessionStorage.getItem('redirectAfterLogin');
+                if (redirectAfterLogin) {
+                    console.log('🔄 Redirecting to saved path:', redirectAfterLogin);
+                    sessionStorage.removeItem('redirectAfterLogin'); // Xóa để tránh redirect lại
+                    navigate(redirectAfterLogin);
+                    return;
+                }
+
                 // Check for both possible response formats
                 if (data.success && data.hasProfile) {
                     console.log('👤 User has profile, redirecting to home');
