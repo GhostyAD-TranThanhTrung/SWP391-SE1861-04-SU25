@@ -122,7 +122,7 @@ class DashboardService {
       await Promise.all([
         userRepository.count(),
         userRepository.count({ where: { status: "inactive" } }),
-        userRepository.count({ where: { status: "Bị cấm" } }),
+        userRepository.count({ where: { status: "banned" } }),
         userRepository
           .createQueryBuilder("user")
           .select("user.role", "role")
@@ -304,7 +304,7 @@ class DashboardController {
           total: await user.getCount(),
           active: await user.where('user.status = :status', { status: "active" }).getCount(),
           inactive: await user.where('user.status = :status', { status: "inactive" }).getCount(),
-          banned: await user.where('user.status = :status', { status: "Bị cấm" }).getCount(),
+          banned: await user.where('user.status = :status', { status: "banned" }).getCount(),
           roleDistribution: await user_dis,
         },
 

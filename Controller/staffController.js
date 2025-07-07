@@ -89,7 +89,7 @@ class StaffController {
                 email,
                 password,
                 role,
-                status = 'Hoạt động',
+                status = 'active',
                 // Profile table fields (ERD compliant)
                 name,
                 bio_json,
@@ -135,7 +135,7 @@ class StaffController {
             }
 
             // Validate status
-            if (!['Hoạt động', 'Không hoạt động', 'Bị cấm'].includes(status)) {
+            if (!['active', 'inactive', 'banned'].includes(status)) {
                 await queryRunner.rollbackTransaction();
                 return res.status(400).json({
                     success: false,
@@ -281,7 +281,7 @@ class StaffController {
                 user.role = role;
             }
             if (status !== undefined) {
-                if (!['Hoạt động', 'Không hoạt động', 'Bị cấm'].includes(status)) {
+                if (!['active', 'inactive', 'banned'].includes(status)) {
                     return res.status(400).json({
                         success: false,
                         message: 'Status must be active, inactive, or banned'
@@ -526,8 +526,8 @@ class StaffController {
 
             const activeStaff = await userRepository.count({
                 where: [
-                    { role: 'admin', status: 'Hoạt động' },
-                    { role: 'consultant', status: 'Hoạt động' }
+                    { role: 'admin', status: 'active' },
+                    { role: 'consultant', status: 'active' }
                 ]
             });
 

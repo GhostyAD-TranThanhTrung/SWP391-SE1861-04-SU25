@@ -465,11 +465,11 @@ class UserController {
         });
       }
 
-      const { 
+      const {
         // User fields
         email, role, status, img_link,
         // Profile fields  
-        name, bio_json, date_of_birth, job 
+        name, bio_json, date_of_birth, job
       } = req.body;
 
       // Start transaction
@@ -508,8 +508,8 @@ class UserController {
 
         // Handle profile update/creation
         let updatedProfile = null;
-        const hasProfileData = name !== undefined || bio_json !== undefined || 
-                              date_of_birth !== undefined || job !== undefined;
+        const hasProfileData = name !== undefined || bio_json !== undefined ||
+          date_of_birth !== undefined || job !== undefined;
 
         if (hasProfileData) {
           // Check if profile exists
