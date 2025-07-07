@@ -383,13 +383,13 @@ class SlotController {
 
       // Validate day format
       const validDays = [
-        "Thứ Hai",
-        "Thứ Ba",
-        "Thứ Tư",
-        "Thứ Năm",
-        "Thứ Sáu",
-        "Thứ Bảy",
-        "Chủ Nhật",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
       ];
       if (!validDays.includes(day)) {
         return res.status(400).json({

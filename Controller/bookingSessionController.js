@@ -432,12 +432,11 @@ class BookingSessionController {
                     AND DATENAME(WEEKDAY, b.booking_date) = cs.day_of_week
                 )
                 WHERE b.member_id = @0
-                AND (b.status = @1 OR b.status = @2)
                 ORDER BY booking_date ASC, start_time ASC
             `;
 
             console.log('Scheduled bookings query:', scheduledBookingQuery);
-            console.log('Scheduled bookings parameters:', [memberId, 'Đang chờ xác nhận', 'Đã xác nhận']);
+            console.log('Scheduled bookings parameters:', [memberId]);
 
             const bookings = await AppDataSource.query(
                 scheduledBookingQuery,
@@ -593,7 +592,7 @@ class BookingSessionController {
             }
 
             // Validate status if provided
-            const validStatuses = ['Hoàn thành', 'Lên lịch', 'Đã hủy', 'Đang xác nhận', 'Xác nhận thành công'];
+            const validStatuses = ['Hoàn thành', 'Lên lịch', 'Đã hủy', 'Đang chờ xác nhận', 'Xác nhận thành công'];
             if (status && !validStatuses.includes(status)) {
                 return res.status(400).json({
                     success: false,
@@ -757,13 +756,14 @@ class BookingSessionController {
                 INNER JOIN [Users] u ON b.member_id = u.user_id
                 INNER JOIN Profile p ON u.user_id = p.user_id
                 INNER JOIN Slot s ON b.slot_id = s.slot_id
+                INNER JOIN Consultant c ON b.consultant_id = c.id_consultant
                 LEFT JOIN Consultant_Slot cs ON (b.consultant_id = cs.consultant_id AND b.slot_id = cs.slot_id)
-                WHERE b.consultant_id = @0
+                WHERE c.user_id = @0
                 ORDER BY b.booking_date DESC, s.start_time ASC
             `;
 
             console.log('Detailed booking sessions query:', detailedBookingQuery);
-            console.log('Detailed booking sessions parameters:', [parseInt(consultantId)]);
+            console.log('Detailed booking sessions parameters (consultant user_id):', [parseInt(consultantId)]);
 
             const bookings = await AppDataSource.query(
                 detailedBookingQuery,
