@@ -250,3 +250,17 @@ export const checkUserFlaggedBlog = async (blogId) => {
         return { flagged: false, flagId: null };
     }
 };
+
+// API để lấy danh sách community events
+export const getCommunityEvents = async () => {
+    try {
+        const response = await fetch(`${API_URL}/api/programs/community-events`);
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.error || 'Không thể tải community events');
+        }
+        return data;
+    } catch (error) {
+        throw error;
+    }
+};

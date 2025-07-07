@@ -13,6 +13,9 @@ import OutdoorsImg from '../images/outdoors.jpg';
 const HomePage = () => {
     const [currentTestimonial, setCurrentTestimonial] = useState(0);
     const [stats, setStats] = useState({ users: 0, courses: 0, consultations: 0, success: 0 });
+    const [communityEvents, setCommunityEvents] = useState([]);
+    const [eventsLoading, setEventsLoading] = useState(true);
+    const [eventsError, setEventsError] = useState(null);
 
     // Animated counter effect
     useEffect(() => {
@@ -51,6 +54,37 @@ const HomePage = () => {
             setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
         }, 5000);
         return () => clearInterval(testimonialTimer);
+    }, []);
+
+    useEffect(() => {
+        const fetchCommunityEvents = async () => {
+            setEventsLoading(true);
+            setEventsError(null);
+            try {
+                const response = await fetch('http://localhost:3000/api/programs/community-events', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to fetch community events');
+                }
+                const res = await response.json();
+                if (res.success && res.data) {
+                    const sortedEvents = res.data.sort((a, b) => new Date(b.create_at) - new Date(a.create_at));
+                    setCommunityEvents(sortedEvents);
+                } else {
+                    setCommunityEvents([]);
+                }
+            } catch (err) {
+                setEventsError('Không thể tải sự kiện cộng đồng. Vui lòng thử lại sau.');
+                setCommunityEvents([]);
+            } finally {
+                setEventsLoading(false);
+            }
+        };
+        fetchCommunityEvents();
     }, []);
 
     const cardData = (titles, images = []) =>
@@ -239,47 +273,106 @@ const HomePage = () => {
             </section>
 
             <div className="container py-5">
-                {/* Featured Courses Section */}
+                {/* Blog & Assessment Introduction Section */}
                 <section className="section mb-5">
                     <div className="section-header-wrapper text-center mb-5">
-                        <h2 className="section-header">Lộ trình học tập nổi bật</h2>
-                        <p className="section-subtitle">Bắt đầu hành trình của bạn với các khóa học phổ biến và hiệu quả nhất</p>
+                        <h2 className="section-header">Khám phá Tính năng Nổi bật</h2>
+                        <p className="section-subtitle">Cùng tìm hiểu hai chức năng quan trọng giúp bạn trên hành trình phục hồi: Blog và Đánh giá (Assessment)</p>
                     </div>
-                    <div className="row gx-3">
-                        {renderCards(cardData([
-                            "Sự thật về ma túy",
-                            "Sự thật về lạm dụng thuốc kê đơn",
-                            "Con đường phục hồi - Khóa học trực tuyến",
-                            "Bộ công cụ phòng ngừa ma túy cho thanh thiếu niên"
-                        ], [PreventionImg, Image2, SupportImg, Image3]), "/course")}
-                    </div>
-                    <div className="text-center mt-4">
-                        <Link to="/courses" className="btn btn-outline-primary btn-lg">
-                            <i className="bi bi-collection me-2"></i>
-                            Xem tất cả khóa học
-                        </Link>
+                    <div className="row gx-5 gy-4 justify-content-center">
+                        <div className="col-lg-6 col-md-12 mb-4">
+                            <div className="feature-card feature-card-blog">
+                                <div className="feature-icon">
+                                    <i className="bi bi-journal-text"></i>
+                                </div>
+                                <h3 className="feature-title">Blog - Trung tâm kiến thức</h3>
+                                <p className="feature-desc">Đọc các bài viết chuyên sâu, cập nhật kiến thức mới nhất về phòng ngừa, phục hồi và sức khỏe tâm thần. Blog là nơi bạn tìm thấy thông tin hữu ích từ các chuyên gia và cộng đồng.</p>
+                                <Link to="/blog" className="btn btn-feature">
+                                    <i className="bi bi-journal-text me-2"></i>
+                                    Đến Blog
+                                </Link>
+                            </div>
+                        </div>
+                        <div className="col-lg-6 col-md-12 mb-4">
+                            <div className="feature-card feature-card-assessment">
+                                <div className="feature-icon">
+                                    <i className="bi bi-clipboard-check"></i>
+                                </div>
+                                <h3 className="feature-title">Assessment - Đánh giá bản thân</h3>
+                                <p className="feature-desc">Thực hiện các bài đánh giá nhanh để hiểu rõ hơn về tình trạng của bản thân, nhận được gợi ý phù hợp và bắt đầu hành trình phục hồi một cách chủ động.</p>
+                                <Link to="/test" className="btn btn-feature">
+                                    <i className="bi bi-clipboard-check me-2"></i>
+                                    Làm Assessment
+                                </Link>
+                            </div>
+                        </div>
                     </div>
                 </section>
-
-                {/* Popular Blogs Section */}
-                <section className="section mb-5">
-                    <div className="section-header-wrapper text-center mb-5">
-                        <h2 className="section-header">Trung tâm kiến thức</h2>
-                        <p className="section-subtitle">Cập nhật với những hiểu biết và nghiên cứu mới nhất</p>
-                    </div>
-                    <div className="row gx-3">
-                        {renderCards(cardData([
-                            "Lạm dụng chất: Nhận thức & Phòng ngừa",
-                            "12 cách phòng ngừa lạm dụng ma túy",
-                            "Nhận thức về lạm dụng ma túy",
-                            "Tác động của việc sử dụng ma túy lâu dài"
-                        ], [PreventionImg, Image1, Image2, Image3]), "/blog")}
-                    </div>
-                    <div className="text-center mt-4">
-                        <Link to="/blog" className="btn btn-outline-primary btn-lg">
-                            <i className="bi bi-journal-text me-2"></i>
-                            Đọc thêm bài viết
-                        </Link>
+                {/* Community Events Section */}
+                <section className="community-events-section py-5">
+                    <div className="container">
+                        <div className="section-header-wrapper text-center mb-5">
+                            <h2 className="section-header">Sự kiện cộng đồng</h2>
+                            <p className="section-subtitle">Các sự kiện nổi bật dành cho cộng đồng phục hồi và phòng ngừa</p>
+                        </div>
+                        {eventsLoading ? (
+                            <div className="text-center py-4">
+                                <div className="spinner-border text-primary" role="status">
+                                    <span className="visually-hidden">Đang tải...</span>
+                                </div>
+                                <p className="mt-2 text-muted">Đang tải sự kiện cộng đồng...</p>
+                            </div>
+                        ) : eventsError ? (
+                            <div className="text-center py-4">
+                                <i className="bi bi-exclamation-triangle" style={{ fontSize: '3rem', color: '#ffc107' }}></i>
+                                <h4 className="mt-3 text-warning">Có lỗi xảy ra</h4>
+                                <p className="text-muted">{eventsError}</p>
+                            </div>
+                        ) : communityEvents.length === 0 ? (
+                            <div className="text-center py-4">
+                                <i className="bi bi-calendar-x" style={{ fontSize: '3rem', color: '#ccc' }}></i>
+                                <h4 className="mt-3 text-muted">Chưa có sự kiện nào</h4>
+                                <p className="text-muted">Các sự kiện cộng đồng sẽ được cập nhật sớm. Hãy quay lại sau!</p>
+                            </div>
+                        ) : (
+                            <div className="row gx-5 gy-4 justify-content-center">
+                                {communityEvents.slice(0, 1).map(event => (
+                                    <div className="col-12 mb-4" key={event.program_id || event.id}>
+                                        <div className="community-event-modern d-flex flex-column flex-md-row align-items-stretch position-relative">
+                                            {/* Badge Mới nhất */}
+                                            <div className="event-badge-latest position-absolute top-0 end-0">
+                                                <span><i className="bi bi-star-fill me-1"></i> Mới nhất</span>
+                                            </div>
+                                            {/* Thông tin bên trái */}
+                                            <div className="event-modern-info flex-grow-1 p-4 d-flex flex-column justify-content-center">
+                                                <h2 className="event-modern-title mb-3">{event.title}</h2>
+                                                <p className="event-modern-desc mb-4">{event.description}</p>
+                                                <div className="d-flex flex-wrap gap-3">
+                                                    <span className="event-modern-badge">
+                                                        <i className="bi bi-calendar3 me-2"></i>
+                                                        {event.create_at ? new Date(event.create_at).toLocaleDateString('vi-VN') : ''}
+                                                    </span>
+                                                    <span className="event-modern-badge">
+                                                        <i className="bi bi-people-fill me-2"></i>
+                                                        Sự kiện Cộng đồng
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            {/* Call to action bên phải */}
+                                            <div className="event-modern-cta d-flex flex-column align-items-center justify-content-center p-4">
+                                                <div className="event-modern-cta-icon mb-3">
+                                                    <i className="bi bi-calendar-heart"></i>
+                                                </div>
+                                                <Link to={`/community-event/${event.program_id || event.id}`} className="event-modern-cta-btn mb-2">
+                                                    Tham gia ngay
+                                                </Link>
+                                                <div className="event-modern-cta-desc">Đừng bỏ lỡ cơ hội kết nối cộng đồng</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </section>
             </div>
@@ -299,7 +392,6 @@ const HomePage = () => {
                                 </div>
                                 <p className="testimonial-text">"{testimonials[currentTestimonial].content}"</p>
                                 <div className="testimonial-author">
-                                    <div className="author-avatar">{testimonials[currentTestimonial].avatar}</div>
                                     <div className="author-info">
                                         <h5 className="author-name">{testimonials[currentTestimonial].name}</h5>
                                         <p className="author-role">{testimonials[currentTestimonial].role}</p>
