@@ -51,7 +51,7 @@ INSERT INTO Slot (start_time, end_time) VALUES
 ('19:00:00', '20:00:00');
 
 -- Insert Consultant Availability
-NSERT INTO Consultant_Slot (consultant_id, slot_id, day_of_week) VALUES
+INSERT INTO Consultant_Slot (consultant_id, slot_id, day_of_week) VALUES
 -- Dr. Smith (Consultant 1) - Monday to Friday, morning and afternoon
 (1, 1, N'Monday'), (1, 2, N'Monday'), (1, 5, N'Monday'), (1, 6, N'Monday'),
 (1, 1, N'Tuesday'), (1, 2, N'Tuesday'), (1, 5, N'Tuesday'), (1, 6, N'Tuesday'),

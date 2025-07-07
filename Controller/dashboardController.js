@@ -3,7 +3,6 @@
  * Uses existing controllers and service patterns to get dashboard statistics
  */
 const AppDataSource = require("../src/data-source");
-
 // Import entities
 const User = require("../src/entities/User");
 const BookingSession = require("../src/entities/BookingSession");
