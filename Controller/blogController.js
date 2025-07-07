@@ -7,6 +7,7 @@ const Blog = require("../src/entities/Blog");
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const User = require("../src/entities/User");
 
 // Configure multer for image uploads
 const storage = multer.diskStorage({
@@ -482,19 +483,27 @@ class BlogController {
       const blog = await blogRepository.findOne({
         where: { blog_id: parseInt(id) },
       });
-
       if (!blog) {
         return res.status(404).json({
           success: false,
           message: "Blog not found",
         });
       }
-
-      // Check if user is the author of the blog
-      if (blog.author_id !== parseInt(userId)) {
+      const getUserRole = await AppDataSource.getRepository(User).findOne({
+        where: {
+          user_id: userId
+        },
+        select: ["role"]
+      })
+      
+      // Check if user is the author of the blog OR if the user is an admin
+      const isAuthor = blog.author_id === parseInt(userId);
+      const isAdmin = getUserRole && getUserRole.role.toLowerCase() === "admin";
+      
+      if (!isAuthor && !isAdmin) {
         return res.status(403).json({
           success: false,
-          message: "You can only delete your own blogs",
+          message: "You can only delete your own blogs or you must be an admin",
         });
       }
 
