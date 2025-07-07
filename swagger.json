@@ -32,6 +32,333 @@
                 },
                 "description": "🔓 Development bypass for authentication (set to 'true' to skip token verification)"
             }
+        },
+        "schemas": {
+            "Question": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1,
+                        "description": "Question ID"
+                    },
+                    "question": {
+                        "type": "string",
+                        "example": "How confident are you in your knowledge?",
+                        "description": "Question text"
+                    },
+                    "options": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "example": ["Not confident", "Somewhat confident", "Very confident"],
+                        "description": "Available answer options"
+                    },
+                    "deleted": {
+                        "type": "boolean",
+                        "example": false,
+                        "description": "Whether the question is soft deleted"
+                    }
+                },
+                "required": ["id", "question", "options", "deleted"]
+            },
+            "Survey": {
+                "type": "object",
+                "properties": {
+                    "survey_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "program_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": ["pre-assessment", "post-assessment"],
+                        "example": "pre-assessment"
+                    },
+                    "questions_json": {
+                        "type": "object",
+                        "properties": {
+                            "questions": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/Question"
+                                }
+                            }
+                        },
+                        "description": "Survey questions (only non-deleted questions are returned)"
+                    }
+                }
+            },
+            "SurveyResponse": {
+                "type": "object",
+                "properties": {
+                    "response_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "survey_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "user_id": {
+                        "type": "integer",
+                        "nullable": true,
+                        "example": 5
+                    },
+                    "answer_json": {
+                        "type": "string",
+                        "description": "JSON string containing the response data"
+                    },
+                    "submitted_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-01-15T10:30:00.000Z"
+                    }
+                }
+            },
+            "SurveyResponseKeyValue": {
+                "type": "object",
+                "properties": {
+                    "response_id": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "survey_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "user_id": {
+                        "type": "integer",
+                        "example": 5
+                    },
+                    "responses": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "integer",
+                                    "example": 1
+                                },
+                                "question": {
+                                    "type": "string",
+                                    "example": "How confident are you?"
+                                },
+                                "answer": {
+                                    "oneOf": [
+                                        {
+                                            "type": "string"
+                                        },
+                                        {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    ],
+                                    "example": "Very confident"
+                                }
+                            }
+                        }
+                    },
+                    "submitted_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-01-15T10:30:00.000Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true,
+                        "example": "2024-01-15T11:00:00.000Z"
+                    },
+                    "total_questions": {
+                        "type": "integer",
+                        "example": 5
+                    }
+                }
+            },
+            "SurveyStatistics": {
+                "type": "object",
+                "properties": {
+                    "surveyId": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "surveyType": {
+                        "type": "string",
+                        "example": "pre-assessment"
+                    },
+                    "programId": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "totalResponses": {
+                        "type": "integer",
+                        "example": 25
+                    },
+                    "questionStatistics": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                                "questionId": {
+                                    "type": "integer"
+                                },
+                                "questionText": {
+                                    "type": "string"
+                                },
+                                "questionOptions": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                "totalResponses": {
+                                    "type": "integer"
+                                },
+                                "answerCounts": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "percentages": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "number"
+                                    }
+                                },
+                                "totalAnswers": {
+                                    "type": "integer"
+                                },
+                                "uniqueAnswers": {
+                                    "type": "integer"
+                                },
+                                "mostCommonAnswer": {
+                                    "type": "string",
+                                    "nullable": true
+                                }
+                            }
+                        },
+                        "example": {
+                            "1": {
+                                "questionId": 1,
+                                "questionText": "How confident are you?",
+                                "questionOptions": ["Not confident", "Somewhat confident", "Very confident"],
+                                "totalResponses": 25,
+                                "answerCounts": {
+                                    "Not confident": 5,
+                                    "Somewhat confident": 12,
+                                    "Very confident": 8
+                                },
+                                "percentages": {
+                                    "Not confident": 20.0,
+                                    "Somewhat confident": 48.0,
+                                    "Very confident": 32.0
+                                },
+                                "totalAnswers": 25,
+                                "uniqueAnswers": 3,
+                                "mostCommonAnswer": "Somewhat confident"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "responses": {
+            "UnauthorizedError": {
+                "description": "Authentication required",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "success": {
+                                    "type": "boolean",
+                                    "example": false
+                                },
+                                "error": {
+                                    "type": "string",
+                                    "example": "Access denied. No token provided."
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "ValidationError": {
+                "description": "Invalid request data",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "success": {
+                                    "type": "boolean",
+                                    "example": false
+                                },
+                                "message": {
+                                    "type": "string",
+                                    "example": "Missing required fields"
+                                },
+                                "error": {
+                                    "type": "string",
+                                    "example": "Validation failed"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "NotFoundError": {
+                "description": "Resource not found",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "success": {
+                                    "type": "boolean",
+                                    "example": false
+                                },
+                                "message": {
+                                    "type": "string",
+                                    "example": "Resource not found"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "ServerError": {
+                "description": "Internal server error",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "success": {
+                                    "type": "boolean",
+                                    "example": false
+                                },
+                                "message": {
+                                    "type": "string",
+                                    "example": "Internal server error"
+                                },
+                                "error": {
+                                    "type": "string",
+                                    "example": "Database connection failed"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "paths": {
@@ -1983,7 +2310,8 @@
                 "tags": [
                     "Surveys"
                 ],
-                "summary": "Get all surveys",
+                "summary": "Get all surveys (Admin/Staff only)",
+                "description": "Retrieve all surveys in the system. Only deleted=false questions are returned.",
                 "parameters": [
                     {
                         "$ref": "#/components/parameters/swaggerBypass"
@@ -1996,7 +2324,36 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Surveys retrieved"
+                        "description": "Surveys retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Survey"
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Surveys retrieved successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedError"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerError"
                     }
                 }
             },
@@ -2005,6 +2362,7 @@
                     "Surveys"
                 ],
                 "summary": "Create new survey",
+                "description": "Create a new survey for a program. Questions will automatically have deleted=false by default.",
                 "parameters": [
                     {
                         "$ref": "#/components/parameters/swaggerBypass"
@@ -2023,20 +2381,42 @@
                                 "type": "object",
                                 "properties": {
                                     "program_id": {
-                                        "type": "integer"
+                                        "type": "integer",
+                                        "example": 1,
+                                        "description": "ID of the program this survey belongs to"
                                     },
                                     "type": {
                                         "type": "string",
-                                        "example": "pre-assessment"
+                                        "enum": ["pre-assessment", "post-assessment"],
+                                        "example": "pre-assessment",
+                                        "description": "Type of survey"
                                     },
-                                    "questions_json": {
-                                        "type": "string",
-                                        "description": "JSON string containing questions"
+                                    "questions": {
+                                        "type": "object",
+                                        "properties": {
+                                            "questions": {
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/Question"
+                                                }
+                                            }
+                                        },
+                                        "example": {
+                                            "questions": [
+                                                {
+                                                    "id": 1,
+                                                    "question": "How confident are you in your knowledge?",
+                                                    "options": ["Not confident", "Somewhat confident", "Very confident"],
+                                                    "deleted": false
+                                                }
+                                            ]
+                                        }
                                     }
                                 },
                                 "required": [
                                     "program_id",
-                                    "type"
+                                    "type",
+                                    "questions"
                                 ]
                             }
                         }
@@ -2044,7 +2424,60 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "Survey created"
+                        "description": "Survey created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Survey"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Survey created successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/ValidationError"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedError"
+                    },
+                    "409": {
+                        "description": "Survey already exists for this program and type",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Survey of type 'pre-assessment' already exists for this program"
+                                        },
+                                        "existing_survey_id": {
+                                            "type": "integer",
+                                            "example": 5
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerError"
                     }
                 }
             }
@@ -2055,6 +2488,7 @@
                     "Surveys"
                 ],
                 "summary": "Get survey by ID",
+                "description": "Retrieve a specific survey by its ID. Only non-deleted questions are returned.",
                 "security": [
                     {
                         "bearerAuth": []
@@ -2067,7 +2501,8 @@
                         "required": true,
                         "schema": {
                             "type": "integer"
-                        }
+                        },
+                        "description": "Survey ID"
                     },
                     {
                         "$ref": "#/components/parameters/swaggerBypass"
@@ -2075,7 +2510,154 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Survey retrieved"
+                        "description": "Survey retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Survey"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Survey retrieved successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundError"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedError"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerError"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Surveys"
+                ],
+                "summary": "Update survey",
+                "description": "Update an existing survey. Survey responses are preserved even when questions are updated.",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "Survey ID"
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "program_id": {
+                                        "type": "integer",
+                                        "example": 1,
+                                        "description": "ID of the program (optional)"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": ["pre-assessment", "post-assessment"],
+                                        "example": "pre-assessment",
+                                        "description": "Type of survey (optional)"
+                                    },
+                                    "questions": {
+                                        "type": "object",
+                                        "properties": {
+                                            "questions": {
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/Question"
+                                                }
+                                            }
+                                        },
+                                        "description": "Updated questions (optional)"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Survey updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Survey"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Survey updated successfully"
+                                        },
+                                        "changes": {
+                                            "type": "object",
+                                            "properties": {
+                                                "fields_updated": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    },
+                                                    "example": ["questions", "type"]
+                                                },
+                                                "questions_updated": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                },
+                                                "responses_preserved": {
+                                                    "type": "string",
+                                                    "example": "All previous responses were preserved"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/ValidationError"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundError"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedError"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerError"
                     }
                 }
             }
@@ -2085,7 +2667,8 @@
                 "tags": [
                     "Surveys"
                 ],
-                "summary": "Get surveys by program ID",
+                "summary": "Get all surveys by program ID",
+                "description": "Retrieve all surveys for a specific program. Only non-deleted questions are returned.",
                 "security": [
                     {
                         "bearerAuth": []
@@ -2098,7 +2681,8 @@
                         "required": true,
                         "schema": {
                             "type": "integer"
-                        }
+                        },
+                        "description": "Program ID"
                     },
                     {
                         "$ref": "#/components/parameters/swaggerBypass"
@@ -2106,17 +2690,172 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Surveys by program retrieved"
+                        "description": "Surveys by program retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Survey"
+                                            }
+                                        },
+                                        "dataByType": {
+                                            "type": "object",
+                                            "additionalProperties": {
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/Survey"
+                                                }
+                                            },
+                                            "example": {
+                                                "pre-assessment": [],
+                                                "post-assessment": []
+                                            }
+                                        },
+                                        "count": {
+                                            "type": "integer",
+                                            "example": 2
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "All surveys for program ID 1 retrieved successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/ValidationError"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedError"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerError"
                     }
                 }
             }
         },
-        "/api/survey-responses/me": {
+        "/api/surveys/program/{programId}/type/{type}": {
+            "get": {
+                "tags": [
+                    "Surveys"
+                ],
+                "summary": "Get surveys by program ID and type",
+                "description": "Retrieve surveys for a specific program and type. Only non-deleted questions are returned.",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "programId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "Program ID"
+                    },
+                    {
+                        "name": "type",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": ["pre-assessment", "post-assessment"]
+                        },
+                        "description": "Survey type"
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Survey retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Survey"
+                                            },
+                                            "maxItems": 1,
+                                            "description": "Array containing only the first survey (enforces 1 per type/program)"
+                                        },
+                                        "count": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Survey of type 'pre-assessment' for program ID 1 retrieved successfully"
+                                        }
+                                    }
+                    }
+                }
+            }
+        },
+                    "400": {
+                        "$ref": "#/components/responses/ValidationError"
+                    },
+                    "404": {
+                        "description": "No survey found for the specified program and type",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "No survey of type 'pre-assessment' found for program ID 1"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "example": []
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedError"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerError"
+                    }
+                }
+            }
+        },
+        "/api/survey-responses": {
             "get": {
                 "tags": [
                     "Survey Responses"
                 ],
-                "summary": "Get current user's survey responses",
+                "summary": "Get all survey responses (Admin/Staff only)",
+                "description": "Retrieve all survey responses in the system.",
                 "parameters": [
                     {
                         "$ref": "#/components/parameters/swaggerBypass"
@@ -2129,17 +2868,45 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "User survey responses retrieved"
+                        "description": "Survey responses retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/SurveyResponse"
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Survey responses retrieved successfully"
+                                        }
+                                    }
                     }
                 }
             }
         },
-        "/api/survey-responses": {
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedError"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerError"
+                    }
+                }
+            },
             "post": {
                 "tags": [
                     "Survey Responses"
                 ],
                 "summary": "Submit survey response",
+                "description": "Submit a new survey response in key-value format.",
                 "parameters": [
                     {
                         "$ref": "#/components/parameters/swaggerBypass"
@@ -2158,7 +2925,9 @@
                                 "type": "object",
                                 "properties": {
                                     "survey_id": {
-                                        "type": "integer"
+                                        "type": "integer",
+                                        "example": 1,
+                                        "description": "ID of the survey being responded to"
                                     },
                                     "responses": {
                                         "type": "array",
@@ -2166,13 +2935,45 @@
                                             "type": "object",
                                             "properties": {
                                                 "id": {
-                                                    "type": "integer"
+                                                    "type": "integer",
+                                                    "example": 1,
+                                                    "description": "Question ID"
+                                                },
+                                                "question": {
+                                                    "type": "string",
+                                                    "example": "How confident are you?",
+                                                    "description": "Question text"
                                                 },
                                                 "answer": {
+                                                    "oneOf": [
+                                                        {
+                                                            "type": "string"
+                                                        },
+                                                        {
+                                                            "type": "array",
+                                                            "items": {
                                                     "type": "string"
                                                 }
                                             }
-                                        }
+                                                    ],
+                                                    "example": "Very confident",
+                                                    "description": "Answer value (string for single choice, array for multiple choice)"
+                                                }
+                                            },
+                                            "required": ["id", "question", "answer"]
+                                        },
+                                        "example": [
+                                            {
+                                                "id": 1,
+                                                "question": "How confident are you?",
+                                                "answer": "Very confident"
+                                            },
+                                            {
+                                                "id": 2,
+                                                "question": "What are your interests?",
+                                                "answer": ["Reading", "Sports"]
+                                            }
+                                        ]
                                     }
                                 },
                                 "required": [
@@ -2185,7 +2986,354 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "Survey response submitted"
+                        "description": "Survey response submitted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/SurveyResponseKeyValue"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Survey response submitted successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/ValidationError"
+                    },
+                    "404": {
+                        "description": "Survey not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Survey not found"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "User has already responded to this survey",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "User has already responded to this survey. Use update endpoint to modify existing response."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedError"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerError"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Survey Responses"
+                ],
+                "summary": "Update survey response",
+                "description": "Update an existing survey response in key-value format.",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "survey_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "responses": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "question": {
+                                                    "type": "string"
+                                                },
+                                                "answer": {
+                                                    "oneOf": [
+                                                        {
+                                                            "type": "string"
+                                                        },
+                                                        {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    ]
+                                                }
+                                            },
+                                            "required": ["id", "question", "answer"]
+                                        }
+                                    }
+                                },
+                                "required": [
+                                    "survey_id",
+                                    "responses"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Survey response updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/SurveyResponseKeyValue"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Survey response updated successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/ValidationError"
+                    },
+                    "404": {
+                        "description": "No existing response found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "No existing response found for this user and survey. Use submit endpoint to create new response."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedError"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerError"
+                    }
+                }
+            }
+        },
+        "/api/survey-responses/me": {
+            "get": {
+                "tags": [
+                    "Survey Responses"
+                ],
+                "summary": "Get current user's survey responses",
+                "description": "Retrieve all survey responses for the authenticated user in key-value format.",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User survey responses retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/SurveyResponseKeyValue"
+                                            }
+                                        },
+                                        "count": {
+                                            "type": "integer",
+                                            "example": 3
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "User survey responses retrieved successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedError"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerError"
+                    }
+                }
+            }
+        },
+        "/api/survey-responses/check/{surveyId}": {
+            "get": {
+                "tags": [
+                    "Survey Responses"
+                ],
+                "summary": "Check if current user has responded to a survey",
+                "description": "Check if the authenticated user has already submitted a response for a specific survey.",
+                "parameters": [
+                    {
+                        "name": "surveyId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "Survey ID to check"
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Response check completed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "hasResponded": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "responseId": {
+                                            "type": "integer",
+                                            "nullable": true,
+                                            "example": 123
+                                        },
+                                        "surveyId": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "userId": {
+                                            "type": "integer",
+                                            "example": 5
+                                        },
+                                        "submittedAt": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "nullable": true,
+                                            "example": "2024-01-15T10:30:00.000Z"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "You have already responded to this survey"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/ValidationError"
+                    },
+                    "404": {
+                        "description": "Survey not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Survey not found"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedError"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerError"
                     }
                 }
             }
@@ -2196,6 +3344,7 @@
                     "Survey Responses"
                 ],
                 "summary": "Get survey response statistics by program ID and type",
+                "description": "Get comprehensive statistics for survey responses, including answer counts and percentages. Only processes statistics for non-deleted questions.",
                 "security": [
                     {
                         "bearerAuth": []
@@ -2216,7 +3365,8 @@
                         "in": "query",
                         "required": false,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "enum": ["pre-assessment", "post-assessment"]
                         },
                         "description": "Survey type filter (e.g., pre-assessment, post-assessment)"
                     },
@@ -2226,42 +3376,966 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Survey response statistics retrieved",
+                        "description": "Survey response statistics retrieved successfully",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "type": "object",
                                     "properties": {
                                         "success": {
-                                            "type": "boolean"
+                                            "type": "boolean",
+                                            "example": true
                                         },
                                         "data": {
                                             "type": "array",
                                             "items": {
+                                                "$ref": "#/components/schemas/SurveyStatistics"
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Survey response statistics generated successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/ValidationError"
+                    },
+                    "404": {
+                        "description": "No surveys found for the specified program",
+                        "content": {
+                            "application/json": {
+                                "schema": {
                                                 "type": "object",
                                                 "properties": {
-                                                    "surveyId": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "No surveys found for the specified program"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedError"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerError"
+                    }
+                }
+            }
+        },
+        "/api/survey-responses/date-range": {
+            "get": {
+                "tags": [
+                    "Survey Responses"
+                ],
+                "summary": "Get survey responses by date range",
+                "description": "Retrieve survey responses within a specified date range (Admin/Staff only).",
+                "parameters": [
+                    {
+                        "name": "startDate",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "description": "Start date (YYYY-MM-DD format)"
+                    },
+                    {
+                        "name": "endDate",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "description": "End date (YYYY-MM-DD format)"
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Survey responses retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/SurveyResponse"
+                                            }
+                                        },
+                                        "count": {
+                                            "type": "integer",
+                                            "example": 15
+                                        },
+                                        "dateRange": {
+                                            "type": "object",
+                                            "properties": {
+                                                "startDate": {
+                                                    "type": "string",
+                                                    "format": "date"
+                                                },
+                                                "endDate": {
+                                                    "type": "string",
+                                                    "format": "date"
+                                                }
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Survey responses retrieved successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/ValidationError"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedError"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerError"
+                    }
+                }
+            }
+        },
+        "/api/survey-responses/{id}": {
+            "get": {
+                "tags": [
+                    "Survey Responses"
+                ],
+                "summary": "Get survey response by ID",
+                "description": "Retrieve a specific survey response by its ID (Admin/Staff only).",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
                                                         "type": "integer"
                                                     },
-                                                    "surveyType": {
+                        "description": "Survey response ID"
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Survey response retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/SurveyResponse"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Survey response retrieved successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundError"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedError"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerError"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Survey Responses"
+                ],
+                "summary": "Update survey response by ID (Legacy format)",
+                "description": "Update a specific survey response using legacy format (Admin/Staff only).",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "Survey response ID"
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "answer_json": {
+                                        "type": "string",
+                                        "description": "JSON string containing the response data"
+                                    }
+                                },
+                                "required": ["answer_json"]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Survey response updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/SurveyResponse"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Survey response updated successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/ValidationError"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundError"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedError"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerError"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Survey Responses"
+                ],
+                "summary": "Delete survey response",
+                "description": "Delete a specific survey response (Admin/Staff only).",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "Survey response ID"
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Survey response deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Survey response deleted successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundError"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedError"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerError"
+                    }
+                }
+            }
+        },
+        "/api/survey-responses/{id}/parsed": {
+            "get": {
+                "tags": [
+                    "Survey Responses"
+                ],
+                "summary": "Get parsed survey response by ID",
+                "description": "Retrieve a specific survey response with parsed answer data (Admin/Staff only).",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "Survey response ID"
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Parsed survey response retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "response_id": {
+                                                    "type": "integer"
+                                                },
+                                                "survey_id": {
+                                                    "type": "integer"
+                                                },
+                                                "user_id": {
+                                                    "type": "integer"
+                                                },
+                                                "parsed_answers": {
+                                                    "type": "object",
+                                                    "description": "Parsed JSON answers"
+                                                },
+                                                "submitted_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                }
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Parsed survey response retrieved successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundError"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedError"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerError"
+                    }
+                }
+            }
+        },
+        "/api/survey-responses/{id}/with-relations": {
+            "get": {
+                "tags": [
+                    "Survey Responses"
+                ],
+                "summary": "Get survey response with user and survey info",
+                "description": "Retrieve a survey response with related user and survey information (Admin/Staff only).",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "Survey response ID"
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Survey response with relations retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "response": {
+                                                    "$ref": "#/components/schemas/SurveyResponse"
+                                                },
+                                                "user": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "user_id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "email": {
                                                         "type": "string"
                                                     },
-                                                    "programId": {
+                                                        "role": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                },
+                                                "survey": {
+                                                    "$ref": "#/components/schemas/Survey"
+                                                }
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Survey response with relations retrieved successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundError"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedError"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerError"
+                    }
+                }
+            }
+        },
+        "/api/survey-responses/survey/{surveyId}": {
+            "get": {
+                "tags": [
+                    "Survey Responses"
+                ],
+                "summary": "Get responses by survey ID",
+                "description": "Retrieve all responses for a specific survey (Admin/Staff only).",
+                "parameters": [
+                    {
+                        "name": "surveyId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
                                                         "type": "integer"
+                        },
+                        "description": "Survey ID"
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Survey responses retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/SurveyResponse"
+                                            }
+                                        },
+                                        "count": {
+                                            "type": "integer",
+                                            "example": 25
+                                        },
+                                        "surveyId": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Survey responses retrieved successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundError"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedError"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerError"
+                    }
+                }
+            }
+        },
+        "/api/survey-responses/user/{userId}": {
+            "get": {
+                "tags": [
+                    "Survey Responses"
+                ],
+                "summary": "Get responses by user ID",
+                "description": "Retrieve all responses for a specific user (Admin/Staff only).",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "User ID"
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User survey responses retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/SurveyResponse"
+                                            }
+                                        },
+                                        "count": {
+                                            "type": "integer",
+                                            "example": 5
+                                        },
+                                        "userId": {
+                                            "type": "integer",
+                                            "example": 5
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "User survey responses retrieved successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundError"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedError"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerError"
+                    }
+                }
+            }
+        },
+        "/api/survey-responses/survey/{surveyId}/analytics": {
+            "get": {
+                "tags": [
+                    "Survey Responses"
+                ],
+                "summary": "Get survey analytics",
+                "description": "Get detailed analytics for a specific survey, including response patterns and statistics. Only processes analytics for non-deleted questions.",
+                "parameters": [
+                    {
+                        "name": "surveyId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "Survey ID"
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Survey analytics retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "surveyId": {
+                                                    "type": "integer",
+                                                    "example": 1
                                                     },
                                                     "totalResponses": {
+                                                    "type": "integer",
+                                                    "example": 50
+                                                },
+                                                "responseRate": {
+                                                    "type": "number",
+                                                    "example": 75.5
+                                                },
+                                                "completionRate": {
+                                                    "type": "number",
+                                                    "example": 95.2
+                                                },
+                                                "questionAnalytics": {
+                                                    "type": "object",
+                                                    "additionalProperties": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "questionId": {
                                                         "type": "integer"
                                                     },
-                                                    "questionStatistics": {
-                                                        "type": "object"
-                                                    }
+                                                            "questionText": {
+                                                                "type": "string"
+                                                            },
+                                                            "responseCount": {
+                                                                "type": "integer"
+                                                            },
+                                                            "answerDistribution": {
+                                                                "type": "object",
+                                                                "additionalProperties": {
+                                                                    "type": "integer"
+                                                                }
+                                                            },
+                                                            "percentageDistribution": {
+                                                                "type": "object",
+                                                                "additionalProperties": {
+                                                                    "type": "number"
                                                 }
                                             }
                                         }
                                     }
                                 }
                             }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Survey analytics retrieved successfully"
+                                        }
+                                    }
+                                }
+                            }
                         }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundError"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedError"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerError"
+                    }
+                }
+            }
+        },
+        "/api/survey-responses/check/{surveyId}/{userId}": {
+            "get": {
+                "tags": [
+                    "Survey Responses"
+                ],
+                "summary": "Check if specific user has responded to a survey",
+                "description": "Check if a specific user has already submitted a response for a specific survey (Admin/Staff only).",
+                "parameters": [
+                    {
+                        "name": "surveyId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "Survey ID"
+                    },
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "User ID"
+                    },
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User response check completed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "hasResponded": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "responseId": {
+                                            "type": "integer",
+                                            "nullable": true,
+                                            "example": 123
+                                        },
+                                        "surveyId": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "userId": {
+                                            "type": "integer",
+                                            "example": 5
+                                        },
+                                        "submittedAt": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "nullable": true,
+                                            "example": "2024-01-15T10:30:00.000Z"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "User has responded to this survey"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/ValidationError"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundError"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedError"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerError"
+                    }
+                }
+            }
+        },
+        "/api/survey-responses/legacy": {
+            "post": {
+                "tags": [
+                    "Survey Responses"
+                ],
+                "summary": "Submit survey response (Legacy format)",
+                "description": "Submit a new survey response using legacy format (Admin/Staff only).",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/swaggerBypass"
+                    }
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "survey_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "user_id": {
+                                        "type": "integer",
+                                        "example": 5
+                                    },
+                                    "answer_json": {
+                                        "type": "string",
+                                        "description": "JSON string containing the response data"
+                                    }
+                                },
+                                "required": ["survey_id", "answer_json"]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Survey response submitted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/SurveyResponse"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Survey response submitted successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/ValidationError"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundError"
+                    },
+                    "409": {
+                        "description": "User has already responded to this survey",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "User has already responded to this survey"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedError"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerError"
                     }
                 }
             }

@@ -432,6 +432,7 @@ class ProgramController {
     static async getProgramSurveyAnalytics(req, res) {
         try {
             const { programId } = req.params;
+            const { show_deleted_questions = false } = req.query;
 
             const programRepository = AppDataSource.getRepository(Program);
             const surveyRepository = AppDataSource.getRepository(Survey);
@@ -477,16 +478,31 @@ class ProgramController {
                 try {
                     // Parse questions JSON (always expect { questions: [...] })
                     let questions = [];
+                    let deletedQuestions = [];
+                    let allQuestions = [];
+                    
                     try {
                         if (survey.questions_json) {
                             const parsed = JSON.parse(survey.questions_json);
-                            questions = Array.isArray(parsed) ? parsed : (parsed.questions || []);
+                            allQuestions = Array.isArray(parsed) ? parsed : (parsed.questions || []);
+                            
+                            // Separate active and deleted questions
+                            questions = allQuestions.filter(question => 
+                                question.deleted === false || question.deleted === undefined
+                            );
+                            deletedQuestions = allQuestions.filter(question => 
+                                question.deleted === true
+                            );
                         } else {
                             questions = [];
+                            deletedQuestions = [];
+                            allQuestions = [];
                         }
                     } catch (parseError) {
                         console.error(`Error parsing questions JSON for survey ${survey.survey_id}:`, parseError);
                         questions = [];
+                        deletedQuestions = [];
+                        allQuestions = [];
                     }
 
                     // Get all responses for this survey using the existing method pattern
@@ -519,8 +535,8 @@ class ProgramController {
                                         }
                                     });
 
-                                    // Map answers to question indices (question_id - 1 for 0-based indexing)
-                                    questions.forEach((question, questionIndex) => {
+                                    // Map answers to ALL question indices (not just active ones)
+                                    allQuestions.forEach((question, questionIndex) => {
                                         const questionId = question.id || (questionIndex + 1);
                                         answers[questionIndex] = answerMap[questionId];
                                     });
@@ -533,8 +549,8 @@ class ProgramController {
                                         }
                                     });
 
-                                    // Map answers to question indices
-                                    questions.forEach((question, questionIndex) => {
+                                    // Map answers to ALL question indices (not just active ones)
+                                    allQuestions.forEach((question, questionIndex) => {
                                         const questionId = question.id || (questionIndex + 1);
                                         answers[questionIndex] = answerMap[questionId];
                                     });
@@ -556,67 +572,86 @@ class ProgramController {
                     });
 
                     // 4. Analyze responses and count options for each question
-                    const questionAnalytics = {};
+                    const analyzeQuestions = (questionsToAnalyze, questionPrefix = '') => {
+                        const questionAnalytics = {};
 
-                    questions.forEach((question, questionIndex) => {
-                        const questionText = question.question || question.text || `Question ${questionIndex + 1}`;
-                        const questionType = question.type || 'multiple-choice';
-                        const options = question.options || question.choices || [];
+                        questionsToAnalyze.forEach((question, questionIndex) => {
+                            // Find the original index of this question in allQuestions array
+                            const originalIndex = allQuestions.findIndex(q => 
+                                q.id === question.id || 
+                                (q.question === question.question && q.options === question.options)
+                            );
 
-                        // Initialize option counts
-                        const optionCounts = {};
-                        if (Array.isArray(options)) {
-                            options.forEach(option => {
-                                const optionText = typeof option === 'string' ? option : (option.text || option.value || option);
-                                optionCounts[optionText] = 0;
-                            });
-                        }
+                            const questionText = question.question || question.text || `Question ${questionIndex + 1}`;
+                            const questionType = question.type || 'multiple-choice';
+                            const options = question.options || question.choices || [];
 
-                        // Count responses for this question
-                        responseMatrix.forEach(responseRow => {
-                            if (responseRow && responseRow[questionIndex] !== undefined) {
-                                const answer = responseRow[questionIndex];
+                            // Initialize option counts
+                            const optionCounts = {};
+                            if (Array.isArray(options)) {
+                                options.forEach(option => {
+                                    const optionText = typeof option === 'string' ? option : (option.text || option.value || option);
+                                    optionCounts[optionText] = 0;
+                                });
+                            }
 
-                                if (questionType === 'multiple-choice' || questionType === 'single-choice') {
-                                    // Handle single answer
-                                    const answerText = typeof answer === 'string' ? answer :
-                                        (answer.value || answer.text || answer.answer || String(answer));
+                            // Count responses for this question using original index
+                            responseMatrix.forEach(responseRow => {
+                                if (responseRow && originalIndex >= 0 && responseRow[originalIndex] !== undefined) {
+                                    const answer = responseRow[originalIndex];
 
-                                    if (optionCounts.hasOwnProperty(answerText)) {
-                                        optionCounts[answerText]++;
-                                    } else {
-                                        // Handle case where answer doesn't match predefined options
-                                        optionCounts[answerText] = (optionCounts[answerText] || 0) + 1;
-                                    }
-                                } else if (questionType === 'multiple-select' || questionType === 'checkbox') {
-                                    // Handle multiple answers
-                                    const answers = Array.isArray(answer) ? answer : [answer];
-                                    answers.forEach(ans => {
-                                        const answerText = typeof ans === 'string' ? ans :
-                                            (ans.value || ans.text || ans.answer || String(ans));
+                                    if (questionType === 'multiple-choice' || questionType === 'single-choice') {
+                                        // Handle single answer
+                                        const answerText = typeof answer === 'string' ? answer :
+                                            (answer.value || answer.text || answer.answer || String(answer));
 
                                         if (optionCounts.hasOwnProperty(answerText)) {
                                             optionCounts[answerText]++;
                                         } else {
+                                            // Handle case where answer doesn't match predefined options
                                             optionCounts[answerText] = (optionCounts[answerText] || 0) + 1;
                                         }
-                                    });
-                                } else {
-                                    // Handle text/open-ended questions
-                                    const answerText = typeof answer === 'string' ? answer : String(answer);
-                                    optionCounts[answerText] = (optionCounts[answerText] || 0) + 1;
+                                    } else if (questionType === 'multiple-select' || questionType === 'checkbox') {
+                                        // Handle multiple answers
+                                        const answers = Array.isArray(answer) ? answer : [answer];
+                                        answers.forEach(ans => {
+                                            const answerText = typeof ans === 'string' ? ans :
+                                                (ans.value || ans.text || ans.answer || String(ans));
+
+                                            if (optionCounts.hasOwnProperty(answerText)) {
+                                                optionCounts[answerText]++;
+                                            } else {
+                                                optionCounts[answerText] = (optionCounts[answerText] || 0) + 1;
+                                            }
+                                        });
+                                    } else {
+                                        // Handle text/open-ended questions
+                                        const answerText = typeof answer === 'string' ? answer : String(answer);
+                                        optionCounts[answerText] = (optionCounts[answerText] || 0) + 1;
+                                    }
                                 }
-                            }
+                            });
+
+                            questionAnalytics[questionPrefix + questionText] = optionCounts;
                         });
 
-                        questionAnalytics[questionText] = optionCounts;
-                    });
+                        return questionAnalytics;
+                    };
+
+                    // Analyze active questions
+                    const activeQuestionAnalytics = analyzeQuestions(questions);
+                    
+                    // Analyze deleted questions if requested
+                    const deletedQuestionAnalytics = (show_deleted_questions === 'true' || show_deleted_questions === true) ? 
+                        analyzeQuestions(deletedQuestions, '[DELETED] ') : {};
 
                     // 5. Compile survey analytics
-                    surveyAnalytics.push({
+                    const surveyData = {
                         id: survey.survey_id,
                         type: survey.type || 'unknown',
                         total_questions: questions.length,
+                        total_deleted_questions: deletedQuestions.length,
+                        total_all_questions: allQuestions.length,
                         total_responses: validResponses.length,
                         response_rate: validResponses.length > 0 ?
                             ((validResponses.length / Math.max(1, responses.length)) * 100).toFixed(2) + '%' : '0%',
@@ -624,11 +659,32 @@ class ProgramController {
                             index: index,
                             question: q.question || q.text || `Question ${index + 1}`,
                             type: q.type || 'multiple-choice',
-                            required: q.required || false
+                            required: q.required || false,
+                            deleted: false
                         })),
-                        responses: questionAnalytics,
+                        responses: activeQuestionAnalytics,
                         raw_responses: validResponses // Include raw data for debugging
-                    });
+                    };
+
+                    // Add deleted questions metadata and analytics if requested
+                    if (show_deleted_questions === 'true' || show_deleted_questions === true) {
+                        surveyData.deleted_questions_metadata = deletedQuestions.map((q, index) => ({
+                            index: index,
+                            question: q.question || q.text || `Deleted Question ${index + 1}`,
+                            type: q.type || 'multiple-choice',
+                            required: q.required || false,
+                            deleted: true
+                        }));
+                        surveyData.deleted_responses = deletedQuestionAnalytics;
+                        
+                        // Combine active and deleted analytics for complete view
+                        surveyData.all_responses = {
+                            ...activeQuestionAnalytics,
+                            ...deletedQuestionAnalytics
+                        };
+                    }
+
+                    surveyAnalytics.push(surveyData);
 
                 } catch (surveyError) {
                     console.error(`Error processing survey ${survey.survey_id}:`, surveyError);
@@ -651,6 +707,7 @@ class ProgramController {
                     program_title: program.title,
                     total_surveys: surveys.length,
                     total_responses: totalResponses,
+                    show_deleted_questions: show_deleted_questions === 'true' || show_deleted_questions === true,
                     surveys: surveyAnalytics
                 },
                 message: 'Survey analytics retrieved successfully'
