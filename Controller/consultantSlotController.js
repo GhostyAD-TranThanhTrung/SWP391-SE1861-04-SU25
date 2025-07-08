@@ -33,6 +33,14 @@ class ConsultantSlotController {
         end_time: cs.slot.end_time
       }));
 
+      // Sort by day of week (Monday to Sunday) and then by start time
+      const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+      formattedSlots.sort((a, b) => {
+        const dayComparison = dayOrder.indexOf(a.day_of_week) - dayOrder.indexOf(b.day_of_week);
+        if (dayComparison !== 0) return dayComparison;
+        return a.start_time.localeCompare(b.start_time);
+      });
+
       res.status(200).json({
         success: true,
         data: formattedSlots,
@@ -55,7 +63,7 @@ class ConsultantSlotController {
    */
   static async updateConsultantSlots(req, res) {
     const queryRunner = AppDataSource.createQueryRunner();
-    
+
     try {
       const { consultant_id, daysofweek, slot } = req.body;
 
@@ -83,7 +91,7 @@ class ConsultantSlotController {
       // Validate slots exist
       const slotRepository = AppDataSource.getRepository(Slot);
       const existingSlots = await slotRepository.findByIds(slot);
-      
+
       if (existingSlots.length !== slot.length) {
         return res.status(400).json({
           success: false,
@@ -107,7 +115,7 @@ class ConsultantSlotController {
 
       // Create new consultant slots
       const newConsultantSlots = [];
-      
+
       for (const day of daysArray) {
         for (const slotId of slot) {
           const newConsultantSlot = consultantSlotRepository.create({
@@ -148,6 +156,385 @@ class ConsultantSlotController {
       res.status(500).json({
         success: false,
         message: "Failed to update consultant slots",
+        error: error.message,
+      });
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  /**
+   * Delete all slots for a consultant
+   */
+  static async deleteConsultantSlots(req, res) {
+    try {
+      const { consultantId } = req.params;
+      const consultantSlotRepository = AppDataSource.getRepository(ConsultantSlot);
+
+      // Validate consultant exists
+      const consultantRepository = AppDataSource.getRepository(Consultant);
+      const consultant = await consultantRepository.findOne({
+        where: { id_consultant: parseInt(consultantId) }
+      });
+
+      if (!consultant) {
+        return res.status(404).json({
+          success: false,
+          message: "Consultant not found"
+        });
+      }
+
+      // Delete all slots for the consultant
+      const deleteResult = await consultantSlotRepository.delete({
+        consultant_id: parseInt(consultantId)
+      });
+
+      res.status(200).json({
+        success: true,
+        data: {
+          consultant_id: parseInt(consultantId),
+          deleted_count: deleteResult.affected || 0
+        },
+        message: `Successfully deleted all slots for consultant ID ${consultantId}`
+      });
+
+    } catch (error) {
+      console.error("Error deleting consultant slots:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to delete consultant slots",
+        error: error.message,
+      });
+    }
+  }
+
+  /**
+   * Create multiple consultant slots
+   */
+  static async createConsultantSlots(req, res) {
+    const queryRunner = AppDataSource.createQueryRunner();
+
+    try {
+      const { consultantId } = req.params;
+      const { slots } = req.body;
+
+      // Validate input
+      if (!slots || !Array.isArray(slots)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid input. Required: slots array"
+        });
+      }
+
+      // Validate consultant exists
+      const consultantRepository = AppDataSource.getRepository(Consultant);
+      const consultant = await consultantRepository.findOne({
+        where: { id_consultant: parseInt(consultantId) }
+      });
+
+      if (!consultant) {
+        return res.status(404).json({
+          success: false,
+          message: "Consultant not found"
+        });
+      }
+
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+
+      const consultantSlotRepository = queryRunner.manager.getRepository(ConsultantSlot);
+
+      // Create new consultant slots
+      const newConsultantSlots = slots.map(slotData =>
+        consultantSlotRepository.create({
+          consultant_id: parseInt(consultantId),
+          slot_id: parseInt(slotData.slot_id),
+          day_of_week: slotData.day_of_week || 'Monday' // Default to Monday if not specified
+        })
+      );
+
+      // Save all new consultant slots
+      const savedSlots = await consultantSlotRepository.save(newConsultantSlots);
+
+      await queryRunner.commitTransaction();
+
+      // Format response
+      const formattedSlots = savedSlots.map(cs => ({
+        consultant_id: cs.consultant_id,
+        slot_id: cs.slot_id,
+        day_of_week: cs.day_of_week
+      }));
+
+      res.status(201).json({
+        success: true,
+        data: {
+          consultant_id: parseInt(consultantId),
+          slots_created: formattedSlots,
+          total_slots_created: formattedSlots.length
+        },
+        message: `Successfully created ${formattedSlots.length} slots for consultant ID ${consultantId}`
+      });
+
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      console.error("Error creating consultant slots:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to create consultant slots",
+        error: error.message,
+      });
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  /**
+   * Create consultant slots with custom schedule times and days
+   * This method allows creating slots without pre-existing slot IDs
+   */
+  static async createCustomConsultantSlots(req, res) {
+    const queryRunner = AppDataSource.createQueryRunner();
+    
+    try {
+      const { consultantId } = req.params;
+      const { schedules } = req.body;
+
+      // Validate input
+      if (!schedules || !Array.isArray(schedules)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid input. Required: schedules array with format [{days: ['Monday', 'Tuesday'], start_time: '09:00', end_time: '10:00'}]"
+        });
+      }
+
+      // Validate consultant exists
+      const consultantRepository = AppDataSource.getRepository(Consultant);
+      const consultant = await consultantRepository.findOne({
+        where: { id_consultant: parseInt(consultantId) }
+      });
+
+      if (!consultant) {
+        return res.status(404).json({
+          success: false,
+          message: "Consultant not found"
+        });
+      }
+
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+
+      const slotRepository = queryRunner.manager.getRepository(Slot);
+      const consultantSlotRepository = queryRunner.manager.getRepository(ConsultantSlot);
+
+      const createdSlots = [];
+
+      // Process each schedule
+      for (const schedule of schedules) {
+        const { days, start_time, end_time } = schedule;
+
+        // Validate schedule data
+        if (!days || !Array.isArray(days) || !start_time || !end_time) {
+          await queryRunner.rollbackTransaction();
+          return res.status(400).json({
+            success: false,
+            message: "Each schedule must have days (array), start_time, and end_time"
+          });
+        }
+
+        // Check if a slot with these times already exists
+        let slot = await slotRepository.findOne({
+          where: { start_time, end_time }
+        });
+
+        // If slot doesn't exist, create it
+        if (!slot) {
+          slot = slotRepository.create({
+            start_time,
+            end_time
+          });
+          slot = await slotRepository.save(slot);
+        }
+
+        // Create consultant slots for each day
+        for (const day of days) {
+          // Check if consultant slot already exists for this combination
+          const existingConsultantSlot = await consultantSlotRepository.findOne({
+            where: {
+              consultant_id: parseInt(consultantId),
+              slot_id: slot.slot_id,
+              day_of_week: day
+            }
+          });
+
+          if (!existingConsultantSlot) {
+            const consultantSlot = consultantSlotRepository.create({
+              consultant_id: parseInt(consultantId),
+              slot_id: slot.slot_id,
+              day_of_week: day
+            });
+
+            const savedConsultantSlot = await consultantSlotRepository.save(consultantSlot);
+            createdSlots.push({
+              consultant_id: savedConsultantSlot.consultant_id,
+              slot_id: savedConsultantSlot.slot_id,
+              day_of_week: savedConsultantSlot.day_of_week,
+              start_time: slot.start_time,
+              end_time: slot.end_time
+            });
+          }
+        }
+      }
+
+      await queryRunner.commitTransaction();
+
+      // Sort created slots by day of week and time
+      const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+      createdSlots.sort((a, b) => {
+        const dayComparison = dayOrder.indexOf(a.day_of_week) - dayOrder.indexOf(b.day_of_week);
+        if (dayComparison !== 0) return dayComparison;
+        return a.start_time.localeCompare(b.start_time);
+      });
+
+      res.status(201).json({
+        success: true,
+        data: {
+          consultant_id: parseInt(consultantId),
+          slots_created: createdSlots,
+          total_slots_created: createdSlots.length
+        },
+        message: `Successfully created ${createdSlots.length} custom slots for consultant ID ${consultantId}`
+      });
+
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      console.error("Error creating custom consultant slots:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to create custom consultant slots",
+        error: error.message,
+      });
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  /**
+   * Update consultant availability with complete schedule replacement
+   * This method replaces all existing slots for a consultant with new ones
+   */
+  static async replaceConsultantSchedule(req, res) {
+    const queryRunner = AppDataSource.createQueryRunner();
+    
+    try {
+      const { consultantId } = req.params;
+      const { schedules } = req.body;
+
+      // Validate input
+      if (!schedules || !Array.isArray(schedules)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid input. Required: schedules array with format [{days: ['Monday', 'Tuesday'], start_time: '09:00', end_time: '10:00'}]"
+        });
+      }
+
+      // Validate consultant exists
+      const consultantRepository = AppDataSource.getRepository(Consultant);
+      const consultant = await consultantRepository.findOne({
+        where: { id_consultant: parseInt(consultantId) }
+      });
+
+      if (!consultant) {
+        return res.status(404).json({
+          success: false,
+          message: "Consultant not found"
+        });
+      }
+
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+
+      const slotRepository = queryRunner.manager.getRepository(Slot);
+      const consultantSlotRepository = queryRunner.manager.getRepository(ConsultantSlot);
+
+      // Delete all existing consultant slots
+      await consultantSlotRepository.delete({
+        consultant_id: parseInt(consultantId)
+      });
+
+      const createdSlots = [];
+
+      // Process each schedule
+      for (const schedule of schedules) {
+        const { days, start_time, end_time } = schedule;
+
+        // Validate schedule data
+        if (!days || !Array.isArray(days) || !start_time || !end_time) {
+          await queryRunner.rollbackTransaction();
+          return res.status(400).json({
+            success: false,
+            message: "Each schedule must have days (array), start_time, and end_time"
+          });
+        }
+
+        // Check if a slot with these times already exists
+        let slot = await slotRepository.findOne({
+          where: { start_time, end_time }
+        });
+
+        // If slot doesn't exist, create it
+        if (!slot) {
+          slot = slotRepository.create({
+            start_time,
+            end_time
+          });
+          slot = await slotRepository.save(slot);
+        }
+
+        // Create consultant slots for each day
+        for (const day of days) {
+          const consultantSlot = consultantSlotRepository.create({
+            consultant_id: parseInt(consultantId),
+            slot_id: slot.slot_id,
+            day_of_week: day
+          });
+
+          const savedConsultantSlot = await consultantSlotRepository.save(consultantSlot);
+          createdSlots.push({
+            consultant_id: savedConsultantSlot.consultant_id,
+            slot_id: savedConsultantSlot.slot_id,
+            day_of_week: savedConsultantSlot.day_of_week,
+            start_time: slot.start_time,
+            end_time: slot.end_time
+          });
+        }
+      }
+
+      await queryRunner.commitTransaction();
+
+      // Sort created slots by day of week and time
+      const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+      createdSlots.sort((a, b) => {
+        const dayComparison = dayOrder.indexOf(a.day_of_week) - dayOrder.indexOf(b.day_of_week);
+        if (dayComparison !== 0) return dayComparison;
+        return a.start_time.localeCompare(b.start_time);
+      });
+
+      res.status(200).json({
+        success: true,
+        data: {
+          consultant_id: parseInt(consultantId),
+          slots_created: createdSlots,
+          total_slots_created: createdSlots.length
+        },
+        message: `Successfully replaced schedule for consultant ID ${consultantId} with ${createdSlots.length} slots`
+      });
+
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      console.error("Error replacing consultant schedule:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to replace consultant schedule",
         error: error.message,
       });
     } finally {
