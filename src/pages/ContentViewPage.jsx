@@ -54,7 +54,22 @@ const ContentViewPage = () => {
                 if (fileRes.ok) {
                     const fileData = await fileRes.json();
                     console.log('✅ Content file data received:', fileData);
-                    setContentFile(fileData.data);
+                    
+                    // Handle both new direct content format and legacy file-based format
+                    if (fileData.success && fileData.data) {
+                        setContentFile(fileData.data);
+                        console.log('📄 Content type detected:', fileData.data.type);
+                        
+                        // Log specific handling for markdown content
+                        if (fileData.data.type === 'markdown') {
+                            console.log('📝 Markdown content length:', fileData.data.content?.length || 0, 'characters');
+                        }
+                    } else {
+                        console.warn('⚠️ Unexpected file response format:', fileData);
+                    }
+                } else {
+                    console.warn('⚠️ Failed to fetch content file, status:', fileRes.status);
+                    // Don't treat this as a critical error, content might not have a file
                 }
 
                 // Check enrollment status for this content's program
@@ -365,7 +380,17 @@ const ContentViewPage = () => {
     };
 
     const formatMarkdown = (markdown) => {
-        if (!markdown) return '';
+        if (!markdown) {
+            console.warn('⚠️ No markdown content provided to formatMarkdown');
+            return '';
+        }
+
+        console.log('📝 Processing markdown content:', {
+            length: markdown.length,
+            startsWithHash: markdown.startsWith('#'),
+            hasNewlines: markdown.includes('\n'),
+            firstLine: markdown.split('\n')[0]
+        });
 
         // Enhanced markdown to HTML conversion with image support using new API endpoint
         let html = markdown
@@ -376,31 +401,49 @@ const ContentViewPage = () => {
                 console.log('🎯 Final converted image src (via API):', convertedSrc);
                 return `<img src="${convertedSrc}" alt="${alt}" class="content-image" onerror="console.error('❌ Image failed to load via API:', '${convertedSrc}'); this.style.display='none';" onload="console.log('✅ Image loaded successfully via API:', '${convertedSrc}');" />`;
             })
-            // Headers
+            // Headers (process in order from most specific to least specific)
+            .replace(/^#### (.*$)/gim, '<h4>$1</h4>')
             .replace(/^### (.*$)/gim, '<h3>$1</h3>')
             .replace(/^## (.*$)/gim, '<h2>$1</h2>')
             .replace(/^# (.*$)/gim, '<h1>$1</h1>')
             // Bold
-            .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
+            .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
+            .replace(/__(.*?)__/gim, '<strong>$1</strong>')
             // Italic
-            .replace(/\*(.*)\*/gim, '<em>$1</em>')
-            // Code blocks
+            .replace(/\*(.*?)\*/gim, '<em>$1</em>')
+            .replace(/_(.*?)_/gim, '<em>$1</em>')
+            // Code blocks (process before inline code)
             .replace(/```([\s\S]*?)```/gim, '<pre><code>$1</code></pre>')
             // Inline code
             .replace(/`([^`]+)`/gim, '<code>$1</code>')
-            // Lists
-            .replace(/^\d+\. (.*$)/gim, '<li class="ordered">$1</li>')
-            .replace(/^[-*+] (.*$)/gim, '<li class="unordered">$1</li>')
+            // Lists - improved regex to handle multi-line items
+            .replace(/^\d+\.\s+(.*$)/gim, '<li class="ordered">$1</li>')
+            .replace(/^[-*+]\s+(.*$)/gim, '<li class="unordered">$1</li>')
             // Links
             .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
-            // Line breaks
+            // Horizontal rules
+            .replace(/^---+$/gim, '<hr>')
+            // Line breaks (convert to br tags)
             .replace(/\n/gim, '<br/>');
 
         // Wrap consecutive <li> elements in appropriate lists
-        html = html.replace(/(<li class="ordered">.*?<\/li>)/gims, '<ol>$1</ol>');
-        html = html.replace(/(<li class="unordered">.*?<\/li>)/gims, '<ul>$1</ul>');
+        html = html.replace(/(<li class="ordered">.*?<\/li>(?:\s*<br\/>\s*<li class="ordered">.*?<\/li>)*)/gims, '<ol>$1</ol>');
+        html = html.replace(/(<li class="unordered">.*?<\/li>(?:\s*<br\/>\s*<li class="unordered">.*?<\/li>)*)/gims, '<ul>$1</ul>');
+        
+        // Clean up extra br tags around lists and headers
+        html = html.replace(/<br\/>\s*(<[ou]l>)/gim, '$1');
+        html = html.replace(/(<\/[ou]l>)\s*<br\/>/gim, '$1');
+        html = html.replace(/<br\/>\s*(<h[1-6]>)/gim, '$1');
+        html = html.replace(/(<\/h[1-6]>)\s*<br\/>/gim, '$1');
 
-        console.log('📝 Final HTML output:', html);
+        console.log('📝 Markdown processing complete:', {
+            originalLength: markdown.length,
+            htmlLength: html.length,
+            hasHeaders: html.includes('<h'),
+            hasLists: html.includes('<li'),
+            hasImages: html.includes('<img')
+        });
+
         return html;
     };
 
@@ -426,7 +469,7 @@ const ContentViewPage = () => {
                     </div>
                 </div>
                 <h3>Đang tải nội dung...</h3>
-                <p>Vui lòng chờ một chút</p>
+                <p>Đang xử lý dữ liệu từ API mới</p>
             </div>
         </div>
     );
@@ -528,22 +571,77 @@ const ContentViewPage = () => {
                         <div className="content-wrapper">
                             {contentFile ? (
                                 renderContent()
+                            ) : content?.content_file_link ? (
+                                // Fallback: Try to render direct markdown content from content_file_link
+                                (() => {
+                                    const directContent = content.content_file_link;
+                                    console.log('🔄 Attempting fallback rendering for direct content:', {
+                                        hasContent: !!directContent,
+                                        startsWithHash: directContent?.startsWith('#'),
+                                        isUrl: directContent?.startsWith('http'),
+                                        length: directContent?.length
+                                    });
+                                    
+                                    // Check if content_file_link contains direct markdown
+                                    if (directContent && (directContent.startsWith('#') || directContent.includes('\n'))) {
+                                        console.log('✅ Detected direct markdown in content_file_link, rendering inline');
+                                        return (
+                                            <div className="content-display markdown-display">
+                                                <div className="fallback-notice">
+                                                    <i className="bi bi-info-circle"></i>
+                                                    <span>Hiển thị nội dung trực tiếp</span>
+                                                </div>
+                                                <div className="markdown-content" dangerouslySetInnerHTML={{ __html: formatMarkdown(directContent) }} />
+                                            </div>
+                                        );
+                                    } 
+                                    // If it's a URL, show external link
+                                    else if (directContent && directContent.startsWith('http')) {
+                                        console.log('🔗 Detected URL in content_file_link');
+                                        return (
+                                            <div className="content-display external-display">
+                                                <div className="external-wrapper">
+                                                    <div className="external-icon">→</div>
+                                                    <h3>Nội dung bên ngoài</h3>
+                                                    <p>Nội dung này được lưu trữ trên một trang web bên ngoài.</p>
+                                                    <a
+                                                        href={directContent}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="external-btn"
+                                                    >
+                                                        <i className="bi bi-box-arrow-up-right"></i>
+                                                        <span>Mở liên kết</span>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        );
+                                    }
+                                    // Otherwise show no content state
+                                    else {
+                                        console.log('❌ Could not determine content type from content_file_link');
+                                        return (
+                                            <div className="no-content-state">
+                                                <div className="no-content-icon">•</div>
+                                                <h3>Không có nội dung</h3>
+                                                <p>Nội dung này hiện chưa có file đính kèm.</p>
+                                                {directContent && (
+                                                    <div className="debug-info">
+                                                        <details>
+                                                            <summary>Thông tin debug</summary>
+                                                            <pre>{directContent.substring(0, 200)}...</pre>
+                                                        </details>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    }
+                                })()
                             ) : (
                                 <div className="no-content-state">
                                     <div className="no-content-icon">•</div>
                                     <h3>Không có nội dung</h3>
                                     <p>Nội dung này hiện chưa có file đính kèm.</p>
-                                    {content.content_file_link && (
-                                        <a
-                                            href={content.content_file_link}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="external-btn"
-                                        >
-                                            <i className="bi bi-box-arrow-up-right"></i>
-                                            <span>Mở liên kết gốc</span>
-                                        </a>
-                                    )}
                                 </div>
                             )}
                         </div>
