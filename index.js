@@ -334,6 +334,16 @@ app.get("/api/members/search/:memberName", authController.verifyToken, MemberCon
 app.get("/api/members/:memberId", authController.verifyToken, MemberController.getMemberById);
 
 /**
+ * MEMBER UPDATE: Update member
+ * Purpose: Update member account from the system
+ * Method: PUT /api/members/:memberId
+ * Input: Path params: { memberId: number }, Body: { name?: string, email?: string, role?: string, status?: string, date_of_birth?: string, bio_json?: object, password?: string}
+ * Output: { success: boolean, data: object, message: string }
+ * Authentication: Required (Admin/Staff)
+ */
+app.put("/api/members/:memberId", authController.verifyToken, MemberController.updateMember);
+
+/**
  * MEMBER DELETE: Remove member
  * Purpose: Delete member account from the system
  * Method: DELETE /api/members/:memberId
