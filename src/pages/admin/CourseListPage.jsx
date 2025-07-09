@@ -16,7 +16,7 @@ import SurveyQuestionViewer from "../../components/SurveyQuestionViewer";
 import SurveyQuestionCreator from "../../components/SurveyQuestionCreator";
 import ContentCreator from "../../components/ContentCreator";
 import "../../styles/CourseListPage.scss";
-
+import { useNavigate } from "react-router-dom";
 // Register ChartJS components
 ChartJS.register(
   CategoryScale,
@@ -34,7 +34,20 @@ const CourseListPage = () => {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const token = sessionStorage.getItem("token");
+  const navigate = useNavigate()
+  const userRole = async () => {
+    try {
+      if (!token) navigate('/admin/login')
+      const res = await axios.get('http://localhost:3000/api/user/role/',
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      if (!(res.data.role && res.data.role === 'admin')) navigate('/admin/login')
+    } catch (err) {
+      navigate('/admin/login')
+    }
 
+  }
+  userRole()
   // Modal states
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);

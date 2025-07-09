@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { FaSearch, FaPlus, FaEdit } from "react-icons/fa";
+import { FaSearch, FaPlus, FaEdit, FaClock } from "react-icons/fa";
 import { FaTrash } from "react-icons/fa6";
 import { MdCancel } from "react-icons/md";
 import "../../styles/ConsultantListPage.scss";
 import axios from "axios";
-
+import { useNavigate } from "react-router-dom";
 const ConsultantListPage = () => {
   const [consultants, setConsultants] = useState([]);
   const [newConsultant, setNewConsultant] = useState({
@@ -29,7 +29,182 @@ const ConsultantListPage = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [consultantIdToDelete, setConsultantIdToDelete] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Slot management state
+  const [showSlotModal, setShowSlotModal] = useState(false);
+  const [selectedConsultantForSlots, setSelectedConsultantForSlots] = useState(null);
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [consultantSlots, setConsultantSlots] = useState([]);
+  const [daySlotSelections, setDaySlotSelections] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState({ text: "", type: "" });
+
   const token = sessionStorage.getItem("token");
+  const navigate = useNavigate()
+  const userRole = async () => {
+    try {
+      if (!token) navigate('/admin/login')
+      const res = await axios.get('http://localhost:3000/api/user/role/',
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      if (!(res.data.role && res.data.role === 'admin')) navigate('/admin/login')
+    } catch (err) {
+      navigate('/admin/login')
+    }
+
+  }
+  userRole()
+  // Days of week configuration
+  const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const dayLabels = {
+    'Monday': 'Thứ 2',
+    'Tuesday': 'Thứ 3',
+    'Wednesday': 'Thứ 4',
+    'Thursday': 'Thứ 5',
+    'Friday': 'Thứ 6',
+    'Saturday': 'Thứ 7',
+    'Sunday': 'Chủ nhật'
+  };
+
+  // Slot management functions
+  const fetchAvailableSlots = async () => {
+    try {
+      const res = await axios.get("http://localhost:3000/api/slots", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data.success) {
+        console.log("Available slots:", res.data.data); // Debug log
+        setAvailableSlots(res.data.data);
+      }
+    } catch (err) {
+      console.error("Lỗi khi lấy danh sách slots:", err);
+    }
+  };
+
+  const fetchConsultantSlots = async (consultantId) => {
+    try {
+      const res = await axios.get(`http://localhost:3000/api/consultant-slots/${consultantId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data.success) {
+        console.log("Consultant slots data:", res.data.data); // Debug log
+        setConsultantSlots(res.data.data);
+
+        // Initialize day-slot selections based on existing consultant slots
+        const selections = {};
+        daysOfWeek.forEach(day => {
+          selections[day] = [];
+        });
+
+        // Group existing slots by day and collect slot IDs
+        res.data.data.forEach(slot => {
+          console.log("Processing slot:", slot); // Debug log
+          const day = slot.day_of_week;
+          if (selections[day]) {
+            // Make sure we're using the correct slot_id field
+            const slotId = slot.slot_id || slot.id;
+            if (slotId && !selections[day].includes(slotId)) {
+              selections[day].push(slotId);
+            }
+          }
+        });
+
+        console.log("Initialized day slot selections:", selections); // Debug log
+        setDaySlotSelections(selections);
+      }
+    } catch (err) {
+      console.error("Lỗi khi lấy slots của consultant:", err);
+      setConsultantSlots([]);
+      // Initialize empty selections
+      const emptySelections = {};
+      daysOfWeek.forEach(day => {
+        emptySelections[day] = [];
+      });
+      setDaySlotSelections(emptySelections);
+    }
+  };
+
+  const handleOpenSlotModal = async (consultant) => {
+    setSelectedConsultantForSlots(consultant);
+    setShowSlotModal(true);
+    setMessage({ text: "", type: "" });
+    console.log("Opening slot modal for consultant:", consultant); // Debug log
+    await fetchAvailableSlots();
+    await fetchConsultantSlots(consultant.id_consultant);
+  };
+
+  const handleCloseSlotModal = () => {
+    setShowSlotModal(false);
+    setSelectedConsultantForSlots(null);
+    setConsultantSlots([]);
+    setDaySlotSelections({});
+    setMessage({ text: "", type: "" });
+  };
+
+  const handleSlotToggle = (day, slotId) => {
+    setDaySlotSelections(prev => {
+      const daySlots = prev[day] || [];
+      const newDaySlots = daySlots.includes(slotId)
+        ? daySlots.filter(id => id !== slotId)
+        : [...daySlots, slotId];
+
+      return {
+        ...prev,
+        [day]: newDaySlots
+      };
+    });
+  };
+
+  const handleSaveSlots = async () => {
+    if (!selectedConsultantForSlots) return;
+
+    try {
+      setLoading(true);
+
+      // Prepare slots data for the API
+      const slotsToSave = [];
+
+      Object.entries(daySlotSelections).forEach(([day, slotIds]) => {
+        slotIds.forEach(slotId => {
+          slotsToSave.push({
+            slot_id: parseInt(slotId),
+            day_of_week: day
+          });
+        });
+      });
+
+      // First, delete all existing consultant slots
+      await axios.delete(`http://localhost:3000/api/consultant-slots/consultant/${selectedConsultantForSlots.id_consultant}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      // Then, create new slots if any are selected
+      if (slotsToSave.length > 0) {
+        const res = await axios.post(
+          `http://localhost:3000/api/consultant-slots/consultant/${selectedConsultantForSlots.id_consultant}`,
+          { slots: slotsToSave },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        if (res.data.success) {
+          setMessage({ text: "Cập nhật lịch làm việc thành công!", type: "success" });
+          setTimeout(() => {
+            handleCloseSlotModal();
+          }, 2000);
+        }
+      } else {
+        setMessage({ text: "Đã xóa tất cả lịch làm việc của tư vấn viên", type: "success" });
+        setTimeout(() => {
+          handleCloseSlotModal();
+        }, 2000);
+      }
+    } catch (err) {
+      console.error("Lỗi khi cập nhật slots:", err);
+      setMessage({ text: "Có lỗi xảy ra khi cập nhật lịch làm việc", type: "error" });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleOpenPopup = () => {
     setShowPopup(true);
@@ -326,6 +501,9 @@ const ConsultantListPage = () => {
                   <button className="btn btn-outline-warning btn-sm me-2" onClick={() => handleEdit(consultant.id_consultant)}>
                     <FaEdit />
                   </button>
+                  <button className="btn btn-outline-info btn-sm me-2" onClick={() => handleOpenSlotModal(consultant)} title="Quản lý lịch làm việc">
+                    <FaClock />
+                  </button>
                   <button className="btn btn-outline-danger btn-sm" onClick={() => handleOpenDeleteDialog(consultant.id_consultant)}>
                     <FaTrash />
                   </button>
@@ -468,6 +646,127 @@ const ConsultantListPage = () => {
               <div className="modal-footer border-0 pt-0">
                 <button type="button" className="btn btn-secondary" onClick={handleCloseDeleteDialog}>Không</button>
                 <button type="button" className="btn btn-danger" onClick={handleConfirmDelete}>Có</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Slot Management Modal */}
+      {showSlotModal && selectedConsultantForSlots && (
+        <div className="modal fade show" style={{ display: 'block', background: 'rgba(0,0,0,0.5)' }} tabIndex="-1" role="dialog">
+          <div className="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" role="document">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">
+                  Quản lý lịch làm việc - {selectedConsultantForSlots.name}
+                </h5>
+                <button type="button" className="btn btn-close" onClick={handleCloseSlotModal}>
+                </button>
+              </div>
+              <div className="modal-body">
+                {message.text && (
+                  <div className={`alert ${message.type === 'success' ? 'alert-success' : 'alert-danger'} mb-3`}>
+                    {message.text}
+                  </div>
+                )}
+
+                {/* Current Consultant Slots Display */}
+                <div className="mb-4">
+                  <h6>Lịch làm việc hiện tại:</h6>
+                  {consultantSlots.length > 0 ? (
+                    <div className="current-slots-display">
+                      {daysOfWeek.map(day => {
+                        const daySlots = consultantSlots.filter(slot => slot.day_of_week === day);
+                        return daySlots.length > 0 ? (
+                          <div key={day} className="day-slots mb-2">
+                            <strong>{dayLabels[day]}:</strong>
+                            <div className="slots-list ms-2">
+                              {daySlots.map((slot, index) => (
+                                <span key={index} className="badge bg-primary me-1">
+                                  {slot.start_time} - {slot.end_time}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        ) : null;
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-muted">Chưa có lịch làm việc nào được thiết lập.</p>
+                  )}
+                </div>
+
+                {/* Slot Selection by Day */}
+                <div className="mb-4">
+                  <h6>Thiết lập lịch làm việc theo ngày:</h6>
+                  <div className="alert alert-info">
+                    <small>Chọn các khung giờ làm việc cho từng ngày trong tuần. Bạn có thể chọn khung giờ khác nhau cho mỗi ngày.</small>
+                  </div>
+
+                  {daysOfWeek.map(day => (
+                    <div key={day} className="day-section mb-4 p-3 border rounded">
+                      <h6 className="day-header mb-3 text-primary">{dayLabels[day]}</h6>
+
+                      {availableSlots.length > 0 ? (
+                        <div className="row">
+                          {availableSlots.map(slot => {
+                            // Check if this slot is selected for this day
+                            const isSelected = daySlotSelections[day]?.includes(slot.slot_id) || false;
+                            return (
+                              <div key={slot.slot_id} className="col-md-3 col-sm-4 col-6 mb-2">
+                                <div className="form-check">
+                                  <input
+                                    className="form-check-input"
+                                    type="checkbox"
+                                    id={`${day}-${slot.slot_id}`}
+                                    checked={isSelected}
+                                    onChange={() => handleSlotToggle(day, slot.slot_id)}
+                                  />
+                                  <label className="form-check-label" htmlFor={`${day}-${slot.slot_id}`}>
+                                    {slot.start_time} - {slot.end_time}
+                                  </label>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="text-muted">Không có khung giờ nào. Vui lòng tạo khung giờ mới trước.</p>
+                      )}
+
+                      {/* Show selected slots for this day */}
+                      {daySlotSelections[day] && daySlotSelections[day].length > 0 && (
+                        <div className="selected-slots-preview mt-3">
+                          <small className="text-muted">Đã chọn: </small>
+                          {availableSlots
+                            .filter(slot => daySlotSelections[day].includes(slot.slot_id))
+                            .map(slot => (
+                              <span key={slot.slot_id} className="badge bg-secondary me-1">
+                                {slot.start_time}-{slot.end_time}
+                              </span>
+                            ))
+                          }
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={handleCloseSlotModal} disabled={loading}>
+                  Hủy
+                </button>
+                <button type="button" className="btn btn-primary" onClick={() => { handleSaveSlots() }} disabled={loading}>
+                  {loading ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                      Đang cập nhật...
+                    </>
+                  ) : (
+                    "Lưu lịch làm việc"
+                  )}
+                </button>
               </div>
             </div>
           </div>

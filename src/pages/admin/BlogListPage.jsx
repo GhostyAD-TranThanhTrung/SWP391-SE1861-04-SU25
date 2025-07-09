@@ -3,7 +3,7 @@ import axios from "axios";
 import { FaSearch, FaPlus, FaEdit, FaEye, FaFlag } from "react-icons/fa";
 import { FaTrash } from "react-icons/fa6";
 import { MdCancel, MdApproval, MdBlock } from "react-icons/md";
-
+import { useNavigate } from "react-router-dom";
 
 const BlogListPage = () => {
   const [showPopup, setShowPopup] = useState(false);
@@ -20,7 +20,20 @@ const BlogListPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState('all'); // 'all', 'pending', 'published', 'draft'
   const token = sessionStorage.getItem("token");
+  const navigate = useNavigate()
+  const userRole = async () => {
+    try {
+      if (!token) navigate('/admin/login')
+      const res = await axios.get('http://localhost:3000/api/user/role/',
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      if (!(res.data.role && res.data.role === 'admin')) navigate('/admin/login')
+    } catch (err) {
+      navigate('/admin/login')
+    }
 
+  }
+  userRole()
   const fetchBlogs = async () => {
     try {
       let endpoint = "http://localhost:3000/api/admin/blogs";

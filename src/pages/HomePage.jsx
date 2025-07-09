@@ -11,6 +11,7 @@ import GroupSessionImg from '../images/groupsession.jpg';
 import OutdoorsImg from '../images/outdoors.jpg';
 
 const HomePage = () => {
+
     const [currentTestimonial, setCurrentTestimonial] = useState(0);
     const [stats, setStats] = useState({ users: 0, courses: 0, consultations: 0, success: 0 });
     const [communityEvents, setCommunityEvents] = useState([]);
@@ -161,7 +162,7 @@ const HomePage = () => {
     return (
         <div className="homepage">
             {/* Hero Section */}
-            <section className="hero-section">
+            < section className="hero-section" >
                 <div className="hero-content">
                     <div className="container">
                         <div className="row align-items-center min-vh-100">
@@ -431,7 +432,7 @@ const HomePage = () => {
                     </div>
                 </div>
             </section>
-        </div>
+        </div >
     );
 };
 

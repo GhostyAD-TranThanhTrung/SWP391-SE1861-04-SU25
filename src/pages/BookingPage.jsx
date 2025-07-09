@@ -474,7 +474,7 @@ const BookingPage = () => {
                                             <div className="detail-item" style={{ padding: '10px 0', marginBottom: '15px' }}>
                                                 <i className="bi bi-currency-dollar me-2"></i>
                                                 <span style={{ fontSize: '1.1rem', fontWeight: '500' }}>
-                                                    {consultant.cost !== 'N/A' ? `$${consultant.cost} mỗi buổi` : 'Giá N/A'}
+                                                    {consultant.cost !== 'N/A' ? `${Number(consultant.cost).toLocaleString('vi-VN')}VNĐ mỗi buổi` : 'Giá N/A'}
                                                 </span>
                                             </div>
                                         </div>

@@ -4,7 +4,7 @@ import { FaSearch, FaPlus, FaEdit } from "react-icons/fa";
 import { FaTrash } from "react-icons/fa6";
 import { MdCancel } from "react-icons/md";
 import "../../styles/StaffListPage.scss";
-
+import { useNavigate } from "react-router-dom";
 const StaffListPage = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [staffs, setStaffs] = useState([]);
@@ -25,7 +25,20 @@ const StaffListPage = () => {
   const [newPassword, setNewPassword] = useState('');
   const token = sessionStorage.getItem("token");
   const isAdminEditing = editingStaffId && editStaffData?.role === 'admin';
+  const navigate = useNavigate()
+  const userRole = async () => {
+    try {
+      if (!token) navigate('/admin/login')
+      const res = await axios.get('http://localhost:3000/api/user/role/',
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      if (!(res.data.role && res.data.role === 'admin')) navigate('/admin/login')
+    } catch (err) {
+      navigate('/admin/login')
+    }
 
+  }
+  userRole()
   const fetchStaffs = async () => {
     try {
       const res = await axios.get("http://localhost:3000/api/staff", {

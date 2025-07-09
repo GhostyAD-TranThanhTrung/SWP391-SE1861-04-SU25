@@ -4,7 +4,7 @@ import { FaEye, FaTrash, FaWrench } from "react-icons/fa6";
 import { MdCancel } from "react-icons/md";
 import "../../styles/MemberListPage.scss";
 import axios from "axios";
-
+import { useNavigate } from "react-router-dom";
 const MemberListPage = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [members, setMembers] = useState([]);
@@ -13,7 +13,20 @@ const MemberListPage = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [memberIdToDelete, setMemberIdToDelete] = useState(null);
   const token = sessionStorage.getItem("token");
+  const navigate = useNavigate()
+  const userRole = async () => {
+    try {
+      if (!token) navigate('/admin/login')
+      const res = await axios.get('http://localhost:3000/api/user/role/',
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      if (!(res.data.role && res.data.role === 'admin')) navigate('/admin/login')
+    } catch (err) {
+      navigate('/admin/login')
+    }
 
+  }
+  userRole()
   const handleClosePopup = () => setShowPopup(false);
 
   const fetchMembers = async () => {

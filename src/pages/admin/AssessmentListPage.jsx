@@ -4,11 +4,24 @@ import { FaSearch, FaPlus, FaEdit } from "react-icons/fa";
 import { FaEye, FaTrash } from "react-icons/fa6";
 import { MdCancel } from "react-icons/md";
 import "../../styles/AssessmentListPage.scss";
-
+import { useNavigate } from "react-router-dom";
 const AssessmentListPage = () => {
   const [assessments, setAssessments] = useState([]);
   const token = sessionStorage.getItem("token");
+  const navigate = useNavigate()
+  const userRole = async () => {
+    try {
+      if (!token) navigate('/admin/login')
+      const res = await axios.get('http://localhost:3000/api/user/role/',
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      if (!(res.data.role && res.data.role === 'admin')) navigate('/admin/login')
+    } catch (err) {
+      navigate('/admin/login')
+    }
 
+  }
+  userRole()
   //const [showPopup, setShowPopup] = useState(false);
 
   //const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);

@@ -4,7 +4,7 @@ import { FaEye, FaTrash, FaWrench } from "react-icons/fa6";
 import { MdCancel } from "react-icons/md";
 import "../../styles/ManageBookingPage.scss";
 import axios from "axios";
-
+import { useNavigate } from "react-router-dom";
 const ManageBookingPage = () => {
   const [showViewPopup, setShowViewPopup] = useState(false);
   const [showEditPopup, setShowEditPopup] = useState(false);
@@ -25,7 +25,20 @@ const ManageBookingPage = () => {
     google_meet_link: ''
   });
   const token = sessionStorage.getItem("token");
+  const navigate = useNavigate()
+  const userRole = async () => {
+    try {
+      if (!token) navigate('/admin/login')
+      const res = await axios.get('http://localhost:3000/api/user/role/',
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      if (!(res.data.role && res.data.role === 'consultant')) navigate('/admin/login')
+    } catch (err) {
+      navigate('/admin/login')
+    }
 
+  }
+  userRole()
   const statusOptions = ['Hoàn thành', 'Lên lịch', 'Đã hủy', 'Đang chờ xác nhận', 'Xác nhận thành công'];
 
   const handleCloseViewPopup = () => setShowViewPopup(false);

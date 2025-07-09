@@ -2,14 +2,28 @@ import { useRef, useEffect, useState } from 'react';
 import { Chart } from 'chart.js/auto';
 import '../../styles/DashboardPage.scss';
 import axios from 'axios';
-
+import { useNavigate } from "react-router-dom";
 const DashboardPage = () => {
   const userStatsCanvasRef = useRef(null);
   const bookingStatsCanvasRef = useRef(null);
 
   const userStatsChartInstance = useRef(null);
   const bookingStatsChartInstance = useRef(null);
+  const token = sessionStorage.getItem("token");
+  const navigate = useNavigate()
+  const userRole = async () => {
+    try {
+      if (!token) navigate('/admin/login')
+      const res = await axios.get('http://localhost:3000/api/user/role/',
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      if (!(res.data.role && res.data.role === 'admin')) navigate('/admin/login')
+    } catch (err) {
+      navigate('/admin/login')
+    }
 
+  }
+  userRole()
   const [dashboardData, setDashboardData] = useState({
     totalMonthlyCourseEnrollment: 0,
     totalMonthlyCourseCompletion: 0,
