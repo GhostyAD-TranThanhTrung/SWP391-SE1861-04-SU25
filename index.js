@@ -720,70 +720,9 @@ app.put("/api/content/:id", authController.verifyToken, ContentController.update
 app.patch("/api/content/:id/order", authController.verifyToken, ContentController.updateContentOrder);
 app.delete("/api/content/:id", authController.verifyToken, ContentController.deleteContent);
 
-// ==================== FILE SERVING ROUTES ====================
-/**
- * IMAGE SERVING: Serve static images
- * Purpose: Serve image files from the content/image directory with proper caching
- * Method: GET /api/images/:filename
- * Input: Path params: { filename: string }
- * Output: Image file or error JSON
- * Authentication: None (Public)
- * Features: Auto content-type detection, 1-year caching, CORS support
- */
-app.get("/api/images/:filename", (req, res) => {
-    const { filename } = req.params;
-    const path = require('path');
-    const fs = require('fs');
-
-    console.log('🖼️ Image request for:', filename);
-
-    // Construct the full path to the image
-    const imagePath = path.join(__dirname, 'content', 'image', filename);
-    console.log('📁 Looking for image at:', imagePath);
-
-    // Check if file exists
-    if (!fs.existsSync(imagePath)) {
-        console.log('❌ Image not found:', imagePath);
-        return res.status(404).json({
-            success: false,
-            message: 'Image not found',
-            filename: filename,
-            path: imagePath
-        });
-    }
-
-    // Get file extension to determine content type
-    const ext = path.extname(filename).toLowerCase();
-    const contentType = {
-        '.jpg': 'image/jpeg',
-        '.jpeg': 'image/jpeg',
-        '.png': 'image/png',
-        '.gif': 'image/gif',
-        '.webp': 'image/webp',
-        '.svg': 'image/svg+xml'
-    }[ext] || 'image/jpeg';
-
-    console.log('✅ Serving image:', filename, 'as', contentType);
-
-    // Set appropriate headers
-    res.setHeader('Content-Type', contentType);
-    res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
-    res.setHeader('Access-Control-Allow-Origin', '*');
-
-    // Send the file
-    res.sendFile(imagePath, (err) => {
-        if (err) {
-            console.error('💥 Error sending image:', err);
-            res.status(500).json({
-                success: false,
-                message: 'Error serving image',
-                error: err.message
-            });
-        } else {
-            console.log('🎉 Image served successfully:', filename);
-        }
-    });
-});
+// Image upload routes
+app.post("/api/images/upload", authController.verifyToken, ContentController.uploadImage);
+app.get("/api/images/:filename", ContentController.getImage);
 
 // ==================== CATEGORY ROUTES ====================
 /**

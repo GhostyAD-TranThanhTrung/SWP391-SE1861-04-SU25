@@ -139,21 +139,6 @@ INSERT INTO Programs (img_link, title, description, create_by, status, age_group
 (N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Lựa chọn Điều trị Nghiện Heroin', N'Hướng dẫn toàn diện về điều trị nghiện heroin và con đường phục hồi', 1, N'active', N'18+', GETDATE(), 6),
 (N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Điều trị Hỗ trợ bằng Thuốc cho Heroin', N'Hiểu về methadone, buprenorphine và các loại thuốc điều trị khác', 1, N'active', N'18+', GETDATE(), 6),
 
--- Chương trình HIV
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Phòng ngừa HIV trong Sử dụng Chất', N'Ngăn ngừa lây truyền HIV giữa những người sử dụng ma túy', 1, N'active', N'18+', GETDATE(), 7),
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Dịch vụ Xét nghiệm và Chăm sóc HIV', N'Tiếp cận xét nghiệm HIV, điều trị và dịch vụ hỗ trợ', 1, N'active', N'18+', GETDATE(), 7),
-
--- Chương trình Kratom
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Kratom: Sự thật và Rủi ro', N'Nội dung giáo dục về sử dụng kratom, tác dụng và rủi ro sức khỏe tiềm ẩn', 1, N'active', N'18+', GETDATE(), 8),
-
--- Chương trình Methamphetamine
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Phục hồi Nghiện Methamphetamine', N'Cách tiếp cận điều trị và chiến lược phục hồi cho nghiện methamphetamine', 1, N'active', N'18+', GETDATE(), 9),
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Hiểu Tác dụng Methamphetamine', N'Giáo dục toàn diện về sử dụng meth, tác động sức khỏe và rủi ro', 1, N'active', N'16+', GETDATE(), 9),
-
--- Chương trình Opioid
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Nhận thức Khủng hoảng Opioid', N'Hiểu về đại dịch opioid, lạm dụng thuốc theo toa và giải pháp', 1, N'active', N'16+', GETDATE(), 10),
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'An toàn Thuốc Opioid Kê đơn', N'Sử dụng an toàn, bảo quản và tiêu hủy thuốc opioid kê đơn', 1, N'active', N'Mọi lứa tuổi', GETDATE(), 10),
-
 -- Chương trình Phòng ngừa
 (N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Chương trình Phòng ngừa Ma túy Thanh thiếu niên', N'Chiến lược phòng ngừa dựa trên bằng chứng cho thanh thiếu niên', 1, N'active', N'13-18', GETDATE(), 11),
 (N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Sáng kiến Phòng ngừa Cộng đồng', N'Xây dựng khả năng phục hồi và năng lực phòng ngừa cộng đồng', 1, N'active', N'Mọi lứa tuổi', GETDATE(), 11),
@@ -161,19 +146,6 @@ INSERT INTO Programs (img_link, title, description, create_by, status, age_group
 -- Chương trình Chất gây Ảo giác
 (N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Giáo dục về Chất gây Ảo giác', N'Nội dung giáo dục về chất gây ảo giác, chất phân ly và tác dụng của chúng', 1, N'active', N'18+', GETDATE(), 12),
 
--- Chương trình Psilocybin
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'An toàn và Tác dụng Psilocybin', N'Thông tin về nấm ma thuật, tác dụng và cân nhắc an toàn', 1, N'active', N'18+', GETDATE(), 13),
-
--- Chương trình Kỳ thị
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Giảm Kỳ thị Nghiện', N'Giải quyết kỳ thị, thúc đẩy hiểu biết và giảm phân biệt đối xử', 1, N'active', N'Mọi lứa tuổi', GETDATE(), 14),
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Ngôn ngữ trong Nghiện', N'Sử dụng ngôn ngữ lấy người làm trung tâm và giảm thuật ngữ kỳ thị', 1, N'active', N'16+', GETDATE(), 14),
-
--- Chương trình Dịch vụ Kim tiêm
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Tổng quan Chương trình Dịch vụ Kim tiêm', N'Hiểu về chương trình trao đổi kim tiêm và dịch vụ giảm tác hại', 1, N'active', N'18+', GETDATE(), 15),
-
--- Chương trình Thuốc lá/Vaping
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Chương trình Cai thuốc lá', N'Hỗ trợ cai thuốc toàn diện và liệu pháp thay thế nicotine', 1, N'active', N'16+', GETDATE(), 16),
-(N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Rủi ro Vaping và Thuốc lá điện tử', N'Hiểu về rủi ro sức khỏe của vaping và sử dụng thuốc lá điện tử', 1, N'active', N'13+', GETDATE(), 16),
 
 -- Chương trình Điều trị
 (N'https://media.istockphoto.com/id/1494234366/vector/against-drug-abuse-day-flat-sign-on-white-background-no-drugs-icon.jpg?s=612x612&w=0&k=20&c=h2oOst0Wchjw-FfQrXfopjzttXgRvpZOYO5NQ9MKD2M=', N'Điều trị Nghiện Toàn diện', N'Tổng quan về lựa chọn điều trị, chương trình phục hồi và dịch vụ hỗ trợ', 1, N'active', N'18+', GETDATE(), 17),
@@ -185,20 +157,17 @@ INSERT INTO Programs (img_link, title, description, create_by, status, age_group
 
 -- Insert User Enrollments with JSON progress tracking
 INSERT INTO Enroll (user_id, program_id, start_at, progress) VALUES
--- User 6 enrolled in Program 2 (Stress Management) - 5 out of 7 content items completed (71% progress)
-(6, 2, '2024-01-10 10:00:00', '[{"content_id":8,"complete":true},{"content_id":9,"complete":true},{"content_id":10,"complete":true},{"content_id":11,"complete":true},{"content_id":12,"complete":true},{"content_id":13,"complete":false},{"content_id":14,"complete":false}]'),
+-- User 8 enrolled in Program 1 (Hiểu biết Khoa học về Nghiện) - 4 out of 6 content items completed (67% progress)
+(8, 1, '2024-01-08 09:00:00', '[{"content_id":1,"complete":true},{"content_id":2,"complete":true},{"content_id":3,"complete":true},{"content_id":4,"complete":true},{"content_id":5,"complete":false},{"content_id":6,"complete":false}]'),
 
--- User 7 enrolled in Program 3 (Mindfulness Meditation) - 3 out of 7 content items completed (43% progress)
-(7, 3, '2024-01-12 14:00:00', '[{"content_id":15,"complete":true},{"content_id":16,"complete":true},{"content_id":17,"complete":true},{"content_id":18,"complete":false},{"content_id":19,"complete":false},{"content_id":20,"complete":false},{"content_id":21,"complete":false}]'),
+-- User 7 enrolled in Program 18 (Hội chợ Phòng ngừa Cộng đồng) - 1 out of 2 content items completed (50% progress)
+(7, 18, '2024-01-12 14:00:00', '[{"content_id":7,"complete":true},{"content_id":8,"complete":false}]'),
 
--- User 8 enrolled in Program 1 (Mental Health Basics) - 6 out of 7 content items completed (86% progress)
-(8, 1, '2024-01-08 09:00:00', '[{"content_id":1,"complete":true},{"content_id":2,"complete":true},{"content_id":3,"complete":true},{"content_id":4,"complete":true},{"content_id":5,"complete":true},{"content_id":6,"complete":true},{"content_id":7,"complete":false}]'),
+-- User 9 enrolled in Program 19 (Đi bộ Phục hồi & Tập trung Hỗ trợ) - All 2 content items completed (100% progress)
+(9, 19, '2024-01-05 11:00:00', '[{"content_id":9,"complete":true},{"content_id":10,"complete":true}]'),
 
--- User 8 also enrolled in Program 3 (Mindfulness Meditation) - 2 out of 7 content items completed (29% progress)
-(8, 3, '2024-01-15 16:00:00', '[{"content_id":15,"complete":true},{"content_id":16,"complete":true},{"content_id":17,"complete":false},{"content_id":18,"complete":false},{"content_id":19,"complete":false},{"content_id":20,"complete":false},{"content_id":21,"complete":false}]'),
-
--- User 9 enrolled in Program 2 (Stress Management) - All 7 content items completed (100% progress)
-(9, 2, '2024-01-05 11:00:00', '[{"content_id":8,"complete":true},{"content_id":9,"complete":true},{"content_id":10,"complete":true},{"content_id":11,"complete":true},{"content_id":12,"complete":true},{"content_id":13,"complete":true},{"content_id":14,"complete":true}]');
+-- User 6 enrolled in Program 1 (Hiểu biết Khoa học về Nghiện) - 5 out of 6 content items completed (83% progress)
+(6, 1, '2024-01-10 10:00:00', '[{"content_id":1,"complete":true},{"content_id":2,"complete":true},{"content_id":3,"complete":true},{"content_id":4,"complete":true},{"content_id":5,"complete":true},{"content_id":6,"complete":false}]');
 
 -- Insert Actions for Assessments
 INSERT INTO Action (description, range, type) VALUES
@@ -220,91 +189,905 @@ INSERT INTO Assessments (user_id, type, result_json, create_at, action_id) VALUE
 -- Insert Content
 INSERT INTO Content (program_id, title, type, orders, content_file_link, content_type, content_metadata_json) VALUES
 -- Chương trình 1: Hiểu biết Khoa học Nghiện (6 nội dung)
-(1, N'Khoa học Thần kinh về Nghiện', N'article', 1, N'/content/markdown/addiction-science.md', N'markdown', N'{"author": "TS. Smith", "readingTime": "12 phút", "difficulty": "trung cấp"}'),
+(1, N'Khoa học Thần kinh về Nghiện', N'article', 1, N'# Understanding Addiction Science
+
+![Understanding Addiction Science](../image/Sample.jpg)
+
+## What is Addiction?
+
+Addiction is a complex, chronic brain disorder characterized by compulsive drug seeking and use, despite harmful consequences. It''s considered a brain disorder because drugs change the brain''s structure and how it works.
+
+## The Science Behind Addiction
+
+### Brain Chemistry and Addiction
+
+The brain''s reward system is designed to reinforce behaviors necessary for survival. When we engage in pleasurable activities, the brain releases dopamine in the reward pathway, creating feelings of pleasure and satisfaction.
+
+### How Substances Affect the Brain
+
+1. **Initial Use**: Substances trigger the release of large amounts of dopamine
+2. **Tolerance**: The brain adapts by reducing dopamine production
+3. **Dependence**: The brain requires the substance to function normally
+4. **Addiction**: Compulsive use continues despite negative consequences
+
+## Key Brain Areas Affected
+
+### The Reward Circuit
+- **Nucleus Accumbens**: Pleasure and motivation center
+- **Ventral Tegmental Area**: Dopamine production
+- **Prefrontal Cortex**: Decision-making and impulse control
+
+### Changes in Brain Function
+- Reduced dopamine sensitivity
+- Impaired decision-making abilities
+- Weakened impulse control
+- Enhanced stress response
+
+## The Addiction Cycle
+
+### Stage 1: Binge/Intoxication
+- Initial reward and pleasure
+- Dopamine release in reward circuits
+- Positive reinforcement
+
+### Stage 2: Withdrawal/Negative Affect
+- Decreased dopamine function
+- Increased stress hormones
+- Negative emotional states
+- Craving and seeking behavior
+
+### Stage 3: Preoccupation/Anticipation
+- Compromised prefrontal cortex function
+- Impaired decision-making
+- Loss of control over use
+
+## Risk Factors for Addiction
+
+### Genetic Factors
+- Family history of addiction
+- Genetic variations affecting drug metabolism
+- Inherited personality traits
+
+### Environmental Factors
+- Early exposure to substances
+- Trauma and stress
+- Peer influence
+- Availability of substances
+
+### Developmental Factors
+- Age of first use
+- Adolescent brain development
+- Mental health conditions
+
+## The Disease Model of Addiction
+
+Addiction is recognized as a medical condition because it:
+- Involves changes in brain structure and function
+- Has predictable symptoms and progression
+- Responds to specific treatments
+- Can be chronic and relapsing
+
+## Neuroplasticity and Recovery
+
+The brain''s ability to change and adapt (neuroplasticity) means that:
+- Addiction-related brain changes can be reversed
+- New neural pathways can be formed
+- Recovery is possible with proper treatment
+- The brain can heal over time
+
+## Treatment Implications
+
+Understanding addiction science helps us develop:
+- Evidence-based treatment approaches
+- Medications that target specific brain systems
+- Behavioral therapies that rewire the brain
+- Comprehensive recovery programs
+
+## Breaking the Stigma
+
+Scientific understanding of addiction helps us recognize that:
+- Addiction is not a moral failing
+- People with addiction need medical treatment, not punishment
+- Recovery is possible with appropriate support
+- Prevention efforts should focus on risk factors
+
+## Hope for Recovery
+
+While addiction is a chronic condition, it is treatable. Understanding the science behind addiction:
+- Reduces shame and guilt
+- Promotes evidence-based treatment
+- Supports long-term recovery
+- Helps families understand the condition
+
+## Key Takeaways
+
+1. Addiction is a brain disease, not a choice
+2. Substances change brain structure and function
+3. Multiple factors contribute to addiction risk
+4. The brain can heal and recover
+5. Treatment should be based on scientific evidence
+6. Recovery is possible with proper support
+
+Remember: Knowledge is power. Understanding the science of addiction is the first step toward effective treatment and lasting recovery.', N'markdown', N'{"author": "TS. Smith", "readingTime": "12 phút", "difficulty": "trung cấp"}'),
 (1, N'Cách Thuốc Thay đổi Não bộ', N'video', 2, N'https://www.youtube.com/watch?v=dQw4w9WgXcQ', N'video', N'{"duration": "15:30", "format": "youtube", "instructor": "TS. Johnson"}'),
-(1, N'Dopamine và Con đường Phần thưởng', N'article', 3, N'/content/markdown/dopamine-reward.md', N'markdown', N'{"author": "TS. Williams", "readingTime": "10 phút", "difficulty": "trung cấp"}'),
+(1, N'Dopamine và Con đường Phần thưởng', N'article', 3, N'# Dopamine and Reward Pathways in Addiction
+
+## Understanding the Brain''s Reward System
+
+The brain''s reward system plays a crucial role in addiction development and maintenance. Understanding how dopamine and neural reward pathways function helps explain why addiction is so powerful and why recovery can be challenging.
+
+## What is Dopamine?
+
+Dopamine is a neurotransmitter often called the "feel-good" chemical, but its role is more complex than simply creating pleasure. Dopamine functions as:
+
+- **A motivation signal** - It drives us to seek rewarding experiences
+- **A learning mechanism** - It helps us remember what feels good
+- **A prediction system** - It anticipates future rewards
+
+## The Reward Pathway
+
+The brain''s reward circuit includes several key areas:
+
+### 1. Ventral Tegmental Area (VTA)
+- Source of dopamine neurons
+- Responds to rewarding stimuli
+- Projects to other brain regions
+
+### 2. Nucleus Accumbens
+- Receives dopamine signals
+- Processing center for motivation and pleasure
+- Critical for addiction development
+
+### 3. Prefrontal Cortex
+- Executive decision-making
+- Impulse control
+- Long-term planning
+
+## How Substances Hijack This System
+
+### Natural vs. Artificial Rewards
+
+**Natural rewards** (food, social interaction, sex):
+- Moderate dopamine release
+- Predictable patterns
+- Adaptive for survival
+
+**Substances of abuse**:
+- Massive dopamine release (2-10x normal)
+- Unpredictable patterns
+- Override natural reward systems
+
+## The Addiction Cycle
+
+### 1. Initial Use
+- Substance causes large dopamine spike
+- Intense pleasure/euphoria
+- Strong memory formation
+
+### 2. Tolerance Development
+- Brain reduces natural dopamine production
+- Dopamine receptors become less sensitive
+- Higher doses needed for same effect
+
+### 3. Dependence
+- Normal activities no longer feel rewarding
+- Substance becomes necessary to feel "normal"
+- Withdrawal symptoms when not using
+
+## Impact on Decision-Making
+
+Chronic substance use affects:
+
+- **Impulse control** - Reduced ability to resist cravings
+- **Risk assessment** - Poor judgment about consequences
+- **Future planning** - Focus shifts to immediate rewards
+
+## Recovery and Healing
+
+### Neuroplasticity and Hope
+
+The brain can recover through:
+
+- **Time and abstinence** - Gradual restoration of natural dopamine function
+- **Healthy activities** - Exercise, music, social connection
+- **Professional treatment** - Therapy and medication-assisted treatment
+
+### Supporting Recovery
+
+- Engage in naturally rewarding activities
+- Build supportive relationships
+- Practice stress management
+- Consider professional help
+
+## Key Takeaways
+
+1. Addiction involves fundamental changes to brain reward systems
+2. Understanding these changes reduces stigma and self-blame
+3. Recovery is possible through neuroplasticity
+4. Professional treatment can accelerate healing
+5. Patience and persistence are essential for recovery
+
+---
+
+*This information is for educational purposes and should not replace professional medical advice.*', N'markdown', N'{"author": "TS. Williams", "readingTime": "10 phút", "difficulty": "trung cấp"}'),
 (1, N'Di truyền và Nguy cơ Nghiền', N'video', 4, N'https://www.youtube.com/watch?v=dQw4w9WgXcQ', N'video', N'{"duration": "12:45", "format": "youtube", "instructor": "TS. Di truyền"}'),
 (1, N'Phục hồi Não bộ khi Cai nghiện', N'podcast', 5, N'https://www.youtube.com/watch?v=dQw4w9WgXcQ', N'audio', N'{"duration": "25:00", "format": "youtube", "host": "Chuyên gia Phục hồi"}'),
 (1, N'Cập nhật Nghiên cứu Khoa học Nghiện', N'article', 6, N'/content/markdown/addiction-research.md', N'markdown', N'{"author": "Nhóm Nghiên cứu", "readingTime": "8 phút", "difficulty": "nâng cao"}'),
 
--- Chương trình 2: Não bộ và Nghiện: Góc nhìn Khoa học (5 nội dung)
-(2, N'Giải phẫu Não bộ và Nghiện', N'article', 1, N'/content/markdown/brain-anatomy-addiction.md', N'markdown', N'{"author": "TS. Não bộ", "readingTime": "14 phút", "difficulty": "trung cấp"}'),
-(2, N'Chất dẫn truyền Thần kinh và Sử dụng Chất kích thích', N'video', 2, N'https://www.youtube.com/watch?v=dQw4w9WgXcQ', N'video', N'{"duration": "18:20", "format": "youtube", "instructor": "TS. Thần kinh"}'),
-(2, N'Cơ chế Nhờn thuốc và Phụ thuộc', N'article', 3, N'/content/markdown/tolerance-dependence.md', N'markdown', N'{"author": "TS. Cơ chế", "readingTime": "11 phút", "difficulty": "nâng cao"}'),
-(2, N'Hình ảnh Não trong Nghiên cứu Nghiện', N'video', 4, N'https://www.youtube.com/watch?v=dQw4w9WgXcQ', N'video', N'{"duration": "22:15", "format": "youtube", "instructor": "TS. Hình ảnh"}'),
-(2, N'Tính mềm dẻo Thần kinh và Phục hồi', N'podcast', 5, N'https://www.youtube.com/watch?v=dQw4w9WgXcQ', N'audio', N'{"duration": "30:00", "format": "youtube", "host": "Chuyên gia Tính mềm dẻo"}'),
-
--- Chương trình 3: Giáo dục và Nhận thức về Cần sa (7 nội dung)
-(3, N'Cần sa: Sự thật và Ngộ nhận', N'article', 1, N'/content/markdown/cannabis-facts.md', N'markdown', N'{"author": "Chuyên gia Cần sa", "readingTime": "10 phút", "difficulty": "sơ cấp"}'),
-(3, N'THC và CBD: Hiểu về Cannabinoid', N'video', 2, N'https://www.youtube.com/watch?v=dQw4w9WgXcQ', N'video', N'{"duration": "14:30", "format": "youtube", "instructor": "TS. Cannabinoid"}'),
-(3, N'Cần sa và Sức khỏe Tâm thần', N'article', 3, N'/content/markdown/cannabis-mental-health.md', N'markdown', N'{"author": "Chuyên gia Sức khỏe Tâm thần", "readingTime": "12 phút", "difficulty": "trung cấp"}'),
-(3, N'Cần sa Hợp pháp: Điều cần biết', N'video', 4, N'https://www.youtube.com/watch?v=dQw4w9WgXcQ', N'video', N'{"duration": "16:45", "format": "youtube", "instructor": "Chuyên gia Pháp lý"}'),
-(3, N'Cần sa Y tế và Giải trí', N'article', 5, N'/content/markdown/medical-recreational-cannabis.md', N'markdown', N'{"author": "Chuyên gia Cần sa Y tế", "readingTime": "9 phút", "difficulty": "trung cấp"}'),
-(3, N'Rối loạn Sử dụng Cần sa', N'podcast', 6, N'https://www.youtube.com/watch?v=dQw4w9WgXcQ', N'audio', N'{"duration": "28:00", "format": "youtube", "host": "Chuyên gia Nghiện"}'),
-(3, N'Lái xe và Cần sa: Mối lo An toàn', N'article', 7, N'/content/markdown/cannabis-driving-safety.md', N'markdown', N'{"author": "Chuyên gia An toàn", "readingTime": "7 phút", "difficulty": "sơ cấp"}'),
-
--- Chương trình 4: Cần sa và Phát triển Thanh thiếu niên (6 nội dung)
-(4, N'Phát triển Não tuổi Teen và Cần sa', N'article', 1, N'/content/markdown/teen-brain.md', N'markdown', N'{"author": "TS. Thanh thiếu niên", "readingTime": "11 phút", "difficulty": "trung cấp"}'),
-(4, N'Ảnh hưởng Cần sa đến Học tập', N'video', 2, N'https://www.youtube.com/watch?v=dQw4w9WgXcQ', N'video', N'{"duration": "13:20", "format": "youtube", "instructor": "Chuyên gia Giáo dục"}'),
-(4, N'Sử dụng Cần sa sớm: Hậu quả Dài hạn', N'article', 3, N'/content/markdown/early-cannabis-effects.md', N'markdown', N'{"author": "Chuyên gia Phát triển", "readingTime": "10 phút", "difficulty": "trung cấp"}'),
-(4, N'Cách Nói chuyện với Teen về Cần sa', N'video', 4, N'https://www.youtube.com/watch?v=dQw4w9WgXcQ', N'video', N'{"duration": "15:45", "format": "youtube", "instructor": "Chuyên gia Giáo dục Gia đình"}'),
-(4, N'Phòng chống Cần sa trong Trường học', N'podcast', 5, N'https://www.youtube.com/watch?v=dQw4w9WgXcQ', N'audio', N'{"duration": "32:00", "format": "youtube", "host": "Tư vấn viên Trường học"}'),
-(4, N'Lựa chọn Điều trị Cần sa cho Thanh thiếu niên', N'article', 6, N'/content/markdown/youth-cannabis-treatment.md', N'markdown', N'{"author": "Chuyên gia Điều trị Thanh thiếu niên", "readingTime": "13 phút", "difficulty": "nâng cao"}'),
-
--- Chương trình 5: Cảnh báo Chất Hướng thần Mới (5 nội dung)
-(5, N'Chất Hướng thần Mới là gì?', N'article', 1, N'/content/markdown/synthetic-drugs.md', N'markdown', N'{"author": "Chuyên gia Cảnh báo Ma túy", "readingTime": "9 phút", "difficulty": "sơ cấp"}'),
-(5, N'Nhận biết Thuốc Tổng hợp', N'video', 2, N'https://www.youtube.com/watch?v=dQw4w9WgXcQ', N'video', N'{"duration": "17:30", "format": "youtube", "instructor": "Chuyên gia Giám định"}'),
-(5, N'Rủi ro và Tác dụng Thuốc Thiết kế', N'article', 3, N'/content/markdown/bath-salts-synthetics.md', N'markdown', N'{"author": "Chuyên gia Đánh giá Rủi ro", "readingTime": "11 phút", "difficulty": "trung cấp"}'),
-(5, N'Thị trường Ma túy Trực tuyến và An toàn', N'video', 4, N'https://www.youtube.com/watch?v=dQw4w9WgXcQ', N'video', N'{"duration": "19:15", "format": "youtube", "instructor": "Chuyên gia An ninh Mạng"}'),
-(5, N'Báo cáo Xu hướng Ma túy Mới', N'podcast', 5, N'https://www.youtube.com/watch?v=dQw4w9WgXcQ', N'audio', N'{"duration": "35:00", "format": "youtube", "host": "Nhà Phân tích Xu hướng"}'),
-
--- Chương trình 6: Chương trình Nhận thức Thuốc Tổng hợp (6 nội dung)
-(6, N'Nhận biết Thuốc Tổng hợp', N'article', 1, N'/content/markdown/thuoc-tong-hop.md', N'markdown', N'{"author": "Chuyên gia Thuốc Tổng hợp", "readingTime": "10 phút", "difficulty": "trung cấp"}'),
-(6, N'K2/Spice: Cần sa Tổng hợp', N'video', 2, N'https://www.youtube.com/watch?v=dQw4w9WgXcQ', N'video', N'{"duration": "16:30", "format": "youtube", "instructor": "Chuyên gia An toàn Ma túy"}'),
-(6, N'Bath Salts và Chất Kích thích Tổng hợp', N'article', 3, N'/content/markdown/bath-salts.md', N'markdown', N'{"author": "Chuyên gia Chất Kích thích", "readingTime": "12 phút", "difficulty": "trung cấp"}'),
-(6, N'Phương pháp Kiểm tra và Phát hiện', N'video', 4, N'https://www.youtube.com/watch?v=dQw4w9WgXcQ', N'video', N'{"duration": "14:45", "format": "youtube", "instructor": "Chuyên gia Xét nghiệm"}'),
-(6, N'Xử lý Khẩn cấp Quá liều Tổng hợp', N'podcast', 5, N'https://www.youtube.com/watch?v=dQw4w9WgXcQ', N'audio', N'{"duration": "28:00", "format": "youtube", "host": "Nhân viên Cấp cứu"}'),
-(6, N'Chiến lược Phòng ngừa Thuốc Tổng hợp', N'article', 6, N'/content/markdown/synthetic-prevention.md', N'markdown', N'{"author": "Chuyên gia Phòng ngừa", "readingTime": "9 phút", "difficulty": "sơ cấp"}'),
-
--- Chương trình 7: Ứng phó Khủng hoảng Fentanyl (7 nội dung)
-(7, N'Hiểu về Fentanyl và Nguy cơ', N'article', 1, N'/content/markdown/fentanyl-dangers.md', N'markdown', N'{"author": "Chuyên gia Fentanyl", "readingTime": "11 phút", "difficulty": "sơ cấp"}'),
-(7, N'Que thử Fentanyl: Cách sử dụng', N'video', 2, N'https://www.youtube.com/watch?v=dQw4w9WgXcQ', N'video', N'{"duration": "8:30", "format": "youtube", "instructor": "Chuyên gia Giảm hại"}'),
-(7, N'Đào tạo Sử dụng Naloxone', N'video', 3, N'https://www.youtube.com/watch?v=dQw4w9WgXcQ', N'video', N'{"duration": "12:15", "format": "youtube", "instructor": "Huấn luyện viên Cấp cứu"}'),
-(7, N'Fentanyl trong Nguồn cung Ma túy', N'article', 4, N'/content/markdown/fentanyl-drug-supply.md', N'markdown', N'{"author": "Chuyên gia Nguồn cung Ma túy", "readingTime": "10 phút", "difficulty": "trung cấp"}'),
-(7, N'Hỗ trợ Gia đình Bị ảnh hưởng Fentanyl', N'podcast', 5, N'https://www.youtube.com/watch?v=dQw4w9WgXcQ', N'audio', N'{"duration": "35:00", "format": "youtube", "host": "Tư vấn viên Gia đình"}'),
-(7, N'Ứng phó Cộng đồng với Khủng hoảng Fentanyl', N'video', 6, N'https://www.youtube.com/watch?v=dQw4w9WgXcQ', N'video', N'{"duration": "20:45", "format": "youtube", "instructor": "Lãnh đạo Cộng đồng"}'),
-(7, N'Phòng ngừa Fentanyl trong Trường học', N'article', 7, N'/content/markdown/fentanyl-school-prevention.md', N'markdown', N'{"author": "Chuyên gia An toàn Trường học", "readingTime": "13 phút", "difficulty": "trung cấp"}'),
-
--- Chương trình 8: Phòng ngừa và Ứng phó Quá liều (5 nội dung)
-(8, N'Nhận biết Dấu hiệu Quá liều', N'article', 1, N'/content/markdown/overdose-signs.md', N'markdown', N'{"author": "Chuyên gia Phòng ngừa Quá liều", "readingTime": "8 phút", "difficulty": "sơ cấp"}'),
-(8, N'Các bước Ứng phó Khẩn cấp', N'video', 2, N'https://www.youtube.com/watch?v=dQw4w9WgXcQ', N'video', N'{"duration": "10:30", "format": "youtube", "instructor": "Đội Ứng phó Khẩn cấp"}'),
-(8, N'Naloxone: Thuốc Cứu mạng', N'video', 3, N'https://www.youtube.com/watch?v=dQw4w9WgXcQ', N'video', N'{"duration": "15:20", "format": "youtube", "instructor": "Nhân viên Y tế"}'),
-(8, N'Chăm sóc và Hỗ trợ Sau quá liều', N'article', 4, N'/content/markdown/post-overdose-care.md', N'markdown', N'{"author": "Chuyên gia Phục hồi", "readingTime": "12 phút", "difficulty": "trung cấp"}'),
-(8, N'Xây dựng Mạng lưới Ứng phó Quá liều', N'podcast', 5, N'https://www.youtube.com/watch?v=dQw4w9WgXcQ', N'audio', N'{"duration": "30:00", "format": "youtube", "host": "Điều phối viên Mạng lưới"}'),
-
--- Chương trình 9: Chiến lược Giảm hại (6 nội dung)
-(9, N'Giới thiệu về Giảm hại', N'article', 1, N'/content/markdown/harm-reduction-intro.md', N'markdown', N'{"author": "Chuyên gia Giảm hại", "readingTime": "9 phút", "difficulty": "sơ cấp"}'),
-(9, N'Thực hành Sử dụng An toàn', N'video', 2, N'https://www.youtube.com/watch?v=dQw4w9WgXcQ', N'video', N'{"duration": "18:45", "format": "youtube", "instructor": "Giáo viên Sử dụng An toàn"}'),
-(9, N'Chương trình Trao đổi Bơm kim tiêm', N'article', 3, N'/content/markdown/needle-exchange.md', N'markdown', N'{"author": "Điều phối viên Trao đổi Bơm kim", "readingTime": "11 phút", "difficulty": "trung cấp"}'),
-(9, N'Lưu trữ và Tiêu hủy An toàn', N'video', 4, N'https://www.youtube.com/watch?v=dQw4w9WgXcQ', N'video', N'{"duration": "13:30", "format": "youtube", "instructor": "Điều phối viên An toàn"}'),
-(9, N'Giảm hại trong Cộng đồng', N'podcast', 5, N'https://www.youtube.com/watch?v=dQw4w9WgXcQ', N'audio', N'{"duration": "40:00", "format": "youtube", "host": "Tổ chức Cộng đồng"}'),
-(9, N'Giảm hại dựa trên Bằng chứng', N'article', 6, N'/content/markdown/evidence-based-harm-reduction.md', N'markdown', N'{"author": "Nhà nghiên cứu Khoa học", "readingTime": "14 phút", "difficulty": "nâng cao"}'),
-
--- Chương trình 10: Giáo dục Sử dụng An toàn hơn (5 nội dung)
-(10, N'Đánh giá và Giảm thiểu Rủi ro', N'article', 1, N'/content/markdown/risk-assessment.md', N'markdown', N'{"author": "Chuyên gia Đánh giá Rủi ro", "readingTime": "10 phút", "difficulty": "trung cấp"}'),
-(10, N'Kiểm tra Thuốc và Chất pha trộn', N'video', 2, N'https://www.youtube.com/watch?v=dQw4w9WgXcQ', N'video', N'{"duration": "16:20", "format": "youtube", "instructor": "Chuyên gia Kiểm tra"}'),
-(10, N'Thực hành Tiêm chích An toàn', N'video', 3, N'https://www.youtube.com/watch?v=dQw4w9WgXcQ', N'video', N'{"duration": "14:45", "format": "youtube", "instructor": "Chuyên gia Tiêm an toàn"}'),
-(10, N'Phòng ngừa Nhiễm trùng và Bệnh tật', N'article', 4, N'/content/markdown/infection-prevention.md', N'markdown', N'{"author": "Chuyên gia Bệnh truyền nhiễm", "readingTime": "12 phút", "difficulty": "trung cấp"}'),
-(10, N'Khi nào Cần tìm Trợ giúp Y tế', N'podcast', 5, N'https://www.youtube.com/watch?v=dQw4w9WgXcQ', N'audio', N'{"duration": "25:00", "format": "youtube", "host": "Cố vấn Y tế"}'),
 
 -- Nội dung Chương trình Sự kiện Cộng đồng
--- Chương trình 25: Hội chợ Phòng ngừa Cộng đồng (2 nội dung)
-(31, N'Lập kế hoạch Hội chợ Phòng ngừa Cộng đồng', N'article', 1, N'/content/markdown//community-prevention-fair.md', N'markdown', N'{"author": "Điều phối viên Sự kiện Cộng đồng", "readingTime": "8 phút", "difficulty": "sơ cấp"}'),
-(31, N'Hoạt động Thu hút Mọi lứa tuổi', N'article', 2, N'/content/markdown/prevention-fair-activities.md', N'markdown', N'{"author": "Chuyên gia Thu hút Thanh thiếu niên", "readingTime": "6 phút", "difficulty": "sơ cấp"}'),
+-- Chương trình 18: Hội chợ Phòng ngừa Cộng đồng (2 nội dung)
+(18, N'Lập kế hoạch Hội chợ Phòng ngừa Cộng đồng', N'article', 1, N'# Planning Your Community Prevention Fair
 
--- Chương trình 26: Đi bộ Phục hồi & Biểu tình Hỗ trợ (2 nội dung)
-(31, N'Tổ chức Sự kiện Đi bộ Hỗ trợ Phục hồi', N'article', 1, N'/content/markdown/recovery-walk-guide.md', N'markdown', N'{"author": "Người vận động Phục hồi", "readingTime": "7 phút", "difficulty": "sơ cấp"}'),
-(31, N'Xây dựng Mạng lưới Hỗ trợ Cộng đồng', N'article', 2, N'/content/markdown/community-support-networks.md', N'markdown', N'{"author": "Tổ chức Cộng đồng", "readingTime": "9 phút", "difficulty": "sơ cấp"}');
+## Building Awareness Through Community Engagement
+
+Community prevention fairs are powerful tools for bringing people together to learn about drug prevention, share resources, and build supportive networks. These events create opportunities for meaningful conversations about prevention while celebrating community resilience and unity.
+
+## Key Planning Steps
+
+### 1. Form a Planning Committee
+- Include diverse community representatives (parents, teens, healthcare providers, educators)
+- Partner with local organizations, schools, and healthcare facilities
+- Assign clear roles and responsibilities to committee members
+
+### 2. Choose the Right Venue and Date
+- Select accessible, family-friendly locations (parks, community centers, school grounds)
+- Avoid conflicts with other major community events
+- Consider weather contingencies for outdoor events
+- Plan for 3-4 hours to allow meaningful engagement
+
+### 3. Essential Components to Include
+
+**Information Booths:**
+- Local prevention resources and services
+- Mental health and counseling organizations
+- Healthcare providers and clinics
+- Law enforcement community outreach
+- Parent and family support groups
+
+**Interactive Activities:**
+- Prevention education games and quizzes
+- Resource scavenger hunts for families
+- Pledge walls for community commitments
+- Photo booths with prevention messages
+
+**Educational Presentations:**
+- Brief, age-appropriate talks by local experts
+- Panel discussions with community leaders
+- Testimonials from recovery advocates (when appropriate)
+
+## Making It Family-Friendly
+
+### Activities for Different Age Groups
+- **Young Children (5-10):** Coloring stations, healthy living games, safety education
+- **Tweens/Teens (11-17):** Interactive workshops, peer education activities, resource fairs
+- **Adults:** Information sessions, networking opportunities, parent education workshops
+
+### Creating Safe Conversations
+- Train volunteers in age-appropriate communication
+- Provide conversation guides for difficult topics
+- Ensure multiple languages are represented if needed
+- Create welcoming spaces for all families
+
+## Resource Distribution
+
+### Essential Materials to Provide
+- Local resource directories with contact information
+- Age-appropriate educational brochures
+- Emergency contact cards (crisis hotlines, local services)
+- Take-home activities for continued learning
+- Information about ongoing community programs
+
+### Follow-Up Opportunities
+- Sign-up sheets for ongoing programs and workshops
+- Contact information for continued support
+- Event feedback forms to improve future fairs
+- Connection to online resources and communities
+
+## Measuring Success
+
+A successful prevention fair creates lasting connections and increased awareness. Success indicators include:
+- High attendance across diverse community demographics
+- Positive feedback from participants and vendors
+- Increased enrollment in ongoing prevention programs
+- New partnerships formed between organizations
+- Media coverage that spreads prevention messages
+
+## Building Momentum
+
+Community prevention fairs work best as part of ongoing prevention efforts. Consider:
+- Annual or bi-annual scheduling to maintain momentum
+- Rotating locations to reach different neighborhoods
+- Seasonal themes that connect to school calendars or awareness months
+- Follow-up mini-events to maintain connections
+
+Remember, the goal is not just information sharing, but community building. When people feel connected to their neighbors and local resources, they''re better equipped to prevent substance use and support those who need help.
+
+## Getting Started
+
+Start small and build year by year. Even a modest first event can plant the seeds for a thriving annual tradition that strengthens your community''s prevention efforts and creates lasting positive change.', N'markdown', N'{"author": "Điều phối viên Sự kiện Cộng đồng", "readingTime": "8 phút", "difficulty": "sơ cấp"}'),
+(18, N'Hoạt động Thu hút Mọi lứa tuổi', N'article', 2, N'# Engaging Activities for All Ages at Prevention Fairs
+
+## Creating Memorable Learning Experiences
+
+The key to a successful prevention fair is creating activities that are both educational and enjoyable. When people have fun while learning, they''re more likely to remember the messages and take action to support prevention in their community.
+
+## Interactive Learning Stations
+
+### Prevention Promise Tree
+Set up a large decorative tree where participants can hang written commitments to healthy choices. Provide colorful cards and markers for people to write their personal prevention promises or goals for supporting others.
+
+**Materials Needed:**
+- Large artificial tree or tree branches in a decorative pot
+- Colorful paper leaves or tags
+- Markers and pens
+- String or ribbon for hanging
+
+### Myth-Busting Game Show
+Create a fun, game-show style booth where participants can test their knowledge about substance use prevention. Use a spinning wheel or question cards to make it interactive.
+
+**Sample Questions:**
+- True or False: Prescription drugs are always safe because they''re legal
+- What percentage of teens have tried alcohol by 12th grade?
+- Name three healthy ways to manage stress
+
+### Resource Scavenger Hunt
+Design a scavenger hunt that leads families through different resource booths. Participants collect stickers or stamps at each station after learning about the services offered.
+
+**Hunt Items:**
+- Find where to get free mental health counseling
+- Locate the booth with information about teen support groups
+- Discover three healthy after-school activity options
+- Learn about emergency resources for families in crisis
+
+## Age-Specific Activity Areas
+
+### Little Ones (Ages 3-8): "Healthy Heroes Zone"
+
+**Coloring Station:**
+- Prevention-themed coloring sheets featuring healthy activities
+- Stickers and crayons in bright colors
+- Take-home coloring books about making good choices
+
+**Puppet Show:**
+- 15-minute shows about friendship, saying no, and getting help
+- Interactive elements where children can participate
+- Simple, positive messages about staying safe and healthy
+
+**Healthy Snack Decorating:**
+- Let children decorate apple slices or whole grain crackers
+- Teach about nutrition and healthy choices
+- Provide recipe cards for families to take home
+
+### School Age (Ages 9-12): "Smart Choices Station"
+
+**Decision-Making Board Game:**
+- Large floor game where children move through scenarios
+- Practice saying no to peer pressure
+- Learn about trusted adults and when to ask for help
+
+**Prevention Pledge Banner:**
+- Collaborative art project where kids add handprints or signatures
+- Display throughout the event as a visual commitment
+- Take photos for community newsletter or social media
+
+**"What Would You Do?" Theater:**
+- Simple role-playing scenarios with guidance from volunteers
+- Practice communication skills and problem-solving
+- Focus on peer support and friendship
+
+### Teens (Ages 13-17): "Real Talk Zone"
+
+**Anonymous Question Box:**
+- Safe space for teens to submit questions about difficult topics
+- Local experts provide answers during designated times
+- Ensure confidentiality and create judgment-free environment
+
+**Peer Education Corner:**
+- Trained teen volunteers share information with other teens
+- Focus on topics like stress management and healthy relationships
+- Provide leadership opportunities for youth advocates
+
+**Creative Expression Wall:**
+- Mural or poster-making area for teens to express their thoughts
+- Art supplies for creating prevention messages
+- Photo opportunities with completed artwork
+
+## Family Engagement Activities
+
+### Family Commitment Ceremony
+A brief, meaningful ceremony where families can make public commitments to support each other in making healthy choices.
+
+**Elements:**
+- Simple ceremony script led by community leader
+- Family commitment cards to sign and keep
+- Group photo opportunity
+- Connection to ongoing family support resources
+
+### Communication Skills Workshop
+Quick, hands-on workshop for parents and teens to practice difficult conversations.
+
+**Activities:**
+- Role reversal exercises
+- Active listening practice
+- Scripts for common challenging situations
+- Take-home conversation starter cards
+
+### Resource Speed Dating
+Fast-paced activity where families rotate through mini-presentations from local organizations.
+
+**Format:**
+- 5-minute presentations at each station
+- Bell or timer to signal rotation
+- Information packets for each organization
+- Sign-up sheets for follow-up contact
+
+## Technology-Enhanced Activities
+
+### Digital Storytelling Booth
+- Tablets or phones for recording brief video messages
+- Prompts for sharing prevention commitments or support messages
+- Privacy options for sharing (personal use only, community sharing, etc.)
+
+### Social Media Photo Frame
+- Large decorative frame with prevention hashtags
+- Props related to healthy living and community support
+- Encourage positive social media sharing about the event
+
+### QR Code Treasure Hunt
+- QR codes throughout the fair linking to prevention resources
+- Smartphones or tablets available for participants without devices
+- Digital badges or rewards for completing the hunt
+
+## Volunteer Training for Activities
+
+### Essential Training Elements
+- Age-appropriate communication techniques
+- How to handle difficult questions or emotional responses
+- Basic information about local resources and referral processes
+- Cultural sensitivity and inclusive practices
+
+### Activity-Specific Skills
+- Game facilitation and crowd management
+- Basic counseling techniques for supportive listening
+- Emergency procedures and when to call for help
+- Documentation and follow-up procedures
+
+## Making Activities Accessible
+
+### Physical Accessibility
+- Ensure all activities can be adapted for different physical abilities
+- Provide multiple ways to participate in each activity
+- Consider sensory-friendly options for those with sensitivities
+
+### Language and Cultural Accessibility
+- Provide materials in multiple languages when possible
+- Include cultural considerations in activity design
+- Train volunteers in cultural sensitivity and communication
+
+### Economic Accessibility
+- Ensure all activities are free of charge
+- Provide all necessary materials
+- Avoid activities that might make families feel excluded
+
+## Creating Lasting Impact
+
+The best prevention fair activities create connections that extend beyond the event itself. Design activities that:
+- Connect families to ongoing resources and support
+- Build relationships between community members
+- Provide tools and skills for continued prevention efforts
+- Create positive memories associated with prevention and community support
+
+Remember, the goal is to make prevention education approachable, memorable, and actionable for everyone in your community.', N'markdown', N'{"author": "Chuyên gia Thu hút Thanh thiếu niên", "readingTime": "6 phút", "difficulty": "sơ cấp"}'),
+
+-- Chương trình 19: Đi bộ Phục hồi & Tập trung Hỗ trợ (2 nội dung)
+(19, N'Tổ chức Sự kiện Đi bộ Hỗ trợ Phục hồi', N'article', 1, N'# Organizing a Recovery Support Walk
+
+## Building Community Through Movement and Solidarity
+
+Recovery walks are powerful community events that bring people together to show support for those in recovery, honor those lost to addiction, and celebrate the strength of individuals and families affected by substance use. These events help reduce stigma while building connections and hope.
+
+## Understanding the Purpose
+
+### Primary Goals
+- **Show solidarity** with individuals and families in recovery
+- **Reduce stigma** associated with addiction and treatment
+- **Honor memories** of those lost to substance use disorders
+- **Celebrate recovery milestones** and ongoing journeys
+- **Connect families** to local resources and support networks
+- **Build community awareness** about addiction as a health condition
+
+### Creating an Inclusive Environment
+Recovery walks welcome everyone: people in recovery, family members, friends, community supporters, and anyone who believes in the power of recovery. The emphasis is on community support rather than personal disclosure.
+
+## Planning Your Recovery Walk
+
+### Timeline and Preparation (6-8 weeks ahead)
+
+**8 Weeks Before:**
+- Form organizing committee with diverse representation
+- Secure necessary permits and insurance
+- Choose date, time, and route
+- Begin outreach to potential sponsors and partners
+
+**6 Weeks Before:**
+- Launch promotional campaign
+- Register with local recovery organizations
+- Coordinate with local media for coverage
+- Begin volunteer recruitment
+
+**4 Weeks Before:**
+- Finalize logistics (safety, refreshments, activities)
+- Distribute promotional materials
+- Confirm speakers and special participants
+- Order supplies and materials
+
+**2 Weeks Before:**
+- Final headcount estimates
+- Confirm all volunteers and roles
+- Prepare registration materials
+- Brief all participants on safety and messaging
+
+### Route Planning
+
+**Ideal Characteristics:**
+- 1-3 miles in length (accessible to various fitness levels)
+- Safe, well-lit areas with minimal traffic
+- Symbolic start and end points (community center, park, memorial site)
+- Accessible for wheelchairs and mobility devices
+- Public restroom access along the route
+
+**Safety Considerations:**
+- Coordinate with local law enforcement for traffic control
+- Provide walk marshals throughout the route
+- Have medical support available
+- Create alternative shorter routes for different abilities
+- Plan for weather contingencies
+
+## Registration and Check-In
+
+### Pre-Event Registration
+- Online registration platform with basic information
+- Walk-up registration on day of event
+- No cost to participate, but donations welcomed
+- Collect contact information for follow-up resources
+
+### Day-of Check-In Process
+- Welcome table with resource packets
+- T-shirts or walk items (if budget allows)
+- Name tags or identification for safety
+- Route maps and safety information
+- Information about post-walk activities
+
+### Resource Packets Should Include:
+- Local treatment and support services directory
+- Crisis hotline numbers
+- Information about ongoing support groups
+- Educational materials about recovery
+- Contact information for continued engagement
+
+## Creating Meaningful Moments
+
+### Opening Ceremony (15-20 minutes)
+- Welcome from event organizers
+- Brief remarks from community leaders
+- Moment of silence for those lost to addiction
+- Recognition of recovery milestones
+- Explanation of walk route and safety guidelines
+
+### During the Walk
+- Positive signage along the route with recovery messages
+- Water stations staffed by volunteers
+- Photo opportunities at designated spots
+- Music or drumming groups at intervals
+- Walk marshals offering encouragement
+
+### Closing Activities
+- Celebration at the endpoint with light refreshments
+- Resource fair with local organizations
+- Sharing circle for those who want to participate
+- Recognition of sponsors and volunteers
+- Information about follow-up events and ongoing support
+
+## Messaging and Communication
+
+### Key Messages
+- **Recovery is possible** for everyone
+- **Addiction is a health condition**, not a moral failing
+- **Community support** makes a difference in recovery
+- **Every person** deserves compassion and opportunity for healing
+- **Families and friends** are part of the recovery journey
+
+### Promotional Materials
+- Flyers for community centers, healthcare facilities, and schools
+- Social media content with positive, inclusive messaging
+- Press releases for local media
+- Partnerships with local businesses for cross-promotion
+- Word-of-mouth through existing recovery networks
+
+### Media Guidelines
+- Focus on community support rather than individual stories
+- Respect privacy and anonymity principles
+- Emphasize hope, recovery, and resources
+- Avoid stigmatizing language or imagery
+- Include information about local resources in all coverage
+
+## Engaging Different Community Groups
+
+### Recovery Community
+- Partner with local treatment centers and recovery organizations
+- Include people with various lengths of recovery time
+- Respect anonymity preferences and traditions
+- Provide leadership opportunities for those in recovery
+
+### Families and Friends
+- Create specific outreach to family support groups
+- Include activities for children and teens
+- Provide educational materials about supporting loved ones
+- Offer connections to family-specific resources
+
+### General Community
+- Emphasize that everyone is welcome regardless of personal experience
+- Focus on community health and support
+- Include local business leaders, faith communities, and civic groups
+- Create volunteer opportunities for ongoing engagement
+
+## Safety and Risk Management
+
+### Physical Safety
+- First aid stations along the route
+- Emergency contact protocol
+- Weather monitoring and contingency plans
+- Crowd management and traffic safety measures
+
+### Emotional Safety
+- Trained volunteers to support participants who become emotional
+- Clear guidelines about sharing personal stories
+- Access to counselors or mental health professionals
+- Information about crisis resources
+
+### Privacy and Confidentiality
+- Photography policies that respect anonymity
+- Optional participation in media activities
+- Respect for recovery traditions regarding anonymity
+- Clear guidelines for volunteers about confidentiality
+
+## Follow-Up and Sustained Engagement
+
+### Immediate Follow-Up (within 1 week)
+- Thank you messages to participants and sponsors
+- Photos and highlights shared through social media
+- Connection to ongoing resources for interested participants
+- Feedback collection for future event improvement
+
+### Ongoing Community Building
+- Monthly or quarterly follow-up events
+- Connection to existing support groups and meetings
+- Volunteer opportunities for continued engagement
+- Annual walk planning committee participation
+
+## Measuring Success
+
+### Quantitative Measures
+- Number of participants and demographic diversity
+- Amount of media coverage and community reach
+- Number of resource connections made
+- Follow-up engagement with participants
+
+### Qualitative Measures
+- Participant feedback about feeling supported and connected
+- Community feedback about increased awareness and reduced stigma
+- Stories of new connections and friendships formed
+- Sense of hope and empowerment among participants
+
+## Building Long-Term Impact
+
+Recovery walks work best when they''re part of ongoing community efforts to support prevention, treatment, and recovery. Consider how your walk can connect to year-round activities and create lasting positive change in your community.', N'markdown', N'{"author": "Người vận động Phục hồi", "readingTime": "7 phút", "difficulty": "sơ cấp"}'),
+(19, N'Xây dựng Mạng lưới Hỗ trợ Cộng đồng', N'article', 2, N'# Building Community Support Networks
+
+## The Foundation of Effective Prevention and Recovery
+
+Strong community support networks are essential for both preventing substance use and supporting those in recovery. These networks create environments where individuals and families feel connected, supported, and empowered to make healthy choices. When communities work together, they become more resilient and better equipped to address substance use challenges.
+
+## Understanding Community Support Networks
+
+### What Makes a Network Effective
+
+**Interconnected Relationships:**
+- Multiple organizations and individuals working together
+- Clear communication channels between different groups
+- Shared goals and coordinated efforts
+- Regular collaboration and resource sharing
+
+**Diverse Representation:**
+- Healthcare providers and treatment centers
+- Schools and educational institutions
+- Faith-based organizations
+- Community organizations and nonprofits
+- Law enforcement and criminal justice
+- Families and individuals with lived experience
+- Local businesses and employers
+- Government agencies and elected officials
+
+**Accessibility and Inclusion:**
+- Services available to all community members regardless of economic status
+- Culturally responsive programming and outreach
+- Multiple language options and communication methods
+- Transportation and scheduling considerations
+- Welcome environment for all families
+
+## Key Components of Support Networks
+
+### Prevention-Focused Elements
+
+**Early Education and Awareness:**
+- School-based prevention programs starting in elementary years
+- Parent education workshops about prevention and early intervention
+- Community education about risk factors and protective factors
+- Public awareness campaigns that reduce stigma and increase understanding
+
+**Youth Development Opportunities:**
+- After-school programs and supervised activities
+- Mentorship programs connecting youth with positive adult role models
+- Leadership development opportunities for teens
+- Job training and employment opportunities for young adults
+
+**Family Strengthening Programs:**
+- Parenting skills workshops and support groups
+- Family therapy and counseling services
+- Crisis intervention and emergency support
+- Childcare and respite services for families under stress
+
+### Treatment and Recovery Support
+
+**Accessible Treatment Options:**
+- Multiple levels of care (outpatient, intensive outpatient, residential)
+- Medication-assisted treatment when appropriate
+- Mental health services integrated with substance use treatment
+- Specialized programs for different populations (youth, adults, families, specific communities)
+
+**Peer Support Services:**
+- Recovery support groups and meetings
+- Peer recovery coaches and mentors
+- Sober social activities and recreational opportunities
+- Employment and housing assistance programs
+
+**Family and Friends Support:**
+- Support groups for family members and friends
+- Education about addiction as a health condition
+- Resources for supporting loved ones in recovery
+- Self-care and boundary-setting guidance
+
+## Building Your Community Network
+
+### Assessment and Planning Phase
+
+**Community Assessment:**
+- Identify existing resources and services
+- Assess gaps in services or geographic coverage
+- Survey community members about needs and barriers
+- Analyze data about local substance use patterns and trends
+
+**Stakeholder Mapping:**
+- List all potential network partners
+- Identify key decision-makers and influential community members
+- Assess current relationships and collaboration levels
+- Prioritize partnership development opportunities
+
+**Resource Inventory:**
+- Catalog available funding sources and grant opportunities
+- Identify volunteer capacity and skill sets
+- Assess physical spaces available for programming
+- Inventory existing educational materials and resources
+
+### Network Development Strategies
+
+**Start with Champions:**
+- Identify passionate individuals and organizations already working in this area
+- Build initial partnerships with committed stakeholders
+- Create early wins through small collaborative projects
+- Use success stories to attract additional partners
+
+**Formal Structure and Coordination:**
+- Establish regular meeting schedules and communication protocols
+- Create shared governance structure with clear roles and responsibilities
+- Develop memorandums of understanding between partner organizations
+- Implement data sharing and evaluation systems
+
+**Sustainable Funding Approaches:**
+- Diversify funding sources (grants, donations, fee-for-service, government contracts)
+- Develop business plans for sustainable service delivery
+- Create partnerships that share costs and resources
+- Advocate for policy changes that support network funding
+
+## Overcoming Common Challenges
+
+### Competition vs. Collaboration
+**Challenge:** Organizations competing for limited funding may resist collaboration.
+**Solutions:**
+- Focus on shared mission and community benefit rather than organizational interests
+- Develop agreements about client referrals and service coordination
+- Create joint funding proposals that benefit multiple organizations
+- Celebrate shared successes and acknowledge all partners'' contributions
+
+### Communication and Coordination
+**Challenge:** Multiple organizations with different cultures and priorities may struggle to work together.
+**Solutions:**
+- Establish clear communication protocols and regular check-ins
+- Create shared tools for case management and resource tracking
+- Develop common language and understanding about goals and approaches
+- Provide training on collaboration and partnership skills
+
+### Geographic and Cultural Barriers
+**Challenge:** Rural areas or culturally diverse communities may face unique barriers to service access.
+**Solutions:**
+- Develop mobile or telehealth service delivery options
+- Partner with trusted community leaders and organizations
+- Provide services in multiple languages and culturally appropriate formats
+- Address transportation and scheduling barriers creatively
+
+## Technology Tools for Network Building
+
+### Communication and Coordination Platforms
+- Shared calendars for community events and programming
+- Online collaboration tools for document sharing and project management
+- Social media groups for partner organizations and community members
+- Email lists and newsletters for regular communication
+
+### Resource and Referral Systems
+- Online directories of services and resources
+- Electronic referral systems between partner organizations
+- Client tracking systems that respect privacy while enabling coordination
+- Data sharing platforms for evaluation and quality improvement
+
+### Community Engagement Tools
+- Websites and social media for public education and awareness
+- Online scheduling systems for appointments and services
+- Survey and feedback tools for continuous improvement
+- Crisis intervention and hotline services
+
+## Measuring Network Effectiveness
+
+### Process Measures
+- Number of organizations participating in the network
+- Frequency and quality of communication between partners
+- Number of cross-referrals between organizations
+- Joint programming and collaborative events
+
+### Outcome Measures
+- Community awareness and knowledge about prevention and treatment
+- Number of individuals and families accessing services
+- Treatment engagement and completion rates
+- Recovery milestones and long-term outcomes
+
+### Impact Measures
+- Changes in community substance use rates and trends
+- Reduced stigma and increased support for those affected by addiction
+- Increased availability and accessibility of services
+- Stronger families and more resilient communities
+
+## Sustaining Networks Over Time
+
+### Leadership Development
+- Train multiple people in network coordination and leadership
+- Create succession planning for key leadership positions
+- Develop leadership skills among people with lived experience
+- Build capacity for continuous learning and adaptation
+
+### Continuous Improvement
+- Regular evaluation and feedback collection from all stakeholders
+- Adaptation of services and approaches based on community needs
+- Innovation and pilot testing of new approaches
+- Learning from other successful networks and best practices
+
+### Community Ownership
+- Engage community members as partners rather than just service recipients
+- Create opportunities for community input and decision-making
+- Build local capacity for sustaining network efforts
+- Celebrate community achievements and progress
+
+Strong community support networks require time, dedication, and ongoing commitment from many different people and organizations. The investment is worth it because these networks create the foundation for healthier, more resilient communities where everyone has the support they need to thrive.', N'markdown', N'{"author": "Tổ chức Cộng đồng", "readingTime": "9 phút", "difficulty": "sơ cấp"}');
+
 -- Insert Surveys
 INSERT INTO Surveys (program_id, type, questions_json) VALUES
 
@@ -315,36 +1098,6 @@ INSERT INTO Surveys (program_id, type, questions_json) VALUES
 
 -- Chương trình 1: Hiểu biết Khoa học Nghiện - Đánh giá sau  
 (1, 'post-assessment', N'{"questions": [{"id": 1, "question": "Sau khi hoàn thành chương trình, bạn hiểu thế nào về cách nghiện thay đổi cấu trúc và chức năng não?", "options": ["Không hiểu", "Hiểu rất ít", "Hiểu một phần", "Hiểu khá", "Hiểu rất rõ"], "deleted": false}, {"id": 2, "question": "Bây giờ bạn tự tin thế nào khi giải thích vai trò chất dẫn truyền thần kinh trong nghiện?", "options": ["Hoàn toàn không tự tin", "Hơi tự tin", "Tự tin vừa phải", "Rất tự tin", "Cực kỳ tự tin"], "deleted": false}, {"id": 3, "question": "Khía cạnh nào của khoa học nghiện bạn thấy sáng tỏ nhất?", "options": ["Đường dẫn phần thưởng dopamine", "Tính mềm dẻo và phục hồi não", "Yếu tố di truyền", "Ảnh hưởng môi trường", "Cơ chế điều trị", "Tất cả đều quan trọng"], "deleted": false}, {"id": 4, "question": "Chương trình đã thay đổi nhận thức của bạn về nghiện như bệnh lý thế nào?", "options": ["Hiểu biết tăng đáng kể", "Hiểu biết tăng vừa phải", "Hiểu biết tăng nhẹ", "Không thay đổi", "Giảm hiểu biết"], "deleted": false}, {"id": 5, "question": "Khả năng bạn chia sẻ kiến thức khoa học nghiện với người khác?", "options": ["Rất không có khả năng", "Không có khả năng", "Trung lập", "Có khả năng", "Rất có khả năng"], "deleted": false}, {"id": 6, "question": "Đánh giá hiệu quả chương trình khoa học nghiện này", "options": ["Rất không hiệu quả", "Không hiệu quả", "Trung lập", "Hiệu quả", "Rất hiệu quả"], "deleted": false}, {"id": 7, "question": "Bạn cảm thấy chuẩn bị thế nào để nhận biết dấu hiệu nghiện ở bản thân/người khác?", "options": ["Hoàn toàn không chuẩn bị", "Chuẩn bị rất ít", "Chuẩn bị vừa phải", "Chuẩn bị tốt", "Chuẩn bị rất tốt"], "deleted": false}]}'),
-
--- Chương trình 2: Não bộ và Nghiện - Đánh giá trước
-(2, 'pre-assessment', N'{"questions": [{"id": 1, "question": "Bạn quen thuộc thế nào với giải phẫu não liên quan đến nghiện?", "options": ["Hoàn toàn không quen", "Hơi quen", "Quen thuộc vừa phải", "Rất quen", "Cực kỳ quen thuộc"], "deleted": false}, {"id": 2, "question": "Bạn biết gì về hệ thống phần thưởng của não?", "options": ["Không biết gì", "Rất ít", "Khái niệm cơ bản", "Hiểu khá", "Hiểu toàn diện"], "deleted": false}, {"id": 3, "question": "Bạn hiểu thế nào về cơ chế dung nạp và phụ thuộc?", "options": ["Không hiểu", "Hiểu rất ít", "Hiểu một phần", "Hiểu khá", "Hiểu rất rõ"], "deleted": false}, {"id": 4, "question": "Bạn quen thuộc với kỹ thuật chụp não trong nghiên cứu nghiện?", "options": ["Chưa từng nghe", "Đã nghe nhưng không hiểu", "Nhận thức cơ bản", "Hiểu khá", "Rất am hiểu"], "deleted": false}, {"id": 5, "question": "Điều gì hấp dẫn bạn nhất về khoa học não và nghiện?", "options": ["Cách nghiện phát triển", "Quá trình phục hồi não", "Khác biệt cá nhân", "Ứng dụng điều trị", "Phương pháp nghiên cứu", "Tất cả khía cạnh"], "deleted": false}, {"id": 6, "question": "Bạn tự tin thế nào về khái niệm tính mềm dẻo thần kinh?", "options": ["Hoàn toàn không tự tin", "Hơi tự tin", "Tự tin vừa phải", "Rất tự tin", "Cực kỳ tự tin"], "deleted": false}]}'),
-
--- Chương trình 2: Não bộ và Nghiện - Đánh giá sau
-(2, 'post-assessment', N'{"questions": [{"id": 1, "question": "Bây giờ bạn hiểu thế nào về giải phẫu não liên quan đến nghiện?", "options": ["Không hiểu", "Hiểu rất ít", "Hiểu một phần", "Hiểu khá", "Hiểu rất rõ"], "deleted": false}, {"id": 2, "question": "Sau chương trình, bạn tự tin thế nào khi giải thích hệ thống phần thưởng của não?", "options": ["Hoàn toàn không tự tin", "Hơi tự tin", "Tự tin vừa phải", "Rất tự tin", "Cực kỳ tự tin"], "deleted": false}, {"id": 3, "question": "Khái niệm khoa học não nào có giá trị nhất để học?", "options": ["Chức năng chất dẫn truyền", "Cơ chế dung nạp", "Kết quả chụp não", "Tính mềm dẻo và phục hồi", "Khác biệt não cá nhân", "Tất cả đều giá trị"], "deleted": false}, {"id": 4, "question": "Việc học khoa học não đã thay đổi hiểu biết của bạn về phục hồi nghiện thế nào?", "options": ["Hiểu biết cải thiện đáng kể", "Hiểu biết cải thiện vừa phải", "Hiểu biết cải thiện nhẹ", "Không thay đổi", "Làm tôi bối rối hơn"], "deleted": false}, {"id": 5, "question": "Khả năng bạn tiếp tục học về khoa học thần kinh và nghiện?", "options": ["Rất không có khả năng", "Không có khả năng", "Trung lập", "Có khả năng", "Rất có khả năng"], "deleted": false}, {"id": 6, "question": "Đánh giá hiệu quả chương trình khoa học não này", "options": ["Rất không hiệu quả", "Không hiệu quả", "Trung lập", "Hiệu quả", "Rất hiệu quả"], "deleted": false}, {"id": 7, "question": "Bạn có thể giải thích tính mềm dẻo thần kinh cho người khác thế nào?", "options": ["Không thể giải thích", "Giải thích cơ bản", "Giải thích vừa phải", "Giải thích tốt", "Giải thích chuyên sâu"], "deleted": false}]}'),
-
--- ==================== CHƯƠNG TRÌNH GIÁO DỤC CẦN SA ====================
-
--- Chương trình 3: Giáo dục và Nhận thức Cần sa - Đánh giá trước
-(3, 'pre-assessment', N'{"questions": [{"id": 1, "question": "Bạn đánh giá kiến thức hiện tại về cần sa và tác dụng?", "options": ["Rất hạn chế", "Hạn chế", "Trung bình", "Tốt", "Sâu rộng"], "deleted": false}, {"id": 2, "question": "Bạn biết gì về sự khác biệt giữa THC và CBD?", "options": ["Không biết gì", "Rất ít", "Khác biệt cơ bản", "Hiểu khá", "Hiểu toàn diện"], "deleted": false}, {"id": 3, "question": "Bạn quen thuộc thế nào với luật cần sa ở khu vực?", "options": ["Hoàn toàn không quen", "Hơi quen", "Quen thuộc vừa phải", "Rất quen", "Cực kỳ quen thuộc"], "deleted": false}, {"id": 4, "question": "Điều gì bạn lo ngại nhất về sử dụng cần sa?", "options": ["Ảnh hưởng sức khỏe", "Vấn đề pháp lý", "Tác động sức khỏe tâm thần", "Khả năng nghiện", "Hậu quả xã hội", "Không lo ngại"], "deleted": false}, {"id": 5, "question": "Bạn tự tin thế nào khi thảo luận chủ đề cần sa?", "options": ["Hoàn toàn không tự tin", "Hơi tự tin", "Tự tin vừa phải", "Rất tự tin", "Cực kỳ tự tin"], "deleted": false}, {"id": 6, "question": "Động lực nào thúc đẩy bạn học về giáo dục cần sa?", "options": ["Quan tâm cá nhân", "Lo ngại gia đình", "Phát triển nghề nghiệp", "Tình huống áp lực bạn bè", "Nhận thức sức khỏe", "Tất cả trên"], "deleted": false}]}'),
-
--- Chương trình 3: Giáo dục và Nhận thức Cần sa - Đánh giá sau
-(3, 'post-assessment', N'{"questions": [{"id": 1, "question": "Sau khi hoàn thành, bạn đánh giá kiến thức cần sa của mình?", "options": ["Rất hạn chế", "Hạn chế", "Trung bình", "Tốt", "Sâu rộng"], "deleted": false}, {"id": 2, "question": "Bây giờ bạn tự tin thế nào khi giải thích khác biệt THC vs CBD?", "options": ["Hoàn toàn không tự tin", "Hơi tự tin", "Tự tin vừa phải", "Rất tự tin", "Cực kỳ tự tin"], "deleted": false}, {"id": 3, "question": "Khía cạnh nào của giáo dục cần sa có giá trị nhất?", "options": ["Sử dụng y tế vs giải trí", "Xem xét pháp lý", "Rủi ro và lợi ích sức khỏe", "Sự thật và ngộ nhận", "Tác động sức khỏe tâm thần", "Tất cả đều giá trị"], "deleted": false}, {"id": 4, "question": "Chương trình đã ảnh hưởng thế nào đến quan điểm của bạn về sử dụng cần sa?", "options": ["Thay đổi đáng kể quan điểm", "Thay đổi vừa phải quan điểm", "Thay đổi nhẹ quan điểm", "Củng cố quan điểm hiện có", "Không thay đổi"], "deleted": false}, {"id": 5, "question": "Bạn cảm thấy chuẩn bị thế nào để ra quyết định sáng suốt về cần sa?", "options": ["Hoàn toàn không chuẩn bị", "Chuẩn bị rất ít", "Chuẩn bị vừa phải", "Chuẩn bị tốt", "Chuẩn bị rất tốt"], "deleted": false}, {"id": 6, "question": "Đánh giá hiệu quả chương trình giáo dục cần sa này", "options": ["Rất không hiệu quả", "Không hiệu quả", "Trung lập", "Hiệu quả", "Rất hiệu quả"], "deleted": false}, {"id": 7, "question": "Khả năng bạn chia sẻ sự thật về cần sa để bác bỏ ngộ nhận?", "options": ["Rất không có khả năng", "Không có khả năng", "Trung lập", "Có khả năng", "Rất có khả năng"], "deleted": false}]}'),
-
--- ==================== CHƯƠNG TRÌNH SỰ KIỆN CỘNG ĐỒNG ====================
-
--- Chương trình 25: Hội chợ Phòng ngừa Cộng đồng - Đánh giá trước
-(25, 'pre-assessment', N'{"questions": [{"id": 1, "question": "Bạn quen thuộc thế nào với việc tổ chức sự kiện phòng ngừa cộng đồng?", "options": ["Hoàn toàn không quen", "Hơi quen", "Quen thuộc vừa phải", "Rất quen", "Cực kỳ quen thuộc"], "deleted": false}, {"id": 2, "question": "Bạn có kinh nghiệm gì với hoạt động thu hút cộng đồng?", "options": ["Không kinh nghiệm", "Rất ít kinh nghiệm", "Một số kinh nghiệm", "Kinh nghiệm tốt", "Kinh nghiệm sâu rộng"], "deleted": false}, {"id": 3, "question": "Bạn tự tin thế nào về lập kế hoạch hoạt động hội chợ phòng ngừa?", "options": ["Hoàn toàn không tự tin", "Hơi tự tin", "Tự tin vừa phải", "Rất tự tin", "Cực kỳ tự tin"], "deleted": false}, {"id": 4, "question": "Thách thức nào bạn dự đoán khi tổ chức hội chợ phòng ngừa?", "options": ["Thu hút cộng đồng", "Phối hợp nguồn lực", "Lập kế hoạch hoạt động", "Quản lý tình nguyện viên", "Hậu cần và chuẩn bị", "Tất cả trên"], "deleted": false}, {"id": 5, "question": "Bạn mong học gì về lập kế hoạch hội chợ phòng ngừa?", "options": ["Hậu cần sự kiện", "Thiết kế hoạt động", "Tiếp cận cộng đồng", "Quản lý nguồn lực", "Đo lường tác động", "Tất cả khía cạnh"], "deleted": false}, {"id": 6, "question": "Bạn đánh giá tầm quan trọng của hội chợ phòng ngừa với sức khỏe cộng đồng?", "options": ["Không quan trọng", "Hơi quan trọng", "Quan trọng vừa phải", "Rất quan trọng", "Cực kỳ quan trọng"], "deleted": false}]}'),
-
--- Chương trình 25: Hội chợ Phòng ngừa Cộng đồng - Đánh giá sau
-(25, 'post-assessment', N'{"questions": [{"id": 1, "question": "Sau chương trình, bạn tự tin thế nào về tổ chức hội chợ phòng ngừa?", "options": ["Hoàn toàn không tự tin", "Hơi tự tin", "Tự tin vừa phải", "Rất tự tin", "Cực kỳ tự tin"], "deleted": false}, {"id": 2, "question": "Khía cạnh nào của lập kế hoạch hội chợ có giá trị nhất?", "options": ["Thiết kế hoạt động cho mọi lứa tuổi", "Chiến lược tiếp cận cộng đồng", "Phối hợp nguồn lực", "Quản lý tình nguyện viên", "Đo lường tác động", "Tất cả đều giá trị"], "deleted": false}, {"id": 3, "question": "Khả năng bạn tổ chức hoặc giúp hội chợ phòng ngừa trong cộng đồng?", "options": ["Rất không có khả năng", "Không có khả năng", "Trung lập", "Có khả năng", "Rất có khả năng"], "deleted": false}, {"id": 4, "question": "Thành phần nào của hội chợ phòng ngừa có tác động nhất?", "options": ["Gian hàng giáo dục", "Hoạt động tương tác", "Phân phối tài nguyên", "Kết nối cộng đồng", "Thu hút gia đình", "Tất cả thành phần cùng nhau"], "deleted": false}, {"id": 5, "question": "Chương trình đã thay đổi hiểu biết của bạn về công tác phòng ngừa cộng đồng?", "options": ["Hiểu biết tăng đáng kể", "Hiểu biết tăng vừa phải", "Hiểu biết tăng nhẹ", "Không thay đổi", "Giảm hiểu biết"], "deleted": false}, {"id": 6, "question": "Đánh giá hiệu quả chương trình lập kế hoạch hội chợ này", "options": ["Rất không hiệu quả", "Không hiệu quả", "Trung lập", "Hiệu quả", "Rất hiệu quả"], "deleted": false}, {"id": 7, "question": "Bạn chuẩn bị thế nào để thu hút thành viên cộng đồng đa dạng vào hoạt động phòng ngừa?", "options": ["Hoàn toàn không chuẩn bị", "Chuẩn bị rất ít", "Chuẩn bị vừa phải", "Chuẩn bị tốt", "Chuẩn bị rất tốt"], "deleted": false}]}'),
-
--- Chương trình 26: Đi bộ Phục hồi & Biểu tình Hỗ trợ - Đánh giá trước
-(26, 'pre-assessment', N'{"questions": [{"id": 1, "question": "Bạn quen thuộc thế nào với sự kiện hỗ trợ phục hồi và mục đích?", "options": ["Hoàn toàn không quen", "Hơi quen", "Quen thuộc vừa phải", "Rất quen", "Cực kỳ quen thuộc"], "deleted": false}, {"id": 2, "question": "Bạn có kinh nghiệm gì với sự kiện sức khỏe cộng đồng?", "options": ["Không kinh nghiệm", "Rất ít kinh nghiệm", "Một số kinh nghiệm", "Kinh nghiệm tốt", "Kinh nghiệm sâu rộng"], "deleted": false}, {"id": 3, "question": "Bạn thoải mái thế nào khi thảo luận chủ đề phục hồi và sức khỏe tâm thần?", "options": ["Rất không thoải mái", "Không thoải mái", "Trung lập", "Thoải mái", "Rất thoải mái"], "deleted": false}, {"id": 4, "question": "Bạn mong đạt gì từ việc học về đi bộ phục hồi?", "options": ["Kỹ năng lập kế hoạch sự kiện", "Hiểu hỗ trợ phục hồi", "Kiến thức xây dựng cộng đồng", "Chiến lược giảm kỳ thị", "Phát triển cá nhân", "Tất cả trên"], "deleted": false}, {"id": 5, "question": "Bạn đánh giá tầm quan trọng của sự kiện hỗ trợ phục hồi với cộng đồng?", "options": ["Không quan trọng", "Hơi quan trọng", "Quan trọng vừa phải", "Rất quan trọng", "Cực kỳ quan trọng"], "deleted": false}, {"id": 6, "question": "Bạn lo ngại gì về tổ chức sự kiện hỗ trợ phục hồi?", "options": ["Riêng tư và bảo mật", "Chấp nhận cộng đồng", "Yêu cầu nguồn lực", "Xem xét an toàn", "Nhu cầu hỗ trợ tinh thần", "Không lo ngại"], "deleted": false}]}'),
-
--- Chương trình 26: Đi bộ Phục hồi & Biểu tình Hỗ trợ - Đánh giá sau
-(26, 'post-assessment', N'{"questions": [{"id": 1, "question": "Sau chương trình, bạn tự tin thế nào về tổ chức sự kiện hỗ trợ phục hồi?", "options": ["Hoàn toàn không tự tin", "Hơi tự tin", "Tự tin vừa phải", "Rất tự tin", "Cực kỳ tự tin"], "deleted": false}, {"id": 2, "question": "Khía cạnh nào của lập kế hoạch đi bộ phục hồi sáng tỏ nhất?", "options": ["Tạo môi trường bao trùm", "Quản lý an toàn tinh thần", "Xây dựng quan hệ đối tác", "Tôn vinh hành trình phục hồi", "Giảm kỳ thị", "Tất cả đều quan trọng"], "deleted": false}, {"id": 3, "question": "Khả năng bạn tham gia hoặc tổ chức sự kiện hỗ trợ phục hồi?", "options": ["Rất không có khả năng", "Không có khả năng", "Trung lập", "Có khả năng", "Rất có khả năng"], "deleted": false}, {"id": 4, "question": "Bạn nghĩ đi bộ phục hồi tác động thế nào đến thái độ cộng đồng?", "options": ["Không tác động", "Tác động tối thiểu", "Tác động vừa phải", "Tác động đáng kể", "Tác động chuyển đổi"], "deleted": false}, {"id": 5, "question": "Chương trình đã ảnh hưởng thế nào đến hiểu biết của bạn về phục hồi và hỗ trợ?", "options": ["Hiểu biết sâu sắc hơn đáng kể", "Hiểu biết sâu sắc hơn vừa phải", "Hiểu biết sâu sắc hơn nhẹ", "Không thay đổi", "Làm tôi bối rối hơn"], "deleted": false}, {"id": 6, "question": "Đánh giá hiệu quả chương trình hỗ trợ phục hồi này", "options": ["Rất không hiệu quả", "Không hiệu quả", "Trung lập", "Hiệu quả", "Rất hiệu quả"], "deleted": false}, {"id": 7, "question": "Bạn chuẩn bị thế nào để tạo môi trường hỗ trợ người phục hồi?", "options": ["Hoàn toàn không chuẩn bị", "Chuẩn bị rất ít", "Chuẩn bị vừa phải", "Chuẩn bị tốt", "Chuẩn bị rất tốt"], "deleted": false}]}'),
-
--- ==================== CHƯƠNG TRÌNH PHÒNG NGỪA CHUNG ====================
 
 -- Khảo sát Đánh giá trước cho Tất cả Chương trình Phòng ngừa
 (NULL, 'pre-assessment', N'{"questions": [{"id": 1, "question": "Bạn đánh giá kiến thức tổng thể về phòng ngừa lạm dụng chất?", "options": ["Rất thấp", "Thấp", "Trung bình", "Cao", "Rất cao"], "deleted": false}, {"id": 2, "question": "Bạn tự tin thế nào về khả năng quyết định lành mạnh liên quan chất kích thích?", "options": ["Hoàn toàn không tự tin", "Hơi tự tin", "Tự tin vừa phải", "Rất tự tin", "Cực kỳ tự tin"], "deleted": false}, {"id": 3, "question": "Động lực nào thúc đẩy bạn tham gia chương trình giáo dục phòng ngừa?", "options": ["Quan tâm cá nhân", "Lo ngại gia đình", "Phát triển nghề nghiệp", "Tham gia cộng đồng", "Nhận thức sức khỏe", "Tất cả trên"], "deleted": false}, {"id": 4, "question": "Bạn thường tìm kiếm thông tin về chủ đề sức khỏe?", "options": ["Không bao giờ", "Hiếm khi", "Thỉnh thoảng", "Thường xuyên", "Luôn luôn"], "deleted": false}, {"id": 5, "question": "Nguồn hỗ trợ chính cho quyết định lành mạnh của bạn?", "options": ["Gia đình", "Bạn bè", "Nhà cung cấp y tế", "Chương trình cộng đồng", "Tài nguyên trực tuyến", "Nhiều nguồn"], "deleted": false}, {"id": 6, "question": "Bạn chuẩn bị thế nào để giúp người khác ra quyết định sáng suốt về chất kích thích?", "options": ["Hoàn toàn không chuẩn bị", "Chuẩn bị rất ít", "Chuẩn bị vừa phải", "Chuẩn bị tốt", "Chuẩn bị rất tốt"], "deleted": false}]}'),
