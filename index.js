@@ -505,7 +505,8 @@ app.delete('/api/booking-sessions/:id', authController.verifyToken, BookingSessi
  * Authentication: None (Public for booking)
  */
 app.get("/api/consultant-slots/:consultantId", ConsultantSlotController.getSlotsByConsultantId);
-
+app.delete("/api/consultant-slots/consultant/:consultantId", ConsultantSlotController.deleteConsultantSlots);
+app.post("/api/consultant-slots/consultant/:consultantId", ConsultantSlotController.createConsultantSlots);
 /**
  * CONSULTANT SLOTS: Update consultant availability
  * Purpose: Update consultant slots for specific days by deleting existing slots and creating new ones
@@ -515,57 +516,7 @@ app.get("/api/consultant-slots/:consultantId", ConsultantSlotController.getSlots
  * Authentication: Required (Consultant/Admin)
  */
 app.put("/api/consultant-slots", authController.verifyToken, ConsultantSlotController.updateConsultantSlots);
-
-/**
- * CONSULTANT SLOTS: Get consultant slots by consultant ID
- * Purpose: Retrieve time slots for a specific consultant from Consultant_Slot table
- * Method: GET /api/consultant-slots/consultant/:consultantId
- * Input: Path params: { consultantId: number }
- * Output: { success: boolean, data: Array<ConsultantSlotObject>, message: string }
- * Authentication: Required (for management interface)
- */
-app.get("/api/consultant-slots/consultant/:consultantId", authController.verifyToken, ConsultantSlotController.getSlotsByConsultantId);
-
-/**
- * CONSULTANT SLOTS: Delete all consultant slots
- * Purpose: Delete all time slots for a specific consultant
- * Method: DELETE /api/consultant-slots/consultant/:consultantId
- * Input: Path params: { consultantId: number }
- * Output: { success: boolean, data: object, message: string }
- * Authentication: Required (Consultant/Admin)
- */
-app.delete("/api/consultant-slots/consultant/:consultantId", authController.verifyToken, ConsultantSlotController.deleteConsultantSlots);
-
-/**
- * CONSULTANT SLOTS: Create multiple consultant slots
- * Purpose: Create multiple consultant slots with predefined slot IDs and days
- * Method: POST /api/consultant-slots/consultant/:consultantId
- * Input: Path params: { consultantId: number }, Body: { slots: Array<{slot_id: number, day_of_week: string}> }
- * Output: { success: boolean, data: object, message: string }
- * Authentication: Required (Consultant/Admin)
- */
-app.post("/api/consultant-slots/consultant/:consultantId", authController.verifyToken, ConsultantSlotController.createConsultantSlots);
-
-/**
- * CONSULTANT SLOTS: Create custom consultant slots with schedule times
- * Purpose: Create consultant slots with custom time slots and days (creates Slot entries if needed)
- * Method: POST /api/consultant-slots/consultant/:consultantId/custom
- * Input: Path params: { consultantId: number }, Body: { schedules: Array<{days: Array<string>, start_time: string, end_time: string}> }
- * Output: { success: boolean, data: object, message: string }
- * Authentication: Required (Consultant/Admin)
- */
-app.post("/api/consultant-slots/consultant/:consultantId/custom", authController.verifyToken, ConsultantSlotController.createCustomConsultantSlots);
-
-/**
- * CONSULTANT SLOTS: Replace consultant schedule completely
- * Purpose: Replace all existing consultant slots with new custom schedule
- * Method: PUT /api/consultant-slots/consultant/:consultantId/schedule
- * Input: Path params: { consultantId: number }, Body: { schedules: Array<{days: Array<string>, start_time: string, end_time: string}> }
- * Output: { success: boolean, data: object, message: string }
- * Authentication: Required (Consultant/Admin)
- */
-app.put("/api/consultant-slots/consultant/:consultantId/schedule", authController.verifyToken, ConsultantSlotController.replaceConsultantSchedule);
-
+app.get("/api/user/role/", authController.verifyToken, UserController.getUserRoleById)
 /**
  * SLOTS: Get all time slots
  * Purpose: Retrieve all available time slots in the system

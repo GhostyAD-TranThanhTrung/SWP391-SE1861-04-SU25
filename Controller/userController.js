@@ -683,6 +683,28 @@ class UserController {
       });
     }
   }
+  static async getUserRoleById(req, res) {
+    try {
+      const role = req.user.role
+      if (!role) {
+        res.status(404).json({
+          success: false,
+          message: "Invalid role"
+        })
+      }
+      res.status(200).json({
+        success: true,
+        message: "Successfully get the Role from user",
+        role: role
+      })
+    } catch (err) {
+      res.status(500).json({
+        success: false,
+        message: "Error in the server",
+        error: err.message,
+      })
+    }
+  }
 }
 
 module.exports = UserController;
