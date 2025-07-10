@@ -4,6 +4,8 @@ import { FaSearch, FaPlus, FaEdit, FaEye, FaFlag } from "react-icons/fa";
 import { FaTrash } from "react-icons/fa6";
 import { MdCancel, MdApproval, MdBlock } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
+import FlagModal from "../../components/FlagModal";
+import { flagBlog, removeFlag, checkUserFlaggedBlog, getBlogFlags, isAuthenticated, getUserFromToken } from "../../service/api";
 
 const BlogListPage = () => {
   const [showPopup, setShowPopup] = useState(false);
@@ -19,6 +21,15 @@ const BlogListPage = () => {
   const [blogIdToDelete, setBlogIdToDelete] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState('all'); // 'all', 'pending', 'published', 'draft'
+
+  // Flag functionality state
+  const [flagModalOpen, setFlagModalOpen] = useState(false);
+  const [selectedBlogForFlag, setSelectedBlogForFlag] = useState(null);
+  const [blogFlagStatus, setBlogFlagStatus] = useState({}); // Store flag status for each blog
+  const [blogFlagCounts, setBlogFlagCounts] = useState({}); // Store flag counts for each blog
+  const [currentUser, setCurrentUser] = useState(null);
+  const [userAuthenticated, setUserAuthenticated] = useState(false);
+
   const token = sessionStorage.getItem("token");
   const navigate = useNavigate()
   const userRole = async () => {
@@ -62,6 +73,8 @@ const BlogListPage = () => {
 
       if (res.data.success) {
         setBlogs(res.data.data);
+        // Always load flag status and counts for admin page
+        await loadFlagStatusForBlogs(res.data.data);
       }
     } catch (err) {
       console.error("Lỗi khi gọi API:", err);
@@ -70,7 +83,50 @@ const BlogListPage = () => {
 
   useEffect(() => {
     fetchBlogs();
+    checkAuthAndLoadUser();
   }, [viewMode]);
+
+  const checkAuthAndLoadUser = async () => {
+    const authenticated = isAuthenticated();
+    setUserAuthenticated(authenticated);
+
+    if (authenticated) {
+      try {
+        const user = getUserFromToken();
+        setCurrentUser(user);
+      } catch (error) {
+        console.error('Error getting user from token:', error);
+      }
+    }
+  };
+
+  const loadFlagStatusForBlogs = async (blogList) => {
+    const flagStatusMap = {};
+    const flagCountsMap = {};
+
+    for (const blog of blogList) {
+      try {
+        // Get total flag count for this blog (always load for admin)
+        const flagsResponse = await getBlogFlags(blog.blog_id);
+        flagCountsMap[blog.blog_id] = flagsResponse.count || 0;
+
+        // Get user's flag status for this blog (only if authenticated)
+        if (userAuthenticated && currentUser) {
+          const flagInfo = await checkUserFlaggedBlog(blog.blog_id);
+          flagStatusMap[blog.blog_id] = flagInfo;
+        } else {
+          flagStatusMap[blog.blog_id] = { flagged: false, flagId: null };
+        }
+      } catch (error) {
+        console.error(`Error checking flag status for blog ${blog.blog_id}:`, error);
+        flagStatusMap[blog.blog_id] = { flagged: false, flagId: null };
+        flagCountsMap[blog.blog_id] = 0;
+      }
+    }
+
+    setBlogFlagStatus(flagStatusMap);
+    setBlogFlagCounts(flagCountsMap);
+  };
 
   const handleOpenPopup = () => {
     setShowPopup(true);
@@ -198,9 +254,11 @@ const BlogListPage = () => {
   const getStatusBadge = (status) => {
     const statusColors = {
       'published': 'success',
+      'Đã xuất bản': 'success',
       'draft': 'secondary',
       'pending': 'warning',
-      'rejected': 'danger'
+      'rejected': 'danger',
+      'hidden': 'dark'
     };
     return statusColors[status] || 'secondary';
   };
@@ -208,6 +266,107 @@ const BlogListPage = () => {
   const truncateText = (text, maxLength = 100) => {
     if (!text) return '';
     return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+  };
+
+  // Flag functionality handlers
+  const handleFlagClick = (blog) => {
+    if (!userAuthenticated) {
+      alert('Vui lòng đăng nhập để báo cáo bài viết.');
+      return;
+    }
+
+    const flagStatus = blogFlagStatus[blog.blog_id];
+    if (flagStatus?.flagged) {
+      handleRemoveFlag(blog.blog_id, flagStatus.flagId);
+    } else {
+      setSelectedBlogForFlag(blog);
+      setFlagModalOpen(true);
+    }
+  };
+
+  const handleFlagSubmit = async (reason) => {
+    if (!selectedBlogForFlag) return;
+
+    try {
+      const response = await flagBlog(selectedBlogForFlag.blog_id, reason);
+
+      if (response.success) {
+        // Update flag status
+        setBlogFlagStatus(prev => ({
+          ...prev,
+          [selectedBlogForFlag.blog_id]: { flagged: true, flagId: response.data.flag_id }
+        }));
+
+        // Update flag count
+        setBlogFlagCounts(prev => ({
+          ...prev,
+          [selectedBlogForFlag.blog_id]: response.flagCount || 0
+        }));
+
+        alert('Báo cáo đã được gửi thành công. Cảm ơn bạn đã đóng góp để cải thiện chất lượng nội dung.');
+
+        // Check if blog was deleted (3+ flags)
+        if (response.blogDeleted) {
+          alert('Bài viết đã bị xóa khỏi hệ thống do nhận quá nhiều báo cáo (3 báo cáo trở lên).');
+          fetchBlogs(); // Refresh the list to remove deleted blog
+        } else if (response.blogHidden) {
+          // Blog was hidden (1-2 flags)
+          alert('Bài viết đã bị ẩn do nhận báo cáo.');
+          fetchBlogs(); // Refresh the list to show hidden status
+        }
+
+        // Check if author was banned
+        if (response.authorBanned) {
+          alert(`Thông báo: Tác giả của bài viết này đã bị khóa tài khoản do có ${response.flaggedPostsCount} bài viết bị báo cáo.`);
+        }
+      }
+    } catch (error) {
+      if (error.message.includes('already flagged')) {
+        alert('Bạn đã báo cáo bài viết này rồi.');
+        // Refresh flag status
+        const flagInfo = await checkUserFlaggedBlog(selectedBlogForFlag.blog_id);
+        setBlogFlagStatus(prev => ({
+          ...prev,
+          [selectedBlogForFlag.blog_id]: flagInfo
+        }));
+      } else {
+        alert('Có lỗi xảy ra khi gửi báo cáo: ' + error.message);
+      }
+    }
+  };
+
+  const handleRemoveFlag = async (blogId, flagId) => {
+    if (!flagId) return;
+
+    if (!window.confirm('Bạn có chắc muốn gỡ báo cáo này không?')) return;
+
+    try {
+      const response = await removeFlag(flagId);
+
+      if (response.success) {
+        // Update flag status
+        setBlogFlagStatus(prev => ({
+          ...prev,
+          [blogId]: { flagged: false, flagId: null }
+        }));
+
+        // Update flag count
+        setBlogFlagCounts(prev => ({
+          ...prev,
+          [blogId]: response.remainingFlags
+        }));
+
+        alert('Đã gỡ báo cáo thành công.');
+
+        // Check if blog was unhidden
+        if (response.blogUnhidden) {
+          alert('Bài viết đã được hiển thị lại do không còn báo cáo nào.');
+          fetchBlogs(); // Refresh the list to reflect status change
+        }
+      }
+    } catch (error) {
+      alert('Có lỗi xảy ra khi gỡ báo cáo: ' + error.message);
+    }
   };
 
   return (
@@ -262,6 +421,7 @@ const BlogListPage = () => {
               <th>Tiêu đề</th>
               <th>Nội dung</th>
               <th>Trạng thái</th>
+              <th>Báo cáo</th>
               <th>Tác giả</th>
               <th>Ngày tạo</th>
               <th>Hình ảnh</th>
@@ -283,9 +443,28 @@ const BlogListPage = () => {
                   </div>
                 </td>
                 <td>
-                  <span className={`badge bg-${getStatusBadge(blog.status)}`}>
-                    {blog.status || 'draft'}
-                  </span>
+                  <div className="d-flex flex-column align-items-start">
+                    <span className={`badge bg-${getStatusBadge(blog.status)} mb-1`}>
+                      {blog.status || 'draft'}
+                    </span>
+                    {blog.status === 'hidden' && (
+                      <span className="badge bg-warning text-dark">
+                        Ẩn
+                      </span>
+                    )}
+                  </div>
+                </td>
+                <td>
+                  <div className="d-flex align-items-center">
+                    <span className={`badge ${blogFlagCounts[blog.blog_id] >= 3
+                        ? 'bg-danger'
+                        : blogFlagCounts[blog.blog_id] >= 1
+                          ? 'bg-warning'
+                          : 'bg-success'
+                      }`}>
+                      {blogFlagCounts[blog.blog_id] || 0} báo cáo
+                    </span>
+                  </div>
                 </td>
                 <td>{blog.author?.name || blog.author_id}</td>
                 <td>{blog.created_at ? new Date(blog.created_at).toLocaleDateString() : 'N/A'}</td>
@@ -326,11 +505,26 @@ const BlogListPage = () => {
                     </>
                   )}
                   <button
-                    className="btn btn-outline-warning btn-sm me-1"
-                    onClick={() => window.open(`/admin/flags/blog/${blog.blog_id}`, '_blank')}
-                    title="Xem báo cáo"
+                    className={`btn btn-sm me-1 ${blogFlagStatus[blog.blog_id]?.flagged
+                        ? 'btn-warning'
+                        : 'btn-outline-warning'
+                      }`}
+                    onClick={() => handleFlagClick(blog)}
+                    title={
+                      blogFlagStatus[blog.blog_id]?.flagged
+                        ? 'Gỡ báo cáo'
+                        : 'Báo cáo bài viết'
+                    }
                   >
                     <FaFlag />
+                  </button>
+                  <button
+                    className="btn btn-outline-secondary btn-sm me-1"
+                    onClick={() => window.open(`/admin/flags/blog/${blog.blog_id}`, '_blank')}
+                    title="Xem tất cả báo cáo"
+                  >
+                    <FaFlag />
+                    <small className="ms-1">({blogFlagCounts[blog.blog_id] || 0})</small>
                   </button>
                   <button
                     className="btn btn-outline-danger btn-sm"
@@ -429,6 +623,17 @@ const BlogListPage = () => {
           </div>
         </div>
       )}
+
+      <FlagModal
+        isOpen={flagModalOpen}
+        onClose={() => {
+          setFlagModalOpen(false);
+          setSelectedBlogForFlag(null);
+        }}
+        onSubmit={handleFlagSubmit}
+        blogId={selectedBlogForFlag?.blog_id}
+        blogTitle={selectedBlogForFlag?.title || 'Bài viết'}
+      />
     </div>
   );
 };
