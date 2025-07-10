@@ -159,7 +159,7 @@ class StaffController {
             // Create new user (ERD compliant - no username field)
             const newUser = userRepository.create({
                 email,
-                password: await bcrypt.hash(password, 10),
+                password,
                 role,
                 status
                 // date_create is handled by database default
@@ -270,7 +270,7 @@ class StaffController {
 
             // Update user fields if provided
             if (email !== undefined) user.email = email;
-            if (password !== undefined) user.password = await bcrypt.hash(password, 10);
+            if (password !== undefined) user.password = password; //await bcrypt.hash(password, 10)
             if (role !== undefined) {
                 if (!['staff', 'consultant'].includes(role)) {
                     return res.status(400).json({
