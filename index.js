@@ -888,14 +888,14 @@ app.get("/api/flags/blog/:blogId", authController.verifyStaffOrAdmin, FlagContro
 app.get("/api/flags/user/:userId", authController.verifyToken, FlagController.getFlagsByUser);
 
 /**
- * FLAG DELETE: Remove flag report
- * Purpose: Delete a flag report from the system
+ * FLAG REMOVE: Remove flag report
+ * Purpose: Delete a flag report from the system and unhide blog if needed
  * Method: DELETE /api/flags/:id
  * Input: Path params: { id: number }
- * Output: { success: boolean, message: string }
- * Authentication: Required (Flag creator/Admin/Staff)
+ * Output: { success: boolean, message: string, blogUnhidden: boolean, remainingFlags: number, blogId: number }
+ * Authentication: Required (Admin/Staff)
  */
-app.delete("/api/flags/:id", authController.verifyToken, FlagController.deleteFlag);
+app.delete("/api/flags/:id", authController.verifyStaffOrAdmin, FlagController.removeFlag);
 
 /**
  * FLAGS LIST: Get all flags
