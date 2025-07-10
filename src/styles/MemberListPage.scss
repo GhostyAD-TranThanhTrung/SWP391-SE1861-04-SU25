@@ -1,5 +1,5 @@
 // Member List Page Styles
-.member-list-container {
+.member-container {
     padding: 20px;
     background-color: #f9f9f9;
   
@@ -20,28 +20,60 @@
       .search-box {
         display: flex;
         align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
   
-        input {
+        select {
+          margin-right: 8px;
+          padding: 8px 10px;
+          border: 1px solid #d0d7de;
+          border-radius: 6px;
+          background: #fff;
+          font-size: 15px;
+          color: #222;
+          transition: border 0.2s;
+          width: 200px;
+          &:focus {
+            border: 1px solid #d0d7de;
+            outline: none;
+            box-shadow: none;
+          }
+        }
+  
+        input[type="text"] {
           padding: 6px 12px;
-          border: 1px solid #ccc;
-          border-radius: 4px 0 0 4px;
+          border: 1px solid #d0d7de;
+          border-radius: 6px 0 0 6px;
+          font-size: 15px;
+          width: 220px;
+          transition: border 0.2s;
+          margin-right: 0;
           outline: none;
+          height: 38px;
+          box-sizing: border-box;
         }
   
         button {
-          padding: 6px 12px;
-          border: 1px solid #ccc;
-          background-color: #66B0C6;
-          color: white;
+          background: #2ca4e7;
+          border: 1px solid #d0d7de;
           border-left: none;
-          border-radius: 0 4px 4px 0;
-  
-          i {
-            font-size: 1rem;
+          border-radius: 0 6px 6px 0;
+          padding: 0 16px;
+          color: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          height: 38px;
+          transition: background 0.2s, border 0.2s;
+          margin-left: -8px;
+          box-shadow: none;
+          &:hover{
+            background: #1976d2;
+            border-color: #007bff;
           }
-  
-          &:hover {
-            background-color: #5936a1;
+          svg {
+            font-size: 18px;
           }
         }
       }
@@ -90,8 +122,7 @@
       }
     }
   
-  // ===== Popup Overlay =====
-  .popup {
+    .popup {
       position: fixed;
       top: 0;
       left: 0;
@@ -101,64 +132,165 @@
       display: flex;
       align-items: center;
       justify-content: center;
-  
-      h2, p{
-          margin-bottom: 5px;
+    
+      h2, p {
+        margin-bottom: 5px;
       }
-  
+    
       .close {
-      position: absolute;
-      top: 5px;
-      right: 15px;
-      font-size: 37px;
-      cursor: pointer;
-      color: #aaa;
-  
-      &:hover{
+        position: absolute;
+        top: 5px;
+        right: 15px;
+        font-size: 37px;
+        cursor: pointer;
+        color: #aaa;
+    
+        &:hover {
           color: #777;
+        }
       }
+    
+      .popup-content {
+        background-color: #fff;
+        padding: 40px;
+        border-radius: 5px;
+        max-width: 700px; // rộng hơn chút cho 2 cột
+        width: 100%;
+        text-align: center;
+        position: relative;
+
+        .member-detail {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+
+          h2{
+            text-align: center;
+            width: 100%;
+          }
+
+          .member-detail-row {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 8px;
+          }
+          .member-detail-label {
+            font-weight: 600;
+            min-width: 110px;
+            text-align: right;
+          }
+          .member-detail-value {
+            margin-left: 8px;
+            text-align: left;
+          }
+        }
+
+        form.form-grid {
+          input,
+          select {
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 16px;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            box-sizing: border-box;
+            background: #fff;
+            margin-bottom: 0;
+            height: 44px;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            color: #222;
+          }
+          select:disabled {
+            color: #888;
+            background: #f5f5f5;
+          }
+          input:disabled {
+            color: #888;
+            background: #f5f5f5;
+          }
+          // Đảm bảo các cặp input/select cùng hàng đều nhau
+          > div {
+            display: flex;
+            gap: 12px;
+          }
+          select:focus {
+            border: 1px solid #d0d7de;
+            outline: none;
+            box-shadow: none;
+          }
+        }
       }
-  }
+    
+      .form {
+        h2 {
+          text-align: center;
+          margin-bottom: 20px;
+        }
+    
+        .form-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          column-gap: 20px;
+          row-gap: 15px;
+          max-width: 600px;
+          margin: 0 auto;
+          padding-top: 20px;
+        
+          input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #333;
+            background-color: #fff;
+            transition: border-color 0.2s ease;
   
-  // ===== Popup Content =====
-  .popup-content {
-      background-color: #fff;
-      padding: 40px 32px 32px 32px;
-      border-radius: 12px;
-      max-width: 420px;
-      width: 100%;
-      text-align: center;
-      position: relative;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-      border: 1.5px solid #e0e0e0;
-  }
+            &:focus {
+              outline: none;
+              border-color: #66B0C6;
+              box-shadow: 0 0 0 2px rgba(102, 176, 198, 0.1);
+            }
+          }
+        
+          select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 20px center;
+            background-size: 20px;
+            padding-right: 30px;
+            cursor: pointer;
   
-  .popup-content h2, .popup-content h4 {
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 24px;
-    color: #222;
-  }
+            &:hover {
+              border-color: #66B0C6;
+            }
   
-  .popup-content .member-detail-row {
-    display: flex;
-    justify-content: flex-start;
-    align-items: flex-start;
-    margin-bottom: 12px;
-    gap: 8px;
-  }
-  
-  .popup-content .member-detail-label {
-    font-weight: 600;
-    color: #333;
-    min-width: 120px;
-    text-align: right;
-  }
-  
-  .popup-content .member-detail-value {
-    color: #444;
-    text-align: left;
-    word-break: break-word;
-  }
+            option {
+              padding: 10px;
+            }
+          }
+        
+          .form-button {
+            grid-column: span 2; 
+            width: 150px;
+            padding: 10px;
+            margin: 20px auto 0;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+          }
+        }
+        
+      }
+    }
+    
 }
   

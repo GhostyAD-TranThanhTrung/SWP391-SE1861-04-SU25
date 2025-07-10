@@ -29,6 +29,7 @@ const ConsultantListPage = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [consultantIdToDelete, setConsultantIdToDelete] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   // Slot management state
   const [showSlotModal, setShowSlotModal] = useState(false);
@@ -312,11 +313,16 @@ const ConsultantListPage = () => {
     setSearchTerm(e.target.value);
   };
 
+  const handleStatusFilterChange = (e) => {
+    setStatusFilter(e.target.value);
+  };
+
   const handleSearchClick = async () => {
     if (searchTerm.trim() === "") {
       fetchConsultants();
       return;
     }
+    
 
     try {
       // For now, we'll filter on the frontend since there's no search endpoint for complete consultants
@@ -455,19 +461,36 @@ const ConsultantListPage = () => {
     }
   };
 
+    // Filter consultants by status
+    const filteredConsultants = consultants.filter(c =>
+      statusFilter === 'all' || c.status === statusFilter
+    );
+
   return (
     <div className="consultant-list-container">
       <div className="d-flex justify-content-between align-items-center mb-3">
         <button onClick={() => { handleEdit(null) }} className="btn btn-primary" title="Tạo tư vấn viên tạm thời">
           <FaPlus className="me-1" /> Tạo tư vấn viên mới
         </button>
-        <div className="input-group" style={{ maxWidth: '300px' }}>
+        <div className="input-group" style={{ maxWidth: '450px' }}>
+          <select
+            className="form-select"
+            style={{ maxWidth: '200px', marginRight: '10px' }}
+            value={statusFilter}
+            onChange={handleStatusFilterChange}
+          >
+            <option value="all">Tất cả trạng thái</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="banned">Banned</option>
+          </select>
           <input
             type="text"
             className="form-control"
             placeholder="Tìm kiếm tư vấn viên..."
             value={searchTerm}
             onChange={handleSearch}
+            style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
           />
           <button className="btn btn-outline-secondary" onClick={handleSearchClick}>
             <FaSearch />
@@ -489,7 +512,7 @@ const ConsultantListPage = () => {
             </tr>
           </thead>
           <tbody>
-            {consultants.map((consultant, index) => (
+            {filteredConsultants.map((consultant, index) => (
               <tr key={consultant.id_consultant}>
                 <td>{index + 1}</td>
                 <td>{consultant.name}</td>

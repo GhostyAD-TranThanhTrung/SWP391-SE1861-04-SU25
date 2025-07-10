@@ -21,6 +21,7 @@ const BlogListPage = () => {
   const [blogIdToDelete, setBlogIdToDelete] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState('all'); // 'all', 'pending', 'published', 'draft'
+  const [filterStatus, setFilterStatus] = useState('Tất cả');
 
   // Flag functionality state
   const [flagModalOpen, setFlagModalOpen] = useState(false);
@@ -39,7 +40,7 @@ const BlogListPage = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       )
       if (!(res.data.role && res.data.role === 'admin')) navigate('/admin/login')
-    } catch (err) {
+    } catch {
       navigate('/admin/login')
     }
 
@@ -369,6 +370,10 @@ const BlogListPage = () => {
     }
   };
 
+  
+  // Filter blogs theo status
+  const filteredBlogs = blogs.filter(b => filterStatus === 'Tất cả' || b.status === filterStatus);
+
   return (
     <div className="blog-list-container">
       <div className="top-bar d-flex justify-content-between align-items-center mb-3">
@@ -399,17 +404,30 @@ const BlogListPage = () => {
           </div>
         </div>
 
-        <div className="input-group" style={{ maxWidth: '300px' }}>
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Tìm kiếm blog..."
-            value={searchTerm}
-            onChange={handleSearch}
-          />
-          <button className="btn btn-outline-secondary" onClick={handleSearchClick}>
-            <FaSearch />
-          </button>
+        <div className="d-flex align-items-center gap-2" style={{ maxWidth: '500px' }}>
+        <select
+            className="form-select status-select"
+            value={filterStatus}
+            onChange={e => setFilterStatus(e.target.value)}
+            style={{ maxWidth: '200px' }}
+          >
+            <option value="Tất cả">Tất cả trạng thái</option>
+            <option value="Đã xuất bản">Đã xuất bản</option>
+            <option value="Bản nháp">Bản nháp</option>
+            <option value="Bị từ chối">Bị từ chối</option>
+          </select>
+          <div className="input-group" style={{ maxWidth: '300px' }}>
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Tìm kiếm blog..."
+              value={searchTerm}
+              onChange={handleSearch}
+            />
+            <button className="btn btn-outline-secondary" onClick={handleSearchClick}>
+              <FaSearch />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -429,7 +447,7 @@ const BlogListPage = () => {
             </tr>
           </thead>
           <tbody>
-            {blogs.map((blog, index) => (
+            {filteredBlogs.map((blog, index) => (
               <tr key={blog.blog_id}>
                 <td>{index + 1}</td>
                 <td>
@@ -539,7 +557,7 @@ const BlogListPage = () => {
           </tbody>
         </table>
 
-        {blogs.length === 0 && (
+        {filteredBlogs.length === 0 && (
           <div className="text-center py-4">
             <p>Không có blog nào để hiển thị.</p>
           </div>

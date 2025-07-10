@@ -1,4 +1,4 @@
-.staff-list-container {
+.assessment-list-container {
     padding: 20px;
     background-color: #f9f9f9;
   
@@ -12,35 +12,6 @@
   
         &:hover {
           background-color: #66B0C6;
-        }
-      }
-  
-      .search-box {
-        display: flex;
-        align-items: center;
-  
-        input {
-          padding: 6px 12px;
-          border: 1px solid #ccc;
-          border-radius: 4px 0 0 4px;
-          outline: none;
-        }
-  
-        button {
-          padding: 6px 12px;
-          border: 1px solid #ccc;
-          background-color: #66B0C6;
-          color: white;
-          border-left: none;
-          border-radius: 0 4px 4px 0;
-  
-          i {
-            font-size: 1rem;
-          }
-  
-          &:hover {
-            background-color: #5936a1;
-          }
         }
       }
     }
@@ -191,6 +162,30 @@
       }
     }
     
+    .assessment-type-select {
+      height: 38px;
+      border-radius: 8px;
+      border: 1.5px solid #000;
+      padding: 0 12px;
+      outline: none;
+      transition: outline 0.2s, border 0.2s;
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      background-size: 16px;
+      padding-right: 40px;
+      
+      &:hover {
+        border-color: #66B0C6;
+      }
+
+      option {
+        padding: 10px;
+      }
+    }
   
   }
+  
+
   
