@@ -137,6 +137,95 @@
       }
 
       // ============================================
+      // Video Input Section
+      // ============================================
+      .video-input-section {
+        background: #f0f8ff;
+        border: 1px solid #b3d7ff;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+
+        h6 {
+          margin: 0 0 1rem 0;
+          font-weight: 600;
+          color: #0066cc;
+          font-size: 1rem;
+          padding-bottom: 0.5rem;
+          border-bottom: 1px solid #b3d7ff;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+
+          &::before {
+            content: "🎥";
+            font-size: 1.2rem;
+          }
+        }
+
+        .form-label {
+          font-weight: 500;
+          color: #0066cc;
+          font-size: 0.875rem;
+          margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+          border: 2px solid #b3d7ff;
+          border-radius: 6px;
+          font-size: 0.875rem;
+          transition: border-color 0.3s ease;
+
+          &:focus {
+            border-color: #0066cc;
+            box-shadow: 0 0 0 0.2rem rgba(0, 102, 204, 0.25);
+          }
+        }
+
+        .form-text {
+          color: #0066cc;
+          font-size: 0.75rem;
+          margin-top: 0.5rem;
+        }
+
+        .video-preview {
+          .video-preview-card {
+            background: #e6f3ff;
+            border: 1px solid #b3d7ff;
+            border-radius: 6px;
+            padding: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #0066cc;
+            font-size: 0.875rem;
+            font-weight: 500;
+
+            a {
+              color: #0066cc;
+              text-decoration: none;
+              
+              &:hover {
+                color: #004499;
+              }
+            }
+          }
+
+          .video-preview-placeholder {
+            background: #f8f9fa;
+            border: 1px dashed #dee2e6;
+            border-radius: 6px;
+            padding: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #6c757d;
+            font-size: 0.875rem;
+          }
+        }
+      }
+
+      // ============================================
       // Enhanced Toolbar
       // ============================================
       .editor-toolbar {

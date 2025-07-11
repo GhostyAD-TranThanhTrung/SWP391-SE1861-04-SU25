@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { 
   FaPlus, FaTrash, FaSave, FaTimes, FaImage, FaCode, FaEye, FaBold, FaItalic, 
   FaLink, FaListUl, FaListOl, FaQuoteLeft, FaTable, FaUndo, FaRedo,
-  FaHeading, FaStrikethrough, FaExpand, FaCompress
+  FaHeading, FaStrikethrough, FaExpand, FaCompress, FaVideo, FaExternalLinkAlt
 } from "react-icons/fa";
 import { MdCancel, MdSave, MdPreview, MdVerticalSplit, MdFullscreen } from "react-icons/md";
 import "../styles/ContentCreator.scss";
@@ -17,6 +17,7 @@ const ContentCreator = ({
 }) => {
   const [showMarkdownEditor, setShowMarkdownEditor] = useState(false);
   const [markdownContent, setMarkdownContent] = useState("");
+  const [videoUrl, setVideoUrl] = useState(""); // New state for video URL
   const [editingContent, setEditingContent] = useState(null);
   const [editorMode, setEditorMode] = useState('split'); // 'edit', 'preview', 'split'
   const [uploadedImages, setUploadedImages] = useState([]); // Store uploaded image paths
@@ -39,20 +40,38 @@ const ContentCreator = ({
   // Auto-save content to localStorage
   useEffect(() => {
     const autoSave = setTimeout(() => {
-      if (markdownContent) {
+      if (markdownContent && newContent.type === 'markdown') {
         localStorage.setItem('markdown-draft', markdownContent);
+      }
+      if (videoUrl && newContent.type === 'video') {
+        localStorage.setItem('video-url-draft', videoUrl);
       }
     }, 1000);
     return () => clearTimeout(autoSave);
-  }, [markdownContent]);
+  }, [markdownContent, videoUrl, newContent.type]);
 
   // Load draft from localStorage
   useEffect(() => {
-    const draft = localStorage.getItem('markdown-draft');
-    if (draft && !editingContent) {
-      setMarkdownContent(draft);
+    if (!editingContent) {
+      const markdownDraft = localStorage.getItem('markdown-draft');
+      const videoDraft = localStorage.getItem('video-url-draft');
+      
+      if (markdownDraft && newContent.type === 'markdown') {
+        setMarkdownContent(markdownDraft);
+      }
+      if (videoDraft && newContent.type === 'video') {
+        setVideoUrl(videoDraft);
+      }
     }
-  }, [editingContent]);
+  }, [editingContent, newContent.type]);
+
+  // Clear draft when content type changes
+  useEffect(() => {
+    setMarkdownContent("");
+    setVideoUrl("");
+    localStorage.removeItem('markdown-draft');
+    localStorage.removeItem('video-url-draft');
+  }, [newContent.type]);
 
   const insertAtCursor = (text, selectionStart = null, selectionEnd = null) => {
     const textarea = textareaRef.current;
@@ -288,8 +307,18 @@ const ContentCreator = ({
       content_type: content.content_type,
       content_metadata_json: content.content_metadata_json
     });
-    setMarkdownContent(content.content_file_link || "");
+    
+    // Set content based on type
+    if (content.type === 'video' || content.content_type === 'video') {
+      setVideoUrl(content.content_file_link || "");
+      setMarkdownContent("");
+    } else {
+      setMarkdownContent(content.content_file_link || "");
+      setVideoUrl("");
+    }
+    
     localStorage.removeItem('markdown-draft');
+    localStorage.removeItem('video-url-draft');
   };
 
   const handleSaveContent = () => {
@@ -298,16 +327,25 @@ const ContentCreator = ({
       return;
     }
 
-    if (!markdownContent.trim()) {
-      alert("Please enter some content.");
+    if (!markdownContent.trim() && newContent.type === 'markdown') {
+      alert("Please enter some content for markdown.");
+      return;
+    }
+
+    if (!videoUrl && newContent.type === 'video') {
+      alert("Please enter a video URL for video content.");
       return;
     }
 
     const contentData = {
       ...newContent,
-      content_file_link: markdownContent,
+      content_file_link: markdownContent, // For markdown, it's the markdown content
       program_id: program.program_id
     };
+
+    if (newContent.type === 'video') {
+      contentData.content_file_link = videoUrl; // For video, it's the video URL
+    }
 
     if (editingContent) {
       onUpdate(editingContent.content_id, contentData);
@@ -330,20 +368,29 @@ const ContentCreator = ({
       })
     });
     setMarkdownContent("");
+    setVideoUrl("");
     localStorage.removeItem('markdown-draft');
+    localStorage.removeItem('video-url-draft');
   };
 
   const handleCancelEdit = () => {
-    if (markdownContent && window.confirm("You have unsaved changes. Are you sure you want to cancel?")) {
+    const hasChanges = (newContent.type === 'markdown' && markdownContent) || 
+                      (newContent.type === 'video' && videoUrl);
+    
+    if (hasChanges && window.confirm("You have unsaved changes. Are you sure you want to cancel?")) {
       setShowMarkdownEditor(false);
       setEditingContent(null);
       setMarkdownContent("");
+      setVideoUrl("");
       localStorage.removeItem('markdown-draft');
-    } else if (!markdownContent) {
+      localStorage.removeItem('video-url-draft');
+    } else if (!hasChanges) {
       setShowMarkdownEditor(false);
       setEditingContent(null);
       setMarkdownContent("");
+      setVideoUrl("");
       localStorage.removeItem('markdown-draft');
+      localStorage.removeItem('video-url-draft');
     }
   };
 
@@ -556,13 +603,10 @@ const ContentCreator = ({
                   <select 
                     className="form-control"
                     value={newContent.type}
-                    onChange={(e) => setNewContent({...newContent, type: e.target.value})}
+                    onChange={(e) => setNewContent({...newContent, type: e.target.value, content_type: e.target.value})}
                   >
-                    <option value="markdown">Markdown</option>
-                    <option value="video">Video</option>
-                    <option value="podcast">Podcast</option>
-                    <option value="quiz">Quiz</option>
-                    <option value="article">Article</option>
+                    <option value="markdown">📝 Markdown</option>
+                    <option value="video">🎥 Video</option>
                   </select>
                 </div>
                 <div className="col-md-3">
@@ -578,10 +622,51 @@ const ContentCreator = ({
               </div>
             </div>
 
-            {renderToolbar()}
+            {/* Dynamic Content Input based on Type */}
+            {newContent.type === 'video' && (
+              <div className="video-input-section">
+                <h6>Video Content</h6>
+                <div className="row g-3">
+                  <div className="col-md-8">
+                    <label className="form-label">Video URL *</label>
+                    <input 
+                      type="url" 
+                      className="form-control"
+                      value={videoUrl}
+                      onChange={(e) => setVideoUrl(e.target.value)}
+                      placeholder="https://www.youtube.com/watch?v=... or https://vimeo.com/..."
+                    />
+                    <small className="form-text text-muted">
+                      Supported: YouTube, Vimeo, and direct video file URLs
+                    </small>
+                  </div>
+                  <div className="col-md-4">
+                    <label className="form-label">Preview</label>
+                    <div className="video-preview">
+                      {videoUrl ? (
+                        <div className="video-preview-card">
+                          <FaVideo className="me-2" />
+                          <span>Video URL Set</span>
+                          <a href={videoUrl} target="_blank" rel="noopener noreferrer" className="ms-2">
+                            <FaExternalLinkAlt />
+                          </a>
+                        </div>
+                      ) : (
+                        <div className="video-preview-placeholder">
+                          <FaVideo className="me-2" />
+                          <span>No video URL</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
-            {/* Image Panel */}
-            {showImagePanel && (
+            {newContent.type === 'markdown' && renderToolbar()}
+
+            {/* Image Panel - Only show for markdown */}
+            {newContent.type === 'markdown' && showImagePanel && (
               <div className="image-panel">
                 <div className="image-panel-header">
                   <h6>Uploaded Images</h6>
@@ -668,22 +753,24 @@ const ContentCreator = ({
               </div>
             )}
 
-            <div className="row">
-              {(editorMode === 'edit' || editorMode === 'split') && (
-                <div className={editorMode === 'split' ? 'col-md-6' : 'col-12'}>
-                  <div className="editor-section">
-                    <div className="editor-section-header">
-                      <span>Markdown Editor</span>
-                      <span className="character-count">{markdownContent.length} characters</span>
-                    </div>
-                    <textarea
-                      ref={textareaRef}
-                      className="form-control markdown-textarea"
-                      rows="20"
-                      value={markdownContent}
-                      onChange={(e) => setMarkdownContent(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      placeholder="# Start writing your markdown here...
+            {/* Markdown Editor - Only show for markdown content */}
+            {newContent.type === 'markdown' && (
+              <div className="row">
+                {(editorMode === 'edit' || editorMode === 'split') && (
+                  <div className={editorMode === 'split' ? 'col-md-6' : 'col-12'}>
+                    <div className="editor-section">
+                      <div className="editor-section-header">
+                        <span>Markdown Editor</span>
+                        <span className="character-count">{markdownContent.length} characters</span>
+                      </div>
+                      <textarea
+                        ref={textareaRef}
+                        className="form-control markdown-textarea"
+                        rows="20"
+                        value={markdownContent}
+                        onChange={(e) => setMarkdownContent(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        placeholder="# Start writing your markdown here...
 
 You can use the toolbar above or keyboard shortcuts:
 - Ctrl+B for **bold**
@@ -691,72 +778,76 @@ You can use the toolbar above or keyboard shortcuts:
 - Ctrl+K for [links](url)
 - Tab for indentation
 - Ctrl+S to save"
-                      spellCheck="false"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {(editorMode === 'preview' || editorMode === 'split') && (
-                <div className={editorMode === 'split' ? 'col-md-6' : 'col-12'}>
-                  <div className="preview-section">
-                    <div className="editor-section-header">
-                      <span>Live Preview</span>
-                      <span className="word-count">{markdownContent.split(' ').filter(w => w).length} words</span>
+                        spellCheck="false"
+                      />
                     </div>
-                    <div className="markdown-preview">
-                      {markdownContent ? (
-                        <div dangerouslySetInnerHTML={{ __html: formatMarkdown(markdownContent) }} />
-                      ) : (
-                        <div className="preview-placeholder">
-                          <p>Your markdown preview will appear here as you type...</p>
+                  </div>
+                )}
+
+                {(editorMode === 'preview' || editorMode === 'split') && (
+                  <div className={editorMode === 'split' ? 'col-md-6' : 'col-12'}>
+                    <div className="preview-section">
+                      <div className="editor-section-header">
+                        <span>Live Preview</span>
+                        <span className="word-count">{markdownContent.split(' ').filter(w => w).length} words</span>
+                      </div>
+                      <div className="markdown-preview">
+                        {markdownContent ? (
+                          <div dangerouslySetInnerHTML={{ __html: formatMarkdown(markdownContent) }} />
+                        ) : (
+                          <div className="preview-placeholder">
+                            <p>Your markdown preview will appear here as you type...</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Markdown Guide - Only show for markdown content */}
+                {newContent.type === 'markdown' && (
+                  <div className="col-md-6">
+                    <div className="markdown-guide">
+                      <h6>Markdown Guide</h6>
+                      <div className="guide-examples">
+                        <div className="guide-item">
+                          <code># H1</code>
+                          <span>Heading 1</span>
                         </div>
-                      )}
+                        <div className="guide-item">
+                          <code>**bold**</code>
+                          <span>Bold text</span>
+                        </div>
+                        <div className="guide-item">
+                          <code>*italic*</code>
+                          <span>Italic text</span>
+                        </div>
+                        <div className="guide-item">
+                          <code>[link](url)</code>
+                          <span>Link</span>
+                        </div>
+                        <div className="guide-item">
+                          <code>![img](url)</code>
+                          <span>Image</span>
+                        </div>
+                        <div className="guide-item">
+                          <code>- item</code>
+                          <span>List item</span>
+                        </div>
+                        <div className="guide-item">
+                          <code>`code`</code>
+                          <span>Inline code</span>
+                        </div>
+                        <div className="guide-item">
+                          <code>&gt; quote</code>
+                          <span>Blockquote</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
-
-              <div className="col-md-6">
-                <div className="markdown-guide">
-                  <h6>Markdown Guide</h6>
-                  <div className="guide-examples">
-                    <div className="guide-item">
-                      <code># H1</code>
-                      <span>Heading 1</span>
-                    </div>
-                    <div className="guide-item">
-                      <code>**bold**</code>
-                      <span>Bold text</span>
-                    </div>
-                    <div className="guide-item">
-                      <code>*italic*</code>
-                      <span>Italic text</span>
-                    </div>
-                    <div className="guide-item">
-                      <code>[link](url)</code>
-                      <span>Link</span>
-                    </div>
-                    <div className="guide-item">
-                      <code>![img](url)</code>
-                      <span>Image</span>
-                    </div>
-                    <div className="guide-item">
-                      <code>- item</code>
-                      <span>List item</span>
-                    </div>
-                    <div className="guide-item">
-                      <code>`code`</code>
-                      <span>Inline code</span>
-                    </div>
-                    <div className="guide-item">
-                      <code>&gt; quote</code>
-                      <span>Blockquote</span>
-                    </div>
-                  </div>
-                </div>
+                )}
               </div>
-            </div>
+            )}
           </div>
         ) : (
           <div className="content-list">
