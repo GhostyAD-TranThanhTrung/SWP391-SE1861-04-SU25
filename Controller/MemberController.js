@@ -116,7 +116,104 @@ class MemberController {
                 error: error.message
             });
         }
-    }    /**
+    }
+    
+    static async getFullMemberById(req, res) {
+        try {
+            const { memberId } = req.params;
+
+            // Validate member ID
+            if (!memberId || isNaN(parseInt(memberId))) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid member ID provided'
+                });
+            }
+
+            const userRepository = AppDataSource.getRepository(User);
+            const profileRepository = AppDataSource.getRepository(Profile);
+            const assessmentRepository = AppDataSource.getRepository(Assessment);
+
+            // Find the member user
+            const user = await userRepository.findOne({
+                where: { user_id: parseInt(memberId), role: 'member' }
+            });
+
+            if (!user) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Member not found'
+                });
+            }
+
+            // Get profile information
+            const profile = await profileRepository.findOne({
+                where: { user_id: user.user_id }
+            });
+
+            // Convert bio_json from text to JSON if it exists
+            if (profile && profile.bio_json) {
+                try {
+                    profile.bio_json = JSON.parse(profile.bio_json);
+                } catch (error) {
+                    console.warn(`Failed to parse bio_json for user ${user.user_id}:`, error);
+                    // Keep as string if parsing fails
+                }
+            }
+
+            // Get assessments with Action relations (properly handle multiple assessments)
+            const assessments = await assessmentRepository.find({
+                where: { user_id: user.user_id },
+                relations: {
+                    action: true
+                },
+                order: {
+                    create_at: 'DESC'
+                }
+            });
+
+            // Format assessments data
+            const formattedAssessments = assessments.map(assessment => ({
+                assessment_id: assessment.assessment_id,
+                type: assessment.type,
+                result_json: assessment.result_json,
+                create_at: assessment.create_at,
+                action: assessment.action ? {
+                    action_id: assessment.action.action_id,
+                    description: assessment.action.description,
+                    range: assessment.action.range,
+                    type: assessment.action.type
+                } : null
+            }));
+
+            res.status(200).json({
+                success: true,
+                data: {
+                    user: {
+                        user_id: user.user_id,
+                        email: user.email,
+                        role: user.role,
+                        status: user.status,
+                        img_link: user.img_link,
+                        date_create: user.date_create
+                    },
+                    profile: profile || null,
+                    assessments: formattedAssessments,
+                    assessment_count: formattedAssessments.length
+                },
+                message: 'Member retrieved successfully'
+            });
+        } catch (error) {
+            console.error('Error getting member:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to retrieve member',
+                error: error.message
+            });
+        }
+    }
+    
+    /**
      * POST /api/members - Create new member
      * Creates a new user with member role and optional profile
      * ERD Compliant: Only uses email, password, role, status from Users table
