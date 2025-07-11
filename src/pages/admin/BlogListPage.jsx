@@ -4,8 +4,11 @@ import { FaSearch, FaPlus, FaEdit, FaEye, FaFlag } from "react-icons/fa";
 import { FaTrash } from "react-icons/fa6";
 import { MdCancel, MdApproval, MdBlock } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 import FlagModal from "../../components/FlagModal";
 import { flagBlog, removeFlag, checkUserFlaggedBlog, getBlogFlags, isAuthenticated, getUserFromToken } from "../../service/api";
+import "../../styles/BlogListPage.scss";
 
 const BlogListPage = () => {
   const [showPopup, setShowPopup] = useState(false);
@@ -16,6 +19,35 @@ const BlogListPage = () => {
     status: "draft",
     img_link: "",
   });
+
+  // ReactQuill configuration
+  const quillModules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'color': [] }, { 'background': [] }],
+      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      [{ 'indent': '-1'}, { 'indent': '+1' }],
+      [{ 'align': [] }],
+      ['link'],
+      ['blockquote', 'code-block'],
+      [{ 'script': 'sub'}, { 'script': 'super' }],
+      ['clean']
+    ],
+    clipboard: {
+      matchVisual: false,
+    }
+  };
+
+  const quillFormats = [
+    'header', 'font', 'size',
+    'bold', 'italic', 'underline', 'strike', 'blockquote',
+    'list', 'bullet', 'indent',
+    'link',
+    'color', 'background',
+    'align', 'script',
+    'code-block'
+  ];
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [blogIdToDelete, setBlogIdToDelete] = useState(null);
@@ -147,10 +179,25 @@ const BlogListPage = () => {
     setNewBlog({ ...newBlog, [e.target.name]: e.target.value });
   };
 
+  const handleQuillChange = (content) => {
+    setNewBlog({ ...newBlog, body: content });
+  };
+
 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate that the content is not empty (ReactQuill might have empty HTML tags)
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = newBlog.body;
+    const textContent = tempDiv.textContent || tempDiv.innerText || '';
+    
+    if (!textContent.trim()) {
+      alert("Vui lòng nhập nội dung blog!");
+      return;
+    }
+
     try {
       const payload = {
         ...newBlog,
@@ -571,43 +618,68 @@ const BlogListPage = () => {
             <div className="form">
               <h2>Tạo blog mới</h2>
               <form className="form-grid" onSubmit={handleSubmit}>
-                <input
-                  type="text"
-                  name="title"
-                  placeholder="Tiêu đề blog"
-                  value={newBlog.title}
-                  onChange={handleChange}
-                  required
-                  style={{ gridColumn: 'span 2' }}
-                />
-                <textarea
-                  name="body"
-                  placeholder="Nội dung blog"
-                  value={newBlog.body}
-                  onChange={handleChange}
-                  required
-                  rows="6"
-                  style={{ gridColumn: 'span 2', resize: 'vertical' }}
-                />
-                <input
-                  type="url"
-                  name="img_link"
-                  placeholder="Link hình ảnh (không bắt buộc)"
-                  value={newBlog.img_link}
-                  onChange={handleChange}
-                  style={{ gridColumn: 'span 2' }}
-                />
-                <select
-                  name="status"
-                  value={newBlog.status}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="draft">Bản nháp</option>
-                  <option value="pending">Chờ duyệt</option>
-                  <option value="published">Đã xuất bản</option>
-                  <option value="rejected">Bị từ chối</option>
-                </select>
+                <div style={{ gridColumn: 'span 2' }} className="title-input-container">
+                  <label className="form-label">Tiêu đề blog *</label>
+                  <input
+                    type="text"
+                    name="title"
+                    placeholder="Nhập tiêu đề cho blog của bạn..."
+                    value={newBlog.title}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div style={{ gridColumn: 'span 2' }} className="quill-editor-container">
+                  <div className="d-flex justify-content-between align-items-center">
+                    <label className="form-label text-start mb-0">Nội dung blog *</label>
+                    <small className="text-muted">
+                      {(() => {
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = newBlog.body;
+                        const textContent = tempDiv.textContent || tempDiv.innerText || '';
+                        const wordCount = textContent.trim().split(/\s+/).filter(word => word.length > 0).length;
+                        return `${textContent.length} ký tự, ${wordCount} từ`;
+                      })()}
+                    </small>
+                  </div>
+                  <ReactQuill
+                    theme="snow"
+                    value={newBlog.body}
+                    onChange={handleQuillChange}
+                    modules={quillModules}
+                    formats={quillFormats}
+                    placeholder="Viết nội dung blog của bạn..."
+                    style={{ 
+                      backgroundColor: '#fff',
+                      borderRadius: '5px',
+                      minHeight: '200px'
+                    }}
+                  />
+                </div>
+                <div style={{ gridColumn: 'span 2' }} className="image-input-container">
+                  <label className="form-label">Link hình ảnh (không bắt buộc)</label>
+                  <input
+                    type="url"
+                    name="img_link"
+                    placeholder="https://example.com/image.jpg"
+                    value={newBlog.img_link}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div style={{ gridColumn: 'span 1' }} className="select-container">
+                  <label className="form-label">Trạng thái *</label>
+                  <select
+                    name="status"
+                    value={newBlog.status}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="draft">Bản nháp</option>
+                    <option value="pending">Chờ duyệt</option>
+                    <option value="published">Đã xuất bản</option>
+                    <option value="rejected">Bị từ chối</option>
+                  </select>
+                </div>
                 <button type="submit" className="form-button">
                   Tạo
                 </button>

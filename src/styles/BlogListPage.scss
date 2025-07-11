@@ -1,4 +1,4 @@
-.staff-list-container {
+.blog-list-container {
     padding: 20px;
     background-color: #f9f9f9;
   
@@ -118,11 +118,14 @@
       .popup-content {
         background-color: #fff;
         padding: 40px;
-        border-radius: 5px;
+        border-radius: 12px;
         max-width: 700px; // rộng hơn chút cho 2 cột
-        width: 100%;
+        width: 90%;
         text-align: center;
         position: relative;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        max-height: 90vh;
+        overflow-y: auto;
       }
     
       .form {
@@ -135,25 +138,163 @@
           display: grid;
           grid-template-columns: 1fr 1fr;
           column-gap: 20px;
-          row-gap: 15px;
+          row-gap: 20px;
           max-width: 600px;
           margin: 0 auto;
           padding-top: 20px;
+          align-items: start;
         
-          input, select {
+                    input, select, textarea {
             width: 100%;
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
             font-size: 14px;
-            color: #333;
-            background-color: #fff;
+            color: #333 !important;
+            background-color: #fff !important;
             transition: border-color 0.2s ease;
-  
+            box-sizing: border-box;
+            font-family: inherit;
+            margin-bottom: 5px;
+
             &:focus {
               outline: none;
               border-color: #66B0C6;
               box-shadow: 0 0 0 2px rgba(102, 176, 198, 0.1);
+              background-color: #fff !important;
+            }
+
+            &::placeholder {
+              color: #999 !important;
+              opacity: 1;
+            }
+
+            // Fix for browser autofill dark mode
+            &:-webkit-autofill,
+            &:-webkit-autofill:hover, 
+            &:-webkit-autofill:focus,
+            &:-webkit-autofill:active {
+              -webkit-box-shadow: 0 0 0 30px white inset !important;
+              -webkit-text-fill-color: #333 !important;
+            }
+          }
+
+          textarea {
+            min-height: 120px;
+            resize: vertical;
+            line-height: 1.5;
+          }
+
+          .quill-editor-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin: 10px 0 20px 0;
+            position: relative;
+            z-index: 1;
+
+            .form-label {
+              font-weight: 500;
+              color: #495057;
+              font-size: 0.875rem;
+              margin-bottom: 0.5rem;
+            }
+
+            .d-flex {
+              margin-bottom: 0.5rem;
+              
+              small {
+                font-size: 0.75rem;
+                color: #6c757d;
+              }
+            }
+
+            .ql-container {
+              min-height: 200px;
+              font-size: 14px;
+              border-color: #ccc !important;
+              border-radius: 0 0 5px 5px !important;
+            }
+
+            .ql-toolbar {
+              border-color: #ccc !important;
+              border-radius: 5px 5px 0 0 !important;
+              background-color: #f8f9fa;
+            }
+
+            .ql-editor {
+              min-height: 180px;
+              color: #333 !important;
+              font-family: inherit;
+              line-height: 1.5;
+
+              &.ql-blank::before {
+                color: #999 !important;
+                font-style: normal;
+                opacity: 1;
+              }
+            }
+
+            .ql-toolbar .ql-formats {
+              margin-right: 10px;
+            }
+
+            .ql-toolbar button {
+              border-radius: 3px;
+              margin: 1px;
+
+              &:hover {
+                background-color: #66B0C6;
+                color: white;
+              }
+
+              &.ql-active {
+                background-color: #66B0C6;
+                color: white;
+              }
+            }
+
+            .ql-toolbar .ql-picker {
+              color: #333;
+            }
+
+            .ql-toolbar .ql-picker-options {
+              background-color: white;
+              border: 1px solid #ccc;
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            }
+
+            // Focus states for the editor
+            &:focus-within {
+              .ql-container,
+              .ql-toolbar {
+                border-color: #66B0C6 !important;
+                box-shadow: 0 0 0 2px rgba(102, 176, 198, 0.25);
+              }
+            }
+
+                        // Error state styling
+            &.error {
+              .ql-container,
+              .ql-toolbar {
+                border-color: #dc3545 !important;
+              }
+            }
+          }
+
+          .title-input-container,
+          .select-container,
+          .image-input-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin: 5px 0;
+
+            .form-label {
+              font-weight: 500;
+              color: #495057;
+              font-size: 0.875rem;
+              margin-bottom: 0.5rem;
             }
           }
         
@@ -178,16 +319,75 @@
           .form-button {
             grid-column: span 2; 
             width: 150px;
-            padding: 10px;
+            padding: 12px 20px;
             margin: 20px auto 0;
-            background-color: #007bff;
+            background-color: #66B0C6;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+
+            &:hover {
+              background-color: #5496ac;
+              transform: translateY(-1px);
+              box-shadow: 0 2px 8px rgba(102, 176, 198, 0.3);
+            }
+
+            &:active {
+              transform: translateY(0);
+            }
+
+            &:focus {
+              outline: none;
+              box-shadow: 0 0 0 3px rgba(102, 176, 198, 0.3);
+            }
+          }
+
+          // Responsive design for smaller screens
+          @media (max-width: 768px) {
+            grid-template-columns: 1fr;
+            
+            input, select, textarea {
+              font-size: 16px; // Prevent zoom on iOS
+            }
+            
+            .quill-editor-container {
+              .ql-toolbar {
+                .ql-formats {
+                  margin-right: 5px;
+                }
+              }
+              
+              .ql-container {
+                min-height: 150px;
+              }
+              
+              .ql-editor {
+                min-height: 130px;
+                font-size: 16px; // Prevent zoom on iOS
+              }
+            }
+            
+            .form-button {
+              grid-column: span 1;
+              width: 100%;
+              margin-top: 15px;
+            }
           }
         }
         
+      }
+    }
+
+    // Responsive popup for mobile
+    @media (max-width: 768px) {
+      .popup-content {
+        width: 95%;
+        padding: 20px;
+        margin: 10px;
       }
     }
     
