@@ -193,9 +193,11 @@ const CoursePage = () => {
         fetchCommunityEvents();
     }, []);
 
-    // Helper function to get display name for category (name only)
+    // Helper function to get display name for category (name + description)
     const getCategoryDisplayName = (category) => {
-        if (category.name) {
+        if (category.name && category.description) {
+            return `${category.name} - ${category.description}`;
+        } else if (category.name) {
             return category.name;
         } else if (category.description) {
             return category.description;
