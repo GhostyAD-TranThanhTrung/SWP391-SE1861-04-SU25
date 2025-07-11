@@ -818,6 +818,12 @@ class ProgramController {
             const { id } = req.params;
             const { title, description, age_group, category_id, status, img_link } = req.body;
 
+            console.log('Update program request:', {
+                id,
+                body: req.body,
+                user: req.user
+            });
+
             if (!id || isNaN(parseInt(id))) {
                 return res.status(400).json({
                     success: false,
@@ -841,7 +847,7 @@ class ProgramController {
             }
 
             // Check if category exists if category_id is provided
-            if (category_id !== undefined) {
+            if (category_id !== undefined && category_id !== null) {
                 const categoryRepository = AppDataSource.getRepository(Category);
                 const category = await categoryRepository.findOne({
                     where: { category_id: parseInt(category_id) }
@@ -855,12 +861,13 @@ class ProgramController {
                 }
             }
 
-            // Check if title already exists for other programs
+            // Check if title already exists for other programs (using proper TypeORM syntax)
             if (title && title !== program.title) {
+                const { Not } = require('typeorm');
                 const existingProgram = await programRepository.findOne({
                     where: {
                         title: title,
-                        program_id: { $ne: parseInt(id) } // Exclude current program
+                        program_id: Not(parseInt(id)) // Proper TypeORM syntax for "not equal"
                     }
                 });
 
@@ -872,13 +879,20 @@ class ProgramController {
                 }
             }
 
-            // Update program fields
+            // Update program fields only if they are provided
             if (title !== undefined) program.title = title;
             if (description !== undefined) program.description = description;
             if (age_group !== undefined) program.age_group = age_group;
-            if (category_id !== undefined) program.category_id = parseInt(category_id);
+            if (category_id !== undefined && category_id !== null) program.category_id = parseInt(category_id);
             if (status !== undefined) program.status = status;
             if (img_link !== undefined) program.img_link = img_link;
+
+            console.log('Updating program with data:', {
+                program_id: program.program_id,
+                title: program.title,
+                category_id: program.category_id,
+                status: program.status
+            });
 
             const updatedProgram = await programRepository.save(program);
 
@@ -888,6 +902,8 @@ class ProgramController {
                 relations: ['creator', 'category', 'enrollments', 'contents', 'surveys']
             });
 
+            console.log('Program updated successfully:', programWithRelations.program_id);
+
             res.status(200).json({
                 success: true,
                 data: programWithRelations,
@@ -895,6 +911,7 @@ class ProgramController {
             });
         } catch (error) {
             console.error('Error updating program:', error);
+            console.error('Error stack:', error.stack);
             res.status(500).json({
                 success: false,
                 message: 'Failed to update program',
