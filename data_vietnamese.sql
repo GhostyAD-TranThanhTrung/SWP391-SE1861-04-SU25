@@ -29,8 +29,7 @@ INSERT INTO Slot (start_time, end_time) VALUES
 -- Insert Categories
 INSERT INTO Category (name, description) VALUES
 (N'Khoa học nghiện', N'Nội dung giáo dục khám phá nền tảng khoa học của nghiện, hóa học não và tác động thần kinh'),
-(N'Cần sa (Marijuana)', N'Nội dung giáo dục về sử dụng cần sa, tác dụng, rủi ro và cân nhắc pháp lý'),
-(N'Xu hướng ma túy mới', N'Thông tin về các chất mới và đang nổi lên, ma túy tổng hợp và mô hình sử dụng ma túy đang phát triển'),
+(N'Phòng tránh nghiện', N'Những dấu hiệu nghiện và cách phòng tránh'),
 (N'Sự kiện cộng đồng', N'Sự kiện dựa vào cộng đồng, hội thảo và hoạt động thúc đẩy nhận thức phòng ngừa ma túy và hỗ trợ nỗ lực phục hồi');
 
 -- Insert Actions for Assessments
