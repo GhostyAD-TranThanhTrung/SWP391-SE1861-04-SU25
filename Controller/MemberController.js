@@ -9,6 +9,7 @@
 const AppDataSource = require('../src/data-source');
 const User = require('../src/entities/User');
 const Profile = require('../src/entities/Profile');
+const Assessment = require('../src/entities/Assessment');
 const bcrypt = require('bcryptjs');
 
 class MemberController {
