@@ -33,6 +33,7 @@ const CourseListPage = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
   const token = sessionStorage.getItem("token");
   const navigate = useNavigate()
   const userRole = async () => {
@@ -42,7 +43,7 @@ const CourseListPage = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       )
       if (!(res.data.role && res.data.role === 'admin')) navigate('/admin/login')
-    } catch (err) {
+    } catch{
       navigate('/admin/login')
     }
 
@@ -639,11 +640,18 @@ const CourseListPage = () => {
 
   const filteredPrograms = () => {
     const allPrograms = getAllPrograms();
-    if (!searchTerm) return allPrograms;
-    return allPrograms.filter(program =>
-      program.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      program.description?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    return allPrograms.filter(program => {
+      const title = program.title ? program.title.toLowerCase() : '';
+      const description = program.description ? program.description.toLowerCase() : '';
+      const search = searchTerm.trim().toLowerCase();
+      const matchesSearch =
+        !search ||
+        title.includes(search) ||
+        description.includes(search);
+      const matchesStatus =
+        statusFilter === 'all' || program.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
   };
 
   return (
@@ -651,22 +659,35 @@ const CourseListPage = () => {
       <div className="top-bar d-flex justify-content-between align-items-center mb-3">
         <div>
           <button
-            className="btn btn-primary me-2"
+            className="btn btn-primary"
             onClick={() => setShowCreateModal(true)}
           >
             <FaPlus className="me-1" /> Create New Program
           </button>
         </div>
-        <div className="search-box">
-          <input
-            type="text"
-            placeholder="Search programs..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <button>
-            <FaSearch />
-          </button>
+        <div className="d-flex align-items-center">
+          <div className="filter-status me-2">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="all">Tất cả trạng thái</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="draft">Draft</option>
+            </select>
+          </div>
+          <div className="search-box">
+            <input
+              type="text"
+              placeholder="Search programs..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <button>
+              <FaSearch />
+            </button>
+          </div>
         </div>
       </div>
 

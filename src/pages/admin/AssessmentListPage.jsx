@@ -7,8 +7,11 @@ import "../../styles/AssessmentListPage.scss";
 import { useNavigate } from "react-router-dom";
 const AssessmentListPage = () => {
   const [assessments, setAssessments] = useState([]);
+  const [filterType, setFilterType] = useState('');
+
   const token = sessionStorage.getItem("token");
   const navigate = useNavigate()
+
   const userRole = async () => {
     try {
       if (!token) navigate('/admin/login')
@@ -16,7 +19,7 @@ const AssessmentListPage = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       )
       if (!(res.data.role && res.data.role === 'admin')) navigate('/admin/login')
-    } catch (err) {
+    } catch{
       navigate('/admin/login')
     }
 
@@ -76,69 +79,74 @@ const AssessmentListPage = () => {
   //   handleCloseDeleteDialog();
   // };
 
+  const assessmentTypes = Array.from(new Set(assessments.map(a => a.type)));
+
+  const filteredAssessments = assessments.filter(a => {
+    return filterType === '' || a.type === filterType;
+  });
+
 
   return (
-    <div className="staff-list-container">
-      <div className="top-bar d-flex justify-content-between align-items-center mb-3">
-        {/* <div className="search-box">
-          <input 
-            type="text" 
-            placeholder="Search..." 
-            value={searchTerm}
-            onChange={handleSearch}
-          />
-          <button onClick={handleSearchClick}>
-            <FaSearch />
-          </button>
-        </div> */}
-      </div>
-
-      <div className="table-wrapper">
-        <table className="table table-bordered">
-          <thead>
-            <tr>
-              <th>STT</th>
-              <th>Mã người dùng</th>
-              <th>Tổng điểm</th>
-              <th>Loại đánh giá</th>
-              <th>Ngày tạo</th>
-              <th>Hành động</th>
-            </tr>
-          </thead>
-          <tbody>
-            {assessments.map((assessment, index) => (
-              <tr key={assessment.user_id}>
-                <td>{index + 1}</td>
-                <td>{assessment.user_id}</td>
-                <td>{(() => {
-                  try {
-                    const resultData = typeof assessment.result_json === 'string'
-                      ? JSON.parse(assessment.result_json)
-                      : assessment.result_json;
-                    return resultData && resultData.score !== undefined ? resultData.score : '';
-                  } catch {
-                    return '';
-                  }
-                })()}</td>
-                <td>{assessment.type}</td>
-                <td>{new Date(assessment.create_at).toLocaleDateString()}</td>
-                <td className="action-buttons">
-                  <button
-                    className="btn btn-light me-2"
-                  >
-                    <FaEye color="yellow" />
-                  </button>
-                  <button
-                    className="btn btn-light"
-                  >
-                    <FaTrash color="red" />
-                  </button>
-                </td>
-              </tr>
+      <div className="assessment-list-container">
+        <div className="top-bar d-flex align-items-center mb-3" style={{gap: 8}}>
+          <select
+            className="assessment-type-select"
+            value={filterType}
+            onChange={e => setFilterType(e.target.value)}
+          >
+            <option value="">Tất cả loại đánh giá</option>
+            {assessmentTypes.map(type => (
+              <option key={type} value={type}>{type}</option>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </select>
+        </div>
+  
+        <div className="table-wrapper">
+          <table className="table table-bordered">
+            <thead>
+              <tr>
+                <th>STT</th>
+                <th>Mã người dùng</th>
+                <th>Tổng điểm</th>
+                <th>Loại đánh giá</th>
+                <th>Ngày tạo</th>
+                <th>Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredAssessments.map((assessment, index) => (
+                <tr key={assessment.user_id}>
+                  <td>{index + 1}</td>
+                  <td>{assessment.user_id}</td>
+                  <td>{(() => {
+                    try {
+                      const resultData = typeof assessment.result_json === 'string'
+                        ? JSON.parse(assessment.result_json)
+                        : assessment.result_json;
+                      return resultData && resultData.total_score !== undefined ? resultData.total_score : '';
+                    } catch {
+                      return '';
+                    }
+                  })()}</td>
+                  <td>{assessment.type}</td>
+                  <td>{new Date(assessment.create_at).toLocaleDateString()}</td>
+                  <td className="action-buttons">
+                    <button
+                      className="btn btn-light me-2"
+                    >
+                      <FaEye color="yellow" />
+                    </button>
+                    <button
+                      className="btn btn-light"
+                    >
+                      <FaTrash color="red" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
       {/* {showPopup && (
         <div className="popup">

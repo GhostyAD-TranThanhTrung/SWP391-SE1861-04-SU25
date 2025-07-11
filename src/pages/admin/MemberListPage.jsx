@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { FaSearch } from "react-icons/fa";
+import { FaEdit, FaSearch } from "react-icons/fa";
 import { FaEye, FaTrash, FaWrench } from "react-icons/fa6";
 import { MdCancel } from "react-icons/md";
 import "../../styles/MemberListPage.scss";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+
 const MemberListPage = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [members, setMembers] = useState([]);
@@ -12,22 +13,18 @@ const MemberListPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [memberIdToDelete, setMemberIdToDelete] = useState(null);
+  const [editingMemberId, setEditingMemberId] = useState(null);
+  const [editMemberData, setEditMemberData] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('');
   const token = sessionStorage.getItem("token");
-  const navigate = useNavigate()
-  const userRole = async () => {
-    try {
-      if (!token) navigate('/admin/login')
-      const res = await axios.get('http://localhost:3000/api/user/role/',
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      if (!(res.data.role && res.data.role === 'admin')) navigate('/admin/login')
-    } catch (err) {
-      navigate('/admin/login')
-    }
+  const navigate = useNavigate();
 
-  }
-  userRole()
-  const handleClosePopup = () => setShowPopup(false);
+  useEffect(() => {
+    if (!token) {
+      alert('Bạn không có quyền truy cập trang này!');
+      navigate('/');
+    }
+  }, [navigate]);
 
   const fetchMembers = async () => {
     try {
@@ -37,6 +34,66 @@ const MemberListPage = () => {
       }
     } catch (err) {
       console.error("Lỗi khi gọi API:", err);
+    }
+  };
+
+  const handleClosePopup = () => {
+    setShowPopup(false);
+    setEditingMemberId(null);
+    setEditMemberData(null);
+    setSelectedMember(null);
+  };
+
+  const handleEditChange = (e) => {
+    setEditMemberData({ ...editMemberData, [e.target.name]: e.target.value });
+  };
+
+  const handleEdit = (memberId) => {
+    const member = members.find((m) => m.user_id === memberId);
+    if (member) {
+      const flatData = {
+        email: member.email,
+        role: member.role,
+        status: member.status,
+        name: member.profile?.name || "",
+        bio: member.profile?.bio_json?.bio || "",
+        interests: member.profile?.bio_json?.interests || "",
+        date_of_birth: member.profile?.date_of_birth?.slice(0, 10) || "",
+        job: member.profile?.job || "",
+      };
+      setEditMemberData(flatData);
+      setEditingMemberId(memberId);
+      setShowPopup(true);
+    }
+  };
+
+  const handleUpdateSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const payload = {
+        ...editMemberData,
+        bio_json: {
+          bio: editMemberData.bio,
+          interests: editMemberData.interests,
+        },
+      };
+      delete payload.bio;
+      delete payload.interests;
+
+      console.log("Payload gửi:", payload);
+      console.log("Editing Member ID:", editingMemberId);
+
+      const res = await axios.put(
+        `http://localhost:3000/api/members/${editingMemberId}`,
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (res.data.success) {
+        fetchMembers();
+        handleClosePopup();
+      }
+    } catch (err) {
+      console.error("Lỗi khi cập nhật thành viên:", err);
     }
   };
 
@@ -62,7 +119,6 @@ const MemberListPage = () => {
   useEffect(() => {
     fetchMembers();
   }, []);
-
 
   const handleOpenDeleteDialog = (memberId) => {
     setMemberIdToDelete(memberId);
@@ -90,7 +146,6 @@ const MemberListPage = () => {
     handleCloseDeleteDialog();
   };
 
-
   const handleView = async (memberId) => {
     try {
       const res = await axios.get(`http://localhost:3000/api/members/${memberId}`, { headers: { Authorization: `Bearer ${token}` } });
@@ -103,26 +158,33 @@ const MemberListPage = () => {
     }
   };
 
+  // Filter members by status and search term (frontend)
+  const filteredMembers = members.filter(member =>
+    (statusFilter === '' || member.status === statusFilter) &&
+    (searchTerm === '' || member.profile?.name?.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
   return (
-    <div className="member-list-container">
+    <div className="member-container">
       <div className="top-bar d-flex justify-content-between align-items-center mb-3">
-        <div
-          className="search-box"
-          style={{
-            display: "flex",
-            justifyContent: "flex-end",
-            margin: "0 auto",
-            width: "100%",
-          }}
-        >
+        <div className="search-box" style={{ display: "flex", justifyContent: "flex-end", margin: "0 auto", width: "100%" }}>
+          <select
+            value={statusFilter}
+            onChange={e => setStatusFilter(e.target.value)}
+          >
+            <option value="">Tất cả trạng thái</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="banned">Banned</option>
+          </select>
           <input
             type="text"
-            placeholder="Tìm kiếm..."
+            placeholder="Tìm kiếm thành viên..."
             style={{ background: "white" }}
             value={searchTerm}
             onChange={handleSearch}
           />
-          <button onClick={handleSearchClick}>
+          <button className="btn btn-outline-secondary" onClick={handleSearchClick}>
             <FaSearch />
           </button>
         </div>
@@ -142,7 +204,7 @@ const MemberListPage = () => {
             </tr>
           </thead>
           <tbody>
-            {members.map((member, index) => (
+            {filteredMembers.map((member, index) => (
               <tr key={member.user_id}>
                 <td>{index + 1}</td>
                 <td>{member.profile.name}</td>
@@ -152,7 +214,10 @@ const MemberListPage = () => {
                 <td>{new Date(member.date_create).toLocaleDateString()}</td>
                 <td className="action-buttons">
                   <button className="btn btn-light me-2" onClick={() => handleView(member.user_id)}>
-                    <FaEye color="yellow" />
+                    <FaEye />
+                  </button>
+                  <button className="btn btn-light me-2" onClick={() => handleEdit(member.user_id)}>
+                    <FaEdit color="yellow" />
                   </button>
                   <button className="btn btn-light" onClick={() => handleOpenDeleteDialog(member.user_id)}>
                     <FaTrash color="red" />
@@ -164,44 +229,152 @@ const MemberListPage = () => {
         </table>
       </div>
 
-      {showPopup && selectedMember && (
-        <div className="popup">
-          <div className="popup-content">
-            <span className="close" onClick={handleClosePopup}>
-              <MdCancel />
+      {/* View Member Details Popup */}
+      {showPopup && selectedMember && !editingMemberId && (
+        <div className="popup" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="popup-content member-detail" style={{ minWidth: 400, maxWidth: 500, padding: 32, borderRadius: 16, boxShadow: '0 2px 16px rgba(0,0,0,0.15)' }}>
+            <span className="close" onClick={handleClosePopup} style={{ position: 'absolute', top: 16, right: 16, cursor: 'pointer' }}>
+              <MdCancel size={28} />
             </span>
-            <h4>Chi tiết thành viên</h4>
-            <div className="member-detail-row">
-              <span className="member-detail-label">Tên:</span>
-              <span className="member-detail-value">{selectedMember.profile?.name}</span>
+            <h2 style={{ fontWeight: 700, marginBottom: 24 }}>Chi tiết thành viên</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
+              <div className="member-detail-row">
+                <span className="member-detail-label">Tên: {' '}</span>
+                <span className="member-detail-value">{selectedMember.profile?.name}</span>
+              </div>
+              <div className="member-detail-row">
+                <span className="member-detail-label">Email: {' '}</span>
+                <span className="member-detail-value">{selectedMember.email}</span>
+              </div>
+              <div className="member-detail-row">
+                <span className="member-detail-label">Vai trò: {' '}</span>
+                <span className="member-detail-value">{selectedMember.role}</span>
+              </div>
+              <div className="member-detail-row">
+                <span className="member-detail-label">Ngày sinh: {' '}</span>
+                <span className="member-detail-value">{selectedMember.profile?.date_of_birth}</span>
+              </div>
+              <div className="member-detail-row">
+                <span className="member-detail-label">Nghề nghiệp: {' '}</span>
+                <span className="member-detail-value">{selectedMember.profile?.job}</span>
+              </div>
+              <div className="member-detail-row">
+                <span className="member-detail-label">Tiểu sử: {' '}</span>
+                <span className="member-detail-value">{selectedMember.profile?.bio_json?.bio}</span>
+              </div>
+              <div className="member-detail-row">
+                <span className="member-detail-label">Sở thích: {' '}</span>
+                <span className="member-detail-value">
+                  {Array.isArray(selectedMember.profile?.bio_json?.interests)
+                    ? selectedMember.profile.bio_json.interests.join(', ')
+                    : selectedMember.profile?.bio_json?.interests}
+                </span>
+              </div>
             </div>
-            <div className="member-detail-row">
-              <span className="member-detail-label">Email:</span>
-              <span className="member-detail-value">{selectedMember.email}</span>
-            </div>
-            <div className="member-detail-row">
-              <span className="member-detail-label">Vai trò:</span>
-              <span className="member-detail-value">{selectedMember.role}</span>
-            </div>
-            <div className="member-detail-row">
-              <span className="member-detail-label">Ngày sinh:</span>
-              <span className="member-detail-value">{selectedMember.profile?.date_of_birth}</span>
-            </div>
-            <div className="member-detail-row">
-              <span className="member-detail-label">Nghề nghiệp:</span>
-              <span className="member-detail-value">{selectedMember.profile?.job}</span>
-            </div>
-            <div className="member-detail-row">
-              <span className="member-detail-label">Tiểu sử:</span>
-              <span className="member-detail-value">{selectedMember.profile?.bio_json?.bio}</span>
-            </div>
-            <div className="member-detail-row">
-              <span className="member-detail-label">Sở thích:</span>
-              <span className="member-detail-value">
-                {Array.isArray(selectedMember.profile?.bio_json?.interests)
-                  ? selectedMember.profile.bio_json.interests.join(', ')
-                  : selectedMember.profile?.bio_json?.interests}
-              </span>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Member Popup */}
+      {showPopup && editingMemberId && editMemberData && (
+        <div className="popup" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="popup-content" style={{ minWidth: 400, maxWidth: 500, padding: 32, borderRadius: 16, boxShadow: '0 2px 16px rgba(0,0,0,0.15)' }}>
+            <span className="close" onClick={handleClosePopup} style={{ position: 'absolute', top: 16, right: 16, cursor: 'pointer' }}>
+              <MdCancel size={28} />
+            </span>
+            <div className="form">
+              <h2 style={{ textAlign: 'center', fontWeight: 700, marginBottom: 24 }}>Chỉnh sửa thành viên</h2>
+              <form className="form-grid" onSubmit={handleUpdateSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div style={{ display: 'flex', gap: 12 }}>
+                  <input
+                    type="text"
+                    name="email"
+                    placeholder="Email"
+                    value={editMemberData?.email || ""}
+                    onChange={handleEditChange}
+                    required
+                    disabled
+                    style={{ flex: 1 }}
+                  />
+                  <select
+                    name="role"
+                    value={editMemberData?.role || ""}
+                    onChange={handleEditChange}
+                    required
+                    disabled
+                    style={{ flex: 1 }}
+                  >
+                    <option value="">Chọn vai trò</option>
+                    <option value="member">Member</option>
+                  </select>
+                </div>
+                <div style={{ display: 'flex', gap: 12 }}>
+                  <select
+                    name="status"
+                    value={editMemberData?.status || ""}
+                    onChange={handleEditChange}
+                    required
+                    style={{ flex: 1 }}
+                  >
+                    <option value="">Chọn trạng thái</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="banned">Banned</option>
+                  </select>
+                  <input
+                    type="text"
+                    name="name"
+                    placeholder="Tên"
+                    value={editMemberData?.name || ""}
+                    onChange={handleEditChange}
+                    required
+                    disabled
+                    style={{ flex: 1 }}
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: 12 }}>
+                  <input
+                    type="text"
+                    name="bio"
+                    placeholder="Tiểu sử"
+                    value={editMemberData?.bio || ""}
+                    onChange={handleEditChange}
+                    disabled
+                    style={{ flex: 1 }}
+                  />
+                  <input
+                    type="text"
+                    name="education"
+                    placeholder="Học vấn"
+                    value={editMemberData?.interests || ""}
+                    onChange={handleEditChange}
+                    disabled
+                    style={{ flex: 1 }}
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: 12 }}>
+                  <input
+                    type="date"
+                    name="date_of_birth"
+                    value={editMemberData?.date_of_birth || ""}
+                    onChange={handleEditChange}
+                    disabled
+                    style={{ flex: 1 }}
+                  />
+                  <input
+                    type="text"
+                    name="job"
+                    placeholder="Công việc"
+                    value={editMemberData?.job || ""}
+                    onChange={handleEditChange}
+                    disabled
+                    style={{ flex: 1 }}
+                  />
+                </div>
+                <button type="submit" className="form-button" style={{ margin: '0 auto', width: 160, marginTop: 12 }}>
+                  Cập nhật
+                </button>
+              </form>
             </div>
           </div>
         </div>

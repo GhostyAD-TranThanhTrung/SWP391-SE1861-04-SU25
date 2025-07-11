@@ -25,6 +25,8 @@ const StaffListPage = () => {
   const [newPassword, setNewPassword] = useState('');
   const token = sessionStorage.getItem("token");
   const isAdminEditing = editingStaffId && editStaffData?.role === 'admin';
+  const [filterStatus, setFilterStatus] = useState('all');
+
   const navigate = useNavigate()
   const userRole = async () => {
     try {
@@ -33,7 +35,7 @@ const StaffListPage = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       )
       if (!(res.data.role && res.data.role === 'admin')) navigate('/admin/login')
-    } catch (err) {
+    } catch{
       navigate('/admin/login')
     }
 
@@ -178,7 +180,7 @@ const StaffListPage = () => {
         handleClosePopup();
       }
     } catch (err) {
-      console.error("Lỗi khi cập nhật staff:", err);
+      console.error("Lỗi khi cập nhật nhân viên:", err);
     }
   };
 
@@ -203,7 +205,7 @@ const StaffListPage = () => {
         fetchStaffs();
       }
     } catch (err) {
-      console.error("Lỗi khi xóa staff:", err);
+      console.error("Lỗi khi xóa nhân viên:", err);
     }
     handleCloseDeleteDialog();
   };
@@ -230,13 +232,33 @@ const StaffListPage = () => {
     }
   };
 
+  const handleStatusChange = (e) => {
+    setFilterStatus(e.target.value);
+  };
+
+  // Filter staffs theo status
+  const filteredStaffs = staffs.filter(s => 
+    filterStatus === 'all' || s.status === filterStatus
+  );
+
   return (
-    <div className="staff-list-container">
+    <div className="staff-container">
       <div className="d-flex justify-content-between align-items-center mb-3">
         <button className="btn btn-primary" onClick={handleOpenPopup}>
           <FaPlus className="me-1" /> Tạo nhân viên mới
         </button>
-        <div className="input-group" style={{ maxWidth: '300px' }}>
+        <div className="input-group" style={{ maxWidth: '450px' }}>
+          <select
+            className="form-select me-2"
+            style={{ maxWidth: '200px' }}
+            value={filterStatus}
+            onChange={handleStatusChange}
+          >
+            <option value="all">Tất cả trạng thái</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="banned">Banned</option>
+          </select>
           <input
             type="text"
             className="form-control"
@@ -264,7 +286,7 @@ const StaffListPage = () => {
             </tr>
           </thead>
           <tbody>
-            {staffs.map((staff, index) => (
+            {filteredStaffs.map((staff, index) => (
               <tr key={staff.user_id}>
                 <td>{index + 1}</td>
                 <td>{staff.profile?.name}</td>
@@ -273,12 +295,12 @@ const StaffListPage = () => {
                 <td>{staff.status}</td>
                 <td>{new Date(staff.date_create).toLocaleDateString()}</td>
                 <td className="action-buttons">
-                  <button className="btn btn-outline-warning btn-sm me-2" onClick={() => handleEdit(staff.user_id)}>
-                    <FaEdit />
+                  <button className="btn btn-light me-2" onClick={() => handleEdit(staff.user_id)}>
+                    <FaEdit color="yellow" />
                   </button>
                   {staff.role !== 'admin' && (
-                    <button className="btn btn-outline-danger btn-sm" onClick={() => handleOpenDeleteDialog(staff.user_id)}>
-                      <FaTrash />
+                    <button className="btn btn-light" onClick={() => handleOpenDeleteDialog(staff.user_id)}>
+                      <FaTrash color="red" />
                     </button>
                   )}
                 </td>
@@ -322,9 +344,9 @@ const StaffListPage = () => {
                 >
                   <option value="">Chọn vai trò</option>
                   {editingStaffId && editStaffData?.role === 'admin' && <option value="admin">Admin</option>}
-                  {!editingStaffId && <option value="admin">Admin</option>}
-                  <option value="staff">Nhân viên</option>
-                  <option value="manager">Quản lý</option>
+                  {editingStaffId && <option value="admin">Admin</option>}
+                  <option value="staff">Staff</option>
+                  <option value="manager">Manager</option>
                 </select>
                 {editingStaffId && (
                   <select
@@ -335,9 +357,9 @@ const StaffListPage = () => {
                     disabled={isAdminEditing}
                   >
                     <option value="">Chọn trạng thái</option>
-                    <option value="active">Hoạt động</option>
-                    <option value="inactive">Không hoạt động</option>
-                    <option value="banned">Bị cấm</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="banned">Banned</option>
                   </select>
                 )}
                 <input
@@ -380,7 +402,7 @@ const StaffListPage = () => {
                   onChange={editingStaffId ? handleEditChange : handleChange}
                   disabled={isAdminEditing}
                 />
-                <button type="submit" className="form-button" disabled={isAdminEditing}>
+                <button type="submit" className="form-button form-grid-col-span-2" disabled={isAdminEditing}>
                   {editingStaffId ? "Cập nhật" : "Tạo"}
                 </button>
               </form>

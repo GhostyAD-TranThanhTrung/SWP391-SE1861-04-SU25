@@ -1,7 +1,7 @@
 import '../styles/AdminLoginPage.scss';
 import PreventionImage from '../images/Prevention.jpg';
 import { useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const AdminLoginPage = () => {
@@ -30,7 +30,7 @@ const AdminLoginPage = () => {
                 localStorage.setItem("email2", email);
                 sessionStorage.setItem("token", response.data.token);
 
-            if (response.data.user.role === 'admin') {
+            if (response.data.user.role === 'admin' || response.data.user.role === 'staff' || response.data.user.role === 'manager') {
                 navigate('/dashboard');
             } 
 
@@ -94,6 +94,13 @@ const AdminLoginPage = () => {
                         <button type="submit" className="btn btn-primary w-100 mb-3">
                             Đăng nhập
                         </button>
+
+                        <div className="mt-3">
+                        <p className="small">
+                            Quay về trang chủ?{' '}
+                            <Link to={'/'}>Trang chủ</Link>
+                        </p>
+                    </div>
                     </form>
                 </div>
             </div>
