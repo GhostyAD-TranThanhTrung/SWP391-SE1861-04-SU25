@@ -5,6 +5,7 @@ import { MdCancel } from "react-icons/md";
 import "../../styles/MemberListPage.scss";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import PaginationComp from "../../components/Pagination";
 
 const MemberListPage = () => {
   const [showPopup, setShowPopup] = useState(false);
@@ -18,6 +19,9 @@ const MemberListPage = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const token = sessionStorage.getItem("token");
   const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const maxPageNumbersToShow = 5;
 
   useEffect(() => {
     if (!token) {
@@ -164,6 +168,22 @@ const MemberListPage = () => {
     (searchTerm === '' || member.profile?.name?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
+  // Pagination logic
+  const totalItems = filteredMembers.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const paginatedMembers = filteredMembers.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  useEffect(() => {
+    // Reset to page 1 if filter/search changes and currentPage is out of range
+    if (currentPage > totalPages) {
+      setCurrentPage(1);
+    }
+    // eslint-disable-next-line
+  }, [statusFilter, searchTerm, totalPages]);
+
   return (
     <div className="member-container">
       <div className="top-bar d-flex justify-content-between align-items-center mb-3">
@@ -204,9 +224,9 @@ const MemberListPage = () => {
             </tr>
           </thead>
           <tbody>
-            {filteredMembers.map((member, index) => (
+            {paginatedMembers.map((member, index) => (
               <tr key={member.user_id}>
-                <td>{index + 1}</td>
+                <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
                 <td>{member.profile.name}</td>
                 <td>{member.email}</td>
                 <td>{member.role}</td>
@@ -228,6 +248,15 @@ const MemberListPage = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Pagination */}
+      <PaginationComp
+        totalItems={totalItems}
+        itemsPerPage={itemsPerPage}
+        currentPage={currentPage}
+        maxPageNumbersToShow={maxPageNumbersToShow}
+        onPageChange={setCurrentPage}
+      />
 
       {/* View Member Details Popup */}
       {showPopup && selectedMember && !editingMemberId && (

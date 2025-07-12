@@ -17,6 +17,7 @@ import SurveyQuestionCreator from "../../components/SurveyQuestionCreator";
 import ContentCreator from "../../components/ContentCreator";
 import "../../styles/CourseListPage.scss";
 import { useNavigate } from "react-router-dom";
+import PaginationComp from "../../components/Pagination";
 // Register ChartJS components
 ChartJS.register(
   CategoryScale,
@@ -94,6 +95,10 @@ const CourseListPage = () => {
   const [showSurveyViewer, setShowSurveyViewer] = useState(false);
   const [showSurveyCreator, setShowSurveyCreator] = useState(false);
   const [selectedSurvey, setSelectedSurvey] = useState(null);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const maxPageNumbersToShow = 5;
 
   useEffect(() => {
     fetchPrograms();
@@ -654,6 +659,22 @@ const CourseListPage = () => {
     });
   };
 
+  // Pagination logic
+  const filteredList = filteredPrograms();
+  const totalItems = filteredList.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const paginatedPrograms = filteredList.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(1);
+    }
+    // eslint-disable-next-line
+  }, [statusFilter, searchTerm, totalPages]);
+
   return (
     <div className="course-list-container">
       <div className="top-bar d-flex justify-content-between align-items-center mb-3">
@@ -709,9 +730,9 @@ const CourseListPage = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredPrograms().map((program, index) => (
+              {paginatedPrograms.map((program, index) => (
                 <tr key={program.program_id}>
-                  <td>{index + 1}</td>
+                  <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
                   <td>{program.title}</td>
                   <td>{program.description}</td>
                   <td>{program.age_group}</td>
@@ -751,6 +772,14 @@ const CourseListPage = () => {
           </table>
         </div>
       )}
+
+      <PaginationComp
+        totalItems={totalItems}
+        itemsPerPage={itemsPerPage}
+        currentPage={currentPage}
+        maxPageNumbersToShow={maxPageNumbersToShow}
+        onPageChange={setCurrentPage}
+      />
 
       {/* Create Program Modal */}
       {showCreateModal && (

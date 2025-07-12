@@ -5,9 +5,13 @@ import { FaEye, FaTrash } from "react-icons/fa6";
 import { MdCancel } from "react-icons/md";
 import "../../styles/AssessmentListPage.scss";
 import { useNavigate } from "react-router-dom";
+import PaginationComp from "../../components/Pagination";
 const AssessmentListPage = () => {
   const [assessments, setAssessments] = useState([]);
   const [filterType, setFilterType] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const maxPageNumbersToShow = 5;
 
   const token = sessionStorage.getItem("token");
   const navigate = useNavigate()
@@ -85,6 +89,21 @@ const AssessmentListPage = () => {
     return filterType === '' || a.type === filterType;
   });
 
+  // Pagination logic
+  const totalItems = filteredAssessments.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const paginatedAssessments = filteredAssessments.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(1);
+    }
+    // eslint-disable-next-line
+  }, [filterType, totalPages]);
+
 
   return (
       <div className="assessment-list-container">
@@ -114,9 +133,9 @@ const AssessmentListPage = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredAssessments.map((assessment, index) => (
+              {paginatedAssessments.map((assessment, index) => (
                 <tr key={assessment.user_id}>
-                  <td>{index + 1}</td>
+                  <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
                   <td>{assessment.user_id}</td>
                   <td>{(() => {
                     try {
@@ -147,6 +166,14 @@ const AssessmentListPage = () => {
             </tbody>
           </table>
         </div>
+
+        <PaginationComp
+          totalItems={totalItems}
+          itemsPerPage={itemsPerPage}
+          currentPage={currentPage}
+          maxPageNumbersToShow={maxPageNumbersToShow}
+          onPageChange={setCurrentPage}
+        />
 
       {/* {showPopup && (
         <div className="popup">

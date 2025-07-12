@@ -5,6 +5,7 @@ import { FaTrash } from "react-icons/fa6";
 import { MdCancel } from "react-icons/md";
 import "../../styles/StaffListPage.scss";
 import { useNavigate } from "react-router-dom";
+import PaginationComp from "../../components/Pagination.jsx";
 const StaffListPage = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [staffs, setStaffs] = useState([]);
@@ -26,6 +27,9 @@ const StaffListPage = () => {
   const token = sessionStorage.getItem("token");
   const isAdminEditing = editingStaffId && editStaffData?.role === 'admin';
   const [filterStatus, setFilterStatus] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const maxPageNumbersToShow = 5;
 
   const navigate = useNavigate()
   const userRole = async () => {
@@ -241,6 +245,19 @@ const StaffListPage = () => {
     filterStatus === 'all' || s.status === filterStatus
   );
 
+  // Pagination logic
+  const totalItems = filteredStaffs.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const paginatedStaffs = filteredStaffs.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  useEffect(() => {
+    // Reset to page 1 if filter/search changes and current page is out of range
+    if (currentPage > totalPages) setCurrentPage(1);
+  }, [filterStatus, searchTerm, staffs]);
+
   return (
     <div className="staff-container">
       <div className="d-flex justify-content-between align-items-center mb-3">
@@ -286,9 +303,9 @@ const StaffListPage = () => {
             </tr>
           </thead>
           <tbody>
-            {filteredStaffs.map((staff, index) => (
+            {paginatedStaffs.map((staff, index) => (
               <tr key={staff.user_id}>
-                <td>{index + 1}</td>
+                <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
                 <td>{staff.profile?.name}</td>
                 <td>{staff.email}</td>
                 <td>{staff.role}</td>
@@ -309,6 +326,15 @@ const StaffListPage = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Pagination below the table */}
+      <PaginationComp
+        totalItems={totalItems}
+        itemsPerPage={itemsPerPage}
+        currentPage={currentPage}
+        maxPageNumbersToShow={maxPageNumbersToShow}
+        onPageChange={setCurrentPage}
+      />
 
       {showPopup && (
         <div className="popup">

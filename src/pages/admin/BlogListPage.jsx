@@ -9,6 +9,7 @@ import 'react-quill/dist/quill.snow.css';
 import FlagModal from "../../components/FlagModal";
 import { flagBlog, removeFlag, checkUserFlaggedBlog, getBlogFlags, isAuthenticated, getUserFromToken } from "../../service/api";
 import "../../styles/BlogListPage.scss";
+import PaginationComp from "../../components/Pagination";
 
 const BlogListPage = () => {
   const [showPopup, setShowPopup] = useState(false);
@@ -53,7 +54,7 @@ const BlogListPage = () => {
   const [blogIdToDelete, setBlogIdToDelete] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState('all'); // 'all', 'pending', 'published', 'draft'
-  const [filterStatus, setFilterStatus] = useState('Tất cả');
+  const [filterStatus, setFilterStatus] = useState('all');
 
   // Flag functionality state
   const [flagModalOpen, setFlagModalOpen] = useState(false);
@@ -62,6 +63,10 @@ const BlogListPage = () => {
   const [blogFlagCounts, setBlogFlagCounts] = useState({}); // Store flag counts for each blog
   const [currentUser, setCurrentUser] = useState(null);
   const [userAuthenticated, setUserAuthenticated] = useState(false);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const [totalBlogs, setTotalBlogs] = useState(0);
 
   const token = sessionStorage.getItem("token");
   const navigate = useNavigate()
@@ -78,10 +83,10 @@ const BlogListPage = () => {
 
   }
   userRole()
-  const fetchBlogs = async () => {
+  const fetchBlogs = async (page = currentPage) => {
     try {
       let endpoint = "http://localhost:3000/api/admin/blogs";
-
+      let params = { page, limit: itemsPerPage };
       // Choose endpoint based on view mode
       switch (viewMode) {
         case 'pending':
@@ -99,14 +104,13 @@ const BlogListPage = () => {
         default:
           endpoint = "http://localhost:3000/api/admin/blogs";
       }
-
       const res = await axios.get(endpoint, {
+        params,
         headers: viewMode !== 'all' ? { Authorization: `Bearer ${token}` } : {}
       });
-
       if (res.data.success) {
         setBlogs(res.data.data);
-        // Always load flag status and counts for admin page
+        setTotalBlogs(res.data.total || res.data.count || res.data.data.length);
         await loadFlagStatusForBlogs(res.data.data);
       }
     } catch (err) {
@@ -115,9 +119,13 @@ const BlogListPage = () => {
   };
 
   useEffect(() => {
-    fetchBlogs();
-    checkAuthAndLoadUser();
+    setCurrentPage(1); // Reset to first page when viewMode changes
   }, [viewMode]);
+
+  useEffect(() => {
+    fetchBlogs(currentPage);
+    checkAuthAndLoadUser();
+  }, [viewMode, currentPage]);
 
   const checkAuthAndLoadUser = async () => {
     const authenticated = isAuthenticated();
@@ -419,7 +427,7 @@ const BlogListPage = () => {
 
   
   // Filter blogs theo status
-  const filteredBlogs = blogs.filter(b => filterStatus === 'Tất cả' || b.status === filterStatus);
+  const filteredBlogs = blogs.filter(b => filterStatus === 'all' || b.status === filterStatus);
 
   return (
     <div className="blog-list-container">
@@ -458,10 +466,10 @@ const BlogListPage = () => {
             onChange={e => setFilterStatus(e.target.value)}
             style={{ maxWidth: '200px' }}
           >
-            <option value="Tất cả">Tất cả trạng thái</option>
-            <option value="Đã xuất bản">Đã xuất bản</option>
-            <option value="Bản nháp">Bản nháp</option>
-            <option value="Bị từ chối">Bị từ chối</option>
+            <option value="all">Tất cả trạng thái</option>
+            <option value="published">Đã xuất bản</option>
+            <option value="draft">Bản nháp</option>
+            <option value="rejected">Bị từ chối</option>
           </select>
           <div className="input-group" style={{ maxWidth: '300px' }}>
             <input
@@ -610,6 +618,15 @@ const BlogListPage = () => {
           </div>
         )}
       </div>
+
+      {/* Pagination below table */}
+      <PaginationComp
+        totalItems={totalBlogs}
+        itemsPerPage={itemsPerPage}
+        currentPage={currentPage}
+        maxPageNumbersToShow={5}
+        onPageChange={page => setCurrentPage(page)}
+      />
 
       {showPopup && (
         <div className="popup">

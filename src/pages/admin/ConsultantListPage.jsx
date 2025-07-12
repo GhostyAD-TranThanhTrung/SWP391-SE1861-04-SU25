@@ -5,6 +5,7 @@ import { MdCancel } from "react-icons/md";
 import "../../styles/ConsultantListPage.scss";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import PaginationComp from "../../components/Pagination";
 const ConsultantListPage = () => {
   const [consultants, setConsultants] = useState([]);
   const [newConsultant, setNewConsultant] = useState({
@@ -39,6 +40,10 @@ const ConsultantListPage = () => {
   const [daySlotSelections, setDaySlotSelections] = useState({});
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ text: "", type: "" });
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const maxPageNumbersToShow = 5;
 
   const token = sessionStorage.getItem("token");
   const navigate = useNavigate()
@@ -205,11 +210,6 @@ const ConsultantListPage = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleOpenPopup = () => {
-    setShowPopup(true);
-    setNewPassword("");
   };
 
   const handleClosePopup = () => {
@@ -466,6 +466,21 @@ const ConsultantListPage = () => {
       statusFilter === 'all' || c.status === statusFilter
     );
 
+    // Pagination logic
+    const totalItems = filteredConsultants.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const paginatedConsultants = filteredConsultants.slice(
+      (currentPage - 1) * itemsPerPage,
+      currentPage * itemsPerPage
+    );
+
+    useEffect(() => {
+      if (currentPage > totalPages) {
+        setCurrentPage(1);
+      }
+      // eslint-disable-next-line
+    }, [statusFilter, searchTerm, totalPages]);
+
   return (
     <div className="consultant-list-container">
       <div className="d-flex justify-content-between align-items-center mb-3">
@@ -512,9 +527,9 @@ const ConsultantListPage = () => {
             </tr>
           </thead>
           <tbody>
-            {filteredConsultants.map((consultant, index) => (
+            {paginatedConsultants.map((consultant, index) => (
               <tr key={consultant.id_consultant}>
-                <td>{index + 1}</td>
+                <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
                 <td>{consultant.name}</td>
                 <td>{consultant.email}</td>
                 <td>{consultant.role}</td>
@@ -536,6 +551,14 @@ const ConsultantListPage = () => {
           </tbody>
         </table>
       </div>
+
+      <PaginationComp
+        totalItems={totalItems}
+        itemsPerPage={itemsPerPage}
+        currentPage={currentPage}
+        maxPageNumbersToShow={maxPageNumbersToShow}
+        onPageChange={setCurrentPage}
+      />
 
       {showPopup && (
         <div className="popup">
