@@ -52,25 +52,31 @@ class BookingSessionController {
             const memberId = req.user.userId;
 
             const bookingQuery = `
-                SELECT 
+                SELECT DISTINCT
                     b.booking_id,
                     b.consultant_id,
                     b.member_id,
                     b.slot_id,
-                    CONVERT(nvarchar(10), b.booking_date, 120) as booking_date,
+                    b.google_meet_link,
+                    b.booking_date,
                     b.status,
                     b.notes,
                     cs.day_of_week,
-                    CONVERT(nvarchar(8), s.start_time, 108) as start_time,
-                    CONVERT(nvarchar(8), s.end_time, 108) as end_time,
+                    s.start_time,
+                    s.end_time,
                     p.name as consultant_name
                 FROM Booking_Session b
-                LEFT JOIN Consultant c ON b.consultant_id = c.id_consultant
-                LEFT JOIN [Users] u ON c.user_id = u.user_id
-                LEFT JOIN Profile p ON u.user_id = p.user_id
-                LEFT JOIN Slot s ON b.slot_id = s.slot_id
-                LEFT JOIN Consultant_Slot cs ON (b.consultant_id = cs.consultant_id AND b.slot_id = cs.slot_id)
+                INNER JOIN Consultant c ON b.consultant_id = c.id_consultant
+                INNER JOIN [Users] u ON c.user_id = u.user_id
+                INNER JOIN Profile p ON u.user_id = p.user_id
+                INNER JOIN Slot s ON b.slot_id = s.slot_id
+                INNER JOIN Consultant_Slot cs ON (
+                    b.consultant_id = cs.consultant_id 
+                    AND b.slot_id = cs.slot_id
+                    AND DATENAME(WEEKDAY, b.booking_date) = cs.day_of_week
+                )
                 WHERE b.member_id = @0
+                ORDER BY booking_date ASC, start_time ASC
             `;
 
             console.log('Member bookings query:', bookingQuery);
@@ -83,6 +89,12 @@ class BookingSessionController {
 
             // Check if no booking sessions exist
             if (!bookings || bookings.length === 0) {
+                console.log('Member bookings response:', {
+                    success: true,
+                    data: [],
+                    count: 0,
+                    message: 'Không có lịch hẹn nào cho thành viên này'
+                });
                 return res.status(200).json({
                     success: true,
                     data: [],
@@ -91,6 +103,12 @@ class BookingSessionController {
                 });
             }
 
+            console.log('Member bookings response:', {
+                success: true,
+                data: bookings,
+                count: bookings.length,
+                message: 'Lấy danh sách lịch hẹn thành công'
+            });
             res.status(200).json({
                 success: true,
                 data: bookings,

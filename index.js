@@ -334,6 +334,16 @@ app.get("/api/members/search/:memberName", authController.verifyToken, MemberCon
 app.get("/api/members/:memberId", authController.verifyToken, MemberController.getMemberById);
 
 /**
+ * MEMBER DETAILS: Get specific member details
+ * Purpose: Retrieve detailed information about a specific member (include assessment)
+ * Method: GET /api/members/detailed/:memberId
+ * Input: Path params: { memberId: number }
+ * Output: { success: boolean, data: object, message: string }
+ * Authentication: Required (Admin/Staff/Consultant)
+ */
+app.get("/api/members/detailed/:memberId", MemberController.getFullMemberById);
+
+/**
  * MEMBER UPDATE: Update member
  * Purpose: Update member account from the system
  * Method: PUT /api/members/:memberId
@@ -552,6 +562,16 @@ app.get("/api/slots", SlotController.getAllSlots);
 app.get("/api/booking-sessions/scheduled", authController.verifyToken, BookingSessionController.getScheduledBookingSessions);
 
 /**
+ * BOOKING SESSIONS BY MEMBER: Get all booking sessions for authenticated member
+ * Purpose: Retrieve all booking sessions (all statuses) for the authenticated member
+ * Method: GET /api/booking-sessions/member
+ * Input: None (member ID from token)
+ * Output: { success: boolean, data: Array<BookingObject>, count: number, message: string }
+ * Authentication: Required (Member)
+ */
+app.get("/api/booking-sessions/member", authController.verifyToken, BookingSessionController.getBookingSessionsByMember);
+
+/**
  * BOOKING CREATE: Create new booking session
  * Purpose: Book a consultation session with a consultant
  * Method: POST /api/booking-sessions
@@ -734,6 +754,36 @@ app.get("/api/images/:filename", ContentController.getImage);
  * Authentication: None (Public)
  */
 app.get("/api/categories", CategoryController.getAllCategories);
+
+/**
+ * CATEGORY CREATE: Create new category
+ * Purpose: Create a new program category for organizing programs
+ * Method: POST /api/categories
+ * Input: { name?: string, description?: string }
+ * Output: { success: boolean, data: CategoryObject, message: string }
+ * Authentication: Required (Admin/Staff)
+ */
+app.post("/api/categories", authController.verifyToken, CategoryController.createCategory);
+
+/**
+ * CATEGORY UPDATE: Update existing category
+ * Purpose: Modify an existing program category
+ * Method: PUT /api/categories/:id
+ * Input: Path params: { id: number }, Body: { name?: string, description?: string }
+ * Output: { success: boolean, data: CategoryObject, message: string }
+ * Authentication: Required (Admin/Staff)
+ */
+app.put("/api/categories/:id", authController.verifyToken, CategoryController.updateCategory);
+
+/**
+ * CATEGORY DELETE: Remove category
+ * Purpose: Delete a program category from the system
+ * Method: DELETE /api/categories/:id
+ * Input: Path params: { id: number }
+ * Output: { success: boolean, message: string, deletedCategory: object }
+ * Authentication: Required (Admin/Staff)
+ */
+app.delete("/api/categories/:id", authController.verifyToken, CategoryController.deleteCategory);
 
 // ==================== BLOG ROUTES ====================
 /**
@@ -1116,7 +1166,7 @@ app.listen(3000, () => {
     console.log("   Assessments: /api/assessments/*");
     console.log("   Programs: /api/programs/*");
     console.log("   Content: /api/content/*");
-    console.log("   Categories: /api/categories");
+    console.log("   Categories: /api/categories/*");
     console.log("   Blogs: /api/blogs/*");
     console.log("   Flags: /api/flags/*");
     console.log("   Enrollments: /api/enrollments/*");
@@ -1167,6 +1217,8 @@ Members (Admin/Staff):
 - POST /api/consultants - Create consultant (admin)
 - GET /api/consultant-slots/:id - Get consultant availability
 - POST /api/booking-sessions - Book consultation session
+- GET /api/booking-sessions/scheduled - Get scheduled booking sessions (auth)
+- GET /api/booking-sessions/member - Get all booking sessions for member (auth)
 
 📝 ASSESSMENT ROUTES:
 - GET /api/assessments/me - Get my assessments
@@ -1190,6 +1242,12 @@ Members (Admin/Staff):
 - POST /api/content/youtube - Create YouTube content (auth)
 - POST /api/content/markdown - Create markdown content (auth)
 - POST /api/content/podcast - Create podcast content (auth)
+
+🏷️ CATEGORY ROUTES:
+- GET /api/categories - List all categories (public)
+- POST /api/categories - Create new category (auth)
+- PUT /api/categories/:id - Update category (auth)
+- DELETE /api/categories/:id - Delete category (auth)
 
 📰 BLOG ROUTES:
 - GET /api/blogs - List published blogs (public)
