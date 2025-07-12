@@ -430,7 +430,7 @@ const BlogListPage = () => {
   const filteredBlogs = blogs.filter(b => filterStatus === 'all' || b.status === filterStatus);
 
   return (
-    <div className="blog-list-container">
+    <div className={`blog-list-container ${showPopup ? 'modal-open' : ''}`}>
       <div className="top-bar d-flex justify-content-between align-items-center mb-3">
         <div className="d-flex align-items-center">
           <button className="btn btn-primary me-3" onClick={handleOpenPopup}>

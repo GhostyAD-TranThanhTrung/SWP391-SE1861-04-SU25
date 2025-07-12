@@ -343,91 +343,128 @@ const StaffListPage = () => {
             <div className="form">
               <h2>{editingStaffId ? "Chỉnh sửa nhân viên" : "Tạo nhân viên mới"}</h2>
               <form className="form-grid" onSubmit={editingStaffId ? handleUpdateSubmit : handleSubmit}>
-                <input
-                  type="text"
-                  name="email"
-                  placeholder="Email"
-                  value={editingStaffId ? editStaffData?.email || "" : newStaff.email}
-                  onChange={editingStaffId ? handleEditChange : handleChange}
-                  required
-                  disabled={isAdminEditing}
-                />
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="Mật khẩu"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  required={!editingStaffId}
-                  disabled={isAdminEditing}
-                />
-                <select
-                  name="role"
-                  value={editingStaffId ? editStaffData?.role || "" : newStaff.role}
-                  onChange={editingStaffId ? handleEditChange : handleChange}
-                  required
-                  disabled={isAdminEditing}
-                >
-                  <option value="">Chọn vai trò</option>
-                  {editingStaffId && editStaffData?.role === 'admin' && <option value="admin">Admin</option>}
-                  {editingStaffId && <option value="admin">Admin</option>}
-                  <option value="staff">Staff</option>
-                  <option value="manager">Manager</option>
-                </select>
-                {editingStaffId && (
-                  <select
-                    name="status"
-                    value={editStaffData?.status || ""}
-                    onChange={handleEditChange}
+                <div className="form-group">
+                  <label className="form-label">Email *</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={editingStaffId ? editStaffData?.email || "" : newStaff.email}
+                    onChange={editingStaffId ? handleEditChange : handleChange}
                     required
                     disabled={isAdminEditing}
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Mật khẩu {!editingStaffId && '*'}</label>
+                  <input
+                    type="password"
+                    name="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required={!editingStaffId}
+                    disabled={isAdminEditing}
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Vai trò *</label>
+                  <select
+                    name="role"
+                    value={editingStaffId ? editStaffData?.role || "" : newStaff.role}
+                    onChange={editingStaffId ? handleEditChange : handleChange}
+                    required
+                    disabled={isAdminEditing}
+                    className="form-select"
                   >
-                    <option value="">Chọn trạng thái</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                    <option value="banned">Banned</option>
+                    <option value="">Chọn vai trò</option>
+                    {editingStaffId && editStaffData?.role === 'admin' && <option value="admin">Admin</option>}
+                    {editingStaffId && <option value="admin">Admin</option>}
+                    <option value="staff">Staff</option>
+                    <option value="manager">Manager</option>
                   </select>
+                </div>
+                {editingStaffId && (
+                  <div className="form-group">
+                    <label className="form-label">Trạng thái *</label>
+                    <select
+                      name="status"
+                      value={editStaffData?.status || ""}
+                      onChange={handleEditChange}
+                      required
+                      disabled={isAdminEditing}
+                      className="form-select"
+                    >
+                      <option value="">Chọn trạng thái</option>
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                      <option value="banned">Banned</option>
+                    </select>
+                  </div>
                 )}
-                <input
-                  type="text"
-                  name="name"
-                  placeholder="Tên"
-                  value={editingStaffId ? editStaffData?.name || "" : newStaff.name}
-                  onChange={editingStaffId ? handleEditChange : handleChange}
-                  required
-                  disabled={isAdminEditing}
-                />
-                <input
-                  type="text"
-                  name="bio"
-                  placeholder="Tiểu sử"
-                  value={editingStaffId ? editStaffData?.bio || "" : newStaff.bio}
-                  onChange={editingStaffId ? handleEditChange : handleChange}
-                  disabled={isAdminEditing}
-                />
-                <input
-                  type="text"
-                  name="education"
-                  placeholder="Học vấn"
-                  value={editingStaffId ? editStaffData?.education || "" : newStaff.education}
-                  onChange={editingStaffId ? handleEditChange : handleChange}
-                  disabled={isAdminEditing}
-                />
-                <input
-                  type="date"
-                  name="date_of_birth"
-                  value={editingStaffId ? editStaffData?.date_of_birth || "" : newStaff.date_of_birth}
-                  onChange={editingStaffId ? handleEditChange : handleChange}
-                  disabled={isAdminEditing}
-                />
-                <input
-                  type="text"
-                  name="job"
-                  placeholder="Công việc"
-                  value={editingStaffId ? editStaffData?.job || "" : newStaff.job}
-                  onChange={editingStaffId ? handleEditChange : handleChange}
-                  disabled={isAdminEditing}
-                />
+                <div className="form-group">
+                  <label className="form-label">Tên *</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={editingStaffId ? editStaffData?.name || "" : newStaff.name}
+                    onChange={editingStaffId ? handleEditChange : handleChange}
+                    required
+                    disabled={isAdminEditing}
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Tiểu sử</label>
+                  <input
+                    type="text"
+                    name="bio"
+                    value={editingStaffId ? editStaffData?.bio || "" : newStaff.bio}
+                    onChange={editingStaffId ? handleEditChange : handleChange}
+                    disabled={isAdminEditing}
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Học vấn</label>
+                  <select
+                    name="education"
+                    value={editingStaffId ? editStaffData?.education || "" : newStaff.education}
+                    onChange={editingStaffId ? handleEditChange : handleChange}
+                    disabled={isAdminEditing}
+                    className="form-select"
+                  >
+                    <option value="">Chọn trình độ học vấn</option>
+                    <option value="Trung học phổ thông">Trung học phổ thông</option>
+                    <option value="Cao đẳng">Cao đẳng</option>
+                    <option value="Đại học">Đại học</option>
+                    <option value="Thạc sĩ">Thạc sĩ</option>
+                    <option value="Tiến sĩ">Tiến sĩ</option>
+                    <option value="Khác">Khác</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Ngày sinh</label>
+                  <input
+                    type="date"
+                    name="date_of_birth"
+                    value={editingStaffId ? editStaffData?.date_of_birth || "" : newStaff.date_of_birth}
+                    onChange={editingStaffId ? handleEditChange : handleChange}
+                    disabled={isAdminEditing}
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Công việc</label>
+                  <input
+                    type="text"
+                    name="job"
+                    value={editingStaffId ? editStaffData?.job || "" : newStaff.job}
+                    onChange={editingStaffId ? handleEditChange : handleChange}
+                    disabled={isAdminEditing}
+                    className="form-input"
+                  />
+                </div>
                 <button type="submit" className="form-button form-grid-col-span-2" disabled={isAdminEditing}>
                   {editingStaffId ? "Cập nhật" : "Tạo"}
                 </button>

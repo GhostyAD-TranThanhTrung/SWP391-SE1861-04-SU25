@@ -56,6 +56,7 @@ const CourseListPage = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showContentModal, setShowContentModal] = useState(false);
   const [showSurveyModal, setShowSurveyModal] = useState(false);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [selectedProgram, setSelectedProgram] = useState(null);
 
   // Form states
@@ -74,6 +75,10 @@ const CourseListPage = () => {
     category_id: "",
     status: "active",
     img_link: ""
+  });
+  const [newCategory, setNewCategory] = useState({
+    name: "",
+    description: ""
   });
 
   // Content/Survey states  
@@ -147,6 +152,53 @@ const CourseListPage = () => {
         response: err.response,
         data: err.response?.data
       });
+    }
+  };
+
+  const handleCreateCategory = async (e) => {
+    e.preventDefault();
+    try {
+      console.log("Creating category with data:", newCategory);
+      const res = await axios.post("http://localhost:3000/api/categories", newCategory, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      console.log("Create category response:", res.data);
+
+      if (res.data.success) {
+        console.log("Category created successfully");
+        await fetchCategories();
+        setNewCategory({ name: "", description: "" });
+        alert("Category created successfully!");
+      }
+    } catch (err) {
+      console.error("Error creating category:", {
+        error: err,
+        response: err.response,
+        data: err.response?.data,
+        status: err.response?.status
+      });
+      alert("Error creating category: " + (err.response?.data?.message || err.message));
+    }
+  };
+
+  const handleDeleteCategory = async (categoryId, categoryName) => {
+    if (window.confirm(`Are you sure you want to delete category "${categoryName}"?`)) {
+      try {
+        const res = await axios.delete(`http://localhost:3000/api/categories/${categoryId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.data.success) {
+          await fetchCategories();
+          alert("Category deleted successfully!");
+        }
+      } catch (err) {
+        console.error("Error deleting category:", err);
+        alert("Error deleting category: " + (err.response?.data?.message || err.message));
+      }
     }
   };
 
@@ -680,10 +732,16 @@ const CourseListPage = () => {
       <div className="top-bar d-flex justify-content-between align-items-center mb-3">
         <div>
           <button
-            className="btn btn-primary"
+            className="btn btn-primary me-2"
             onClick={() => setShowCreateModal(true)}
           >
             <FaPlus className="me-1" /> Create New Program
+          </button>
+          <button
+            className="btn btn-outline-secondary"
+            onClick={() => setShowCategoryModal(true)}
+          >
+            <FaEdit className="me-1" /> Manage Categories
           </button>
         </div>
         <div className="d-flex align-items-center">
@@ -1471,6 +1529,105 @@ const CourseListPage = () => {
                   onCancel={() => setShowSurveyCreator(false)}
                   isEditing={!!selectedSurvey}
                 />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Category Management Modal */}
+      {showCategoryModal && (
+        <div className="modal fade show category-management-modal" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-lg">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Category Management</h5>
+                <button
+                  className="btn-close"
+                  onClick={() => setShowCategoryModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                {/* Create New Category Form */}
+                <div className="create-category-section mb-4">
+                  <h6>Create New Category</h6>
+                  <form onSubmit={handleCreateCategory}>
+                    <div className="row">
+                      <div className="col-md-6">
+                        <div className="mb-3">
+                          <label className="form-label">Category Name *</label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            value={newCategory.name}
+                            onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
+                            placeholder="Enter category name"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="mb-3">
+                          <label className="form-label">Description</label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            value={newCategory.description}
+                            onChange={(e) => setNewCategory({ ...newCategory, description: e.target.value })}
+                            placeholder="Enter description (optional)"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <button type="submit" className="btn btn-primary">
+                      <FaPlus className="me-1" /> Create Category
+                    </button>
+                  </form>
+                </div>
+
+                <hr />
+
+                {/* Existing Categories List */}
+                <div className="existing-categories-section">
+                  <h6>Existing Categories ({categories.length})</h6>
+                  {categories.length === 0 ? (
+                    <div className="text-center py-3">
+                      <p className="text-muted">No categories found.</p>
+                    </div>
+                  ) : (
+                    <div className="category-list">
+                      {categories.map((category) => (
+                        <div key={category.category_id} className="category-item card mb-2">
+                          <div className="card-body">
+                            <div className="d-flex justify-content-between align-items-center">
+                              <div>
+                                <h6 className="mb-1">{category.name || 'Unnamed Category'}</h6>
+                                {category.description && (
+                                  <p className="mb-0 text-muted">{category.description}</p>
+                                )}
+                                <small className="text-muted">ID: {category.category_id}</small>
+                              </div>
+                              <div>
+                                <button
+                                  className="btn btn-sm btn-danger"
+                                  onClick={() => handleDeleteCategory(category.category_id, category.name || `Category ${category.category_id}`)}
+                                  title="Delete Category"
+                                >
+                                  <FaTrash />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={() => setShowCategoryModal(false)}>
+                  Close
+                </button>
               </div>
             </div>
           </div>

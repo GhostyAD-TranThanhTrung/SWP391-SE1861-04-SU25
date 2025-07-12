@@ -567,103 +567,148 @@ const ConsultantListPage = () => {
             <div className="form">
               <h2>{editingConsultantId ? "Chỉnh sửa Tư vấn viên" : "Tạo mới Tư vấn viên"}</h2>
               <form className="form-grid" onSubmit={editingConsultantId ? handleUpdate : handleSubmit}>
-                <input
-                  type="text"
-                  name="name"
-                  placeholder="Họ và tên"
-                  value={editingConsultantId ? editConsultantData?.name ?? '' : newConsultant.name}
-                  onChange={editingConsultantId ? handleEditChange : handleChange}
-                  required
-                />
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Email"
-                  value={editingConsultantId ? editConsultantData?.email ?? '' : newConsultant.email}
-                  onChange={editingConsultantId ? handleEditChange : handleChange}
-                  required
-                />
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="Mật khẩu"
-                  value={editingConsultantId ? '' : newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  required={!editingConsultantId}
-                />
-                <input
-                  type="text"
-                  name="role"
-                  value="Consultant"
-                  disabled
-                  readOnly
-                />
-                <input type="hidden" name="role" value="consultant" />
-                {editingConsultantId && (
-                  <select
-                    name="status"
-                    value={editConsultantData?.status ?? ''}
-                    onChange={handleEditChange}
+                <div className="form-group">
+                  <label className="form-label">Họ và tên *</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={editingConsultantId ? editConsultantData?.name ?? '' : newConsultant.name}
+                    onChange={editingConsultantId ? handleEditChange : handleChange}
                     required
-                  >
-                    <option value="">Chọn trạng thái</option>
-                    <option value="active">Hoạt Động</option>
-                    <option value="inactive">Không Hoạt Động</option>
-                    <option value="banned">Bị Cấm</option>
-                  </select>
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Email *</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={editingConsultantId ? editConsultantData?.email ?? '' : newConsultant.email}
+                    onChange={editingConsultantId ? handleEditChange : handleChange}
+                    required
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Mật khẩu {!editingConsultantId && '*'}</label>
+                  <input
+                    type="password"
+                    name="password"
+                    value={editingConsultantId ? '' : newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required={!editingConsultantId}
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Vai trò</label>
+                  <input
+                    type="text"
+                    name="role"
+                    value="Consultant"
+                    disabled
+                    readOnly
+                    className="form-input"
+                  />
+                  <input type="hidden" name="role" value="consultant" />
+                </div>
+                {editingConsultantId && (
+                  <div className="form-group">
+                    <label className="form-label">Trạng thái *</label>
+                    <select
+                      name="status"
+                      value={editConsultantData?.status ?? ''}
+                      onChange={handleEditChange}
+                      required
+                      className="form-select"
+                    >
+                      <option value="">Chọn trạng thái</option>
+                      <option value="active">Hoạt Động</option>
+                      <option value="inactive">Không Hoạt Động</option>
+                      <option value="banned">Bị Cấm</option>
+                    </select>
+                  </div>
                 )}
-                <input
-                  type="number"
-                  name="cost"
-                  step="10"
-                  min="100"
-                  placeholder="Chi phí (VND)"
-                  value={editingConsultantId ? editConsultantData?.cost ?? '' : newConsultant.cost}
-                  onChange={editingConsultantId ? handleEditChange : handleChange}
-                  required
-                />
-                <input
-                  type="text"
-                  name="certification"
-                  placeholder="Chứng chỉ"
-                  value={editingConsultantId ? editConsultantData?.certification ?? '' : newConsultant.certification}
-                  onChange={editingConsultantId ? handleEditChange : handleChange}
-                />
-                <input
-                  type="text"
-                  name="speciality"
-                  placeholder="Chuyên môn"
-                  value={editingConsultantId ? editConsultantData?.speciality ?? '' : newConsultant.speciality}
-                  onChange={editingConsultantId ? handleEditChange : handleChange}
-                />
-                <input
-                  type="date"
-                  name="date_of_birth"
-                  placeholder="Ngày sinh"
-                  value={editingConsultantId ? editConsultantData?.date_of_birth ?? '' : newConsultant.date_of_birth}
-                  onChange={editingConsultantId ? handleEditChange : handleChange}
-                />
-                <input
-                  type="text"
-                  name="job"
-                  placeholder="Nghề nghiệp"
-                  value={editingConsultantId ? editConsultantData?.job ?? '' : newConsultant.job}
-                  onChange={editingConsultantId ? handleEditChange : handleChange}
-                />
-                <input
-                  name="bio"
-                  placeholder="Tiểu sử"
-                  className="form-grid-col-span-2"
-                  value={editingConsultantId ? editConsultantData?.bio ?? '' : newConsultant.bio}
-                  onChange={editingConsultantId ? handleEditChange : handleChange}
-                />
-                <input
-                  name="education"
-                  placeholder="Học vấn"
-                  className="form-grid-col-span-2"
-                  value={editingConsultantId ? editConsultantData?.education ?? '' : newConsultant.education}
-                  onChange={editingConsultantId ? handleEditChange : handleChange}
-                />
+                <div className="form-group">
+                  <label className="form-label">Chi phí (VND) *</label>
+                  <input
+                    type="number"
+                    name="cost"
+                    step="10"
+                    min="100"
+                    value={editingConsultantId ? editConsultantData?.cost ?? '' : newConsultant.cost}
+                    onChange={editingConsultantId ? handleEditChange : handleChange}
+                    required
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Chứng chỉ</label>
+                  <input
+                    type="text"
+                    name="certification"
+                    value={editingConsultantId ? editConsultantData?.certification ?? '' : newConsultant.certification}
+                    onChange={editingConsultantId ? handleEditChange : handleChange}
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Chuyên môn</label>
+                  <input
+                    type="text"
+                    name="speciality"
+                    value={editingConsultantId ? editConsultantData?.speciality ?? '' : newConsultant.speciality}
+                    onChange={editingConsultantId ? handleEditChange : handleChange}
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Ngày sinh</label>
+                  <input
+                    type="date"
+                    name="date_of_birth"
+                    value={editingConsultantId ? editConsultantData?.date_of_birth ?? '' : newConsultant.date_of_birth}
+                    onChange={editingConsultantId ? handleEditChange : handleChange}
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Nghề nghiệp</label>
+                  <input
+                    type="text"
+                    name="job"
+                    value={editingConsultantId ? editConsultantData?.job ?? '' : newConsultant.job}
+                    onChange={editingConsultantId ? handleEditChange : handleChange}
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group form-grid-col-span-2">
+                  <label className="form-label">Tiểu sử</label>
+                  <textarea
+                    name="bio"
+                    value={editingConsultantId ? editConsultantData?.bio ?? '' : newConsultant.bio}
+                    onChange={editingConsultantId ? handleEditChange : handleChange}
+                    className="form-textarea"
+                    rows="3"
+                  />
+                </div>
+                <div className="form-group form-grid-col-span-2">
+                  <label className="form-label">Học vấn</label>
+                  <select
+                    name="education"
+                    value={editingConsultantId ? editConsultantData?.education ?? '' : newConsultant.education}
+                    onChange={editingConsultantId ? handleEditChange : handleChange}
+                    className="form-select"
+                  >
+                    <option value="">Chọn trình độ học vấn</option>
+                    <option value="Trung học phổ thông">Trung học phổ thông</option>
+                    <option value="Cao đẳng">Cao đẳng</option>
+                    <option value="Đại học">Đại học</option>
+                    <option value="Thạc sĩ">Thạc sĩ</option>
+                    <option value="Tiến sĩ">Tiến sĩ</option>
+                    <option value="Khác">Khác</option>
+                  </select>
+                </div>
                 <button type="submit" className="form-button form-grid-col-span-2">
                   {editingConsultantId ? "Cập nhật" : "Tạo mới"}
                 </button>

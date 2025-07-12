@@ -12,6 +12,8 @@ const BookingPage = () => {
     const [bookingStatus, setBookingStatus] = useState(null);
     const [scheduledBookings, setScheduledBookings] = useState([]);
     const [loadingBookings, setLoadingBookings] = useState(true);
+    const [showAllBookings, setShowAllBookings] = useState(false);
+    const [allBookings, setAllBookings] = useState([]);
 
     // Các slot dựa trên database sample.sql (9 AM - 5 PM theo giờ)
     const databaseSlots = [
@@ -110,11 +112,11 @@ const BookingPage = () => {
         };
     };
 
-    // Lấy danh sách lịch hẹn đã lên lịch
+    // Lấy danh sách lịch hẹn của thành viên
     const fetchScheduledBookings = async () => {
         try {
             const token = sessionStorage.getItem('token');
-            const response = await fetch('http://localhost:3000/api/booking-sessions/scheduled', {
+            const response = await fetch('http://localhost:3000/api/booking-sessions/member', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -126,14 +128,25 @@ const BookingPage = () => {
             console.log('Dữ liệu booking lấy về:', data);
 
             if (!response.ok) {
-                throw new Error(data.message || 'Không thể lấy danh sách lịch hẹn đã lên lịch');
+                throw new Error(data.message || 'Không thể lấy danh sách lịch hẹn');
             }
 
             return data.data;
         } catch (error) {
-            console.error('Lỗi khi lấy danh sách lịch hẹn đã lên lịch:', error);
+            console.error('Lỗi khi lấy danh sách lịch hẹn:', error);
             return [];
         }
+    };
+
+    // Lọc booking theo trạng thái (ẩn các booking đã hủy và hoàn thành)
+    const filterActiveBookings = (bookings) => {
+        if (!bookings || !Array.isArray(bookings)) return [];
+        
+        return bookings.filter(booking => {
+            const status = booking.status;
+            // Ẩn các booking có trạng thái "Đã hủy" hoặc "Hoàn thành"
+            return status !== 'Đã hủy' && status !== 'Hoàn thành';
+        });
     };
 
     // Load dữ liệu consultants và scheduled bookings
@@ -150,7 +163,14 @@ const BookingPage = () => {
 
                 const transformedConsultants = transformConsultantsArray(apiConsultants);
                 setConsultants(transformedConsultants);
-                setScheduledBookings(bookings);
+                
+                // Lưu tất cả bookings và bookings đang hoạt động
+                const activeBookings = filterActiveBookings(bookings);
+                setAllBookings(bookings || []);
+                setScheduledBookings(activeBookings);
+                
+                console.log('Tổng số bookings:', bookings?.length || 0);
+                console.log('Số bookings đang hoạt động:', activeBookings?.length || 0);
             } catch (error) {
                 console.error('Lỗi khi load dữ liệu:', error);
                 setConsultants([]);
@@ -272,7 +292,31 @@ const BookingPage = () => {
                 {/* Phần lịch hẹn đã lên lịch */}
                 <section className="scheduled-bookings mb-5">
                     <div className="section-header text-center mb-4">
-                        <h2 className="section-title">Lịch tư vấn đã đặt của bạn</h2>
+                        <h2 className="section-title">
+                            {showAllBookings ? 'Tất cả lịch tư vấn' : 'Lịch tư vấn đang hoạt động'}
+                        </h2>
+                        <p className="section-subtitle">
+                            {showAllBookings 
+                                ? 'Bao gồm tất cả các cuộc hẹn: đang chờ, đã xác nhận, hoàn thành và đã hủy'
+                                : 'Các cuộc hẹn đang chờ xác nhận và đã được xác nhận'
+                            }
+                        </p>
+                        <div className="booking-toggle-container mt-3">
+                            <button
+                                className={`btn ${showAllBookings ? 'btn-outline-primary' : 'btn-primary'} me-2`}
+                                onClick={() => setShowAllBookings(false)}
+                            >
+                                <i className="bi bi-clock me-1"></i>
+                                Đang hoạt động ({scheduledBookings.length})
+                            </button>
+                            <button
+                                className={`btn ${showAllBookings ? 'btn-primary' : 'btn-outline-primary'}`}
+                                onClick={() => setShowAllBookings(true)}
+                            >
+                                <i className="bi bi-list-ul me-1"></i>
+                                Tất cả ({allBookings.length})
+                            </button>
+                        </div>
                     </div>
                     {loadingBookings ? (
                         <div className="text-center py-4">
@@ -281,18 +325,42 @@ const BookingPage = () => {
                             </div>
                             <p className="mt-2">Đang tải lịch hẹn...</p>
                         </div>
-                    ) : scheduledBookings && scheduledBookings.length > 0 ? (
+                    ) : (showAllBookings ? allBookings : scheduledBookings) && (showAllBookings ? allBookings : scheduledBookings).length > 0 ? (
                         <div className="scheduled-bookings-container">
-                            {scheduledBookings.map((booking) => {
+                            {(showAllBookings ? allBookings : scheduledBookings).map((booking) => {
                                 const consultant = consultants.find(c => c.id_consultant === booking.consultant_id);
                                 const slot = databaseSlots.find(s => s.slot_id === booking.slot_id);
                                 const hasMeetLink = !!booking.google_meet_link;
-                                const statusClass = booking.status === 'confirmed' ? 'status-confirmed' :
-                                    booking.status === 'pending' ? 'status-pending' :
-                                        booking.status === 'cancelled' ? 'status-cancelled' : 'status-default';
+                                
+                                // Mapping trạng thái và class CSS
+                                const getStatusInfo = (status) => {
+                                    switch (status) {
+                                        case 'Đang chờ xác nhận':
+                                            return { label: 'Đang chờ xác nhận', class: 'status-pending' };
+                                        case 'Xác nhận thành công':
+                                        case 'Đã xác nhận':
+                                            return { label: 'Đã xác nhận', class: 'status-confirmed' };
+                                        case 'confirmed':
+                                            return { label: 'Đã xác nhận', class: 'status-confirmed' };
+                                        case 'pending':
+                                            return { label: 'Đang chờ', class: 'status-pending' };
+                                        case 'Đã hủy':
+                                            return { label: 'Đã hủy', class: 'status-cancelled' };
+                                        case 'Hoàn thành':
+                                            return { label: 'Hoàn thành', class: 'status-completed' };
+                                        case 'cancelled':
+                                            return { label: 'Đã hủy', class: 'status-cancelled' };
+                                        case 'completed':
+                                            return { label: 'Hoàn thành', class: 'status-completed' };
+                                        default:
+                                            return { label: status, class: 'status-default' };
+                                    }
+                                };
+                                
+                                const statusInfo = getStatusInfo(booking.status);
 
                                 return (
-                                    <div key={booking.id || booking.booking_id} className="booking-card">
+                                    <div key={booking.id || booking.booking_id} className={`booking-card ${booking.status === 'Đã hủy' || booking.status === 'cancelled' ? 'booking-cancelled' : ''} ${booking.status === 'Hoàn thành' || booking.status === 'completed' ? 'booking-completed' : ''}`}>
                                         <div className="booking-card-header">
                                             <div className="consultant-avatar">
                                                 <img
@@ -312,10 +380,8 @@ const BookingPage = () => {
                                                     {consultant ? getSpecializationFromSpeciality(consultant.speciality) : 'Tư vấn viên chuyên nghiệp'}
                                                 </p>
                                             </div>
-                                            <div className={`booking-status ${statusClass}`}>
-                                                {booking.status === 'confirmed' ? 'Đã xác nhận' :
-                                                    booking.status === 'pending' ? 'Đang chờ' :
-                                                        booking.status === 'cancelled' ? 'Đã hủy' : booking.status}
+                                            <div className={`booking-status ${statusInfo.class}`}>
+                                                {statusInfo.label}
                                             </div>
                                         </div>
                                         <div className="booking-card-body">
@@ -330,7 +396,17 @@ const BookingPage = () => {
                                                 </div>
                                             </div>
                                             <div className="booking-actions">
-                                                {hasMeetLink ? (
+                                                {booking.status === 'Đã hủy' || booking.status === 'cancelled' ? (
+                                                    <button className="btn-meet disabled" disabled>
+                                                        <i className="bi bi-x-circle me-2"></i>
+                                                        Đã hủy
+                                                    </button>
+                                                ) : booking.status === 'Hoàn thành' || booking.status === 'completed' ? (
+                                                    <button className="btn-meet disabled" disabled>
+                                                        <i className="bi bi-check-circle me-2"></i>
+                                                        Đã hoàn thành
+                                                    </button>
+                                                ) : hasMeetLink ? (
                                                     <a
                                                         href={booking.google_meet_link}
                                                         target="_blank"
@@ -357,7 +433,12 @@ const BookingPage = () => {
                             <div className="no-bookings-icon">
                                 <i className="bi bi-calendar-x"></i>
                             </div>
-                            <h4>Bạn chưa có lịch hẹn nào</h4>
+                            <h4>
+                                {showAllBookings 
+                                    ? 'Bạn chưa có lịch hẹn nào' 
+                                    : 'Bạn chưa có lịch hẹn đang hoạt động'
+                                }
+                            </h4>
                             <p>Hãy đặt lịch với các chuyên gia của chúng tôi để được tư vấn.</p>
                         </div>
                     )}
