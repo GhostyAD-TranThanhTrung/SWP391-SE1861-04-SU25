@@ -18,7 +18,7 @@ const DashboardPage = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       )
       if (!(res.data.role && res.data.role === 'admin')) navigate('/admin/login')
-    } catch{
+    } catch {
       navigate('/admin/login')
     }
 
@@ -60,110 +60,109 @@ const DashboardPage = () => {
       });
   }, []);
 
- // User Stats Chart (chỉ còn Hoạt động, Không hoạt động, Bị cấm)
- useEffect(() => {
-  if (userStatsCanvasRef.current && dashboardData.userStats && Object.keys(dashboardData.userStats).length > 0) {
-    const ctx = userStatsCanvasRef.current.getContext('2d');
-    if (userStatsChartInstance.current) {
-      userStatsChartInstance.current.destroy();
-    }
-    userStatsChartInstance.current = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: [
-          'Hoạt động',
-          'Không hoạt động',
-          'Bị cấm'
-        ],
-        datasets: [
-          {
-            label: 'Thống kê người dùng',
-            data: [
-              dashboardData.userStats.active,
-              dashboardData.userStats.inactive,
-              dashboardData.userStats.banned
-            ],
-            backgroundColor: ['#4BC0C0', '#FFCE56', '#FF6384']
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          x: {
-            ticks: {
-              align: 'center',
-              maxRotation: 0,
-              minRotation: 0,
-              autoSkip: false,
-              font: {
-                size: 12
+  // User Stats Chart (chỉ còn Hoạt động, Không hoạt động, Bị cấm)
+  useEffect(() => {
+    if (userStatsCanvasRef.current && dashboardData.userStats && Object.keys(dashboardData.userStats).length > 0) {
+      const ctx = userStatsCanvasRef.current.getContext('2d');
+      if (userStatsChartInstance.current) {
+        userStatsChartInstance.current.destroy();
+      }
+      userStatsChartInstance.current = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: [
+            'Hoạt động',
+            'Không hoạt động',
+            'Bị cấm'
+          ],
+          datasets: [
+            {
+              label: 'Thống kê người dùng',
+              data: [
+                dashboardData.userStats.active,
+                dashboardData.userStats.inactive,
+                dashboardData.userStats.banned
+              ],
+              backgroundColor: ['#4BC0C0', '#FFCE56', '#FF6384']
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              ticks: {
+                align: 'center',
+                maxRotation: 0,
+                minRotation: 0,
+                autoSkip: false,
+                font: {
+                  size: 12
+                }
               }
             }
           }
         }
-      }
-    });
-  }
-}, [dashboardData.userStats]);
+      });
+    }
+  }, [dashboardData.userStats]);
 
-// Booking Stats Chart (bỏ cột Hàng tháng)
-useEffect(() => {
-  if (
-    bookingStatsCanvasRef.current &&
-    dashboardData.bookingStats &&
-    Object.keys(dashboardData.bookingStats).length > 0
-  ) {
-    const ctx = bookingStatsCanvasRef.current.getContext('2d');
-    if (bookingStatsChartInstance.current) {
-      bookingStatsChartInstance.current.destroy();
-    }
-    const bookingStatsData = dashboardData.bookingStats;
-    bookingStatsChartInstance.current = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: [
-          'Hoàn thành',
-          'Lên lịch',
-          'Đã hủy',
-          ['Đang chờ', 'xác nhận'],
-          ['Xác nhận', 'thành công']
-        ],
-        datasets: [
-          {
-            label: 'Thống kê đặt lịch',
-            data: [
-              bookingStatsData.completed,
-              bookingStatsData.scheduled,
-              bookingStatsData.cancelled,
-              bookingStatsData.pending,
-              bookingStatsData.confirmed,
-            ],
-            backgroundColor: ['#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40']
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          x: {
-            ticks: {
-              align: 'center',
-              maxRotation: 0,
-              minRotation: 0,
-              autoSkip: false,
-              font: {
-                size: 12
+  // Booking Stats Chart (bỏ cột Hàng tháng)
+  useEffect(() => {
+    if (
+      bookingStatsCanvasRef.current &&
+      dashboardData.bookingStats &&
+      Object.keys(dashboardData.bookingStats).length > 0
+    ) {
+      const ctx = bookingStatsCanvasRef.current.getContext('2d');
+      if (bookingStatsChartInstance.current) {
+        bookingStatsChartInstance.current.destroy();
+      }
+      const bookingStatsData = dashboardData.bookingStats;
+      bookingStatsChartInstance.current = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: [
+            'Hoàn thành',
+            'Đã hủy',
+            ['Đang chờ', 'xác nhận'],
+            ['Xác nhận', 'thành công']
+          ],
+          datasets: [
+            {
+              label: 'Thống kê đặt lịch',
+              data: [
+                bookingStatsData.completed,
+                bookingStatsData.scheduled,
+                bookingStatsData.cancelled,
+                bookingStatsData.pending,
+                bookingStatsData.confirmed,
+              ],
+              backgroundColor: ['#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40']
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              ticks: {
+                align: 'center',
+                maxRotation: 0,
+                minRotation: 0,
+                autoSkip: false,
+                font: {
+                  size: 12
+                }
               }
             }
           }
         }
-      }
-    });
-  }
-}, [dashboardData.bookingStats]);
+      });
+    }
+  }, [dashboardData.bookingStats]);
 
   return (
     <div className="dashboard-container">

@@ -8,7 +8,7 @@ const AdminLoginPage = () => {
     const emailRef = useRef(null);
     const passwordRef = useRef(null);
     const [error, setError] = useState('');
-    const navigate = useNavigate();    
+    const navigate = useNavigate();
 
     async function login() {
         try {
@@ -25,19 +25,19 @@ const AdminLoginPage = () => {
             console.log('Dữ liệu trả về từ API:', response.data);
 
             console.log('Đăng nhập thành công, email:', email);
-                emailRef.current.value = '';
-                passwordRef.current.value = '';                
-                localStorage.setItem("email2", email);
-                sessionStorage.setItem("token", response.data.token);
+            emailRef.current.value = '';
+            passwordRef.current.value = '';
+            localStorage.setItem("email2", email);
+            sessionStorage.setItem("token", response.data.token);
 
             if (response.data.user.role === 'admin' || response.data.user.role === 'staff' || response.data.user.role === 'manager') {
                 navigate('/dashboard');
-            } 
+            }
 
             else if (response.data.user.role === 'consultant') {
                 navigate('/manage-booking');
-            } 
-            
+            }
+
             else {
                 setError('Truy cập bị từ chối. Yêu cầu quyền quản trị viên.');
             }
@@ -54,8 +54,8 @@ const AdminLoginPage = () => {
         >
             <div className="login-blur-box d-flex justify-content-center align-items-center">
                 <div className="login-form-container text-center">
-                    <h2 className="mb-4">Đăng nhập Admin</h2>
-                    
+                    <h2 className="mb-4">Đăng nhập nhân viên</h2>
+
                     {error && <div className="alert alert-danger mb-3">{error}</div>}
 
                     <form onSubmit={(e) => {
@@ -96,11 +96,11 @@ const AdminLoginPage = () => {
                         </button>
 
                         <div className="mt-3">
-                        <p className="small">
-                            Quay về trang chủ?{' '}
-                            <Link to={'/'}>Trang chủ</Link>
-                        </p>
-                    </div>
+                            <p className="small">
+                                Quay về trang chủ?{' '}
+                                <Link to={'/'}>Trang chủ</Link>
+                            </p>
+                        </div>
                     </form>
                 </div>
             </div>
