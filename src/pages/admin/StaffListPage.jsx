@@ -39,7 +39,7 @@ const StaffListPage = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       )
       if (!(res.data.role && res.data.role === 'admin')) navigate('/admin/login')
-    } catch{
+    } catch {
       navigate('/admin/login')
     }
 
@@ -241,7 +241,7 @@ const StaffListPage = () => {
   };
 
   // Filter staffs theo status
-  const filteredStaffs = staffs.filter(s => 
+  const filteredStaffs = staffs.filter(s =>
     filterStatus === 'all' || s.status === filterStatus
   );
 
@@ -435,7 +435,6 @@ const StaffListPage = () => {
                     className="form-select"
                   >
                     <option value="">Chọn trình độ học vấn</option>
-                    <option value="Trung học phổ thông">Trung học phổ thông</option>
                     <option value="Cao đẳng">Cao đẳng</option>
                     <option value="Đại học">Đại học</option>
                     <option value="Thạc sĩ">Thạc sĩ</option>

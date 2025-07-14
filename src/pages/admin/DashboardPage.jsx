@@ -134,7 +134,6 @@ const DashboardPage = () => {
               label: 'Thống kê đặt lịch',
               data: [
                 bookingStatsData.completed,
-                bookingStatsData.scheduled,
                 bookingStatsData.cancelled,
                 bookingStatsData.pending,
                 bookingStatsData.confirmed,

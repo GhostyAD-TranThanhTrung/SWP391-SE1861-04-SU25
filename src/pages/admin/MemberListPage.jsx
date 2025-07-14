@@ -266,7 +266,7 @@ const MemberListPage = () => {
               <MdCancel size={28} />
             </span>
             <h2 style={{ fontWeight: 700, marginBottom: 24 }}>Chi tiết thành viên</h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', textAlign: 'center' }}>
               <div className="member-detail-row">
                 <span className="member-detail-label">Tên: {' '}</span>
                 <span className="member-detail-value">{selectedMember.profile?.name}</span>
@@ -306,15 +306,17 @@ const MemberListPage = () => {
 
       {/* Edit Member Popup */}
       {showPopup && editingMemberId && editMemberData && (
-        <div className="popup" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="popup-content" style={{ minWidth: 400, maxWidth: 500, padding: 32, borderRadius: 16, boxShadow: '0 2px 16px rgba(0,0,0,0.15)' }}>
-            <span className="close" onClick={handleClosePopup} style={{ position: 'absolute', top: 16, right: 16, cursor: 'pointer' }}>
+        <div className="popup">
+          <div className="popup-content">
+            <span className="close" onClick={handleClosePopup}>
               <MdCancel size={28} />
             </span>
             <div className="form">
-              <h2 style={{ textAlign: 'center', fontWeight: 700, marginBottom: 24 }}>Chỉnh sửa thành viên</h2>
-              <form className="form-grid" onSubmit={handleUpdateSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <div style={{ display: 'flex', gap: 12 }}>
+              <h2>Chỉnh sửa thành viên</h2>
+              <form className="form-grid" onSubmit={handleUpdateSubmit}>
+                {/* Email */}
+                <div className="form-group">
+                  <label className="form-label">Email *</label>
                   <input
                     type="text"
                     name="email"
@@ -323,33 +325,39 @@ const MemberListPage = () => {
                     onChange={handleEditChange}
                     required
                     disabled
-                    style={{ flex: 1 }}
+                    className="form-input"
                   />
+                </div>
+                {/* Mật khẩu */}
+                <div className="form-group">
+                  <label className="form-label">Mật khẩu *</label>
+                  <input
+                    type="password"
+                    name="password"
+                    placeholder="Mật khẩu"
+                    value={editMemberData?.password || ""}
+                    disabled
+                    className="form-input"
+                  />
+                </div>
+                {/* Vai trò */}
+                <div className="form-group">
+                  <label className="form-label">Vai trò *</label>
                   <select
                     name="role"
                     value={editMemberData?.role || ""}
                     onChange={handleEditChange}
                     required
                     disabled
-                    style={{ flex: 1 }}
+                    className="form-select"
                   >
                     <option value="">Chọn vai trò</option>
                     <option value="member">Member</option>
                   </select>
                 </div>
-                <div style={{ display: 'flex', gap: 12 }}>
-                  <select
-                    name="status"
-                    value={editMemberData?.status || ""}
-                    onChange={handleEditChange}
-                    required
-                    style={{ flex: 1 }}
-                  >
-                    <option value="">Chọn trạng thái</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                    <option value="banned">Banned</option>
-                  </select>
+                {/* Tên */}
+                <div className="form-group">
+                  <label className="form-label">Tên *</label>
                   <input
                     type="text"
                     name="name"
@@ -358,10 +366,12 @@ const MemberListPage = () => {
                     onChange={handleEditChange}
                     required
                     disabled
-                    style={{ flex: 1 }}
+                    className="form-input"
                   />
                 </div>
-                <div style={{ display: 'flex', gap: 12 }}>
+                {/* Tiểu sử */}
+                <div className="form-group">
+                  <label className="form-label">Tiểu sử</label>
                   <input
                     type="text"
                     name="bio"
@@ -369,27 +379,37 @@ const MemberListPage = () => {
                     value={editMemberData?.bio || ""}
                     onChange={handleEditChange}
                     disabled
-                    style={{ flex: 1 }}
+                    className="form-input"
                   />
+                </div>
+                {/* Sở thích */}
+                <div className="form-group">
+                  <label className="form-label">Sở thích</label>
                   <input
                     type="text"
-                    name="education"
-                    placeholder="Học vấn"
+                    name="interests"
+                    placeholder="Sở thích"
                     value={editMemberData?.interests || ""}
                     onChange={handleEditChange}
                     disabled
-                    style={{ flex: 1 }}
+                    className="form-input"
                   />
                 </div>
-                <div style={{ display: 'flex', gap: 12 }}>
+                {/* Ngày sinh */}
+                <div className="form-group">
+                  <label className="form-label">Ngày sinh</label>
                   <input
                     type="date"
                     name="date_of_birth"
                     value={editMemberData?.date_of_birth || ""}
                     onChange={handleEditChange}
                     disabled
-                    style={{ flex: 1 }}
+                    className="form-input"
                   />
+                </div>
+                {/* Công việc */}
+                <div className="form-group">
+                  <label className="form-label">Công việc</label>
                   <input
                     type="text"
                     name="job"
@@ -397,10 +417,29 @@ const MemberListPage = () => {
                     value={editMemberData?.job || ""}
                     onChange={handleEditChange}
                     disabled
-                    style={{ flex: 1 }}
+                    className="form-input"
                   />
                 </div>
-                <button type="submit" className="form-button" style={{ margin: '0 auto', width: 160, marginTop: 12 }}>
+                {/* Trạng thái */}
+                <div className="form-group">
+                  <label className="form-label">Trạng thái</label>
+                  <select
+                    name="status"
+                    value={editMemberData?.status || ""}
+                    onChange={handleEditChange}
+                    required
+                    className="form-select"
+                  >
+                    <option value="">Chọn trạng thái</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="banned">Banned</option>
+                  </select>
+                </div>
+                {/* Empty div for grid alignment */}
+                <div></div>
+                {/* Nút cập nhật */}
+                <button type="submit" className="form-button">
                   Cập nhật
                 </button>
               </form>

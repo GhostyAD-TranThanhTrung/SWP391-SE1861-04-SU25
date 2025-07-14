@@ -142,7 +142,7 @@ const AssessmentListPage = () => {
                       const resultData = typeof assessment.result_json === 'string'
                         ? JSON.parse(assessment.result_json)
                         : assessment.result_json;
-                      return resultData && resultData.total_score !== undefined ? resultData.total_score : '';
+                      return resultData && resultData.score !== undefined ? resultData.score : '';
                     } catch {
                       return '';
                     }

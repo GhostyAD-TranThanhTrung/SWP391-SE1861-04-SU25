@@ -24,9 +24,21 @@ const DetailBlogPage = () => {
                 const res = await fetch(`http://localhost:3000/api/blogs/${id}`);
                 if (!res.ok) throw new Error('Không thể tải dữ liệu bài viết');
                 const data = await res.json();
-                // Làm sạch và định dạng lại nội dung trước khi set
-                const cleanedContent = cleanBlogContent(data.data.content || data.data.body);
-                setBlog({ ...data.data, content: cleanedContent });
+
+                // Normalize the blog data to handle different API response formats
+                const blogData = data.data || data;
+                console.log('Blog data structure:', blogData); // Debug log
+                const normalizedBlog = {
+                    ...blogData,
+                    content: cleanBlogContent(blogData.content || blogData.body),
+                    // Handle author field - extract name from object if needed
+                    author_name: typeof blogData.author === 'string' ? blogData.author :
+                        blogData.author?.email || blogData.author_name || 'Tác giả',
+                    author_id: typeof blogData.author === 'object' ? blogData.author?.user_id : blogData.author_id
+                };
+                console.log('Normalized blog:', normalizedBlog); // Debug log
+
+                setBlog(normalizedBlog);
                 window.scrollTo(0, 0);
             } catch (err) {
                 setError(err.message);
@@ -59,8 +71,21 @@ const DetailBlogPage = () => {
     const cleanBlogContent = (content) => {
         if (!content) return '<p>Nội dung bài viết sẽ được cập nhật sớm.</p>';
 
+        // Handle different content formats from API
+        let processedContent = content;
+
+        // If content is an object, try to extract text
+        if (typeof content === 'object') {
+            processedContent = content.text || content.body || content.content || JSON.stringify(content);
+        }
+
+        // Ensure content is a string
+        if (typeof processedContent !== 'string') {
+            processedContent = String(processedContent);
+        }
+
         // Loại bỏ các thẻ không hợp lệ và đóng đúng các thẻ
-        let cleaned = content
+        let cleaned = processedContent
             .replace(/<h3>\s*★/g, '<h3>') // Xóa ký tự ★ không mong muốn
             .replace(/<\/h3>\s*<p>/g, '</h3><div class="content-break"></div><p>') // Thêm phân cách giữa h3 và p
             .replace(/<li>\s*<(\/)?li>/g, '<li>$1</li>') // Sửa lỗi lồng thẻ li
@@ -72,7 +97,9 @@ const DetailBlogPage = () => {
 
     useEffect(() => {
         if (blog && currentUser) {
-            setIsOwnBlog(blog.author_id === currentUser.userId);
+            // Handle both direct author_id and extracted author.user_id
+            const blogAuthorId = blog.author_id || blog.author?.user_id;
+            setIsOwnBlog(blogAuthorId === currentUser.userId);
         }
     }, [blog, currentUser]);
 
@@ -159,15 +186,20 @@ const DetailBlogPage = () => {
         );
     }
 
-    const formattedDate = blog.date
-        ? new Date(blog.date).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
-        : new Date(blog.createdAt).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    // Hàm định dạng ngày với kiểm tra hợp lệ
+    const getFormattedDate = (dateStr) => {
+        const date = new Date(dateStr);
+        return isNaN(date.getTime()) ? 'Ngày không hợp lệ' : date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    };
+
+    const formattedDate = getFormattedDate(blog.created_at);
 
     return (
         <div className="detail-blog-page">
             <div className="container blog-container">
                 <nav className="breadcrumb-nav">
-                    <Link to="/">Trang chủ</Link> / <Link to="/blog">Blog</Link> / <span className="current-blog">{blog.title}</span>
+                    <Link to="/">Trang chủ</Link> / <Link to="/blog">Blog</Link> /
+                    <span className="current-blog">{blog.title || 'Bài viết'}</span>
                 </nav>
 
                 <article className="blog-article">
@@ -194,12 +226,16 @@ const DetailBlogPage = () => {
                         )}
                     </div>
 
-                    <h1 className="blog-title improved-blog-title">{blog.title}</h1>
+                    <h1 className="blog-title improved-blog-title">
+                        {blog.title || 'Tiêu đề bài viết'}
+                    </h1>
 
                     <div className="blog-author-info improved-blog-author">
                         <i className="bi bi-person-circle avatar"></i>
                         <div>
-                            <div className="author-name">{blog.author || 'Tác giả'}</div>
+                            <div className="author-name">
+                                {blog.author_name || 'Tác giả'}
+                            </div>
                             <div className="author-role">Chuyên gia tư vấn</div>
                         </div>
                     </div>
@@ -219,13 +255,6 @@ const DetailBlogPage = () => {
                         ) : (
                             <p>Nội dung bài viết sẽ được cập nhật sớm.</p>
                         )}
-                    </div>
-
-                    <div className="blog-tags mt-3 improved-blog-tags">
-                        <i className="bi bi-tags me-1"></i>
-                        <span className="tag">Sức khỏe</span>
-                        <span className="tag">Tâm lý</span>
-                        <span className="tag">Tư vấn</span>
                     </div>
 
                     <div className="text-center mt-4">

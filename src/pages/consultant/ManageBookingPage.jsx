@@ -72,7 +72,7 @@ const ManageBookingPage = () => {
       }
 
       const consultantId = consultantResponse.data.data.consultant_id;
-
+      console.log(consultantId);
       // Get booking sessions for this consultant
       const res = await axios.get(`http://localhost:3000/api/booking-sessions/consultant/${consultantId}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -146,14 +146,14 @@ const ManageBookingPage = () => {
       console.log('Member ID:', memberId);
       console.log('API URL:', `http://localhost:3000/api/members/detailed/${memberId}`);
       console.log('Token exists:', !!token);
-      
+
       const res = await axios.get(`http://localhost:3000/api/members/detailed/${memberId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       console.log('API Response Status:', res.status);
       console.log('API Response Data:', res.data);
-      
+
       if (res.data.success) {
         console.log('Member detail data received:', res.data.data);
         setSelectedMemberDetail(res.data.data);
@@ -514,9 +514,9 @@ const ManageBookingPage = () => {
 
       {showMemberDetailPopup && selectedMemberDetail && (
         <div className="popup" style={{ zIndex: 1050 }}>
-          <div className="popup-content" style={{ 
-            maxWidth: '800px', 
-            maxHeight: '90vh', 
+          <div className="popup-content" style={{
+            maxWidth: '800px',
+            maxHeight: '90vh',
             overflowY: 'auto',
             backgroundColor: '#ffffff',
             borderRadius: '10px',
@@ -534,353 +534,295 @@ const ManageBookingPage = () => {
               <MdCancel />
             </span>
             <div style={{ padding: '20px' }}>
-              <h4 style={{ 
-                marginBottom: '20px', 
+              <h4 style={{
+                marginBottom: '20px',
                 color: '#333',
                 borderBottom: '2px solid #007bff',
                 paddingBottom: '10px',
                 fontSize: '1.5rem'
               }}>Chi tiết thông tin thành viên</h4>
-            
-            {/* Basic Information Section */}
-            <div className="info-section" style={{
-              backgroundColor: '#f8f9fa',
-              padding: '15px',
-              borderRadius: '8px',
-              marginBottom: '20px',
-              border: '1px solid #e9ecef'
-            }}>
-              <h5 style={{ 
-                color: '#495057', 
-                marginBottom: '15px',
-                fontSize: '1.1rem',
-                borderBottom: '1px solid #dee2e6',
-                paddingBottom: '8px'
-              }}>🧑‍💼 Thông tin cơ bản</h5>
-              
-              <div className="row">
-                <div className="col-md-6">
-                  <div className="member-detail-row">
-                    <span className="member-detail-label">ID thành viên:</span>
-                    <span className="member-detail-value">{selectedMemberDetail.user?.user_id || selectedMemberDetail.profile?.user_id || 'Chưa cập nhật'}</span>
-                  </div>
-                  <div className="member-detail-row">
-                    <span className="member-detail-label">Họ và tên:</span>
-                    <span className="member-detail-value" style={{ fontWeight: 'bold' }}>{selectedMemberDetail.profile?.name || 'Chưa cập nhật'}</span>
-                  </div>
-                  <div className="member-detail-row">
-                    <span className="member-detail-label">Email:</span>
-                    <span className="member-detail-value">{selectedMemberDetail.user?.email || 'Chưa cập nhật'}</span>
-                  </div>
-                  <div className="member-detail-row">
-                    <span className="member-detail-label">Nghề nghiệp:</span>
-                    <span className="member-detail-value">{selectedMemberDetail.profile?.job || 'Chưa cập nhật'}</span>
-                  </div>
-                </div>
-                <div className="col-md-6">
-                  <div className="member-detail-row">
-                    <span className="member-detail-label">Ngày sinh:</span>
-                    <span className="member-detail-value">
-                      {selectedMemberDetail.profile?.date_of_birth ? 
-                        new Date(selectedMemberDetail.profile.date_of_birth).toLocaleDateString('vi-VN') : 
-                        'Chưa cập nhật'}
-                    </span>
-                  </div>
-                  <div className="member-detail-row">
-                    <span className="member-detail-label">Vai trò:</span>
-                    <span className="member-detail-value">{selectedMemberDetail.user?.role || 'Chưa cập nhật'}</span>
-                  </div>
-                  <div className="member-detail-row">
-                    <span className="member-detail-label">Trạng thái:</span>
-                    <span className="member-detail-value">
-                      <span className={`status-badge ${selectedMemberDetail.user?.status?.toLowerCase()}`}>
-                        {selectedMemberDetail.user?.status || 'Không xác định'}
-                      </span>
-                    </span>
-                  </div>
-                  <div className="member-detail-row">
-                    <span className="member-detail-label">Ngày tạo tài khoản:</span>
-                    <span className="member-detail-value">
-                      {selectedMemberDetail.user?.date_created ? 
-                        new Date(selectedMemberDetail.user.date_created).toLocaleDateString('vi-VN') : 
-                        'Chưa cập nhật'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Profile & Bio Section */}
-            <div className="info-section" style={{
-              backgroundColor: '#f8f9fa',
-              padding: '15px',
-              borderRadius: '8px',
-              marginBottom: '20px',
-              border: '1px solid #e9ecef'
-            }}>
-              <h5 style={{ 
-                color: '#495057', 
-                marginBottom: '15px',
-                fontSize: '1.1rem',
-                borderBottom: '1px solid #dee2e6',
-                paddingBottom: '8px'
-              }}>👤 Thông tin cá nhân</h5>
-              
-              <div className="row">
-                {selectedMemberDetail.user?.img_link && (
-                  <div className="col-md-4 text-center">
-                    <div className="member-detail-row">
-                      <span className="member-detail-label">Ảnh đại diện:</span>
-                      <div style={{ marginTop: '10px' }}>
-                        <img 
-                          src={selectedMemberDetail.user.img_link} 
-                          alt="Profile" 
-                          style={{ 
-                            width: '80px', 
-                            height: '80px', 
-                            borderRadius: '50%', 
-                            objectFit: 'cover',
-                            border: '3px solid #007bff',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                <div className={selectedMemberDetail.user?.img_link ? "col-md-8" : "col-md-12"}>
-                  {selectedMemberDetail.profile?.bio_json && (
-                    <div className="member-detail-row">
-                      <span className="member-detail-label">Thông tin cá nhân:</span>
-                      <div style={{ 
-                        backgroundColor: '#ffffff',
-                        padding: '10px',
-                        borderRadius: '5px',
-                        border: '1px solid #dee2e6',
-                        marginTop: '5px'
-                      }}>
-                        <span className="member-detail-value">{selectedMemberDetail.profile.bio_json}</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-            
-            {/* Assessment Summary Section */}
-            <div className="info-section" style={{
-              backgroundColor: '#e3f2fd',
-              padding: '15px',
-              borderRadius: '8px',
-              marginBottom: '20px',
-              border: '1px solid #bbdefb'
-            }}>
-              <h5 style={{ 
-                color: '#1565c0', 
-                marginBottom: '15px',
-                fontSize: '1.1rem',
-                borderBottom: '1px solid #90caf9',
-                paddingBottom: '8px'
-              }}>📊 Tổng quan đánh giá</h5>
-              
-              <div className="member-detail-row">
-                <span className="member-detail-label">Số lượng đánh giá:</span>
-                <span className="member-detail-value">
-                  <span style={{
-                    backgroundColor: '#1976d2',
-                    color: 'white',
-                    padding: '4px 12px',
-                    borderRadius: '15px',
-                    fontSize: '0.9em',
-                    fontWeight: 'bold'
-                  }}>
-                    {selectedMemberDetail.assessment_count || 0} lần
-                  </span>
-                </span>
-              </div>
-            </div>
-            
-            {/* Assessment Details */}
-            {selectedMemberDetail.assessments && selectedMemberDetail.assessments.length > 0 && (
+
+              {/* Basic Information Section */}
               <div className="info-section" style={{
-                backgroundColor: '#fff3e0',
+                backgroundColor: '#f8f9fa',
                 padding: '15px',
                 borderRadius: '8px',
                 marginBottom: '20px',
-                border: '1px solid #ffcc02'
+                border: '1px solid #e9ecef'
               }}>
-                <h5 style={{ 
-                  color: '#e65100', 
+                <h5 style={{
+                  color: '#495057',
                   marginBottom: '15px',
                   fontSize: '1.1rem',
-                  borderBottom: '1px solid #ffb74d',
+                  borderBottom: '1px solid #dee2e6',
                   paddingBottom: '8px'
-                }}>📋 Lịch sử đánh giá chi tiết</h5>
-                {selectedMemberDetail.assessments.map((assessment, index) => {
-                  // Parse result_json to extract meaningful data
-                  let parsedResult = null;
-                  let totalScore = 0;
-                  let questionCount = 0;
-                  
-                  try {
-                    if (assessment.result_json) {
-                      parsedResult = JSON.parse(assessment.result_json);
-                      if (parsedResult.result && Array.isArray(parsedResult.result)) {
-                        questionCount = parsedResult.result.length;
-                        totalScore = parsedResult.score || 0;
-                      }
-                    }
-                  } catch (e) {
-                    console.error('Error parsing assessment result:', e);
-                  }
+                }}>🧑‍💼 Thông tin cơ bản</h5>
 
-                                     return (
-                     <div key={index} className="assessment-item" style={{ 
-                       backgroundColor: '#ffffff', 
-                       padding: '20px', 
-                       margin: '15px 0', 
-                       borderRadius: '10px',
-                       border: '2px solid #e9ecef',
-                       boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                       transition: 'all 0.3s ease'
-                     }}>
-                      <div className="member-detail-row">
-                        <span className="member-detail-label">Loại đánh giá:</span>
-                        <span className="member-detail-value">
-                          <strong style={{ 
-                            color: assessment.type === 'assist' ? '#28a745' : 
-                                   assessment.type === 'crafft' ? '#007bff' : '#6c757d',
-                            textTransform: 'uppercase'
-                          }}>
-                            {assessment.type || 'Chưa xác định'}
-                          </strong>
+                <div className="row">
+                  <div className="col-md-6">
+                    <div className="member-detail-row">
+                      <span className="member-detail-label">ID thành viên:</span>
+                      <span className="member-detail-value">{selectedMemberDetail.user?.user_id || selectedMemberDetail.profile?.user_id || 'Chưa cập nhật'}</span>
+                    </div>
+                    <div className="member-detail-row">
+                      <span className="member-detail-label">Họ và tên:</span>
+                      <span className="member-detail-value" style={{ fontWeight: 'bold' }}>{selectedMemberDetail.profile?.name || 'Chưa cập nhật'}</span>
+                    </div>
+                    <div className="member-detail-row">
+                      <span className="member-detail-label">Email:</span>
+                      <span className="member-detail-value">{selectedMemberDetail.user?.email || 'Chưa cập nhật'}</span>
+                    </div>
+                    <div className="member-detail-row">
+                      <span className="member-detail-label">Nghề nghiệp:</span>
+                      <span className="member-detail-value">{selectedMemberDetail.profile?.job || 'Chưa cập nhật'}</span>
+                    </div>
+                  </div>
+                  <div className="col-md-6">
+                    <div className="member-detail-row">
+                      <span className="member-detail-label">Ngày sinh:</span>
+                      <span className="member-detail-value">
+                        {selectedMemberDetail.profile?.date_of_birth ?
+                          new Date(selectedMemberDetail.profile.date_of_birth).toLocaleDateString('vi-VN') :
+                          'Chưa cập nhật'}
+                      </span>
+                    </div>
+                    <div className="member-detail-row">
+                      <span className="member-detail-label">Vai trò:</span>
+                      <span className="member-detail-value">{selectedMemberDetail.user?.role || 'Chưa cập nhật'}</span>
+                    </div>
+                    <div className="member-detail-row">
+                      <span className="member-detail-label">Trạng thái:</span>
+                      <span className="member-detail-value">
+                        <span className={`status-badge ${selectedMemberDetail.user?.status?.toLowerCase()}`}>
+                          {selectedMemberDetail.user?.status || 'Không xác định'}
                         </span>
-                      </div>
-                      <div className="member-detail-row">
-                        <span className="member-detail-label">Mô tả:</span>
-                        <span className="member-detail-value">{assessment.description || 'Không có mô tả'}</span>
-                      </div>
-                      <div className="member-detail-row">
-                        <span className="member-detail-label">Ngày thực hiện:</span>
-                        <span className="member-detail-value">
-                          {assessment.created_at ? 
-                            new Date(assessment.created_at).toLocaleDateString('vi-VN', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            }) : 
-                            'Chưa cập nhật'}
-                        </span>
-                      </div>
-                      
-                      {parsedResult && (
-                        <div className="assessment-results" style={{ marginTop: '15px' }}>
-                          <div className="result-summary" style={{
-                            backgroundColor: '#fff',
-                            padding: '10px',
-                            borderRadius: '5px',
-                            border: '1px solid #dee2e6',
-                            marginBottom: '10px'
-                          }}>
-                                                         <div className="member-detail-row">
-                               <span className="member-detail-label">Tổng điểm:</span>
-                               <span className="member-detail-value">
-                                 <strong style={{ 
-                                   color: totalScore >= 15 ? '#dc3545' : 
-                                          totalScore >= 10 ? '#fd7e14' : 
-                                          totalScore >= 5 ? '#ffc107' : '#28a745',
-                                   fontSize: '1.1em'
-                                 }}>
-                                   {totalScore}
-                                 </strong>
-                               </span>
-                             </div>
-                            <div className="member-detail-row">
-                              <span className="member-detail-label">Số câu hỏi:</span>
-                              <span className="member-detail-value">{questionCount} câu</span>
-                            </div>
-                            <div className="member-detail-row">
-                              <span className="member-detail-label">Mức độ rủi ro:</span>
-                              <span className="member-detail-value">
-                                <span style={{ 
-                                  padding: '3px 8px',
-                                  borderRadius: '3px',
-                                  fontSize: '0.9em',
-                                  fontWeight: 'bold',
-                                  color: 'white',
-                                  backgroundColor: totalScore >= 15 ? '#dc3545' : 
-                                                   totalScore >= 10 ? '#fd7e14' : 
-                                                   totalScore >= 5 ? '#ffc107' : '#28a745'
-                                }}>
-                                  {totalScore >= 15 ? 'Cao' : 
-                                   totalScore >= 10 ? 'Trung bình' : 
-                                   totalScore >= 5 ? 'Thấp' : 'Rất thấp'}
-                                </span>
-                              </span>
-                            </div>
-                          </div>
-                          
-                                                     {parsedResult.result && (
-                             <div className="question-details">
-                               <h6 style={{ 
-                                 margin: '15px 0 10px 0', 
-                                 color: '#495057',
-                                 fontSize: '1rem',
-                                 fontWeight: 'bold'
-                               }}>💭 Chi tiết câu trả lời:</h6>
-                               <div style={{ 
-                                 maxHeight: '250px', 
-                                 overflowY: 'auto',
-                                 backgroundColor: '#f8f9fa',
-                                 padding: '10px',
-                                 borderRadius: '8px',
-                                 border: '1px solid #e9ecef'
-                               }}>
-                                                                 {parsedResult.result.map((question, qIndex) => (
-                                   <div key={qIndex} style={{
-                                     padding: '8px 12px',
-                                     margin: '4px 0',
-                                     backgroundColor: question.score > 2 ? '#ffebee' : '#f1f8e9',
-                                     borderRadius: '6px',
-                                     fontSize: '0.9em',
-                                     borderLeft: `4px solid ${question.score > 2 ? '#f44336' : '#4caf50'}`,
-                                     boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                                   }}>
-                                    <strong>Q{question.questionId}:</strong> 
-                                    <span style={{ marginLeft: '5px' }}>
-                                      Lựa chọn {question.selectedOption} 
-                                      <span style={{ 
-                                        color: question.score > 2 ? '#d32f2f' : '#388e3c',
-                                        fontWeight: 'bold',
-                                        marginLeft: '5px'
-                                      }}>
-                                        ({question.score} điểm)
-                                      </span>
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      
-                      {!parsedResult && assessment.result_json && (
+                      </span>
+                    </div>
+                    <div className="member-detail-row">
+                      <span className="member-detail-label">Ngày tạo tài khoản:</span>
+                      <span className="member-detail-value">
+                        {selectedMemberDetail.user?.date_created ?
+                          new Date(selectedMemberDetail.user.date_created).toLocaleDateString('vi-VN') :
+                          'Chưa cập nhật'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Assessment Summary Section */}
+              <div className="info-section" style={{
+                backgroundColor: '#e3f2fd',
+                padding: '15px',
+                borderRadius: '8px',
+                marginBottom: '20px',
+                border: '1px solid #bbdefb'
+              }}>
+                <h5 style={{
+                  color: '#1565c0',
+                  marginBottom: '15px',
+                  fontSize: '1.1rem',
+                  borderBottom: '1px solid #90caf9',
+                  paddingBottom: '8px'
+                }}>📊 Tổng quan đánh giá</h5>
+
+                <div className="member-detail-row">
+                  <span className="member-detail-label">Số lượng đánh giá:</span>
+                  <span className="member-detail-value">
+                    <span style={{
+                      backgroundColor: '#1976d2',
+                      color: 'white',
+                      padding: '4px 12px',
+                      borderRadius: '15px',
+                      fontSize: '0.9em',
+                      fontWeight: 'bold'
+                    }}>
+                      {selectedMemberDetail.assessment_count || 0} lần
+                    </span>
+                  </span>
+                </div>
+              </div>
+
+              {/* Assessment Details */}
+              {selectedMemberDetail.assessments && selectedMemberDetail.assessments.length > 0 && (
+                <div className="info-section" style={{
+                  backgroundColor: '#fff3e0',
+                  padding: '15px',
+                  borderRadius: '8px',
+                  marginBottom: '20px',
+                  border: '1px solid #ffcc02'
+                }}>
+                  <h5 style={{
+                    color: '#e65100',
+                    marginBottom: '15px',
+                    fontSize: '1.1rem',
+                    borderBottom: '1px solid #ffb74d',
+                    paddingBottom: '8px'
+                  }}>📋 Lịch sử đánh giá chi tiết</h5>
+                  {selectedMemberDetail.assessments.map((assessment, index) => {
+                    // Parse result_json to extract meaningful data
+                    let parsedResult = null;
+                    let totalScore = 0;
+                    let questionCount = 0;
+
+                    try {
+                      if (assessment.result_json) {
+                        parsedResult = JSON.parse(assessment.result_json);
+                        if (parsedResult.result && Array.isArray(parsedResult.result)) {
+                          questionCount = parsedResult.result.length;
+                          totalScore = parsedResult.score || 0;
+                        }
+                      }
+                    } catch (e) {
+                      console.error('Error parsing assessment result:', e);
+                    }
+
+                    return (
+                      <div key={index} className="assessment-item" style={{
+                        backgroundColor: '#ffffff',
+                        padding: '20px',
+                        margin: '15px 0',
+                        borderRadius: '10px',
+                        border: '2px solid #e9ecef',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                        transition: 'all 0.3s ease'
+                      }}>
                         <div className="member-detail-row">
-                          <span className="member-detail-label">Kết quả:</span>
-                          <span className="member-detail-value" style={{ fontSize: '0.9em', color: '#666' }}>
-                            Dữ liệu đánh giá không thể hiển thị
+                          <span className="member-detail-label">Loại đánh giá:</span>
+                          <span className="member-detail-value">
+                            <strong style={{
+                              color: assessment.type === 'assist' ? '#28a745' :
+                                assessment.type === 'crafft' ? '#007bff' : '#6c757d',
+                              textTransform: 'uppercase'
+                            }}>
+                              {assessment.type || 'Chưa xác định'}
+                            </strong>
                           </span>
                         </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+                        <div className="member-detail-row">
+                          <span className="member-detail-label">Mô tả:</span>
+                          <span className="member-detail-value">{assessment.description || 'Không có mô tả'}</span>
+                        </div>
+                        <div className="member-detail-row">
+                          <span className="member-detail-label">Ngày thực hiện:</span>
+                          <span className="member-detail-value">
+                            {assessment.created_at ?
+                              new Date(assessment.created_at).toLocaleDateString('vi-VN', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              }) :
+                              'Chưa cập nhật'}
+                          </span>
+                        </div>
+
+                        {parsedResult && (
+                          <div className="assessment-results" style={{ marginTop: '15px' }}>
+                            <div className="result-summary" style={{
+                              backgroundColor: '#fff',
+                              padding: '10px',
+                              borderRadius: '5px',
+                              border: '1px solid #dee2e6',
+                              marginBottom: '10px'
+                            }}>
+                              <div className="member-detail-row">
+                                <span className="member-detail-label">Tổng điểm:</span>
+                                <span className="member-detail-value">
+                                  <strong style={{
+                                    color: totalScore >= 15 ? '#dc3545' :
+                                      totalScore >= 10 ? '#fd7e14' :
+                                        totalScore >= 5 ? '#ffc107' : '#28a745',
+                                    fontSize: '1.1em'
+                                  }}>
+                                    {totalScore}
+                                  </strong>
+                                </span>
+                              </div>
+                              <div className="member-detail-row">
+                                <span className="member-detail-label">Số câu hỏi:</span>
+                                <span className="member-detail-value">{questionCount} câu</span>
+                              </div>
+                              <div className="member-detail-row">
+                                <span className="member-detail-label">Mức độ rủi ro:</span>
+                                <span className="member-detail-value">
+                                  <span style={{
+                                    padding: '3px 8px',
+                                    borderRadius: '3px',
+                                    fontSize: '0.9em',
+                                    fontWeight: 'bold',
+                                    color: 'white',
+                                    backgroundColor: totalScore >= 15 ? '#dc3545' :
+                                      totalScore >= 10 ? '#fd7e14' :
+                                        totalScore >= 5 ? '#ffc107' : '#28a745'
+                                  }}>
+                                    {totalScore >= 15 ? 'Cao' :
+                                      totalScore >= 10 ? 'Trung bình' :
+                                        totalScore >= 5 ? 'Thấp' : 'Rất thấp'}
+                                  </span>
+                                </span>
+                              </div>
+                            </div>
+
+                            {parsedResult.result && (
+                              <div className="question-details">
+                                <h6 style={{
+                                  margin: '15px 0 10px 0',
+                                  color: '#495057',
+                                  fontSize: '1rem',
+                                  fontWeight: 'bold'
+                                }}>💭 Chi tiết câu trả lời:</h6>
+                                <div style={{
+                                  maxHeight: '250px',
+                                  overflowY: 'auto',
+                                  backgroundColor: '#f8f9fa',
+                                  padding: '10px',
+                                  borderRadius: '8px',
+                                  border: '1px solid #e9ecef'
+                                }}>
+                                  {parsedResult.result.map((question, qIndex) => (
+                                    <div key={qIndex} style={{
+                                      padding: '8px 12px',
+                                      margin: '4px 0',
+                                      backgroundColor: question.score > 2 ? '#ffebee' : '#f1f8e9',
+                                      borderRadius: '6px',
+                                      fontSize: '0.9em',
+                                      borderLeft: `4px solid ${question.score > 2 ? '#f44336' : '#4caf50'}`,
+                                      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                    }}>
+                                      <strong>Q{question.questionId}:</strong>
+                                      <span style={{ marginLeft: '5px' }}>
+                                        Lựa chọn {question.selectedOption}
+                                        <span style={{
+                                          color: question.score > 2 ? '#d32f2f' : '#388e3c',
+                                          fontWeight: 'bold',
+                                          marginLeft: '5px'
+                                        }}>
+                                          ({question.score} điểm)
+                                        </span>
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {!parsedResult && assessment.result_json && (
+                          <div className="member-detail-row">
+                            <span className="member-detail-label">Kết quả:</span>
+                            <span className="member-detail-value" style={{ fontSize: '0.9em', color: '#666' }}>
+                              Dữ liệu đánh giá không thể hiển thị
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>
