@@ -24,7 +24,9 @@ const DetailBlogPage = () => {
                 const res = await fetch(`http://localhost:3000/api/blogs/${id}`);
                 if (!res.ok) throw new Error('Không thể tải dữ liệu bài viết');
                 const data = await res.json();
-                setBlog(data.data);
+                // Làm sạch và định dạng lại nội dung trước khi set
+                const cleanedContent = cleanBlogContent(data.data.content || data.data.body);
+                setBlog({ ...data.data, content: cleanedContent });
                 window.scrollTo(0, 0);
             } catch (err) {
                 setError(err.message);
@@ -41,7 +43,6 @@ const DetailBlogPage = () => {
                 try {
                     const user = getUserFromToken();
                     setCurrentUser(user);
-
                     const flagInfo = await checkUserFlaggedBlog(id);
                     setUserFlagInfo(flagInfo);
                 } catch (error) {
@@ -54,7 +55,21 @@ const DetailBlogPage = () => {
         checkAuthAndFlagStatus();
     }, [id]);
 
-    // Check if the current user is the author of this blog
+    // Hàm làm sạch và định dạng lại nội dung
+    const cleanBlogContent = (content) => {
+        if (!content) return '<p>Nội dung bài viết sẽ được cập nhật sớm.</p>';
+
+        // Loại bỏ các thẻ không hợp lệ và đóng đúng các thẻ
+        let cleaned = content
+            .replace(/<h3>\s*★/g, '<h3>') // Xóa ký tự ★ không mong muốn
+            .replace(/<\/h3>\s*<p>/g, '</h3><div class="content-break"></div><p>') // Thêm phân cách giữa h3 và p
+            .replace(/<li>\s*<(\/)?li>/g, '<li>$1</li>') // Sửa lỗi lồng thẻ li
+            .replace(/<strong>\s*<\/strong>/g, '') // Xóa strong rỗng
+            .replace(/\n/g, '<br>'); // Chuyển dòng mới thành <br>
+
+        return cleaned;
+    };
+
     useEffect(() => {
         if (blog && currentUser) {
             setIsOwnBlog(blog.author_id === currentUser.userId);
@@ -68,25 +83,15 @@ const DetailBlogPage = () => {
     const handleFlagSubmit = async (reason) => {
         try {
             const response = await flagBlog(id, reason);
-
             if (response.success) {
                 setUserFlagInfo({ flagged: true, flagId: response.data.flag_id });
                 alert('Báo cáo đã được gửi thành công. Cảm ơn bạn đã đóng góp để cải thiện chất lượng nội dung.');
-
-                // Check if blog was hidden
-                if (response.blogHidden) {
-                    alert('Bài viết đã bị ẩn do nhận báo cáo.');
-                }
-
-                // Check if author was banned
-                if (response.authorBanned) {
-                    alert(`Thông báo: Tác giả của bài viết này đã bị khóa tài khoản do có ${response.flaggedPostsCount} bài viết bị báo cáo.`);
-                }
+                if (response.blogHidden) alert('Bài viết đã bị ẩn do nhận báo cáo.');
+                if (response.authorBanned) alert(`Thông báo: Tác giả của bài viết này đã bị khóa tài khoản do có ${response.flaggedPostsCount} bài viết bị báo cáo.`);
             }
         } catch (error) {
             if (error.message.includes('already flagged')) {
                 alert('Bạn đã báo cáo bài viết này rồi.');
-                // Refresh flag status
                 const flagInfo = await checkUserFlaggedBlog(id);
                 setUserFlagInfo(flagInfo);
             } else {
@@ -102,7 +107,6 @@ const DetailBlogPage = () => {
 
         try {
             const response = await removeFlag(userFlagInfo.flagId);
-
             if (response.success) {
                 setUserFlagInfo({ flagged: false, flagId: null });
                 alert('Đã gỡ báo cáo thành công.');
@@ -117,12 +121,10 @@ const DetailBlogPage = () => {
             alert('Vui lòng đăng nhập để báo cáo bài viết.');
             return;
         }
-
         if (isOwnBlog) {
             alert('Bạn không thể báo cáo bài viết của chính mình.');
             return;
         }
-
         if (userFlagInfo.flagged) {
             handleRemoveFlag();
         } else {
@@ -174,11 +176,14 @@ const DetailBlogPage = () => {
                         <span className="blog-date">
                             <i className="bi bi-calendar3 me-1"></i> {formattedDate}
                         </span>
-                        <button className={`btn-flag ${isFavorite ? 'favorited' : ''}`} onClick={toggleFavorite} title={isFavorite ? 'Bỏ yêu thích' : 'Thêm vào yêu thích'}>
+                        <button
+                            className={`btn-flag ${isFavorite ? 'favorited' : ''}`}
+                            onClick={toggleFavorite}
+                            title={isFavorite ? 'Bỏ yêu thích' : 'Thêm vào yêu thích'}
+                        >
                             <i className={`bi ${isFavorite ? 'bi-heart-fill' : 'bi-heart'}`}></i>
                         </button>
-
-                        {/* !isOwnBlog && (
+                        {!isOwnBlog && (
                             <button
                                 className={`btn-report ${userFlagInfo.flagged ? 'flagged' : ''}`}
                                 onClick={handleFlagClick}
@@ -186,7 +191,7 @@ const DetailBlogPage = () => {
                             >
                                 <i className={`bi ${userFlagInfo.flagged ? 'bi-flag-fill' : 'bi-flag'}`}></i>
                             </button>
-                        )*/}
+                        )}
                     </div>
 
                     <h1 className="blog-title improved-blog-title">{blog.title}</h1>
@@ -203,7 +208,7 @@ const DetailBlogPage = () => {
                         <img
                             src={blog.image || DefaultImage}
                             alt={blog.title}
-                            onError={e => { e.target.onerror = null; e.target.src = DefaultImage; }}
+                            onError={(e) => { e.target.onerror = null; e.target.src = DefaultImage; }}
                             className="blog-img-thumb"
                         />
                     </div>
@@ -212,7 +217,7 @@ const DetailBlogPage = () => {
                         {blog.content ? (
                             <div dangerouslySetInnerHTML={{ __html: blog.content }} />
                         ) : (
-                            <p>{blog.body || 'Nội dung bài viết sẽ được cập nhật sớm.'}</p>
+                            <p>Nội dung bài viết sẽ được cập nhật sớm.</p>
                         )}
                     </div>
 
