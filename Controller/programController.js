@@ -428,6 +428,8 @@ class ProgramController {
     /**
      * Get comprehensive survey analytics for a program
      * This complex function analyzes all survey responses for a program and returns detailed statistics
+     * Also includes program completion tracking based on enrollment progress data
+     * Completion logic: A participant is considered complete only if ALL progress items have complete: true
      */
     static async getProgramSurveyAnalytics(req, res) {
         try {
@@ -437,6 +439,7 @@ class ProgramController {
             const programRepository = AppDataSource.getRepository(Program);
             const surveyRepository = AppDataSource.getRepository(Survey);
             const surveyResponseRepository = AppDataSource.getRepository(SurveyResponse);
+            const enrollRepository = AppDataSource.getRepository(Enroll);
 
             // 1. Verify program exists
             const program = await programRepository.findOne({
@@ -449,6 +452,51 @@ class ProgramController {
                     message: 'Program not found'
                 });
             }
+
+            // 1.5. Get enrollment data for completion tracking
+            const enrollments = await enrollRepository.find({
+                where: { program_id: parseInt(programId) },
+                relations: ['user']
+            });
+
+            // Analyze completion status based on progress
+            let completedParticipants = 0;
+            let incompleteParticipants = 0;
+            const participantDetails = [];
+
+            enrollments.forEach(enrollment => {
+                let isCompleted = true; // Assume completed unless we find incomplete content
+                let progressArray = [];
+
+                try {
+                    progressArray = enrollment.progress ? JSON.parse(enrollment.progress) : [];
+                } catch (err) {
+                    console.error('Error parsing progress JSON:', err);
+                    progressArray = [];
+                }
+
+                // Check if any content is incomplete (complete: false)
+                if (progressArray.length > 0) {
+                    isCompleted = progressArray.every(item => item.complete === true);
+                } else {
+                    // If no progress data, consider as incomplete
+                    isCompleted = false;
+                }
+
+                if (isCompleted) {
+                    completedParticipants++;
+                } else {
+                    incompleteParticipants++;
+                }
+
+                participantDetails.push({
+                    user_id: enrollment.user_id,
+                    user_name: enrollment.user ? enrollment.user.username : 'Unknown',
+                    is_completed: isCompleted,
+                    progress_items: progressArray.length,
+                    completed_items: progressArray.filter(item => item.complete === true).length,
+                });
+            });
 
             // 2. Get all surveys for this program
             const surveys = await surveyRepository.find({
@@ -464,6 +512,14 @@ class ProgramController {
                         program_title: program.title,
                         total_surveys: 0,
                         total_responses: 0,
+                        completion_statistics: {
+                            total_participants: enrollments.length,
+                            completed_participants: completedParticipants,
+                            incomplete_participants: incompleteParticipants,
+                            completion_rate: enrollments.length > 0 ?
+                                Math.round((completedParticipants / enrollments.length) * 100) : 0,
+                            participant_details: participantDetails
+                        },
                         surveys: []
                     },
                     message: 'No surveys found for this program'
@@ -708,9 +764,17 @@ class ProgramController {
                     total_surveys: surveys.length,
                     total_responses: totalResponses,
                     show_deleted_questions: show_deleted_questions === 'true' || show_deleted_questions === true,
+                    completion_statistics: {
+                        total_participants: enrollments.length,
+                        completed_participants: completedParticipants,
+                        incomplete_participants: incompleteParticipants,
+                        completion_rate: enrollments.length > 0 ?
+                            Math.round((completedParticipants / enrollments.length) * 100) : 0,
+                        participant_details: participantDetails
+                    },
                     surveys: surveyAnalytics
                 },
-                message: 'Survey analytics retrieved successfully'
+                message: 'Survey analytics with completion statistics retrieved successfully'
             });
 
         } catch (error) {
