@@ -104,13 +104,13 @@ class CategoryController {
    */
   static async createCategory(req, res) {
     try {
-      const { description } = req.body;
+      const { name, description } = req.body;
 
-      // Validate required fields
-      if (!description) {
+      // Validate required fields - at least one must be provided
+      if (!name && !description) {
         return res.status(400).json({
           success: false,
-          message: "Description is required",
+          message: "At least one field (name or description) is required",
         });
       }
 
@@ -118,6 +118,7 @@ class CategoryController {
 
       // Create new category
       const newCategory = categoryRepository.create({
+        name,
         description,
       });
 
@@ -144,12 +145,12 @@ class CategoryController {
   static async updateCategory(req, res) {
     try {
       const { id } = req.params;
-      const { description } = req.body;
+      const { name, description } = req.body;
 
-      if (!description) {
+      if (!name && !description) {
         return res.status(400).json({
           success: false,
-          message: "Description is required",
+          message: "At least one field (name or description) must be provided for update",
         });
       }
 
@@ -167,8 +168,13 @@ class CategoryController {
         });
       }
 
-      // Update category fields
-      category.description = description;
+      // Update category fields (only if provided)
+      if (name !== undefined) {
+        category.name = name;
+      }
+      if (description !== undefined) {
+        category.description = description;
+      }
 
       const updatedCategory = await categoryRepository.save(category);
 
@@ -239,6 +245,7 @@ class CategoryController {
         message: `Category with ID ${id} deleted successfully`,
         deletedCategory: {
           category_id: category.category_id,
+          name: category.name,
           description: category.description,
         },
       });

@@ -243,6 +243,27 @@ class FlagController {
 
       const savedFlag = await flagRepository.save(newFlag);
 
+      // Check flag count and take appropriate action
+      const flagCount = await flagRepository.count({
+        where: { blog_id: parseInt(blog_id) }
+      });
+
+      let blogHidden = false;
+      let blogDeleted = false;
+
+      if (flagCount >= 3) {
+        // Delete blog if it has 3 or more flags
+        await blogRepository.remove(blog);
+        blogDeleted = true;
+        console.log(`Blog ${blog_id} has been auto-deleted due to ${flagCount} flag(s)`);
+      } else if (flagCount >= 1 && blog.status !== 'hidden') {
+        // Hide blog if it has 1 or more flags (but less than 3)
+        blog.status = 'hidden';
+        await blogRepository.save(blog);
+        blogHidden = true;
+        console.log(`Blog ${blog_id} has been auto-hidden due to ${flagCount} flag(s)`);
+      }
+
       // Check if the blog author has more than 5 flagged posts
       if (blog.author_id) {
         // Count flagged posts by this author
@@ -252,31 +273,34 @@ class FlagController {
           JOIN Flags f ON b.blog_id = f.blog_id
           WHERE b.author_id = @0
         `;
-        
+
         const [result] = await AppDataSource.query(query, [blog.author_id]);
         const flaggedCount = result ? result.flagged_count : 0;
-        
+
         console.log(`Author ${blog.author_id} has ${flaggedCount} flagged posts`);
-        
+
         // If author has more than 5 flagged posts, ban the user
         if (flaggedCount >= 5) {
           // Get the author user
           const author = await userRepository.findOne({
             where: { user_id: blog.author_id }
           });
-          
+
           if (author) {
             // Update user status to banned
             author.status = 'banned';
             await userRepository.save(author);
-            
+
             console.log(`User ${blog.author_id} has been banned for having ${flaggedCount} flagged posts`);
-            
-            // Return success with additional info about the ban
+
+            // Return success with additional info about the ban and blog action
             return res.status(201).json({
               success: true,
               data: savedFlag,
               message: "Blog flagged successfully",
+              blogHidden: blogHidden,
+              blogDeleted: blogDeleted,
+              flagCount: flagCount,
               authorBanned: true,
               authorId: blog.author_id,
               flaggedPostsCount: flaggedCount,
@@ -290,6 +314,9 @@ class FlagController {
         success: true,
         data: savedFlag,
         message: "Blog flagged successfully",
+        blogHidden: blogHidden,
+        blogDeleted: blogDeleted,
+        flagCount: flagCount,
       });
     } catch (error) {
       console.error("Error creating flag:", error);
@@ -429,7 +456,79 @@ class FlagController {
   }
 
   /**
-   * Remove all flags from a blog
+   * Remove flag by ID (admin only)
+   * Also checks if blog should be unhidden after flag removal
+   */
+  static async removeFlag(req, res) {
+    try {
+      const { id } = req.params;
+
+      if (!id || isNaN(parseInt(id))) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid flag ID provided",
+        });
+      }
+
+      const flagRepository = AppDataSource.getRepository(Flag);
+      const blogRepository = AppDataSource.getRepository(Blog);
+
+      // Check if flag exists before deleting
+      const flag = await flagRepository.findOne({
+        where: { flag_id: parseInt(id) },
+      });
+
+      if (!flag) {
+        return res.status(404).json({
+          success: false,
+          message: "Flag not found",
+        });
+      }
+
+      const blogId = flag.blog_id;
+
+      // Delete the flag
+      await flagRepository.remove(flag);
+
+      // Check remaining flag count for the blog
+      const remainingFlags = await flagRepository.count({
+        where: { blog_id: blogId }
+      });
+
+      // If no flags remain, unhide the blog
+      let blogUnhidden = false;
+      if (remainingFlags === 0) {
+        const blog = await blogRepository.findOne({
+          where: { blog_id: blogId }
+        });
+
+        if (blog && blog.status === 'hidden') {
+          blog.status = 'Đã xuất bản'; // Set back to published
+          await blogRepository.save(blog);
+          blogUnhidden = true;
+          console.log(`Blog ${blogId} has been unhidden after flag removal`);
+        }
+      }
+
+      res.status(200).json({
+        success: true,
+        message: `Flag with ID ${id} removed successfully`,
+        blogUnhidden: blogUnhidden,
+        remainingFlags: remainingFlags,
+        blogId: blogId,
+      });
+    } catch (error) {
+      console.error("Error removing flag:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to remove flag",
+        error: error.message,
+      });
+    }
+  }
+
+  /**
+   * Clear all flags for a blog (admin only)
    */
   static async clearBlogFlags(req, res) {
     try {
@@ -536,7 +635,7 @@ class FlagController {
   static async unbanUser(req, res) {
     try {
       const { userId } = req.params;
-      
+
       if (!userId || isNaN(parseInt(userId))) {
         return res.status(400).json({
           success: false,
@@ -545,7 +644,7 @@ class FlagController {
       }
 
       const userRepository = AppDataSource.getRepository(User);
-      
+
       // Check if user exists
       const user = await userRepository.findOne({
         where: { user_id: parseInt(userId) }

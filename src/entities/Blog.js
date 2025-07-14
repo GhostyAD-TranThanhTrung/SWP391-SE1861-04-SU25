@@ -32,7 +32,7 @@ const Blog = new EntitySchema({
             nullable: true
         },
         status: {
-            type: "varchar",
+            type: "nvarchar",
             length: 50,
             nullable: true
         },

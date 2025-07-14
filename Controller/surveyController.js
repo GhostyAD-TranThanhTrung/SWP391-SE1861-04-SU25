@@ -9,7 +9,128 @@ const SurveyResponse = require("../src/entities/SurveyResponse");
 
 class SurveyController {
 
+  /**
+   * Get single survey by ID
+   */
+  static async getSurveyById(req, res) {
+    try {
+      const { id } = req.params;
+      const surveyRepository = AppDataSource.getRepository(Survey);
 
+      // Validate survey ID
+      if (!id || isNaN(parseInt(id))) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid survey ID provided",
+        });
+      }
+
+      const survey = await surveyRepository.findOne({
+        where: { survey_id: parseInt(id) },
+        relations: ['responses']
+      });
+
+      if (!survey) {
+        return res.status(404).json({
+          success: false,
+          message: "Survey not found",
+        });
+      }
+
+      // Filter out deleted questions
+      const filteredSurvey = { ...survey };
+      if (filteredSurvey.questions_json) {
+        try {
+          const parsedQuestions = typeof filteredSurvey.questions_json === 'string' 
+            ? JSON.parse(filteredSurvey.questions_json) 
+            : filteredSurvey.questions_json;
+          
+          if (parsedQuestions.questions && Array.isArray(parsedQuestions.questions)) {
+            const activeQuestions = parsedQuestions.questions.filter(question => 
+              question.deleted === false || question.deleted === undefined
+            );
+            
+            filteredSurvey.questions_json = JSON.stringify({
+              ...parsedQuestions,
+              questions: activeQuestions
+            });
+          }
+        } catch (parseError) {
+          console.error('Error parsing questions JSON:', parseError);
+        }
+      }
+
+      res.status(200).json({
+        success: true,
+        data: filteredSurvey,
+        message: "Survey retrieved successfully",
+      });
+    } catch (error) {
+      console.error("Error getting survey by ID:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to retrieve survey",
+        error: error.message,
+      });
+    }
+  }
+
+  /**
+   * Get all surveys
+   */
+  static async getAllSurveys(req, res) {
+    try {
+      const surveyRepository = AppDataSource.getRepository(Survey);
+
+      const surveys = await surveyRepository.find({
+        order: { 
+          program_id: 'ASC',
+          type: 'ASC',
+          survey_id: 'ASC' 
+        }
+      });
+
+      // Filter out deleted questions from all surveys
+      const filteredSurveys = surveys.map(survey => {
+        const surveyData = { ...survey };
+        if (surveyData.questions_json) {
+          try {
+            const parsedQuestions = typeof surveyData.questions_json === 'string' 
+              ? JSON.parse(surveyData.questions_json) 
+              : surveyData.questions_json;
+            
+            if (parsedQuestions.questions && Array.isArray(parsedQuestions.questions)) {
+              const activeQuestions = parsedQuestions.questions.filter(question => 
+                question.deleted === false || question.deleted === undefined
+              );
+              
+              surveyData.questions_json = JSON.stringify({
+                ...parsedQuestions,
+                questions: activeQuestions
+              });
+            }
+          } catch (parseError) {
+            console.error('Error parsing questions JSON:', parseError);
+          }
+        }
+        return surveyData;
+      });
+
+      res.status(200).json({
+        success: true,
+        data: filteredSurveys,
+        count: filteredSurveys.length,
+        message: "All surveys retrieved successfully",
+      });
+    } catch (error) {
+      console.error("Error getting all surveys:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to retrieve surveys",
+        error: error.message,
+      });
+    }
+  }
 
   /**
    * Get surveys by type and program ID
@@ -45,10 +166,36 @@ class SurveyController {
         });
       }
 
+      // Filter out deleted questions from the survey
+      const filteredSurveys = surveys.map(survey => {
+        const surveyData = { ...survey };
+        if (surveyData.questions_json) {
+          try {
+            const parsedQuestions = typeof surveyData.questions_json === 'string' 
+              ? JSON.parse(surveyData.questions_json) 
+              : surveyData.questions_json;
+            
+            if (parsedQuestions.questions && Array.isArray(parsedQuestions.questions)) {
+              const activeQuestions = parsedQuestions.questions.filter(question => 
+                question.deleted === false || question.deleted === undefined
+              );
+              
+              surveyData.questions_json = JSON.stringify({
+                ...parsedQuestions,
+                questions: activeQuestions
+              });
+            }
+          } catch (parseError) {
+            console.error('Error parsing questions JSON:', parseError);
+          }
+        }
+        return surveyData;
+      });
+
       // Return only the first survey (enforce 1 per type/program)
       return res.status(200).json({
         success: true,
-        data: [surveys[0]],
+        data: [filteredSurveys[0]],
         count: 1,
         message: `Survey of type '${type}' for program ID ${programId} retrieved successfully`,
       });
@@ -88,8 +235,34 @@ class SurveyController {
         }
       });
 
-      // Group surveys by type for better organization
-      const surveysByType = surveys.reduce((acc, survey) => {
+      // Filter out deleted questions from all surveys
+      const filteredSurveys = surveys.map(survey => {
+        const surveyData = { ...survey };
+        if (surveyData.questions_json) {
+          try {
+            const parsedQuestions = typeof surveyData.questions_json === 'string' 
+              ? JSON.parse(surveyData.questions_json) 
+              : surveyData.questions_json;
+            
+            if (parsedQuestions.questions && Array.isArray(parsedQuestions.questions)) {
+              const activeQuestions = parsedQuestions.questions.filter(question => 
+                question.deleted === false || question.deleted === undefined
+              );
+              
+              surveyData.questions_json = JSON.stringify({
+                ...parsedQuestions,
+                questions: activeQuestions
+              });
+            }
+          } catch (parseError) {
+            console.error('Error parsing questions JSON:', parseError);
+          }
+        }
+        return surveyData;
+      });
+
+      // Group filtered surveys by type for better organization
+      const surveysByType = filteredSurveys.reduce((acc, survey) => {
         if (!acc[survey.type]) {
           acc[survey.type] = [];
         }
@@ -99,9 +272,9 @@ class SurveyController {
 
       res.status(200).json({
         success: true,
-        data: surveys,
+        data: filteredSurveys,
         dataByType: surveysByType,
-        count: surveys.length,
+        count: filteredSurveys.length,
         message: `All surveys for program ID ${programId} retrieved successfully`,
       });
     } catch (error) {
@@ -263,7 +436,6 @@ class SurveyController {
       });
 
       let questionsUpdated = false;
-      let responsesDeleted = 0;
       let fieldsUpdated = [];
 
       // Check if program exists if program_id is provided
@@ -287,17 +459,14 @@ class SurveyController {
       // Validate and update questions if provided
       if (questions !== undefined) {
         try {
-          const newQuestionsJson = typeof questions === "string" ? questions : JSON.stringify(questions);
+          const newQuestionsData = typeof questions === "string" ? JSON.parse(questions) : questions;
           
           console.log("🔧 Processing questions update...");
           console.log("🔧 Current questions JSON:", survey.questions_json);
-          console.log("🔧 New questions JSON:", newQuestionsJson);
-          
-          // Validate that it's proper JSON
-          const parsedQuestions = JSON.parse(newQuestionsJson);
+          console.log("🔧 New questions data:", JSON.stringify(newQuestionsData, null, 2));
           
           // Basic validation of questions structure
-          if (!parsedQuestions.questions || !Array.isArray(parsedQuestions.questions)) {
+          if (!newQuestionsData.questions || !Array.isArray(newQuestionsData.questions)) {
             console.log("❌ Invalid questions structure - missing questions array");
             return res.status(400).json({
               success: false,
@@ -306,8 +475,8 @@ class SurveyController {
           }
 
           // Validate each question has required fields
-          for (let i = 0; i < parsedQuestions.questions.length; i++) {
-            const question = parsedQuestions.questions[i];
+          for (let i = 0; i < newQuestionsData.questions.length; i++) {
+            const question = newQuestionsData.questions[i];
             if (!question.id || !question.question) {
               console.log("❌ Invalid question at index", i, ":", question);
               return res.status(400).json({
@@ -317,22 +486,117 @@ class SurveyController {
             }
           }
 
-          // Check if questions have actually changed
-          if (survey.questions_json !== newQuestionsJson) {
-            questionsUpdated = true;
-            survey.questions_json = newQuestionsJson;
-            fieldsUpdated.push('questions');
-
-            console.log("✅ Questions updated - deleting existing responses");
-            // Delete all existing responses since questions have changed
-            if (survey.responses && survey.responses.length > 0) {
-              await surveyResponseRepository.remove(survey.responses);
-              responsesDeleted = survey.responses.length;
-              console.log("🗑️ Deleted", responsesDeleted, "existing responses");
+          // Get current questions
+          let currentQuestions = [];
+          try {
+            if (survey.questions_json) {
+              const currentData = JSON.parse(survey.questions_json);
+              currentQuestions = Array.isArray(currentData) ? currentData : (currentData.questions || []);
             }
-          } else {
-            console.log("ℹ️ Questions unchanged - no update needed");
+          } catch (parseError) {
+            console.log("⚠️ Could not parse current questions, treating as empty array");
+            currentQuestions = [];
           }
+
+          // Process question changes using soft deletion approach
+          const processedQuestions = [];
+          const newQuestions = newQuestionsData.questions;
+          let hasChanges = false;
+          let nextQuestionId = Math.max(...currentQuestions.map(q => q.id || 0), 0) + 1;
+
+          console.log("🔧 Processing question changes...");
+          console.log("🔧 Current questions count:", currentQuestions.length);
+          console.log("🔧 New questions count:", newQuestions.length);
+
+          // First, add all existing questions to processed list
+          currentQuestions.forEach(existingQuestion => {
+            processedQuestions.push({
+              ...existingQuestion,
+              deleted: existingQuestion.deleted || false
+            });
+          });
+
+          // Process each new question
+          newQuestions.forEach((newQuestion, index) => {
+            const existingQuestionIndex = currentQuestions.findIndex(q => q.id === newQuestion.id);
+            
+            if (existingQuestionIndex !== -1) {
+              // Question exists, check if it has changed
+              const existingQuestion = currentQuestions[existingQuestionIndex];
+              
+              const hasQuestionChanged = 
+                existingQuestion.question !== newQuestion.question ||
+                JSON.stringify(existingQuestion.options || []) !== JSON.stringify(newQuestion.options || []) ||
+                existingQuestion.type !== newQuestion.type ||
+                existingQuestion.required !== newQuestion.required;
+
+              if (hasQuestionChanged) {
+                console.log(`🔧 Question ${newQuestion.id} has changed, creating new version`);
+                
+                // Mark original question as deleted
+                processedQuestions[existingQuestionIndex].deleted = true;
+                
+                // Add new version with new ID
+                processedQuestions.push({
+                  ...newQuestion,
+                  id: nextQuestionId++,
+                  deleted: false,
+                  original_id: newQuestion.id, // Reference to original question
+                  version: (existingQuestion.version || 1) + 1
+                });
+                
+                hasChanges = true;
+              } else {
+                // Question unchanged, just ensure it's not marked as deleted
+                processedQuestions[existingQuestionIndex].deleted = false;
+              }
+            } else {
+              // Completely new question
+              console.log(`🔧 Adding new question with ID ${newQuestion.id}`);
+              
+              // Check if this ID already exists in processed questions
+              const existingInProcessed = processedQuestions.find(q => q.id === newQuestion.id);
+              if (existingInProcessed) {
+                // ID conflict, assign new ID
+                newQuestion.id = nextQuestionId++;
+              }
+              
+              processedQuestions.push({
+                ...newQuestion,
+                deleted: false,
+                version: 1
+              });
+              hasChanges = true;
+            }
+          });
+
+          // Mark questions that were removed from the new list as deleted
+          currentQuestions.forEach(existingQuestion => {
+            const stillExists = newQuestions.some(newQ => newQ.id === existingQuestion.id);
+            if (!stillExists && !existingQuestion.deleted) {
+              console.log(`🔧 Marking question ${existingQuestion.id} as deleted (removed from new list)`);
+              const processedIndex = processedQuestions.findIndex(q => q.id === existingQuestion.id);
+              if (processedIndex !== -1) {
+                processedQuestions[processedIndex].deleted = true;
+                hasChanges = true;
+              }
+            }
+          });
+
+          if (hasChanges) {
+            const updatedQuestionsJson = JSON.stringify({ questions: processedQuestions });
+            survey.questions_json = updatedQuestionsJson;
+            fieldsUpdated.push('questions');
+            questionsUpdated = true;
+
+            console.log("✅ Questions updated using soft deletion approach");
+            console.log("✅ Total questions after processing:", processedQuestions.length);
+            console.log("✅ Active questions:", processedQuestions.filter(q => !q.deleted).length);
+            console.log("✅ Deleted questions:", processedQuestions.filter(q => q.deleted).length);
+          } else {
+            console.log("ℹ️ No question changes detected");
+          }
+
         } catch (jsonError) {
           console.log("❌ JSON parsing error:", jsonError.message);
           return res.status(400).json({
@@ -366,6 +630,22 @@ class SurveyController {
         questions_count: updatedSurvey.questions_json ? JSON.parse(updatedSurvey.questions_json).questions?.length || 0 : 0
       });
 
+      // Get final question counts for response
+      let finalQuestionCounts = { active: 0, deleted: 0, total: 0 };
+      if (updatedSurvey.questions_json) {
+        try {
+          const finalData = JSON.parse(updatedSurvey.questions_json);
+          const finalQuestions = Array.isArray(finalData) ? finalData : (finalData.questions || []);
+          finalQuestionCounts = {
+            active: finalQuestions.filter(q => !q.deleted).length,
+            deleted: finalQuestions.filter(q => q.deleted).length,
+            total: finalQuestions.length
+          };
+        } catch (e) {
+          console.log("⚠️ Could not parse final questions for counts");
+        }
+      }
+
       res.status(200).json({
         success: true,
         data: updatedSurvey,
@@ -373,8 +653,9 @@ class SurveyController {
         changes: {
           fields_updated: fieldsUpdated,
           questions_updated: questionsUpdated,
-          responses_deleted: responsesDeleted,
-          warning: questionsUpdated ? "All previous responses were deleted due to question changes" : null
+          soft_deletion_used: questionsUpdated ? "Modified questions marked as deleted, new versions created" : null,
+          responses_preserved: questionsUpdated ? "All previous responses preserved via soft deletion" : null,
+          question_counts: finalQuestionCounts
         }
       });
     } catch (error) {

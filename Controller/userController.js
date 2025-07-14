@@ -465,11 +465,11 @@ class UserController {
         });
       }
 
-      const { 
+      const {
         // User fields
         email, role, status, img_link,
         // Profile fields  
-        name, bio_json, date_of_birth, job 
+        name, bio_json, date_of_birth, job
       } = req.body;
 
       // Start transaction
@@ -508,8 +508,8 @@ class UserController {
 
         // Handle profile update/creation
         let updatedProfile = null;
-        const hasProfileData = name !== undefined || bio_json !== undefined || 
-                              date_of_birth !== undefined || job !== undefined;
+        const hasProfileData = name !== undefined || bio_json !== undefined ||
+          date_of_birth !== undefined || job !== undefined;
 
         if (hasProfileData) {
           // Check if profile exists
@@ -681,6 +681,28 @@ class UserController {
         message: "Failed to deactivate user account",
         error: error.message,
       });
+    }
+  }
+  static async getUserRoleById(req, res) {
+    try {
+      const role = req.user.role
+      if (!role) {
+        res.status(404).json({
+          success: false,
+          message: "Invalid role"
+        })
+      }
+      res.status(200).json({
+        success: true,
+        message: "Successfully get the Role from user",
+        role: role
+      })
+    } catch (err) {
+      res.status(500).json({
+        success: false,
+        message: "Error in the server",
+        error: err.message,
+      })
     }
   }
 }

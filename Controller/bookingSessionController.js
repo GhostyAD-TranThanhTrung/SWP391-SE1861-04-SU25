@@ -52,25 +52,31 @@ class BookingSessionController {
             const memberId = req.user.userId;
 
             const bookingQuery = `
-                SELECT 
+                SELECT DISTINCT
                     b.booking_id,
                     b.consultant_id,
                     b.member_id,
                     b.slot_id,
-                    CONVERT(varchar(10), b.booking_date, 120) as booking_date,
+                    b.google_meet_link,
+                    b.booking_date,
                     b.status,
                     b.notes,
                     cs.day_of_week,
-                    CONVERT(varchar(8), s.start_time, 108) as start_time,
-                    CONVERT(varchar(8), s.end_time, 108) as end_time,
+                    s.start_time,
+                    s.end_time,
                     p.name as consultant_name
                 FROM Booking_Session b
-                LEFT JOIN Consultant c ON b.consultant_id = c.id_consultant
-                LEFT JOIN [Users] u ON c.user_id = u.user_id
-                LEFT JOIN Profile p ON u.user_id = p.user_id
-                LEFT JOIN Slot s ON b.slot_id = s.slot_id
-                LEFT JOIN Consultant_Slot cs ON (b.consultant_id = cs.consultant_id AND b.slot_id = cs.slot_id)
+                INNER JOIN Consultant c ON b.consultant_id = c.id_consultant
+                INNER JOIN [Users] u ON c.user_id = u.user_id
+                INNER JOIN Profile p ON u.user_id = p.user_id
+                INNER JOIN Slot s ON b.slot_id = s.slot_id
+                INNER JOIN Consultant_Slot cs ON (
+                    b.consultant_id = cs.consultant_id 
+                    AND b.slot_id = cs.slot_id
+                    AND DATENAME(WEEKDAY, b.booking_date) = cs.day_of_week
+                )
                 WHERE b.member_id = @0
+                ORDER BY booking_date ASC, start_time ASC
             `;
 
             console.log('Member bookings query:', bookingQuery);
@@ -83,6 +89,12 @@ class BookingSessionController {
 
             // Check if no booking sessions exist
             if (!bookings || bookings.length === 0) {
+                console.log('Member bookings response:', {
+                    success: true,
+                    data: [],
+                    count: 0,
+                    message: 'Không có lịch hẹn nào cho thành viên này'
+                });
                 return res.status(200).json({
                     success: true,
                     data: [],
@@ -91,6 +103,12 @@ class BookingSessionController {
                 });
             }
 
+            console.log('Member bookings response:', {
+                success: true,
+                data: bookings,
+                count: bookings.length,
+                message: 'Lấy danh sách lịch hẹn thành công'
+            });
             res.status(200).json({
                 success: true,
                 data: bookings,
@@ -316,13 +334,13 @@ class BookingSessionController {
                     b.consultant_id,
                     b.member_id,
                     b.slot_id,
-                    CONVERT(varchar(10), b.booking_date, 120) as booking_date,
+                    CONVERT(nvarchar(10), b.booking_date, 120) as booking_date,
                     b.status,
                     b.notes,
                     b.google_meet_link,
                     cs.day_of_week,
-                    CONVERT(varchar(8), s.start_time, 108) as start_time,
-                    CONVERT(varchar(8), s.end_time, 108) as end_time,
+                    CONVERT(nvarchar(8), s.start_time, 108) as start_time,
+                    CONVERT(nvarchar(8), s.end_time, 108) as end_time,
                     p.name as consultant_name
                 FROM Booking_Session b
                 LEFT JOIN Consultant c ON b.consultant_id = c.id_consultant
@@ -370,21 +388,19 @@ class BookingSessionController {
     static async deleteBookingSession(req, res) {
         try {
             const { id } = req.params;
-            const bookingRepository = AppDataSource.getRepository(BookingSession);
-
+            console.log('ID: ' + id)
             // Check if booking exists
-            const booking = await bookingRepository.findOne({
-                where: { booking_id: parseInt(id) }
-            });
+            const booking = await AppDataSource.query('select * from Booking_Session where booking_id= @0 ', [id]);
 
-            if (!booking) {
+            if (booking.length === 0) {
                 return res.status(404).json({
                     success: false,
                     message: 'Không tìm thấy lịch hẹn'
                 });
             }
 
-            await bookingRepository.delete(parseInt(id));
+
+            await AppDataSource.query('delete Booking_Session where booking_id= @0 ', [id]);
 
             res.status(200).json({
                 success: true,
@@ -434,16 +450,16 @@ class BookingSessionController {
                     AND DATENAME(WEEKDAY, b.booking_date) = cs.day_of_week
                 )
                 WHERE b.member_id = @0
-                AND (b.status = @1 OR b.status = @2)
+                AND b.status IN (@1, @2)
                 ORDER BY booking_date ASC, start_time ASC
             `;
 
             console.log('Scheduled bookings query:', scheduledBookingQuery);
-            console.log('Scheduled bookings parameters:', [memberId, 'Đang chờ xác nhận', 'Đã xác nhận']);
+            console.log('Scheduled bookings parameters:', [memberId, 'Đang chờ xác nhận', 'Xác nhận thành công']);
 
             const bookings = await AppDataSource.query(
                 scheduledBookingQuery,
-                [parseInt(memberId), 'Đang chờ xác nhận', 'Đã xác nhận']
+                [parseInt(memberId), 'Đang chờ xác nhận', 'Xác nhận thành công']
             );
 
             if (!bookings || bookings.length === 0) {
@@ -525,33 +541,44 @@ class BookingSessionController {
      * Allows updating consultant_id, slot_id, booking_date, status, notes, and google_meet_link
      */
     static async updateBookingSession(req, res) {
-        const queryRunner = AppDataSource.createQueryRunner();
-        
         try {
             const { bookingId } = req.params;
             const { consultant_id, slot_id, booking_date, status, notes, google_meet_link } = req.body;
 
-            // Validate booking exists
-            const bookingRepository = queryRunner.manager.getRepository(BookingSession);
-            const existingBooking = await bookingRepository.findOne({
-                where: { booking_id: parseInt(bookingId) }
+            console.log('Update booking request:', {
+                bookingId,
+                consultant_id,
+                slot_id,
+                booking_date,
+                status,
+                notes,
+                google_meet_link
             });
 
-            if (!existingBooking) {
+            // Validate booking exists
+            const existingBookingQuery = `
+                SELECT booking_id, consultant_id, member_id, slot_id, booking_date, status, notes, google_meet_link
+                FROM Booking_Session
+                WHERE booking_id = @0
+            `;
+
+            const existingBookings = await AppDataSource.query(existingBookingQuery, [parseInt(bookingId)]);
+
+            if (!existingBookings || existingBookings.length === 0) {
                 return res.status(404).json({
                     success: false,
                     message: 'Booking session not found'
                 });
             }
 
+            const existingBooking = existingBookings[0];
+
             // Validate consultant exists if provided
             if (consultant_id) {
-                const consultantRepository = queryRunner.manager.getRepository(require('../src/entities/Consultant'));
-                const consultant = await consultantRepository.findOne({
-                    where: { id_consultant: parseInt(consultant_id) }
-                });
+                const consultantQuery = `SELECT id_consultant FROM Consultant WHERE id_consultant = @0`;
+                const consultantResult = await AppDataSource.query(consultantQuery, [parseInt(consultant_id)]);
 
-                if (!consultant) {
+                if (!consultantResult || consultantResult.length === 0) {
                     return res.status(400).json({
                         success: false,
                         message: 'Consultant not found'
@@ -561,12 +588,10 @@ class BookingSessionController {
 
             // Validate slot exists if provided
             if (slot_id) {
-                const slotRepository = queryRunner.manager.getRepository(require('../src/entities/Slot'));
-                const slot = await slotRepository.findOne({
-                    where: { slot_id: parseInt(slot_id) }
-                });
+                const slotQuery = `SELECT slot_id FROM Slot WHERE slot_id = @0`;
+                const slotResult = await AppDataSource.query(slotQuery, [parseInt(slot_id)]);
 
-                if (!slot) {
+                if (!slotResult || slotResult.length === 0) {
                     return res.status(400).json({
                         success: false,
                         message: 'Slot not found'
@@ -586,7 +611,7 @@ class BookingSessionController {
             }
 
             // Validate status if provided
-            const validStatuses = ['Đang chờ xác nhận', 'Đã xác nhận', 'Đã hoàn thành', 'Đã hủy', 'Đã từ chối'];
+            const validStatuses = ['Hoàn thành', 'Lên lịch', 'Đã hủy', 'Đang chờ xác nhận', 'Xác nhận thành công'];
             if (status && !validStatuses.includes(status)) {
                 return res.status(400).json({
                     success: false,
@@ -594,35 +619,97 @@ class BookingSessionController {
                 });
             }
 
-            await queryRunner.connect();
-            await queryRunner.startTransaction();
+            // Build dynamic update query
+            const updateFields = [];
+            const updateParams = [];
+            let paramIndex = 0;
 
-            // Prepare update data
-            const updateData = {};
-            if (consultant_id !== undefined) updateData.consultant_id = parseInt(consultant_id);
-            if (slot_id !== undefined) updateData.slot_id = parseInt(slot_id);
-            if (booking_date !== undefined) updateData.booking_date = booking_date;
-            if (status !== undefined) updateData.status = status;
-            if (notes !== undefined) updateData.notes = notes;
-            if (google_meet_link !== undefined) updateData.google_meet_link = google_meet_link;
+            if (consultant_id !== undefined) {
+                updateFields.push(`consultant_id = @${paramIndex}`);
+                updateParams.push(parseInt(consultant_id));
+                paramIndex++;
+            }
 
-            // Update the booking
-            await bookingRepository.update(parseInt(bookingId), updateData);
+            if (slot_id !== undefined) {
+                updateFields.push(`slot_id = @${paramIndex}`);
+                updateParams.push(parseInt(slot_id));
+                paramIndex++;
+            }
 
-            // Get the updated booking
-            const updatedBooking = await bookingRepository.findOne({
-                where: { booking_id: parseInt(bookingId) },
-                relations: {
-                    consultant: {
-                        user: {
-                            profile: true
-                        }
-                    },
-                    slot: true
-                }
-            });
+            if (booking_date !== undefined) {
+                updateFields.push(`booking_date = CAST(@${paramIndex} AS DATE)`);
+                updateParams.push(booking_date);
+                paramIndex++;
+            }
 
-            await queryRunner.commitTransaction();
+            if (status !== undefined) {
+                updateFields.push(`status = @${paramIndex}`);
+                updateParams.push(status);
+                paramIndex++;
+            }
+
+            if (notes !== undefined) {
+                updateFields.push(`notes = @${paramIndex}`);
+                updateParams.push(notes);
+                paramIndex++;
+            }
+
+            if (google_meet_link !== undefined) {
+                updateFields.push(`google_meet_link = @${paramIndex}`);
+                updateParams.push(google_meet_link);
+                paramIndex++;
+            }
+
+            // If no fields to update, return error
+            if (updateFields.length === 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'No fields provided for update'
+                });
+            }
+
+            // Add booking_id as the last parameter for WHERE clause
+            updateParams.push(parseInt(bookingId));
+
+            // Execute update query
+            const updateQuery = `
+                UPDATE Booking_Session 
+                SET ${updateFields.join(', ')}
+                WHERE booking_id = @${paramIndex}
+            `;
+
+            console.log('Update query:', updateQuery);
+            console.log('Update parameters:', updateParams);
+
+            await AppDataSource.query(updateQuery, updateParams);
+
+            // Fetch the updated booking with detailed information
+            const updatedBookingQuery = `
+                SELECT 
+                    b.booking_id,
+                    b.consultant_id,
+                    b.member_id,
+                    b.slot_id,
+                    CONVERT(nvarchar(10), b.booking_date, 120) as booking_date,
+                    b.status,
+                    b.notes,
+                    b.google_meet_link,
+                    -- Consultant information
+                    p.name as consultant_name,
+                    -- Slot information
+                    CONVERT(nvarchar(8), s.start_time, 108) as start_time,
+                    CONVERT(nvarchar(8), s.end_time, 108) as end_time
+                FROM Booking_Session b
+                LEFT JOIN Consultant c ON b.consultant_id = c.id_consultant
+                LEFT JOIN [Users] u ON c.user_id = u.user_id
+                LEFT JOIN Profile p ON u.user_id = p.user_id
+                LEFT JOIN Slot s ON b.slot_id = s.slot_id
+                WHERE b.booking_id = @0
+            `;
+
+            const [updatedBooking] = await AppDataSource.query(updatedBookingQuery, [parseInt(bookingId)]);
+
+            console.log('Updated booking data:', updatedBooking);
 
             res.status(200).json({
                 success: true,
@@ -635,25 +722,22 @@ class BookingSessionController {
                     status: updatedBooking.status,
                     notes: updatedBooking.notes,
                     google_meet_link: updatedBooking.google_meet_link,
-                    consultant_name: updatedBooking.consultant?.user?.profile?.name || 'Unknown',
-                    slot_time: updatedBooking.slot ? {
-                        start_time: updatedBooking.slot.start_time,
-                        end_time: updatedBooking.slot.end_time
+                    consultant_name: updatedBooking.consultant_name || 'Unknown',
+                    slot_time: updatedBooking.start_time && updatedBooking.end_time ? {
+                        start_time: updatedBooking.start_time,
+                        end_time: updatedBooking.end_time
                     } : null
                 },
                 message: 'Booking session updated successfully'
             });
 
         } catch (error) {
-            await queryRunner.rollbackTransaction();
             console.error('Error updating booking session:', error);
             res.status(500).json({
                 success: false,
                 message: 'Failed to update booking session',
                 error: error.message,
             });
-        } finally {
-            await queryRunner.release();
         }
     }
 
@@ -671,7 +755,7 @@ class BookingSessionController {
                     b.consultant_id,
                     b.member_id,
                     b.slot_id,
-                    CONVERT(varchar(10), b.booking_date, 120) as booking_date,
+                    CONVERT(nvarchar(10), b.booking_date, 120) as booking_date,
                     b.status,
                     b.notes,
                     b.google_meet_link,
@@ -681,25 +765,24 @@ class BookingSessionController {
                     u.date_create as member_date_create,
                     u.status as member_status,
                     p.name as member_name,
-                    p.phone_number as member_phone,
-                    p.gender as member_gender,
                     p.date_of_birth as member_date_of_birth,
                     -- Slot information
-                    CONVERT(varchar(8), s.start_time, 108) as start_time,
-                    CONVERT(varchar(8), s.end_time, 108) as end_time,
+                    CONVERT(nvarchar(8), s.start_time, 108) as start_time,
+                    CONVERT(nvarchar(8), s.end_time, 108) as end_time,
                     -- Consultant Slot information
                     cs.day_of_week
                 FROM Booking_Session b
                 INNER JOIN [Users] u ON b.member_id = u.user_id
                 INNER JOIN Profile p ON u.user_id = p.user_id
                 INNER JOIN Slot s ON b.slot_id = s.slot_id
+                INNER JOIN Consultant c ON b.consultant_id = c.id_consultant
                 LEFT JOIN Consultant_Slot cs ON (b.consultant_id = cs.consultant_id AND b.slot_id = cs.slot_id)
-                WHERE b.consultant_id = @0
+                WHERE c.user_id = @0
                 ORDER BY b.booking_date DESC, s.start_time ASC
             `;
 
             console.log('Detailed booking sessions query:', detailedBookingQuery);
-            console.log('Detailed booking sessions parameters:', [parseInt(consultantId)]);
+            console.log('Detailed booking sessions parameters (consultant user_id):', [parseInt(consultantId)]);
 
             const bookings = await AppDataSource.query(
                 detailedBookingQuery,

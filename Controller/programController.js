@@ -90,7 +90,7 @@ class ProgramController {
             // Add programs to their respective categories
             programs.forEach(program => {
                 const categoryName = program.category ? program.category.name : 'Uncategorized';
-                
+
                 // Create uncategorized category if needed
                 if (!programsByCategory[categoryName]) {
                     programsByCategory[categoryName] = {
@@ -121,14 +121,14 @@ class ProgramController {
                         total_enrollments: enrollmentCount,
                         total_contents: contentCount,
                         total_surveys: surveyCount,
-                        completion_rate: enrollmentCount > 0 ? 
+                        completion_rate: enrollmentCount > 0 ?
                             Math.round((program.enrollments.filter(e => e.complete_at).length / enrollmentCount) * 100) : 0
                     }
                 };
 
                 // Add to category
                 programsByCategory[categoryName].programs.push(enhancedProgram);
-                
+
                 // Update category statistics
                 programsByCategory[categoryName].statistics.total_programs++;
                 if (isActive) programsByCategory[categoryName].statistics.active_programs++;
@@ -361,23 +361,22 @@ class ProgramController {
     }
 
     /**
-     * Get Community Event programs only
-     * Specifically designed to retrieve programs from the Community Event category (category_id: 18)
+     * Get Sự kiện cộng đồng programs only
+     * Specifically designed to retrieve programs from the Sự kiện cộng đồng category (category_id: 18)
      */
     static async getCommunityEventPrograms(req, res) {
         try {
             const programRepository = AppDataSource.getRepository(Program);
             const categoryRepository = AppDataSource.getRepository(Category);
 
-            // Find the Community Event category by name instead of hardcoded ID
+            // Find the Sự kiện cộng đồng category by name instead of hardcoded ID
             const communityEventCategory = await categoryRepository.findOne({
-                where: { name: 'Community Event' }
+                where: { name: 'Sự kiện cộng đồng' }
             });
-
             if (!communityEventCategory) {
                 return res.status(404).json({
                     success: false,
-                    message: 'Community Event category not found',
+                    message: 'Sự kiện cộng đồng category not found',
                     data: []
                 });
             }
@@ -385,7 +384,7 @@ class ProgramController {
             const programs = await programRepository.find({
                 where: {
                     category_id: communityEventCategory.category_id,
-                    status: 'active' // Only return active community event programs
+                    status: 'active' // Only return active Sự kiện cộng đồng programs
                 },
                 relations: ['creator', 'category', 'enrollments', 'contents'],
                 order: {
@@ -413,14 +412,14 @@ class ProgramController {
                 success: true,
                 data: programsWithMetadata,
                 count: programsWithMetadata.length,
-                category: 'Community Event',
-                message: 'Community Event programs retrieved successfully'
+                category: 'Sự kiện cộng đồng',
+                message: 'Sự kiện cộng đồng programs retrieved successfully'
             });
         } catch (error) {
-            console.error('Error getting Community Event programs:', error);
+            console.error('Error getting Sự kiện cộng đồng programs:', error);
             res.status(500).json({
                 success: false,
-                message: 'Failed to retrieve Community Event programs',
+                message: 'Failed to retrieve Sự kiện cộng đồng programs',
                 error: error.message
             });
         }
@@ -433,6 +432,7 @@ class ProgramController {
     static async getProgramSurveyAnalytics(req, res) {
         try {
             const { programId } = req.params;
+            const { show_deleted_questions = false } = req.query;
 
             const programRepository = AppDataSource.getRepository(Program);
             const surveyRepository = AppDataSource.getRepository(Survey);
@@ -478,16 +478,31 @@ class ProgramController {
                 try {
                     // Parse questions JSON (always expect { questions: [...] })
                     let questions = [];
+                    let deletedQuestions = [];
+                    let allQuestions = [];
+                    
                     try {
                         if (survey.questions_json) {
                             const parsed = JSON.parse(survey.questions_json);
-                            questions = Array.isArray(parsed) ? parsed : (parsed.questions || []);
+                            allQuestions = Array.isArray(parsed) ? parsed : (parsed.questions || []);
+                            
+                            // Separate active and deleted questions
+                            questions = allQuestions.filter(question => 
+                                question.deleted === false || question.deleted === undefined
+                            );
+                            deletedQuestions = allQuestions.filter(question => 
+                                question.deleted === true
+                            );
                         } else {
                             questions = [];
+                            deletedQuestions = [];
+                            allQuestions = [];
                         }
                     } catch (parseError) {
                         console.error(`Error parsing questions JSON for survey ${survey.survey_id}:`, parseError);
                         questions = [];
+                        deletedQuestions = [];
+                        allQuestions = [];
                     }
 
                     // Get all responses for this survey using the existing method pattern
@@ -519,9 +534,9 @@ class ProgramController {
                                             answerMap[item.question_id] = item.answer;
                                         }
                                     });
-                                    
-                                    // Map answers to question indices (question_id - 1 for 0-based indexing)
-                                    questions.forEach((question, questionIndex) => {
+
+                                    // Map answers to ALL question indices (not just active ones)
+                                    allQuestions.forEach((question, questionIndex) => {
                                         const questionId = question.id || (questionIndex + 1);
                                         answers[questionIndex] = answerMap[questionId];
                                     });
@@ -533,9 +548,9 @@ class ProgramController {
                                             answerMap[item.id] = item.answer;
                                         }
                                     });
-                                    
-                                    // Map answers to question indices
-                                    questions.forEach((question, questionIndex) => {
+
+                                    // Map answers to ALL question indices (not just active ones)
+                                    allQuestions.forEach((question, questionIndex) => {
                                         const questionId = question.id || (questionIndex + 1);
                                         answers[questionIndex] = answerMap[questionId];
                                     });
@@ -557,79 +572,119 @@ class ProgramController {
                     });
 
                     // 4. Analyze responses and count options for each question
-                    const questionAnalytics = {};
+                    const analyzeQuestions = (questionsToAnalyze, questionPrefix = '') => {
+                        const questionAnalytics = {};
 
-                    questions.forEach((question, questionIndex) => {
-                        const questionText = question.question || question.text || `Question ${questionIndex + 1}`;
-                        const questionType = question.type || 'multiple-choice';
-                        const options = question.options || question.choices || [];
+                        questionsToAnalyze.forEach((question, questionIndex) => {
+                            // Find the original index of this question in allQuestions array
+                            const originalIndex = allQuestions.findIndex(q => 
+                                q.id === question.id || 
+                                (q.question === question.question && q.options === question.options)
+                            );
 
-                        // Initialize option counts
-                        const optionCounts = {};
-                        if (Array.isArray(options)) {
-                            options.forEach(option => {
-                                const optionText = typeof option === 'string' ? option : (option.text || option.value || option);
-                                optionCounts[optionText] = 0;
-                            });
-                        }
+                            const questionText = question.question || question.text || `Question ${questionIndex + 1}`;
+                            const questionType = question.type || 'multiple-choice';
+                            const options = question.options || question.choices || [];
 
-                        // Count responses for this question
-                        responseMatrix.forEach(responseRow => {
-                            if (responseRow && responseRow[questionIndex] !== undefined) {
-                                const answer = responseRow[questionIndex];
-                                
-                                if (questionType === 'multiple-choice' || questionType === 'single-choice') {
-                                    // Handle single answer
-                                    const answerText = typeof answer === 'string' ? answer : 
-                                                     (answer.value || answer.text || answer.answer || String(answer));
-                                    
-                                    if (optionCounts.hasOwnProperty(answerText)) {
-                                        optionCounts[answerText]++;
-                                    } else {
-                                        // Handle case where answer doesn't match predefined options
-                                        optionCounts[answerText] = (optionCounts[answerText] || 0) + 1;
-                                    }
-                                } else if (questionType === 'multiple-select' || questionType === 'checkbox') {
-                                    // Handle multiple answers
-                                    const answers = Array.isArray(answer) ? answer : [answer];
-                                    answers.forEach(ans => {
-                                        const answerText = typeof ans === 'string' ? ans : 
-                                                          (ans.value || ans.text || ans.answer || String(ans));
-                                        
+                            // Initialize option counts
+                            const optionCounts = {};
+                            if (Array.isArray(options)) {
+                                options.forEach(option => {
+                                    const optionText = typeof option === 'string' ? option : (option.text || option.value || option);
+                                    optionCounts[optionText] = 0;
+                                });
+                            }
+
+                            // Count responses for this question using original index
+                            responseMatrix.forEach(responseRow => {
+                                if (responseRow && originalIndex >= 0 && responseRow[originalIndex] !== undefined) {
+                                    const answer = responseRow[originalIndex];
+
+                                    if (questionType === 'multiple-choice' || questionType === 'single-choice') {
+                                        // Handle single answer
+                                        const answerText = typeof answer === 'string' ? answer :
+                                            (answer.value || answer.text || answer.answer || String(answer));
+
                                         if (optionCounts.hasOwnProperty(answerText)) {
                                             optionCounts[answerText]++;
                                         } else {
+                                            // Handle case where answer doesn't match predefined options
                                             optionCounts[answerText] = (optionCounts[answerText] || 0) + 1;
                                         }
-                                    });
-                                } else {
-                                    // Handle text/open-ended questions
-                                    const answerText = typeof answer === 'string' ? answer : String(answer);
-                                    optionCounts[answerText] = (optionCounts[answerText] || 0) + 1;
+                                    } else if (questionType === 'multiple-select' || questionType === 'checkbox') {
+                                        // Handle multiple answers
+                                        const answers = Array.isArray(answer) ? answer : [answer];
+                                        answers.forEach(ans => {
+                                            const answerText = typeof ans === 'string' ? ans :
+                                                (ans.value || ans.text || ans.answer || String(ans));
+
+                                            if (optionCounts.hasOwnProperty(answerText)) {
+                                                optionCounts[answerText]++;
+                                            } else {
+                                                optionCounts[answerText] = (optionCounts[answerText] || 0) + 1;
+                                            }
+                                        });
+                                    } else {
+                                        // Handle text/open-ended questions
+                                        const answerText = typeof answer === 'string' ? answer : String(answer);
+                                        optionCounts[answerText] = (optionCounts[answerText] || 0) + 1;
+                                    }
                                 }
-                            }
+                            });
+
+                            questionAnalytics[questionPrefix + questionText] = optionCounts;
                         });
 
-                        questionAnalytics[questionText] = optionCounts;
-                    });
+                        return questionAnalytics;
+                    };
+
+                    // Analyze active questions
+                    const activeQuestionAnalytics = analyzeQuestions(questions);
+                    
+                    // Analyze deleted questions if requested
+                    const deletedQuestionAnalytics = (show_deleted_questions === 'true' || show_deleted_questions === true) ? 
+                        analyzeQuestions(deletedQuestions, '[DELETED] ') : {};
 
                     // 5. Compile survey analytics
-                    surveyAnalytics.push({
+                    const surveyData = {
                         id: survey.survey_id,
                         type: survey.type || 'unknown',
                         total_questions: questions.length,
+                        total_deleted_questions: deletedQuestions.length,
+                        total_all_questions: allQuestions.length,
                         total_responses: validResponses.length,
-                        response_rate: validResponses.length > 0 ? 
+                        response_rate: validResponses.length > 0 ?
                             ((validResponses.length / Math.max(1, responses.length)) * 100).toFixed(2) + '%' : '0%',
                         questions_metadata: questions.map((q, index) => ({
                             index: index,
                             question: q.question || q.text || `Question ${index + 1}`,
                             type: q.type || 'multiple-choice',
-                            required: q.required || false
+                            required: q.required || false,
+                            deleted: false
                         })),
-                        responses: questionAnalytics,
+                        responses: activeQuestionAnalytics,
                         raw_responses: validResponses // Include raw data for debugging
-                    });
+                    };
+
+                    // Add deleted questions metadata and analytics if requested
+                    if (show_deleted_questions === 'true' || show_deleted_questions === true) {
+                        surveyData.deleted_questions_metadata = deletedQuestions.map((q, index) => ({
+                            index: index,
+                            question: q.question || q.text || `Deleted Question ${index + 1}`,
+                            type: q.type || 'multiple-choice',
+                            required: q.required || false,
+                            deleted: true
+                        }));
+                        surveyData.deleted_responses = deletedQuestionAnalytics;
+                        
+                        // Combine active and deleted analytics for complete view
+                        surveyData.all_responses = {
+                            ...activeQuestionAnalytics,
+                            ...deletedQuestionAnalytics
+                        };
+                    }
+
+                    surveyAnalytics.push(surveyData);
 
                 } catch (surveyError) {
                     console.error(`Error processing survey ${survey.survey_id}:`, surveyError);
@@ -652,6 +707,7 @@ class ProgramController {
                     program_title: program.title,
                     total_surveys: surveys.length,
                     total_responses: totalResponses,
+                    show_deleted_questions: show_deleted_questions === 'true' || show_deleted_questions === true,
                     surveys: surveyAnalytics
                 },
                 message: 'Survey analytics retrieved successfully'
@@ -762,6 +818,12 @@ class ProgramController {
             const { id } = req.params;
             const { title, description, age_group, category_id, status, img_link } = req.body;
 
+            console.log('Update program request:', {
+                id,
+                body: req.body,
+                user: req.user
+            });
+
             if (!id || isNaN(parseInt(id))) {
                 return res.status(400).json({
                     success: false,
@@ -785,7 +847,7 @@ class ProgramController {
             }
 
             // Check if category exists if category_id is provided
-            if (category_id !== undefined) {
+            if (category_id !== undefined && category_id !== null) {
                 const categoryRepository = AppDataSource.getRepository(Category);
                 const category = await categoryRepository.findOne({
                     where: { category_id: parseInt(category_id) }
@@ -799,12 +861,13 @@ class ProgramController {
                 }
             }
 
-            // Check if title already exists for other programs
+            // Check if title already exists for other programs (using proper TypeORM syntax)
             if (title && title !== program.title) {
+                const { Not } = require('typeorm');
                 const existingProgram = await programRepository.findOne({
-                    where: { 
+                    where: {
                         title: title,
-                        program_id: { $ne: parseInt(id) } // Exclude current program
+                        program_id: Not(parseInt(id)) // Proper TypeORM syntax for "not equal"
                     }
                 });
 
@@ -816,13 +879,20 @@ class ProgramController {
                 }
             }
 
-            // Update program fields
+            // Update program fields only if they are provided
             if (title !== undefined) program.title = title;
             if (description !== undefined) program.description = description;
             if (age_group !== undefined) program.age_group = age_group;
-            if (category_id !== undefined) program.category_id = parseInt(category_id);
+            if (category_id !== undefined && category_id !== null) program.category_id = parseInt(category_id);
             if (status !== undefined) program.status = status;
             if (img_link !== undefined) program.img_link = img_link;
+
+            console.log('Updating program with data:', {
+                program_id: program.program_id,
+                title: program.title,
+                category_id: program.category_id,
+                status: program.status
+            });
 
             const updatedProgram = await programRepository.save(program);
 
@@ -832,6 +902,8 @@ class ProgramController {
                 relations: ['creator', 'category', 'enrollments', 'contents', 'surveys']
             });
 
+            console.log('Program updated successfully:', programWithRelations.program_id);
+
             res.status(200).json({
                 success: true,
                 data: programWithRelations,
@@ -839,6 +911,7 @@ class ProgramController {
             });
         } catch (error) {
             console.error('Error updating program:', error);
+            console.error('Error stack:', error.stack);
             res.status(500).json({
                 success: false,
                 message: 'Failed to update program',

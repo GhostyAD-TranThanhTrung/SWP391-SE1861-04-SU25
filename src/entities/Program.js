@@ -33,12 +33,12 @@ const Program = new EntitySchema({
             nullable: false
         },
         status: {
-            type: "varchar",
+            type: "nvarchar",
             length: 50,
             nullable: false
         },
         age_group: {
-            type: "varchar",
+            type: "nvarchar",
             length: 50,
             nullable: true
         },

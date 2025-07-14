@@ -3,7 +3,6 @@
  * Uses existing controllers and service patterns to get dashboard statistics
  */
 const AppDataSource = require("../src/data-source");
-
 // Import entities
 const User = require("../src/entities/User");
 const BookingSession = require("../src/entities/BookingSession");
@@ -148,10 +147,10 @@ class DashboardService {
       cancelledBookings,
     ] = await Promise.all([
       bookingRepository.count(),
-      bookingRepository.count({ where: { status: "pending" } }),
-      bookingRepository.count({ where: { status: "confirmed" } }),
-      bookingRepository.count({ where: { status: "completed" } }),
-      bookingRepository.count({ where: { status: "cancelled" } }),
+      bookingRepository.count({ where: { status: "Đang chờ xác nhận" } }),
+      bookingRepository.count({ where: { status: "Đã xác nhận" } }),
+      bookingRepository.count({ where: { status: "Đã hoàn thành" } }),
+      bookingRepository.count({ where: { status: "Đã hủy" } }),
     ]);
 
     return {
@@ -311,10 +310,9 @@ class DashboardController {
         // Booking metrics
         bookingStats: {
           total: await booking.getCount(),
-          pending: await booking.where('booking.status = :status ', { status: 'pending' }).getCount(),
-          confirmed: await booking.where('booking.status = :status ', { status: 'confirmed' }).getCount({ where: { status: "confirmed" } }),
-          completed: await booking.where('booking.status = :status ', { status: 'completed' }).getCount({ where: { status: "completed" } }),
-          cancelled: await booking.where('booking.status = :status ', { status: 'cancelled' }).getCount(),
+          confirmed: await booking.where('booking.status = :status ', { status: 'Lên lịch' }).getCount(),
+          completed: await booking.where('booking.status = :status ', { status: 'Hoàn thành' }).getCount(),
+          cancelled: await booking.where('booking.status = :status ', { status: 'Đã hủy' }).getCount(),
         },
 
         // Date range info

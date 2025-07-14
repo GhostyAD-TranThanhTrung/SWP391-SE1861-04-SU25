@@ -47,6 +47,7 @@ const SurveyController = require("./Controller/surveyController");
 const SurveyResponseController = require("./Controller/surveyResponseController");
 const UserController = require("./Controller/userController");
 const ConsultantCompleteController = require("./Controller/consultantCompleteController");
+const FlagController = require("./Controller/flagController");
 
 // ==================== APP SETUP ====================
 const app = express();
@@ -333,6 +334,26 @@ app.get("/api/members/search/:memberName", authController.verifyToken, MemberCon
 app.get("/api/members/:memberId", authController.verifyToken, MemberController.getMemberById);
 
 /**
+ * MEMBER DETAILS: Get specific member details
+ * Purpose: Retrieve detailed information about a specific member (include assessment)
+ * Method: GET /api/members/detailed/:memberId
+ * Input: Path params: { memberId: number }
+ * Output: { success: boolean, data: object, message: string }
+ * Authentication: Required (Admin/Staff/Consultant)
+ */
+app.get("/api/members/detailed/:memberId", MemberController.getFullMemberById);
+
+/**
+ * MEMBER UPDATE: Update member
+ * Purpose: Update member account from the system
+ * Method: PUT /api/members/:memberId
+ * Input: Path params: { memberId: number }, Body: { name?: string, email?: string, role?: string, status?: string, date_of_birth?: string, bio_json?: object, password?: string}
+ * Output: { success: boolean, data: object, message: string }
+ * Authentication: Required (Admin/Staff)
+ */
+app.put("/api/members/:memberId", authController.verifyToken, MemberController.updateMember);
+
+/**
  * MEMBER DELETE: Remove member
  * Purpose: Delete member account from the system
  * Method: DELETE /api/members/:memberId
@@ -413,6 +434,16 @@ app.delete("/api/consultants/:consultantId", authController.verifyToken, Consult
  */
 app.get("/api/consultants/my-id", authController.verifyToken, ConsultantController.getConsultantIdByUserId);
 
+/**
+ * CONSULTANT ID BY USER EMAIL: Get consultant ID from user email
+ * Purpose: Get consultant ID from user email address
+ * Method: GET /api/consultants/email/:email
+ * Input: email (string) - User's email address
+ * Output: { success: boolean, data: { consultant_id: number, user_id: number }, message: string }
+ * Authentication: None
+ */
+app.get("/api/consultants/email/:email", authController.verifyToken, ConsultantController.getConsultantIdByUserEmail);
+
 // ==================== CONSULTANT COMPLETE MANAGEMENT ROUTES ====================
 /**
  * CONSULTANTS COMPLETE LIST: Get all consultants with complete data
@@ -483,7 +514,7 @@ app.get("/api/consultants-complete/:consultantId/availability/:dayOfWeek", Consu
  * Authentication: Required (Consultant/Admin)
  */
 app.put("/api/booking-sessions/:bookingId/status-link", authController.verifyToken, ConsultantCompleteController.updateBookingSessionStatusAndLink);
-
+app.delete('/api/booking-sessions/:id', authController.verifyToken, BookingSessionController.deleteBookingSession)
 // ==================== CONSULTANT SCHEDULING ROUTES ====================
 /**
  * CONSULTANT SLOTS: Get consultant availability
@@ -494,7 +525,8 @@ app.put("/api/booking-sessions/:bookingId/status-link", authController.verifyTok
  * Authentication: None (Public for booking)
  */
 app.get("/api/consultant-slots/:consultantId", ConsultantSlotController.getSlotsByConsultantId);
-
+app.delete("/api/consultant-slots/consultant/:consultantId", ConsultantSlotController.deleteConsultantSlots);
+app.post("/api/consultant-slots/consultant/:consultantId", ConsultantSlotController.createConsultantSlots);
 /**
  * CONSULTANT SLOTS: Update consultant availability
  * Purpose: Update consultant slots for specific days by deleting existing slots and creating new ones
@@ -504,7 +536,7 @@ app.get("/api/consultant-slots/:consultantId", ConsultantSlotController.getSlots
  * Authentication: Required (Consultant/Admin)
  */
 app.put("/api/consultant-slots", authController.verifyToken, ConsultantSlotController.updateConsultantSlots);
-
+app.get("/api/user/role/", authController.verifyToken, UserController.getUserRoleById)
 /**
  * SLOTS: Get all time slots
  * Purpose: Retrieve all available time slots in the system
@@ -528,6 +560,16 @@ app.get("/api/slots", SlotController.getAllSlots);
  * Authentication: Required
  */
 app.get("/api/booking-sessions/scheduled", authController.verifyToken, BookingSessionController.getScheduledBookingSessions);
+
+/**
+ * BOOKING SESSIONS BY MEMBER: Get all booking sessions for authenticated member
+ * Purpose: Retrieve all booking sessions (all statuses) for the authenticated member
+ * Method: GET /api/booking-sessions/member
+ * Input: None (member ID from token)
+ * Output: { success: boolean, data: Array<BookingObject>, count: number, message: string }
+ * Authentication: Required (Member)
+ */
+app.get("/api/booking-sessions/member", authController.verifyToken, BookingSessionController.getBookingSessionsByMember);
 
 /**
  * BOOKING CREATE: Create new booking session
@@ -698,70 +740,9 @@ app.put("/api/content/:id", authController.verifyToken, ContentController.update
 app.patch("/api/content/:id/order", authController.verifyToken, ContentController.updateContentOrder);
 app.delete("/api/content/:id", authController.verifyToken, ContentController.deleteContent);
 
-// ==================== FILE SERVING ROUTES ====================
-/**
- * IMAGE SERVING: Serve static images
- * Purpose: Serve image files from the content/image directory with proper caching
- * Method: GET /api/images/:filename
- * Input: Path params: { filename: string }
- * Output: Image file or error JSON
- * Authentication: None (Public)
- * Features: Auto content-type detection, 1-year caching, CORS support
- */
-app.get("/api/images/:filename", (req, res) => {
-    const { filename } = req.params;
-    const path = require('path');
-    const fs = require('fs');
-    
-    console.log('🖼️ Image request for:', filename);
-    
-    // Construct the full path to the image
-    const imagePath = path.join(__dirname, 'content', 'image', filename);
-    console.log('📁 Looking for image at:', imagePath);
-    
-    // Check if file exists
-    if (!fs.existsSync(imagePath)) {
-        console.log('❌ Image not found:', imagePath);
-        return res.status(404).json({
-            success: false,
-            message: 'Image not found',
-            filename: filename,
-            path: imagePath
-        });
-    }
-    
-    // Get file extension to determine content type
-    const ext = path.extname(filename).toLowerCase();
-    const contentType = {
-        '.jpg': 'image/jpeg',
-        '.jpeg': 'image/jpeg',
-        '.png': 'image/png',
-        '.gif': 'image/gif',
-        '.webp': 'image/webp',
-        '.svg': 'image/svg+xml'
-    }[ext] || 'image/jpeg';
-    
-    console.log('✅ Serving image:', filename, 'as', contentType);
-    
-    // Set appropriate headers
-    res.setHeader('Content-Type', contentType);
-    res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    
-    // Send the file
-    res.sendFile(imagePath, (err) => {
-        if (err) {
-            console.error('💥 Error sending image:', err);
-            res.status(500).json({
-                success: false,
-                message: 'Error serving image',
-                error: err.message
-            });
-        } else {
-            console.log('🎉 Image served successfully:', filename);
-        }
-    });
-});
+// Image upload routes
+app.post("/api/images/upload", authController.verifyToken, ContentController.uploadImage);
+app.get("/api/images/:filename", ContentController.getImage);
 
 // ==================== CATEGORY ROUTES ====================
 /**
@@ -774,6 +755,36 @@ app.get("/api/images/:filename", (req, res) => {
  */
 app.get("/api/categories", CategoryController.getAllCategories);
 
+/**
+ * CATEGORY CREATE: Create new category
+ * Purpose: Create a new program category for organizing programs
+ * Method: POST /api/categories
+ * Input: { name?: string, description?: string }
+ * Output: { success: boolean, data: CategoryObject, message: string }
+ * Authentication: Required (Admin/Staff)
+ */
+app.post("/api/categories", authController.verifyToken, CategoryController.createCategory);
+
+/**
+ * CATEGORY UPDATE: Update existing category
+ * Purpose: Modify an existing program category
+ * Method: PUT /api/categories/:id
+ * Input: Path params: { id: number }, Body: { name?: string, description?: string }
+ * Output: { success: boolean, data: CategoryObject, message: string }
+ * Authentication: Required (Admin/Staff)
+ */
+app.put("/api/categories/:id", authController.verifyToken, CategoryController.updateCategory);
+
+/**
+ * CATEGORY DELETE: Remove category
+ * Purpose: Delete a program category from the system
+ * Method: DELETE /api/categories/:id
+ * Input: Path params: { id: number }
+ * Output: { success: boolean, message: string, deletedCategory: object }
+ * Authentication: Required (Admin/Staff)
+ */
+app.delete("/api/categories/:id", authController.verifyToken, CategoryController.deleteCategory);
+
 // ==================== BLOG ROUTES ====================
 /**
  * BLOGS LIST: Get all published blogs
@@ -784,7 +795,7 @@ app.get("/api/categories", CategoryController.getAllCategories);
  * Authentication: None (Public)
  */
 app.get("/api/blogs", BlogController.getAllBlogs);
-
+app.get("/api/admin/blogs", BlogController.getAllBlogsForAdmin)
 /**
  * MY BLOGS: Get current user's blogs
  * Purpose: Retrieve all blog posts created by the authenticated user
@@ -895,6 +906,97 @@ app.patch("/api/blogs/:id/approve", authController.verifyStaffOrAdmin, BlogContr
  */
 app.patch("/api/blogs/:id/reject", authController.verifyStaffOrAdmin, BlogController.rejectBlog);
 
+// ==================== FLAG ROUTES ====================
+/**
+ * FLAG CREATE: Report blog post
+ * Purpose: Create a new flag report for inappropriate content
+ * Method: POST /api/flags
+ * Input: { blog_id: number, reason: string }
+ * Output: { success: boolean, data: object, message: string, blogHidden?: boolean, authorBanned?: boolean }
+ * Authentication: Required
+ */
+app.post("/api/flags", authController.verifyToken, FlagController.createFlag);
+
+/**
+ * FLAGS BY BLOG: Get flags for specific blog
+ * Purpose: Retrieve all flag reports for a specific blog
+ * Method: GET /api/flags/blog/:blogId
+ * Input: Path params: { blogId: number }
+ * Output: { success: boolean, data: Array<FlagObject>, count: number, message: string }
+ * Authentication: Required (Admin/Staff)
+ */
+app.get("/api/flags/blog/:blogId", authController.verifyStaffOrAdmin, FlagController.getFlagsByBlogId);
+
+/**
+ * FLAGS BY USER: Get flags created by user
+ * Purpose: Retrieve all flag reports created by a specific user
+ * Method: GET /api/flags/user/:userId
+ * Input: Path params: { userId: number }
+ * Output: { success: boolean, data: Array<FlagObject>, count: number, message: string }
+ * Authentication: Required (User/Admin/Staff)
+ */
+app.get("/api/flags/user/:userId", authController.verifyToken, FlagController.getFlagsByUser);
+
+/**
+ * FLAG REMOVE: Remove flag report
+ * Purpose: Delete a flag report from the system and unhide blog if needed
+ * Method: DELETE /api/flags/:id
+ * Input: Path params: { id: number }
+ * Output: { success: boolean, message: string, blogUnhidden: boolean, remainingFlags: number, blogId: number }
+ * Authentication: Required (Admin/Staff)
+ */
+app.delete("/api/flags/:id", authController.verifyStaffOrAdmin, FlagController.removeFlag);
+
+/**
+ * FLAGS LIST: Get all flags
+ * Purpose: Retrieve all flag reports for admin review
+ * Method: GET /api/flags
+ * Input: None
+ * Output: { success: boolean, data: Array<FlagObject>, message: string }
+ * Authentication: Required (Admin/Staff)
+ */
+app.get("/api/flags", authController.verifyStaffOrAdmin, FlagController.getAllFlags);
+
+/**
+ * MOST FLAGGED BLOGS: Get blogs with most flags
+ * Purpose: Retrieve blogs sorted by number of flags for moderation priority
+ * Method: GET /api/flags/most-flagged-blogs
+ * Input: None
+ * Output: { success: boolean, data: Array<BlogFlagCount>, message: string }
+ * Authentication: Required (Admin/Staff)
+ */
+app.get("/api/flags/most-flagged-blogs", authController.verifyStaffOrAdmin, FlagController.getMostFlaggedBlogs);
+
+/**
+ * CLEAR BLOG FLAGS: Remove all flags from a blog
+ * Purpose: Clear all flag reports for a specific blog
+ * Method: DELETE /api/flags/blog/:blogId/clear
+ * Input: Path params: { blogId: number }
+ * Output: { success: boolean, deletedCount: number, message: string }
+ * Authentication: Required (Admin/Staff)
+ */
+app.delete("/api/flags/blog/:blogId/clear", authController.verifyStaffOrAdmin, FlagController.clearBlogFlags);
+
+/**
+ * BANNED USERS: Get users banned due to flags
+ * Purpose: Retrieve users who were banned due to flagged content
+ * Method: GET /api/flags/banned-users
+ * Input: None
+ * Output: { success: boolean, data: Array<BannedUserObject>, count: number, message: string }
+ * Authentication: Required (Admin/Staff)
+ */
+app.get("/api/flags/banned-users", authController.verifyStaffOrAdmin, FlagController.getBannedUsers);
+
+/**
+ * UNBAN USER: Remove ban from user
+ * Purpose: Unban a user who was banned due to flagged content
+ * Method: PATCH /api/flags/unban-user/:userId
+ * Input: Path params: { userId: number }
+ * Output: { success: boolean, data: object, message: string }
+ * Authentication: Required (Admin)
+ */
+app.patch("/api/flags/unban-user/:userId", authController.verifyToken, FlagController.unbanUser);
+
 // ==================== ENROLLMENT ROUTES ====================
 /**
  * USER ENROLLMENTS: Get enrollments by user
@@ -986,20 +1088,20 @@ app.put("/api/surveys/:id", authController.verifyToken, SurveyController.updateS
 
 // Test endpoint for survey updates (temporary for debugging)
 app.put("/api/surveys-test/:id", (req, res) => {
-  console.log("🧪 Test survey update endpoint called");
-  console.log("🧪 Request params:", req.params);
-  console.log("🧪 Request body:", req.body);
-  console.log("🧪 Request headers:", req.headers);
-  
-  res.status(200).json({
-    success: true,
-    message: "Test endpoint working",
-    received_data: {
-      id: req.params.id,
-      body: req.body,
-      headers: req.headers
-    }
-  });
+    console.log("🧪 Test survey update endpoint called");
+    console.log("🧪 Request params:", req.params);
+    console.log("🧪 Request body:", req.body);
+    console.log("🧪 Request headers:", req.headers);
+
+    res.status(200).json({
+        success: true,
+        message: "Test endpoint working",
+        received_data: {
+            id: req.params.id,
+            body: req.body,
+            headers: req.headers
+        }
+    });
 });
 
 // ==================== SURVEY RESPONSE ROUTES ====================
@@ -1064,8 +1166,9 @@ app.listen(3000, () => {
     console.log("   Assessments: /api/assessments/*");
     console.log("   Programs: /api/programs/*");
     console.log("   Content: /api/content/*");
-    console.log("   Categories: /api/categories");
+    console.log("   Categories: /api/categories/*");
     console.log("   Blogs: /api/blogs/*");
+    console.log("   Flags: /api/flags/*");
     console.log("   Enrollments: /api/enrollments/*");
     console.log("   Surveys: /api/surveys/*");
     console.log("   Survey Responses: /api/survey-responses/*");
@@ -1114,6 +1217,8 @@ Members (Admin/Staff):
 - POST /api/consultants - Create consultant (admin)
 - GET /api/consultant-slots/:id - Get consultant availability
 - POST /api/booking-sessions - Book consultation session
+- GET /api/booking-sessions/scheduled - Get scheduled booking sessions (auth)
+- GET /api/booking-sessions/member - Get all booking sessions for member (auth)
 
 📝 ASSESSMENT ROUTES:
 - GET /api/assessments/me - Get my assessments
@@ -1137,6 +1242,12 @@ Members (Admin/Staff):
 - POST /api/content/youtube - Create YouTube content (auth)
 - POST /api/content/markdown - Create markdown content (auth)
 - POST /api/content/podcast - Create podcast content (auth)
+
+🏷️ CATEGORY ROUTES:
+- GET /api/categories - List all categories (public)
+- POST /api/categories - Create new category (auth)
+- PUT /api/categories/:id - Update category (auth)
+- DELETE /api/categories/:id - Delete category (auth)
 
 📰 BLOG ROUTES:
 - GET /api/blogs - List published blogs (public)

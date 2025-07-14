@@ -73,7 +73,7 @@ class StaffController {
      * Creates a new user with staff role and optional profile
      * ERD Compliant: Only uses email, password, role, status from Users table
      * and name, bio_json, date_of_birth, job from Profile table
-     */    
+     */
     static async createStaff(req, res) {
         // Start database transaction
         const queryRunner = AppDataSource.createQueryRunner();
@@ -98,20 +98,39 @@ class StaffController {
             } = req.body;
 
             // Validate required fields
-            if (!email || !password) {
+            if (!email || !password || !role) {
                 await queryRunner.rollbackTransaction();
                 return res.status(400).json({
                     success: false,
-                    message: 'Email and password are required'
+                    message: 'Email, password, and role are required'
                 });
             }
 
-            // Validate role is staff role
-            if (!['staff', 'manager'].includes(role)) {
+            // Validate email format
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
                 await queryRunner.rollbackTransaction();
                 return res.status(400).json({
                     success: false,
-                    message: 'Role must be staff or manager for staff creation'
+                    message: 'Invalid email format'
+                });
+            }
+
+            // Validate password strength
+            if (password.length < 6) {
+                await queryRunner.rollbackTransaction();
+                return res.status(400).json({
+                    success: false,
+                    message: 'Password must be at least 6 characters long'
+                });
+            }
+
+            // Validate role is staff/admin role
+            if (!['staff', 'manager', 'admin'].includes(role)) {
+                await queryRunner.rollbackTransaction();
+                return res.status(400).json({
+                    success: false,
+                    message: 'Role must be staff, manager, or admin for staff creation'
                 });
             }
 
@@ -140,7 +159,7 @@ class StaffController {
             // Create new user (ERD compliant - no username field)
             const newUser = userRepository.create({
                 email,
-                password: await bcrypt.hash(password, 10),
+                password,
                 role,
                 status
                 // date_create is handled by database default
@@ -169,13 +188,26 @@ class StaffController {
             // Commit transaction if all operations successful
             await queryRunner.commitTransaction();
 
+            // Prepare response data (exclude password)
+            const { password: _, ...userWithoutPassword } = savedUser;
+
+            // Parse bio_json if it exists in the saved profile
+            if (savedProfile && savedProfile.bio_json) {
+                try {
+                    savedProfile.bio_json = JSON.parse(savedProfile.bio_json);
+                } catch (error) {
+                    // Keep as string if parsing fails
+                    console.warn(`Failed to parse bio_json for new user ${savedUser.user_id}:`, error);
+                }
+            }
+
             res.status(201).json({
                 success: true,
                 data: {
-                    user: savedUser,
+                    ...userWithoutPassword,
                     profile: savedProfile
                 },
-                message: 'Staff created successfully'
+                message: `Staff ${role} created successfully with email: ${email}`
             });
         } catch (error) {
             // Rollback transaction on any error
@@ -197,145 +229,145 @@ class StaffController {
      * Updates both user and profile information
      * ERD Compliant: Only uses fields that exist in ERD schema
      */
-   static async updateStaff(req, res) {
+    static async updateStaff(req, res) {
         try {
-                const { staffId } = req.params;
-                const userRepository = AppDataSource.getRepository(User);
-                const profileRepository = AppDataSource.getRepository(Profile);
-       
-                // Find the staff user
-                const user = await userRepository.findOne({
-                    where: { user_id: parseInt(staffId) }
+            const { staffId } = req.params;
+            const userRepository = AppDataSource.getRepository(User);
+            const profileRepository = AppDataSource.getRepository(Profile);
+
+            // Find the staff user
+            const user = await userRepository.findOne({
+                where: { user_id: parseInt(staffId) }
+            });
+
+            if (!user) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Staff not found'
                 });
-       
-                if (!user) {
-                    return res.status(404).json({
+            }
+
+            // Verify user is staff
+            if (!['admin', 'staff', 'manager'].includes(user.role.toLowerCase())) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'User is not a staff member'
+                });
+            }
+
+            const {
+                // Users table fields (ERD compliant)
+                email,
+                password,
+                role,
+                status,
+                // Profile table fields (ERD compliant)
+                name,
+                bio_json,
+                date_of_birth,
+                job
+            } = req.body;
+
+            // Update user fields if provided
+            if (email !== undefined) user.email = email;
+            if (password !== undefined) user.password = password; //await bcrypt.hash(password, 10)
+            if (role !== undefined) {
+                if (!['staff', 'consultant'].includes(role)) {
+                    return res.status(400).json({
                         success: false,
-                        message: 'Staff not found'
+                        message: 'Role must be staff or manager'
                     });
                 }
-       
-                   // Verify user is staff
-                   if (!['admin', 'staff', 'manager'].includes(user.role.toLowerCase())) {
-                       return res.status(400).json({
-                           success: false,
-                           message: 'User is not a staff member'
-                       });
-                   }
-       
-                   const {
-                       // Users table fields (ERD compliant)
-                       email,
-                       password,
-                       role,
-                       status,
-                       // Profile table fields (ERD compliant)
-                       name,
-                       bio_json,
-                       date_of_birth,
-                       job
-                   } = req.body;
-       
-                   // Update user fields if provided
-                   if (email !== undefined) user.email = email;
-                   if (password !== undefined) user.password = await bcrypt.hash(password, 10);
-                   if (role !== undefined) {
-                       if (!['staff', 'consultant'].includes(role)) {
-                           return res.status(400).json({
-                               success: false,
-                               message: 'Role must be staff or manager'
-                           });
-                       }
-                       user.role = role;
-                   }
-                   if (status !== undefined) {
-                       if (!['active', 'inactive', 'banned'].includes(status)) {
-                           return res.status(400).json({
-                               success: false,
-                               message: 'Status must be active, inactive, or banned'
-                           });
-                       }
-                       user.status = status;
-                   }
-       
-                   // Check for duplicate email if being updated
-                   if (email) {
-                       const duplicateCheck = await userRepository.findOne({
-                           where: { email: email }
-                       });
-       
-                       if (duplicateCheck && duplicateCheck.user_id !== parseInt(staffId)) {
-                           return res.status(409).json({
-                               success: false,
-                               message: 'Email already exists'
-                           });
-                       }
-                   }
-       
-                   const updatedUser = await userRepository.save(user);
-       
-                   // Update or create profile
-                   let updatedProfile = await profileRepository.findOne({
-                       where: { user_id: parseInt(staffId) }
-                   });
-       
-                   const hasProfileData = name !== undefined || bio_json !== undefined ||
-                       date_of_birth !== undefined || job !== undefined;
-       
-                   if (hasProfileData) {
-                       // Validate bio_json if provided
-                       let bioJsonString = undefined;
-                   
-                       if (bio_json !== undefined) {
-                           try {
-                              bioJsonString = typeof bio_json === 'string' ? bio_json : JSON.stringify(bio_json);
-                           } catch (error) {
-                               return res.status(400).json({
-                                   success: false,
-                                   message: 'Invalid JSON format for bio_json'
-                               });
-                           }
-                       }
-       
-                       if (updatedProfile) {
-                           // Update existing profile
-                           if (name !== undefined) updatedProfile.name = name;
-                           if (bioJsonString !== undefined) updatedProfile.bio_json = bioJsonString;
-                           if (date_of_birth !== undefined) updatedProfile.date_of_birth = date_of_birth ? new Date(date_of_birth) : null;
-                           if (job !== undefined) updatedProfile.job = job;
-       
-                           updatedProfile = await profileRepository.save(updatedProfile);
-                       } else {
-                           // Create new profile
-                           const newProfile = profileRepository.create({
-                               user_id: parseInt(staffId),
-                               name,
-                               bio_json: parsedBioJson,
-                               date_of_birth: date_of_birth ? new Date(date_of_birth) : null,
-                               job
-                           });
-       
-                           updatedProfile = await profileRepository.save(newProfile);
-                       }
-                   }
-       
-                   res.status(200).json({
-                       success: true,
-                       data: {
-                           user: updatedUser,
-                           profile: updatedProfile
-                       },
-                       message: 'Staff updated successfully'
-                   });
-               } catch (error) {
-                   console.error('Error updating staff:', error);
-                   res.status(500).json({
-                       success: false,
-                       message: 'Failed to update staff',
-                       error: error.message
-                   });
-               }
-           }    /**
+                user.role = role;
+            }
+            if (status !== undefined) {
+                if (!['active', 'inactive', 'banned'].includes(status)) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Status must be active, inactive, or banned'
+                    });
+                }
+                user.status = status;
+            }
+
+            // Check for duplicate email if being updated
+            if (email) {
+                const duplicateCheck = await userRepository.findOne({
+                    where: { email: email }
+                });
+
+                if (duplicateCheck && duplicateCheck.user_id !== parseInt(staffId)) {
+                    return res.status(409).json({
+                        success: false,
+                        message: 'Email already exists'
+                    });
+                }
+            }
+
+            const updatedUser = await userRepository.save(user);
+
+            // Update or create profile
+            let updatedProfile = await profileRepository.findOne({
+                where: { user_id: parseInt(staffId) }
+            });
+
+            const hasProfileData = name !== undefined || bio_json !== undefined ||
+                date_of_birth !== undefined || job !== undefined;
+
+            if (hasProfileData) {
+                // Validate bio_json if provided
+                let bioJsonString = undefined;
+
+                if (bio_json !== undefined) {
+                    try {
+                        bioJsonString = typeof bio_json === 'string' ? bio_json : JSON.stringify(bio_json);
+                    } catch (error) {
+                        return res.status(400).json({
+                            success: false,
+                            message: 'Invalid JSON format for bio_json'
+                        });
+                    }
+                }
+
+                if (updatedProfile) {
+                    // Update existing profile
+                    if (name !== undefined) updatedProfile.name = name;
+                    if (bioJsonString !== undefined) updatedProfile.bio_json = bioJsonString;
+                    if (date_of_birth !== undefined) updatedProfile.date_of_birth = date_of_birth ? new Date(date_of_birth) : null;
+                    if (job !== undefined) updatedProfile.job = job;
+
+                    updatedProfile = await profileRepository.save(updatedProfile);
+                } else {
+                    // Create new profile
+                    const newProfile = profileRepository.create({
+                        user_id: parseInt(staffId),
+                        name,
+                        bio_json: parsedBioJson,
+                        date_of_birth: date_of_birth ? new Date(date_of_birth) : null,
+                        job
+                    });
+
+                    updatedProfile = await profileRepository.save(newProfile);
+                }
+            }
+
+            res.status(200).json({
+                success: true,
+                data: {
+                    user: updatedUser,
+                    profile: updatedProfile
+                },
+                message: 'Staff updated successfully'
+            });
+        } catch (error) {
+            console.error('Error updating staff:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to update staff',
+                error: error.message
+            });
+        }
+    }    /**
      * DELETE /api/staff/{staffId} - Delete staff by ID
      * Deletes both user and associated profile
      */

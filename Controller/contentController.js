@@ -1,12 +1,74 @@
 /**
  * Content Controller using TypeORM
  * CRUD operations for Content table
+ * 
+ * MARKDOWN CONTENT HANDLING:
+ * This controller supports two formats for markdown content:
+ * 
+ * 1. DIRECT CONTENT (New Format - Recommended):
+ *    - content_file_link contains the actual markdown content
+ *    - Detected when content starts with '#' or contains newlines
+ *    - Faster access, no file system dependencies
+ *    - Used by data_vietnamese.sql
+ * 
+ * 2. FILE-BASED CONTENT (Legacy Format):
+ *    - content_file_link contains file path (e.g., "/content/markdown/file.md")
+ *    - Requires file system access
+ *    - Maintained for backward compatibility
+ * 
+ * API METHODS:
+ * - getContentFile(): Automatically detects format and returns content
+ * - createMarkdownContent(): Supports both markdown_content (direct) and markdown_file (legacy)
+ * - updateContentToDirectMarkdown(): Converts specific content to direct format
+ * - convertAllMarkdownToDirectContent(): Migrates all file-based content to direct format
+ * - uploadImage(): Uploads images to /content/image directory
  */
 const AppDataSource = require("../src/data-source");
 const Content = require("../src/entities/Content");
 const Program = require("../src/entities/Program");
 const fs = require('fs');
 const path = require('path');
+const multer = require('multer');
+
+// Configure multer for image uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadPath = path.join(__dirname, '..', 'content', 'image');
+    
+    // Create directory if it doesn't exist
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    
+    cb(null, uploadPath);
+  },
+  filename: function (req, file, cb) {
+    // Generate unique filename with timestamp
+    const timestamp = Date.now();
+    const randomNum = Math.floor(Math.random() * 10000);
+    const ext = path.extname(file.originalname);
+    const name = path.basename(file.originalname, ext);
+    const filename = `${name}-${timestamp}-${randomNum}${ext}`;
+    cb(null, filename);
+  }
+});
+
+// File filter for images only
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith('image/')) {
+    cb(null, true);
+  } else {
+    cb(new Error('Only image files are allowed!'), false);
+  }
+};
+
+const upload = multer({ 
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  }
+});
 
 /**
  * Helper function to extract YouTube video ID from URL
@@ -18,6 +80,111 @@ function extractYouTubeVideoId(url) {
 }
 
 class ContentController {
+  /**
+   * Upload image file
+   * Saves image to /content/image directory and returns relative path
+   */
+  static uploadImage = [
+    upload.single('image'),
+    async (req, res) => {
+      try {
+        if (!req.file) {
+          return res.status(400).json({
+            success: false,
+            message: "No image file provided"
+          });
+        }
+
+        // Return relative path for frontend use
+        const relativePath = `../image/${req.file.filename}`;
+        
+        res.status(200).json({
+          success: true,
+          data: {
+            filename: req.file.filename,
+            originalName: req.file.originalname,
+            relativePath: relativePath,
+            size: req.file.size,
+            mimetype: req.file.mimetype
+          },
+          imageUrl: relativePath,
+          message: "Image uploaded successfully"
+        });
+      } catch (error) {
+        console.error("Error uploading image:", error);
+        res.status(500).json({
+          success: false,
+          message: "Failed to upload image",
+          error: error.message
+        });
+      }
+    }
+  ];
+
+  /**
+   * Get image file
+   * Serves images from /content/image directory
+   */
+  static async getImage(req, res) {
+    try {
+      const { filename } = req.params;
+      const imagePath = path.join(__dirname, '..', 'content', 'image', filename);
+
+      console.log('🖼️ Image request for:', filename);
+      console.log('📁 Looking for image at:', imagePath);
+
+      // Check if file exists
+      if (!fs.existsSync(imagePath)) {
+        console.log('❌ Image not found:', imagePath);
+        return res.status(404).json({
+          success: false,
+          message: "Image not found",
+          filename: filename,
+          path: imagePath
+        });
+      }
+
+      // Get file extension to determine content type
+      const ext = path.extname(filename).toLowerCase();
+      const contentType = {
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.png': 'image/png',
+        '.gif': 'image/gif',
+        '.webp': 'image/webp',
+        '.svg': 'image/svg+xml'
+      }[ext] || 'image/jpeg';
+
+      console.log('✅ Serving image:', filename, 'as', contentType);
+
+      // Set appropriate headers
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
+      res.setHeader('Access-Control-Allow-Origin', '*');
+
+      // Send the image file
+      res.sendFile(imagePath, (err) => {
+        if (err) {
+          console.error('💥 Error sending image:', err);
+          res.status(500).json({
+            success: false,
+            message: 'Error serving image',
+            error: err.message
+          });
+        } else {
+          console.log('🎉 Image served successfully:', filename);
+        }
+      });
+    } catch (error) {
+      console.error("Error getting image:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to retrieve image",
+        error: error.message
+      });
+    }
+  }
+
   /**
    * Get all content
    */
@@ -320,7 +487,8 @@ class ContentController {
    * {
    *   "program_id": 1,
    *   "title": "Understanding Addiction Science",
-   *   "markdown_file": "addiction-science.md",
+   *   "markdown_content": "# Title\n\nContent here...", // Direct markdown content
+   *   "markdown_file": "addiction-science.md", // Optional: file path (legacy)
    *   "image_file": "addiction-brain.jpg", // optional
    *   "orders": 1,
    *   "author": "Dr. Smith",
@@ -334,6 +502,7 @@ class ContentController {
       const { 
         program_id, 
         title, 
+        markdown_content,
         markdown_file,
         image_file,
         orders, 
@@ -344,11 +513,11 @@ class ContentController {
         description
       } = req.body;
 
-      // Validate required fields
-      if (!program_id || !title || !markdown_file) {
+      // Validate required fields - either markdown_content or markdown_file is required
+      if (!program_id || !title || (!markdown_content && !markdown_file)) {
         return res.status(400).json({
           success: false,
-          message: "Missing required fields: program_id, title, and markdown_file are required"
+          message: "Missing required fields: program_id, title, and either markdown_content or markdown_file are required"
         });
       }
 
@@ -365,14 +534,36 @@ class ContentController {
         });
       }
 
-      // Validate markdown file exists
-      const markdownPath = path.join(__dirname, '..', 'content', 'markdown', markdown_file);
-      if (!fs.existsSync(markdownPath)) {
-        return res.status(400).json({
-          success: false,
-          message: `Markdown file not found: ${markdown_file}`,
-          path: markdownPath
-        });
+      let finalMarkdownContent = '';
+      let wordCount = 0;
+
+      // Handle direct markdown content (new format)
+      if (markdown_content) {
+        finalMarkdownContent = markdown_content;
+        wordCount = markdown_content.split(/\s+/).filter(word => word.length > 0).length;
+      } 
+      // Handle file-based markdown content (legacy format)
+      else if (markdown_file) {
+        // Validate markdown file exists
+        const markdownPath = path.join(__dirname, '..', 'content', 'markdown', markdown_file);
+        if (!fs.existsSync(markdownPath)) {
+          return res.status(400).json({
+            success: false,
+            message: `Markdown file not found: ${markdown_file}`,
+            path: markdownPath
+          });
+        }
+
+        try {
+          finalMarkdownContent = fs.readFileSync(markdownPath, 'utf8');
+          wordCount = finalMarkdownContent.split(/\s+/).filter(word => word.length > 0).length;
+        } catch (error) {
+          return res.status(500).json({
+            success: false,
+            message: "Failed to read markdown file",
+            error: error.message
+          });
+        }
       }
 
       // Validate image file if provided
@@ -397,25 +588,26 @@ class ContentController {
         description: description || "",
         image_file: image_file || null,
         image_url: image_file ? `/api/images/${image_file}` : null,
-        markdown_path: `/content/markdown/${markdown_file}`,
         created_at: new Date().toISOString(),
-        file_size: fs.statSync(markdownPath).size,
-        word_count: null // Will be calculated if needed
+        word_count: wordCount,
+        content_type: markdown_content ? 'direct' : 'file'
       };
 
-      // Calculate word count from markdown file
-      try {
-        const markdownContent = fs.readFileSync(markdownPath, 'utf8');
-        const wordCount = markdownContent.split(/\s+/).filter(word => word.length > 0).length;
-        metadata.word_count = wordCount;
-        
-        // Estimate reading time if not provided (average 200 words per minute)
-        if (reading_time === undefined || reading_time === "Unknown") {
-          const estimatedMinutes = Math.ceil(wordCount / 200);
-          metadata.reading_time = `${estimatedMinutes} min`;
+      // If using file, add file path to metadata
+      if (markdown_file) {
+        metadata.markdown_path = `/content/markdown/${markdown_file}`;
+        try {
+          const markdownPath = path.join(__dirname, '..', 'content', 'markdown', markdown_file);
+          metadata.file_size = fs.statSync(markdownPath).size;
+        } catch (error) {
+          console.warn("Could not get file size:", error.message);
         }
-      } catch (error) {
-        console.warn("Could not calculate word count:", error.message);
+      }
+
+      // Estimate reading time if not provided (average 200 words per minute)
+      if (reading_time === undefined || reading_time === "Unknown") {
+        const estimatedMinutes = Math.ceil(wordCount / 200);
+        metadata.reading_time = `${estimatedMinutes} min`;
       }
 
       const contentRepository = AppDataSource.getRepository(Content);
@@ -426,7 +618,7 @@ class ContentController {
         title,
         type: 'article',
         orders: orders ? parseInt(orders) : 1,
-        content_file_link: `/content/markdown/${markdown_file}`,
+        content_file_link: finalMarkdownContent, // Store the actual content or file path
         content_type: 'markdown',
         content_metadata_json: JSON.stringify(metadata)
       });
@@ -609,7 +801,33 @@ class ContentController {
       if (title !== undefined) content.title = title;
       if (type !== undefined) content.type = type;
       if (orders !== undefined) content.orders = orders ? parseInt(orders) : null;
-      if (content_file_link !== undefined) content.content_file_link = content_file_link;
+      if (content_file_link !== undefined) {
+        content.content_file_link = content_file_link;
+        
+        // If updating markdown content with direct content, update metadata
+        if (content.content_type === 'markdown' && (content_file_link.startsWith('#') || content_file_link.includes('\n'))) {
+          try {
+            let metadata = {};
+            if (content.content_metadata_json) {
+              metadata = JSON.parse(content.content_metadata_json);
+            }
+            
+            // Calculate word count for new content
+            const wordCount = content_file_link.split(/\s+/).filter(word => word.length > 0).length;
+            metadata.word_count = wordCount;
+            metadata.content_type = 'direct';
+            metadata.updated_at = new Date().toISOString();
+            
+            // Recalculate reading time (average 200 words per minute)
+            const estimatedMinutes = Math.ceil(wordCount / 200);
+            metadata.reading_time = `${estimatedMinutes} min`;
+            
+            content.content_metadata_json = JSON.stringify(metadata);
+          } catch (error) {
+            console.warn("Could not update metadata for direct markdown content:", error.message);
+          }
+        }
+      }
       if (content_type !== undefined) content.content_type = content_type;
       if (content_metadata_json !== undefined) {
         content.content_metadata_json = typeof content_metadata_json === "object"
@@ -916,7 +1134,20 @@ class ContentController {
         });
       }
 
-      // Handle local files
+      // Handle direct markdown content (new format where content_file_link contains actual markdown)
+      if (contentType === 'markdown' && (fileLink.startsWith('#') || fileLink.includes('\n'))) {
+        return res.status(200).json({
+          success: true,
+          data: {
+            type: 'markdown',
+            content: fileLink,
+            metadata: content.content_metadata_json ? JSON.parse(content.content_metadata_json) : null
+          },
+          message: "Markdown content retrieved successfully"
+        });
+      }
+
+      // Handle local files (legacy format)
       try {
         // Remove leading slash if present
         const normalizedPath = fileLink.startsWith('/') ? fileLink.substring(1) : fileLink;
@@ -1039,9 +1270,9 @@ class ContentController {
     }
   }
 
-  /**
- * Get preview content by program_id - returns only Title, Type, and Order
- */
+    /**
+   * Get preview content by program_id - returns only Title, Type, and Order
+   */
   static async getPreviewContent(req, res) {
     try {
       const { program_id } = req.params;
@@ -1077,6 +1308,265 @@ class ContentController {
         success: false,
         message: "Failed to retrieve preview content",
         error: error.message,
+      });
+    }
+  }
+
+  /**
+   * Update content to use direct markdown content instead of file paths
+   * Expected request body:
+   * {
+   *   "markdown_content": "# Title\n\nContent here..."
+   * }
+   */
+  static async updateContentToDirectMarkdown(req, res) {
+    try {
+      const { id } = req.params;
+      const { markdown_content } = req.body;
+
+      if (!markdown_content) {
+        return res.status(400).json({
+          success: false,
+          message: "markdown_content is required"
+        });
+      }
+
+      const contentRepository = AppDataSource.getRepository(Content);
+
+      // Check if content exists
+      const content = await contentRepository.findOne({
+        where: { content_id: parseInt(id) }
+      });
+
+      if (!content) {
+        return res.status(404).json({
+          success: false,
+          message: "Content not found"
+        });
+      }
+
+      // Verify this is markdown content
+      if (content.content_type !== 'markdown') {
+        return res.status(400).json({
+          success: false,
+          message: "This method only works for markdown content"
+        });
+      }
+
+      // Calculate word count for new content
+      const wordCount = markdown_content.split(/\s+/).filter(word => word.length > 0).length;
+
+      // Update metadata
+      let metadata = {};
+      if (content.content_metadata_json) {
+        try {
+          metadata = JSON.parse(content.content_metadata_json);
+        } catch (error) {
+          console.warn("Could not parse existing metadata:", error.message);
+        }
+      }
+
+      // Update metadata with new information
+      metadata.word_count = wordCount;
+      metadata.content_type = 'direct';
+      metadata.updated_at = new Date().toISOString();
+      
+      // Recalculate reading time (average 200 words per minute)
+      const estimatedMinutes = Math.ceil(wordCount / 200);
+      metadata.reading_time = `${estimatedMinutes} min`;
+
+      // Update the content
+      content.content_file_link = markdown_content;
+      content.content_metadata_json = JSON.stringify(metadata);
+
+      const updatedContent = await contentRepository.save(content);
+
+      res.status(200).json({
+        success: true,
+        data: {
+          ...updatedContent,
+          parsed_metadata: metadata
+        },
+        message: "Content updated to use direct markdown successfully"
+      });
+    } catch (error) {
+      console.error("Error updating content to direct markdown:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to update content to direct markdown",
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Get content format statistics
+   * Shows distribution of direct vs file-based markdown content
+   */
+  static async getContentStatistics(req, res) {
+    try {
+      const contentRepository = AppDataSource.getRepository(Content);
+
+      // Get all content
+      const allContent = await contentRepository.find();
+
+      const stats = {
+        total_content: allContent.length,
+        by_type: {},
+        markdown_formats: {
+          direct_content: 0,
+          file_based: 0,
+          external_links: 0
+        },
+        by_program: {}
+      };
+
+      // Analyze content
+      allContent.forEach(content => {
+        // Count by type
+        if (!stats.by_type[content.type]) {
+          stats.by_type[content.type] = 0;
+        }
+        stats.by_type[content.type]++;
+
+        // Count by program
+        if (content.program_id) {
+          if (!stats.by_program[content.program_id]) {
+            stats.by_program[content.program_id] = 0;
+          }
+          stats.by_program[content.program_id]++;
+        }
+
+        // Analyze markdown formats
+        if (content.content_type === 'markdown') {
+          const fileLink = content.content_file_link;
+          
+          if (fileLink.startsWith('http://') || fileLink.startsWith('https://')) {
+            stats.markdown_formats.external_links++;
+          } else if (fileLink.startsWith('#') || fileLink.includes('\n')) {
+            stats.markdown_formats.direct_content++;
+          } else {
+            stats.markdown_formats.file_based++;
+          }
+        }
+      });
+
+      res.status(200).json({
+        success: true,
+        data: stats,
+        message: "Content statistics retrieved successfully"
+      });
+    } catch (error) {
+      console.error("Error getting content statistics:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to retrieve content statistics",
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Convert all file-based markdown content to direct markdown content
+   * This method migrates existing content from file paths to direct content storage
+   */
+  static async convertAllMarkdownToDirectContent(req, res) {
+    try {
+      const contentRepository = AppDataSource.getRepository(Content);
+
+      // Find all markdown content that still uses file paths
+      const markdownContent = await contentRepository.find({
+        where: { content_type: 'markdown' }
+      });
+
+      const results = {
+        total: markdownContent.length,
+        converted: 0,
+        skipped: 0,
+        errors: []
+      };
+
+      for (const content of markdownContent) {
+        try {
+          const fileLink = content.content_file_link;
+
+          // Skip if already using direct content (starts with # or contains newlines)
+          if (fileLink.startsWith('#') || fileLink.includes('\n')) {
+            results.skipped++;
+            continue;
+          }
+
+          // Skip if it's not a file path
+          if (fileLink.startsWith('http://') || fileLink.startsWith('https://')) {
+            results.skipped++;
+            continue;
+          }
+
+          // Try to read the file
+          const normalizedPath = fileLink.startsWith('/') ? fileLink.substring(1) : fileLink;
+          const filePath = path.join(process.cwd(), normalizedPath);
+
+          if (!fs.existsSync(filePath)) {
+            results.errors.push({
+              content_id: content.content_id,
+              title: content.title,
+              error: "File not found",
+              path: normalizedPath
+            });
+            continue;
+          }
+
+          // Read file content
+          const markdownFileContent = fs.readFileSync(filePath, 'utf8');
+          const wordCount = markdownFileContent.split(/\s+/).filter(word => word.length > 0).length;
+
+          // Update metadata
+          let metadata = {};
+          if (content.content_metadata_json) {
+            try {
+              metadata = JSON.parse(content.content_metadata_json);
+            } catch (error) {
+              console.warn(`Could not parse metadata for content ${content.content_id}:`, error.message);
+            }
+          }
+
+          // Update metadata
+          metadata.word_count = wordCount;
+          metadata.content_type = 'direct';
+          metadata.converted_at = new Date().toISOString();
+          metadata.original_file_path = fileLink;
+
+          // Recalculate reading time
+          const estimatedMinutes = Math.ceil(wordCount / 200);
+          metadata.reading_time = `${estimatedMinutes} min`;
+
+          // Update the content
+          content.content_file_link = markdownFileContent;
+          content.content_metadata_json = JSON.stringify(metadata);
+
+          await contentRepository.save(content);
+          results.converted++;
+
+        } catch (error) {
+          results.errors.push({
+            content_id: content.content_id,
+            title: content.title,
+            error: error.message
+          });
+        }
+      }
+
+      res.status(200).json({
+        success: true,
+        data: results,
+        message: `Conversion completed. ${results.converted} items converted, ${results.skipped} skipped, ${results.errors.length} errors.`
+      });
+    } catch (error) {
+      console.error("Error converting markdown content:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to convert markdown content",
+        error: error.message
       });
     }
   }

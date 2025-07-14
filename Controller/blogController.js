@@ -7,6 +7,7 @@ const Blog = require("../src/entities/Blog");
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const User = require("../src/entities/User");
 
 // Configure multer for image uploads
 const storage = multer.diskStorage({
@@ -50,7 +51,7 @@ class BlogController {
     try {
       const blogRepository = AppDataSource.getRepository(Blog);
       const blogs = await blogRepository.find({
-        where: { status: "published" },
+        where: { status: "Đã xuất bản" },
         order: {
           created_at: "DESC",
         },
@@ -71,7 +72,30 @@ class BlogController {
       });
     }
   }
+  static async getAllBlogsForAdmin(req, res) {
+    try {
+      const blogRepository = AppDataSource.getRepository(Blog);
+      const blogs = await blogRepository.find({
+        order: {
+          created_at: "DESC",
+        },
+      });
 
+      res.status(200).json({
+        success: true,
+        data: blogs,
+        count: blogs.length,
+        message: "Published blogs retrieved successfully",
+      });
+    } catch (error) {
+      console.error("Error getting published blogs:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to retrieve published blogs",
+        error: error.message,
+      });
+    }
+  }
   /**
    * Get blogs authored by the currently authenticated user
    * Uses the user ID from the JWT token
@@ -400,10 +424,10 @@ class BlogController {
       }
 
       // Validate status if provided
-      if (status !== undefined && !["draft", "published", "archived", "hidden", "pending"].includes(status)) {
+      if (status !== undefined && !["draft", "Đã xuất bản", "archived", "hidden", "pending"].includes(status)) {
         return res.status(400).json({
           success: false,
-          message: "Invalid status. Must be one of: draft, published, archived, hidden, pending",
+          message: "Invalid status. Must be one of: draft, Đã xuất bản, archived, hidden, pending",
         });
       }
 
@@ -459,19 +483,27 @@ class BlogController {
       const blog = await blogRepository.findOne({
         where: { blog_id: parseInt(id) },
       });
-
       if (!blog) {
         return res.status(404).json({
           success: false,
           message: "Blog not found",
         });
       }
-
-      // Check if user is the author of the blog
-      if (blog.author_id !== parseInt(userId)) {
+      const getUserRole = await AppDataSource.getRepository(User).findOne({
+        where: {
+          user_id: userId
+        },
+        select: ["role"]
+      })
+      
+      // Check if user is the author of the blog OR if the user is an admin
+      const isAuthor = blog.author_id === parseInt(userId);
+      const isAdmin = getUserRole && getUserRole.role.toLowerCase() === "admin";
+      
+      if (!isAuthor && !isAdmin) {
         return res.status(403).json({
           success: false,
-          message: "You can only delete your own blogs",
+          message: "You can only delete your own blogs or you must be an admin",
         });
       }
 
@@ -504,7 +536,7 @@ class BlogController {
       const blogRepository = AppDataSource.getRepository(Blog);
 
       const blogs = await blogRepository.find({
-        where: { status: "published" },
+        where: { status: "Đã xuất bản" },
         order: {
           created_at: "DESC",
         },
@@ -544,10 +576,10 @@ class BlogController {
         });
       }
 
-      if (!status || !["draft", "published", "archived", "hidden", "pending"].includes(status)) {
+      if (!status || !["draft", "Đã xuất bản", "archived", "hidden", "pending"].includes(status)) {
         return res.status(400).json({
           success: false,
-          message: "Valid status is required (draft, published, archived, hidden, pending)",
+          message: "Valid status is required (draft, Đã xuất bản, archived, hidden, pending)",
         });
       }
 
@@ -858,8 +890,8 @@ class BlogController {
         });
       }
 
-      // Update blog status to published
-      blog.status = "published";
+      // Update blog status to Đã xuất bản
+      blog.status = "Đã xuất bản";
 
       // Add approval metadata to body or create a separate approval log
       // For now, we'll add it as a comment in the existing structure
@@ -987,7 +1019,7 @@ class BlogController {
 
       // Get counts for each status
       const totalBlogs = await blogRepository.count();
-      const publishedBlogs = await blogRepository.count({ where: { status: "published" } });
+      const publishedBlogs = await blogRepository.count({ where: { status: "Đã xuất bản" } });
       const draftBlogs = await blogRepository.count({ where: { status: "draft" } });
       const pendingBlogs = await blogRepository.count({ where: { status: "pending" } });
       const hiddenBlogs = await blogRepository.count({ where: { status: "hidden" } });
