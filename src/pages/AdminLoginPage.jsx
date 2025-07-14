@@ -30,14 +30,18 @@ const AdminLoginPage = () => {
             localStorage.setItem("email2", email);
             sessionStorage.setItem("token", response.data.token);
 
-            if (response.data.user.role === 'admin' || response.data.user.role === 'staff' || response.data.user.role === 'manager') {
+            if (response.data.user.role === 'manager') {
                 navigate('/dashboard');
             }
-
+            else if (response.data.user.role === 'admin') {
+                navigate('/member-list');
+            }
+            else if (response.data.user.role === 'staff') {
+                navigate('/blog-list');
+            }
             else if (response.data.user.role === 'consultant') {
                 navigate('/manage-booking');
             }
-
             else {
                 setError('Truy cập bị từ chối. Yêu cầu quyền quản trị viên.');
             }

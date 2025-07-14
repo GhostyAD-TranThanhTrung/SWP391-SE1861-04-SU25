@@ -27,12 +27,12 @@ const BlogListPage = () => {
       [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
       ['bold', 'italic', 'underline', 'strike'],
       [{ 'color': [] }, { 'background': [] }],
-      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-      [{ 'indent': '-1'}, { 'indent': '+1' }],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+      [{ 'indent': '-1' }, { 'indent': '+1' }],
       [{ 'align': [] }],
       ['link'],
       ['blockquote', 'code-block'],
-      [{ 'script': 'sub'}, { 'script': 'super' }],
+      [{ 'script': 'sub' }, { 'script': 'super' }],
       ['clean']
     ],
     clipboard: {
@@ -76,7 +76,7 @@ const BlogListPage = () => {
       const res = await axios.get('http://localhost:3000/api/user/role/',
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      if (!(res.data.role && res.data.role === 'admin')) navigate('/admin/login')
+      if (!(res.data.role && res.data.role === 'staff')) navigate('/admin/login')
     } catch {
       navigate('/admin/login')
     }
@@ -195,12 +195,12 @@ const BlogListPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validate that the content is not empty (ReactQuill might have empty HTML tags)
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = newBlog.body;
     const textContent = tempDiv.textContent || tempDiv.innerText || '';
-    
+
     if (!textContent.trim()) {
       alert("Vui lòng nhập nội dung blog!");
       return;
@@ -425,7 +425,7 @@ const BlogListPage = () => {
     }
   };
 
-  
+
   // Filter blogs theo status
   const filteredBlogs = blogs.filter(b => filterStatus === 'all' || b.status === filterStatus);
 
@@ -460,7 +460,7 @@ const BlogListPage = () => {
         </div>
 
         <div className="d-flex align-items-center gap-2" style={{ maxWidth: '500px' }}>
-        <select
+          <select
             className="form-select status-select"
             value={filterStatus}
             onChange={e => setFilterStatus(e.target.value)}
@@ -530,10 +530,10 @@ const BlogListPage = () => {
                 <td>
                   <div className="d-flex align-items-center">
                     <span className={`badge ${blogFlagCounts[blog.blog_id] >= 3
-                        ? 'bg-danger'
-                        : blogFlagCounts[blog.blog_id] >= 1
-                          ? 'bg-warning'
-                          : 'bg-success'
+                      ? 'bg-danger'
+                      : blogFlagCounts[blog.blog_id] >= 1
+                        ? 'bg-warning'
+                        : 'bg-success'
                       }`}>
                       {blogFlagCounts[blog.blog_id] || 0} báo cáo
                     </span>
@@ -579,8 +579,8 @@ const BlogListPage = () => {
                   )}
                   <button
                     className={`btn btn-sm me-1 ${blogFlagStatus[blog.blog_id]?.flagged
-                        ? 'btn-warning'
-                        : 'btn-outline-warning'
+                      ? 'btn-warning'
+                      : 'btn-outline-warning'
                       }`}
                     onClick={() => handleFlagClick(blog)}
                     title={
@@ -666,7 +666,7 @@ const BlogListPage = () => {
                     modules={quillModules}
                     formats={quillFormats}
                     placeholder="Viết nội dung blog của bạn..."
-                    style={{ 
+                    style={{
                       backgroundColor: '#fff',
                       borderRadius: '5px',
                       minHeight: '200px'

@@ -7,6 +7,7 @@ import "../../styles/StaffListPage.scss";
 import { useNavigate } from "react-router-dom";
 import PaginationComp from "../../components/Pagination.jsx";
 const StaffListPage = () => {
+  const [isAdmin, setIsAdmin] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [staffs, setStaffs] = useState([]);
   const [newStaff, setNewStaff] = useState({
@@ -38,7 +39,8 @@ const StaffListPage = () => {
       const res = await axios.get('http://localhost:3000/api/user/role/',
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      if (!(res.data.role && res.data.role === 'admin')) navigate('/admin/login')
+      if (res.data.role === 'admin') setIsAdmin(true);
+      if (!(res.data.role && (res.data.role === 'admin' || res.data.role === 'manager'))) navigate('/admin/login')
     } catch {
       navigate('/admin/login')
     }
@@ -312,11 +314,11 @@ const StaffListPage = () => {
                 <td>{staff.status}</td>
                 <td>{new Date(staff.date_create).toLocaleDateString()}</td>
                 <td className="action-buttons">
-                  <button className="btn btn-light me-2" onClick={() => handleEdit(staff.user_id)}>
+                  <button disabled={!isAdmin} className="btn btn-light me-2" onClick={() => handleEdit(staff.user_id)}>
                     <FaEdit color="yellow" />
                   </button>
                   {staff.role !== 'admin' && (
-                    <button className="btn btn-light" onClick={() => handleOpenDeleteDialog(staff.user_id)}>
+                    <button disabled={!isAdmin} className="btn btn-light" onClick={() => handleOpenDeleteDialog(staff.user_id)}>
                       <FaTrash color="red" />
                     </button>
                   )}

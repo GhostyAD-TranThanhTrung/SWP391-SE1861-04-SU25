@@ -7,6 +7,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import PaginationComp from "../../components/Pagination";
 const ConsultantListPage = () => {
+  const [isAdmin, setIsAdmin] = useState(false);
   const [consultants, setConsultants] = useState([]);
   const [newConsultant, setNewConsultant] = useState({
     email: "",
@@ -53,7 +54,8 @@ const ConsultantListPage = () => {
       const res = await axios.get('http://localhost:3000/api/user/role/',
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      if (!(res.data.role && res.data.role === 'admin')) navigate('/admin/login')
+      if (res.data.role === 'admin') setIsAdmin(true);
+      if (!(res.data.role && (res.data.role === 'admin' || res.data.role === 'manager'))) navigate('/admin/login')
     } catch (err) {
       navigate('/admin/login')
     }
@@ -322,7 +324,7 @@ const ConsultantListPage = () => {
       fetchConsultants();
       return;
     }
-    
+
 
     try {
       // For now, we'll filter on the frontend since there's no search endpoint for complete consultants
@@ -461,25 +463,25 @@ const ConsultantListPage = () => {
     }
   };
 
-    // Filter consultants by status
-    const filteredConsultants = consultants.filter(c =>
-      statusFilter === 'all' || c.status === statusFilter
-    );
+  // Filter consultants by status
+  const filteredConsultants = consultants.filter(c =>
+    statusFilter === 'all' || c.status === statusFilter
+  );
 
-    // Pagination logic
-    const totalItems = filteredConsultants.length;
-    const totalPages = Math.ceil(totalItems / itemsPerPage);
-    const paginatedConsultants = filteredConsultants.slice(
-      (currentPage - 1) * itemsPerPage,
-      currentPage * itemsPerPage
-    );
+  // Pagination logic
+  const totalItems = filteredConsultants.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const paginatedConsultants = filteredConsultants.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
-    useEffect(() => {
-      if (currentPage > totalPages) {
-        setCurrentPage(1);
-      }
-      // eslint-disable-next-line
-    }, [statusFilter, searchTerm, totalPages]);
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(1);
+    }
+    // eslint-disable-next-line
+  }, [statusFilter, searchTerm, totalPages]);
 
   return (
     <div className="consultant-list-container">
@@ -536,13 +538,13 @@ const ConsultantListPage = () => {
                 <td>{consultant.status}</td>
                 <td>{new Date(consultant.date_create).toLocaleDateString()}</td>
                 <td className="action-buttons">
-                  <button className="btn btn-outline-warning btn-sm me-2" onClick={() => handleEdit(consultant.id_consultant)}>
+                  <button disabled={!isAdmin} className="btn btn-outline-warning btn-sm me-2" onClick={() => handleEdit(consultant.id_consultant)}>
                     <FaEdit />
                   </button>
-                  <button className="btn btn-outline-info btn-sm me-2" onClick={() => handleOpenSlotModal(consultant)} title="Quản lý lịch làm việc">
+                  <button disabled={!isAdmin} className="btn btn-outline-info btn-sm me-2" onClick={() => handleOpenSlotModal(consultant)} title="Quản lý lịch làm việc">
                     <FaClock />
                   </button>
-                  <button className="btn btn-outline-danger btn-sm" onClick={() => handleOpenDeleteDialog(consultant.id_consultant)}>
+                  <button disabled={!isAdmin} className="btn btn-outline-danger btn-sm" onClick={() => handleOpenDeleteDialog(consultant.id_consultant)}>
                     <FaTrash />
                   </button>
                 </td>

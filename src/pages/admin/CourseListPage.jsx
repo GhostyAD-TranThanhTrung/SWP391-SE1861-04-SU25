@@ -44,7 +44,7 @@ const CourseListPage = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       )
       if (!(res.data.role && res.data.role === 'admin')) navigate('/admin/login')
-    } catch{
+    } catch {
       navigate('/admin/login')
     }
 
@@ -1077,7 +1077,7 @@ const CourseListPage = () => {
               </div>
               <div className="modal-body">
                 <div className="row">
-                  <div className="col-md-6">
+                  <div className="col-md-12">
                     {selectedProgram.img_link && (
                       <div className="program-img-wrapper mb-3 text-center">
                         <img
@@ -1145,7 +1145,18 @@ const CourseListPage = () => {
                           <div className="stat-label">Total Responses</div>
                         </div>
                       </div>
-
+                      <div className="col-md-3">
+                        <div className="stat-card">
+                          <div className="stat-number">{surveyAnalytics.completion_statistics.completed_participants}</div>
+                          <div className="stat-label">Completed</div>
+                        </div>
+                      </div>
+                      <div className="col-md-3">
+                        <div className="stat-card">
+                          <div className="stat-number">{surveyAnalytics.completion_statistics.incomplete_participants}</div>
+                          <div className="stat-label">Incompleted</div>
+                        </div>
+                      </div>
                     </div>
 
                     {/* Survey Charts */}
@@ -1206,7 +1217,7 @@ const CourseListPage = () => {
                                   const totalResponses = chartData.datasets[0].data.reduce((a, b) => a + b, 0);
 
                                   return (
-                                    <div key={questionText} className="col-md-6 col-lg-4 mb-3">
+                                    <div key={questionText} className="col-md-6 col-lg-12 mb-3">
                                       <div className="chart-card">
                                         <h6 className="chart-title">{questionText}</h6>
                                         <div className="chart-container" style={{ height: '200px' }}>

@@ -22,7 +22,7 @@ const AssessmentListPage = () => {
       const res = await axios.get('http://localhost:3000/api/user/role/',
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      if (!(res.data.role && res.data.role === 'admin')) navigate('/admin/login')
+      if (!(res.data.role && res.data.role === 'manager')) navigate('/admin/login')
     } catch{
       navigate('/admin/login')
     }

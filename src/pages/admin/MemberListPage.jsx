@@ -7,7 +7,9 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import PaginationComp from "../../components/Pagination";
 
+
 const MemberListPage = () => {
+  const [isAdmin, setIsAdmin] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [members, setMembers] = useState([]);
   const [selectedMember, setSelectedMember] = useState(null);
@@ -29,7 +31,20 @@ const MemberListPage = () => {
       navigate('/');
     }
   }, [navigate]);
+  const userRole = async () => {
+    try {
+      if (!token) navigate('/admin/login')
+      const res = await axios.get('http://localhost:3000/api/user/role/',
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      if (res.data.role === 'admin') setIsAdmin(true);
+      if (!(res.data.role && (res.data.role === 'admin' || res.data.role === 'manager'))) navigate('/admin/login')
+    } catch {
+      navigate('/admin/login')
+    }
 
+  }
+  userRole()
   const fetchMembers = async () => {
     try {
       const res = await axios.get("http://localhost:3000/api/members", { headers: { Authorization: `Bearer ${token}` } });
@@ -236,10 +251,10 @@ const MemberListPage = () => {
                   <button className="btn btn-light me-2" onClick={() => handleView(member.user_id)}>
                     <FaEye />
                   </button>
-                  <button className="btn btn-light me-2" onClick={() => handleEdit(member.user_id)}>
+                  <button disabled={!isAdmin} className="btn btn-light me-2" onClick={() => handleEdit(member.user_id)}>
                     <FaEdit color="yellow" />
                   </button>
-                  <button className="btn btn-light" onClick={() => handleOpenDeleteDialog(member.user_id)}>
+                  <button disabled={!isAdmin} className="btn btn-light me-2" onClick={() => handleOpenDeleteDialog(member.user_id)}>
                     <FaTrash color="red" />
                   </button>
                 </td>

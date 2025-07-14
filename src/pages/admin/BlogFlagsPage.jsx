@@ -13,6 +13,19 @@ const BlogFlagsPage = () => {
   const [error, setError] = useState(null);
   const token = sessionStorage.getItem("token");
 
+  const userRole = async () => {
+    try {
+      if (!token) navigate('/admin/login')
+      const res = await axios.get('http://localhost:3000/api/user/role/',
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      if (!(res.data.role && res.data.role === 'staff')) navigate('/admin/login')
+    } catch {
+      navigate('/admin/login')
+    }
+
+  }
+  userRole()
   useEffect(() => {
     fetchBlogAndFlags();
   }, [blogId]);
@@ -153,9 +166,9 @@ const BlogFlagsPage = () => {
               <div className="col-md-4">
                 <div className="d-flex flex-column">
                   <span className={`badge bg-${blog.status === 'published' || blog.status === 'Đã xuất bản' ? 'success' :
-                      blog.status === 'hidden' ? 'dark' :
-                        blog.status === 'pending' ? 'warning' :
-                          blog.status === 'draft' ? 'secondary' : 'danger'
+                    blog.status === 'hidden' ? 'dark' :
+                      blog.status === 'pending' ? 'warning' :
+                        blog.status === 'draft' ? 'secondary' : 'danger'
                     } mb-2`}>
                     Trạng thái: {blog.status || 'draft'}
                   </span>
