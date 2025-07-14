@@ -480,17 +480,17 @@ class ProgramController {
                     let questions = [];
                     let deletedQuestions = [];
                     let allQuestions = [];
-                    
+
                     try {
                         if (survey.questions_json) {
                             const parsed = JSON.parse(survey.questions_json);
                             allQuestions = Array.isArray(parsed) ? parsed : (parsed.questions || []);
-                            
+
                             // Separate active and deleted questions
-                            questions = allQuestions.filter(question => 
+                            questions = allQuestions.filter(question =>
                                 question.deleted === false || question.deleted === undefined
                             );
-                            deletedQuestions = allQuestions.filter(question => 
+                            deletedQuestions = allQuestions.filter(question =>
                                 question.deleted === true
                             );
                         } else {
@@ -577,8 +577,8 @@ class ProgramController {
 
                         questionsToAnalyze.forEach((question, questionIndex) => {
                             // Find the original index of this question in allQuestions array
-                            const originalIndex = allQuestions.findIndex(q => 
-                                q.id === question.id || 
+                            const originalIndex = allQuestions.findIndex(q =>
+                                q.id === question.id ||
                                 (q.question === question.question && q.options === question.options)
                             );
 
@@ -640,9 +640,9 @@ class ProgramController {
 
                     // Analyze active questions
                     const activeQuestionAnalytics = analyzeQuestions(questions);
-                    
+
                     // Analyze deleted questions if requested
-                    const deletedQuestionAnalytics = (show_deleted_questions === 'true' || show_deleted_questions === true) ? 
+                    const deletedQuestionAnalytics = (show_deleted_questions === 'true' || show_deleted_questions === true) ?
                         analyzeQuestions(deletedQuestions, '[DELETED] ') : {};
 
                     // 5. Compile survey analytics
@@ -676,7 +676,7 @@ class ProgramController {
                             deleted: true
                         }));
                         surveyData.deleted_responses = deletedQuestionAnalytics;
-                        
+
                         // Combine active and deleted analytics for complete view
                         surveyData.all_responses = {
                             ...activeQuestionAnalytics,
@@ -832,6 +832,7 @@ class ProgramController {
             }
 
             const programRepository = AppDataSource.getRepository(Program);
+            const categoryRepository = AppDataSource.getRepository(Category);
 
             // Check if program exists
             const program = await programRepository.findOne({
@@ -848,26 +849,36 @@ class ProgramController {
 
             // Check if category exists if category_id is provided
             if (category_id !== undefined && category_id !== null) {
-                const categoryRepository = AppDataSource.getRepository(Category);
+                // Convert to number and validate
+                const categoryIdNum = parseInt(category_id);
+
+                if (isNaN(categoryIdNum)) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Invalid category_id: Must be a valid number'
+                    });
+                }
+
                 const category = await categoryRepository.findOne({
-                    where: { category_id: parseInt(category_id) }
+                    where: { category_id: categoryIdNum }
                 });
 
                 if (!category) {
                     return res.status(404).json({
                         success: false,
-                        message: 'Category not found'
+                        message: `Invalid category_id: Category with ID ${category_id} not found`
                     });
                 }
+                console.log('Category validation passed:', category);
             }
 
-            // Check if title already exists for other programs (using proper TypeORM syntax)
-            if (title && title !== program.title) {
+            // Check if title already exists for other programs
+            if (title && title.trim() !== '' && title !== program.title) {
                 const { Not } = require('typeorm');
                 const existingProgram = await programRepository.findOne({
                     where: {
-                        title: title,
-                        program_id: Not(parseInt(id)) // Proper TypeORM syntax for "not equal"
+                        title: title.trim(),
+                        program_id: Not(parseInt(id))
                     }
                 });
 
@@ -879,26 +890,108 @@ class ProgramController {
                 }
             }
 
-            // Update program fields only if they are provided
-            if (title !== undefined) program.title = title;
-            if (description !== undefined) program.description = description;
-            if (age_group !== undefined) program.age_group = age_group;
-            if (category_id !== undefined && category_id !== null) program.category_id = parseInt(category_id);
-            if (status !== undefined) program.status = status;
-            if (img_link !== undefined) program.img_link = img_link;
-
-            console.log('Updating program with data:', {
-                program_id: program.program_id,
+            // Store original values for logging
+            const originalData = {
                 title: program.title,
+                description: program.description,
+                age_group: program.age_group,
                 category_id: program.category_id,
-                status: program.status
+                status: program.status,
+                img_link: program.img_link
+            };
+
+            // Update program fields only if they are provided
+            if (title !== undefined && title.trim() !== '') {
+                program.title = title.trim();
+            }
+            if (description !== undefined) {
+                program.description = description;
+            }
+            if (age_group !== undefined) {
+                program.age_group = age_group;
+            }
+            // Fixed category update logic - category_id is required field, so handle it properly
+            if (category_id !== undefined && category_id !== null) {
+                const categoryIdNum = parseInt(category_id);
+                program.category_id = categoryIdNum;
+                console.log(`Updating category_id from ${originalData.category_id} to ${program.category_id}`);
+            }
+            if (status !== undefined) {
+                program.status = status;
+            }
+            if (img_link !== undefined) {
+                program.img_link = img_link;
+            }
+
+            console.log('About to update program with data:', {
+                program_id: program.program_id,
+                original: originalData,
+                updated: {
+                    title: program.title,
+                    description: program.description,
+                    age_group: program.age_group,
+                    category_id: program.category_id,
+                    status: program.status,
+                    img_link: program.img_link
+                }
             });
 
-            const updatedProgram = await programRepository.save(program);
+            // Use only the update method for more reliable partial updates
+            const updateData = {};
+            if (title !== undefined && title.trim() !== '') {
+                updateData.title = title.trim();
+            }
+            if (description !== undefined) {
+                updateData.description = description;
+            }
+            if (age_group !== undefined) {
+                updateData.age_group = age_group;
+            }
+            if (category_id !== undefined && category_id !== null) {
+                updateData.category_id = parseInt(category_id);
+            }
+            if (status !== undefined) {
+                updateData.status = status;
+            }
+            if (img_link !== undefined) {
+                updateData.img_link = img_link;
+            }
 
-            // Fetch updated program with relations
+            console.log('Update data to be applied:', updateData);
+
+            // Check if we actually have data to update
+            if (Object.keys(updateData).length === 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'No valid fields provided for update'
+                });
+            }
+
+            // Use update method for direct database update
+            const updateResult = await programRepository.update(
+                { program_id: parseInt(id) },
+                updateData
+            );
+
+            console.log('Update result:', updateResult);
+
+            // Additional check: Try direct SQL update for category_id if it was provided
+            if (category_id !== undefined && category_id !== null) {
+                console.log('Performing direct SQL update for category_id...');
+                try {
+                    const directUpdateResult = await AppDataSource.query(
+                        'UPDATE Programs SET category_id = @0 WHERE program_id = @1',
+                        [parseInt(category_id), parseInt(id)]
+                    );
+                    console.log('Direct SQL update result:', directUpdateResult);
+                } catch (sqlError) {
+                    console.error('Direct SQL update failed:', sqlError);
+                }
+            }
+
+            // Fetch updated program with relations to confirm the update
             const programWithRelations = await programRepository.findOne({
-                where: { program_id: updatedProgram.program_id },
+                where: { program_id: parseInt(id) },
                 relations: ['creator', 'category', 'enrollments', 'contents', 'surveys']
             });
 

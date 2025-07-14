@@ -834,7 +834,7 @@ app.get("/api/blogs/moderation/stats", authController.verifyStaffOrAdmin, BlogCo
  * Output: { success: boolean, data: object, message: string }
  * Authentication: None (Public for published blogs)
  */
-app.get("/api/blogs/:id", BlogController.getBlogById);
+app.get("/api/blogs/:id", BlogController.getBlogWithRelations);
 
 /**
  * BLOG CREATE: Create new blog post

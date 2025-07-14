@@ -607,9 +607,8 @@ class ConsultantController {
 
   static async getConsultantIdByUserEmail(req, res) {
     try {
-      // Get user_id from the authenticated user token
-
       const { email } = req.params;
+
       if (!email) {
         return res.status(400).json({
           success: false,
@@ -617,31 +616,39 @@ class ConsultantController {
         });
       }
 
-      const UserRepository = AppDataSource.getRepository(User);
+      console.log("Looking for consultant with email:", email);
 
-      // Find consultant by user_id
-      const consultant = await UserRepository.findOne({
-        where: { email: email },
-        select: ['user_id'] // Only select necessary fields
-      });
+      // Find consultant by email using proper SQL query
+      const result = await AppDataSource.query(
+        'SELECT c.id_consultant, c.user_id FROM Consultant c JOIN Users u ON c.user_id = u.user_id WHERE u.email = @0 ',
+        [email]
+      );
 
-      if (!consultant) {
+      console.log("Query result:", result);
+
+      // Check if result array is empty or no consultant found
+      if (!result || result.length === 0) {
         return res.status(404).json({
           success: false,
           message: "Consultant not found for this user",
           data: null
         });
       }
+
+      // Get the first result (should be only one)
+      const consultant = result[0];
+
       res.status(200).json({
         success: true,
         data: {
-          consultant_id: consultant.user_id
+          consultant_id: consultant.id_consultant,
+          user_id: consultant.user_id
         },
         message: "Consultant ID retrieved successfully"
       });
 
     } catch (error) {
-      console.error("Error getting consultant ID by user ID:", error);
+      console.error("Error getting consultant ID by email:", error);
       res.status(500).json({
         success: false,
         message: "Failed to retrieve consultant ID",

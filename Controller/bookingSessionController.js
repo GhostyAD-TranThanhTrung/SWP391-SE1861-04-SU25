@@ -777,7 +777,7 @@ class BookingSessionController {
                 INNER JOIN Slot s ON b.slot_id = s.slot_id
                 INNER JOIN Consultant c ON b.consultant_id = c.id_consultant
                 LEFT JOIN Consultant_Slot cs ON (b.consultant_id = cs.consultant_id AND b.slot_id = cs.slot_id)
-                WHERE c.user_id = @0
+                WHERE b.consultant_id = @0
                 ORDER BY b.booking_date DESC, s.start_time ASC
             `;
 
