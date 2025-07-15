@@ -8,6 +8,7 @@ const Enroll = require('../src/entities/Enroll');
 const Category = require('../src/entities/Category');
 const Survey = require('../src/entities/Survey');
 const SurveyResponse = require('../src/entities/SurveyResponse');
+const Profile = require('../src/entities/Profile');
 
 class ProgramController {
     /**
@@ -1139,6 +1140,197 @@ class ProgramController {
             });
         }
     }
+
+    /**
+     * Get program recommendations based on user's date of birth from profile
+     * Age groups: Youth (13-18), Adult (18-65), Senior (65+)
+     * Requires authentication token to get user_id
+     */
+    static async getProgramRecommendationsByAge(req, res) {
+        try {
+            // Get user ID from JWT token (set by verifyToken middleware)
+            const userId = req.user.userId;
+
+            // Get user's profile to fetch date of birth
+            const profileRepository = AppDataSource.getRepository(Profile);
+            const userProfile = await profileRepository.findOne({
+                where: { user_id: parseInt(userId) },
+                relations: ['user']
+            });
+
+            if (!userProfile) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'User profile not found. Please complete your profile first.'
+                });
+            }
+
+            if (!userProfile.date_of_birth) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Date of birth not found in profile. Please update your profile.'
+                });
+            }
+
+            // Calculate age from profile date of birth
+            const birthDate = new Date(userProfile.date_of_birth);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+
+            // Validate age
+            if (age < 0 || age > 120) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid date of birth in profile'
+                });
+            }
+
+            // Determine age group based on age
+            let ageGroup;
+            let ageGroupLabel;
+
+            if (age >= 13 && age <= 18) {
+                ageGroup = 'youth';
+                ageGroupLabel = 'Youth (13-18)';
+            } else if (age > 18 && age <= 65) {
+                ageGroup = 'adult';
+                ageGroupLabel = 'Adult (18-65)';
+            } else if (age > 65) {
+                ageGroup = 'senior';
+                ageGroupLabel = 'Senior (65+)';
+            } else {
+                // For children under 13, we might not have specific programs
+                return res.status(200).json({
+                    success: true,
+                    data: {
+                        user_info: {
+                            user_id: userId,
+                            name: userProfile.name,
+                            age: age,
+                            age_group: 'child',
+                            age_group_label: 'Child (Under 13)',
+                            date_of_birth: userProfile.date_of_birth
+                        },
+                        recommendations: {
+                            age_specific_programs: [],
+                            all_ages_programs: [],
+                            total_recommended: 0
+                        }
+                    },
+                    message: 'No specific programs available for children under 13'
+                });
+            }
+
+            const programRepository = AppDataSource.getRepository(Program);
+
+            // Get programs that match the age group or are for "all ages"
+            const recommendedPrograms = await programRepository.find({
+                where: [
+                    { age_group: ageGroup, status: 'active' },
+                    { age_group: 'all', status: 'active' }
+                ],
+                relations: ['creator', 'category', 'enrollments', 'contents'],
+                order: {
+                    create_at: 'DESC'
+                }
+            });
+
+            // Separate programs by specific age group and all ages
+            const ageSpecificPrograms = recommendedPrograms.filter(p => p.age_group === ageGroup);
+            const allAgesPrograms = recommendedPrograms.filter(p => p.age_group === 'all');
+
+            // Add metadata to programs
+            const enhancedAgeSpecificPrograms = ageSpecificPrograms.map(program => ({
+                ...program,
+                recommendation_score: calculateRecommendationScore(program, age),
+                enrollment_count: program.enrollments ? program.enrollments.length : 0,
+                content_count: program.contents ? program.contents.length : 0
+            }));
+
+            const enhancedAllAgesPrograms = allAgesPrograms.map(program => ({
+                ...program,
+                recommendation_score: calculateRecommendationScore(program, age),
+                enrollment_count: program.enrollments ? program.enrollments.length : 0,
+                content_count: program.contents ? program.contents.length : 0
+            }));
+
+            // Sort by recommendation score (highest first)
+            enhancedAgeSpecificPrograms.sort((a, b) => b.recommendation_score - a.recommendation_score);
+            enhancedAllAgesPrograms.sort((a, b) => b.recommendation_score - a.recommendation_score);
+
+            res.status(200).json({
+                success: true,
+                data: {
+                    user_info: {
+                        user_id: userId,
+                        name: userProfile.name,
+                        age: age,
+                        age_group: ageGroup,
+                        age_group_label: ageGroupLabel,
+                        date_of_birth: userProfile.date_of_birth
+                    },
+                    recommendations: {
+                        age_specific_programs: enhancedAgeSpecificPrograms,
+                        all_ages_programs: enhancedAllAgesPrograms,
+                        total_recommended: enhancedAgeSpecificPrograms.length + enhancedAllAgesPrograms.length
+                    }
+                },
+                message: `Found ${enhancedAgeSpecificPrograms.length + enhancedAllAgesPrograms.length} recommended programs for ${ageGroupLabel}`
+            });
+
+        } catch (error) {
+            console.error('Error getting program recommendations:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to get program recommendations',
+                error: error.message
+            });
+        }
+    }
+}
+
+/**
+ * Calculate recommendation score for a program based on user age and program characteristics
+ * Higher score means better recommendation
+ */
+function calculateRecommendationScore(program, userAge) {
+    let score = 50; // Base score
+
+    // Boost score based on enrollment count (popularity)
+    const enrollmentCount = program.enrollments ? program.enrollments.length : 0;
+    score += Math.min(enrollmentCount * 2, 20); // Max 20 points for popularity
+
+    // Boost score based on content availability
+    const contentCount = program.contents ? program.contents.length : 0;
+    score += Math.min(contentCount * 3, 15); // Max 15 points for content richness
+
+    // Boost score for recent programs
+    if (program.create_at) {
+        const daysSinceCreation = (new Date() - new Date(program.create_at)) / (1000 * 60 * 60 * 24);
+        if (daysSinceCreation <= 30) {
+            score += 10; // New programs get boost
+        } else if (daysSinceCreation <= 90) {
+            score += 5; // Recent programs get smaller boost
+        }
+    }
+
+    // Age-specific scoring adjustments
+    if (program.age_group === 'youth' && userAge >= 13 && userAge <= 18) {
+        score += 15; // Perfect age match for youth
+    } else if (program.age_group === 'adult' && userAge > 18 && userAge <= 65) {
+        score += 15; // Perfect age match for adult
+    } else if (program.age_group === 'senior' && userAge > 65) {
+        score += 15; // Perfect age match for senior
+    } else if (program.age_group === 'all') {
+        score += 5; // All ages programs get smaller boost
+    }
+
+    return Math.min(score, 100); // Cap at 100
 }
 
 module.exports = ProgramController;

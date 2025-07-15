@@ -681,6 +681,7 @@ app.get("/api/programs", ProgramController.getAllPrograms);
 app.get("/api/programs/category-details", ProgramController.getAllProgramsWithCategoryDetails);
 app.get("/api/programs/community-events", ProgramController.getCommunityEventPrograms); // MUST be before :id route
 app.get("/api/programs/my-enrollment-status", authController.verifyToken, ProgramController.getUserProgramsWithEnrollmentStatus);
+app.get("/api/programs/recommendations", authController.verifyToken, ProgramController.getProgramRecommendationsByAge);
 app.get("/api/programs/category/:categoryId", ProgramController.getProgramsByCategory);
 app.get("/api/programs/:programId/survey-analytics", ProgramController.getProgramSurveyAnalytics);
 app.get("/api/programs/:id", ProgramController.getProgramById);
