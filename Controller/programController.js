@@ -1216,24 +1216,38 @@ class ProgramController {
                             age_group_label: 'Child (Under 13)',
                             date_of_birth: userProfile.date_of_birth
                         },
-                        recommendations: {
-                            age_specific_programs: [],
-                            all_ages_programs: [],
-                            total_recommended: 0
-                        }
+                        recommended_programs: [],
+                        total_recommended: 0
                     },
                     message: 'No specific programs available for children under 13'
                 });
             }
 
             const programRepository = AppDataSource.getRepository(Program);
+            const categoryRepository = AppDataSource.getRepository(Category);
 
-            // Get programs that match the age group or are for "all ages"
+            // Find the "Sự kiện cộng đồng" category to exclude it
+            const communityEventCategory = await categoryRepository.findOne({
+                where: { name: 'Sự kiện cộng đồng' }
+            });
+
+            // Get programs that match the age group or are for "all ages", excluding community events
+            let whereConditions = [
+                { age_group: ageGroup, status: 'active' },
+                { age_group: 'all', status: 'active' }
+            ];
+
+            // If community event category exists, exclude it from recommendations
+            if (communityEventCategory) {
+                const { Not } = require('typeorm');
+                whereConditions = [
+                    { age_group: ageGroup, status: 'active', category_id: Not(communityEventCategory.category_id) },
+                    { age_group: 'all', status: 'active', category_id: Not(communityEventCategory.category_id) }
+                ];
+            }
+
             const recommendedPrograms = await programRepository.find({
-                where: [
-                    { age_group: ageGroup, status: 'active' },
-                    { age_group: 'all', status: 'active' }
-                ],
+                where: whereConditions,
                 relations: ['creator', 'category', 'enrollments', 'contents'],
                 order: {
                     create_at: 'DESC'
@@ -1259,9 +1273,9 @@ class ProgramController {
                 content_count: program.contents ? program.contents.length : 0
             }));
 
-            // Sort by recommendation score (highest first)
-            enhancedAgeSpecificPrograms.sort((a, b) => b.recommendation_score - a.recommendation_score);
-            enhancedAllAgesPrograms.sort((a, b) => b.recommendation_score - a.recommendation_score);
+            // Combine both arrays and sort by recommendation score (highest first)
+            const allRecommendedPrograms = [...enhancedAgeSpecificPrograms, ...enhancedAllAgesPrograms];
+            allRecommendedPrograms.sort((a, b) => b.recommendation_score - a.recommendation_score);
 
             res.status(200).json({
                 success: true,
@@ -1274,13 +1288,10 @@ class ProgramController {
                         age_group_label: ageGroupLabel,
                         date_of_birth: userProfile.date_of_birth
                     },
-                    recommendations: {
-                        age_specific_programs: enhancedAgeSpecificPrograms,
-                        all_ages_programs: enhancedAllAgesPrograms,
-                        total_recommended: enhancedAgeSpecificPrograms.length + enhancedAllAgesPrograms.length
-                    }
+                    recommended_programs: allRecommendedPrograms,
+                    total_recommended: allRecommendedPrograms.length
                 },
-                message: `Found ${enhancedAgeSpecificPrograms.length + enhancedAllAgesPrograms.length} recommended programs for ${ageGroupLabel}`
+                message: `Found ${allRecommendedPrograms.length} recommended programs for ${ageGroupLabel}`
             });
 
         } catch (error) {
