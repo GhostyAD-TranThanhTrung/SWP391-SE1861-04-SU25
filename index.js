@@ -35,6 +35,7 @@ const StaffController = require("./Controller/staffController");
 const MemberController = require("./Controller/MemberController");
 const ConsultantController = require("./Controller/consultantController");
 const AssessmentController = require("./Controller/assessmentController");
+const ActionController = require("./Controller/actionController");
 const ConsultantSlotController = require("./Controller/consultantSlotController");
 const SlotController = require("./Controller/slotController");
 const BookingSessionController = require("./Controller/bookingSessionController");
@@ -290,7 +291,12 @@ app.post("/api/staff", authController.verifyToken, StaffController.createStaff);
  * Output: { success: boolean, data: object, message: string }
  * Authentication: Required (Admin)
  */
-app.put("/api/staff/:staffId", authController.verifyToken, StaffController.updateStaff);
+app.put("/api/staff/:staffId", authController.verifyToken, (req, res, next) => {
+    console.log('PUT /api/staff/:staffId route hit with params:', req.params);
+    console.log('User from token:', req.user);
+    console.log('Request body:', req.body);
+    next();
+}, StaffController.updateStaff);
 
 /**
  * STAFF DELETE: Remove staff member
@@ -361,7 +367,11 @@ app.put("/api/members/:memberId", authController.verifyToken, MemberController.u
  * Output: { success: boolean, message: string }
  * Authentication: Required (Admin)
  */
-app.delete("/api/members/:memberId", authController.verifyToken, MemberController.deleteMember);
+app.delete("/api/members/:memberId", authController.verifyToken, (req, res, next) => {
+    console.log('DELETE /api/members/:memberId route hit with params:', req.params);
+    console.log('User from token:', req.user);
+    next();
+}, MemberController.deleteMember);
 
 // ==================== CONSULTANT MANAGEMENT ROUTES ====================
 /**
@@ -453,7 +463,7 @@ app.get("/api/consultants/email/:email", authController.verifyToken, ConsultantC
  * Output: { success: boolean, data: { totalConsultants: number, consultants: Array<CompleteConsultantObject> }, message: string }
  * Authentication: None (Public directory with complete info)
  */
-app.get("/api/consultants-complete", ConsultantCompleteController.getAllConsultantsComplete);
+app.get("/api/consultants-complete", authController.verifyToken, ConsultantCompleteController.getAllConsultantsComplete);
 
 /**
  * CONSULTANT COMPLETE DETAILS: Get specific consultant with complete data
@@ -493,7 +503,11 @@ app.put("/api/consultants-complete/:id", authController.verifyToken, ConsultantC
  * Output: { success: boolean, message: string }
  * Authentication: Required (Admin)
  */
-app.delete("/api/consultants-complete/:consultantId", authController.verifyToken, ConsultantCompleteController.deleteConsultantComplete);
+app.delete("/api/consultants-complete/:consultantId", authController.verifyToken, (req, res, next) => {
+    console.log('🗑️ DELETE /api/consultants-complete/:consultantId route hit with params:', req.params);
+    console.log('👤 User from token:', req.user);
+    next();
+}, ConsultantCompleteController.deleteConsultantComplete);
 
 /**
  * CONSULTANT AVAILABILITY BY DAY: Get consultant availability for specific day
@@ -643,6 +657,48 @@ app.get('/api/assessments/details/:userId', authController.verifyToken, Assessme
  * Authentication: Required (Admin/Staff)
  */
 app.get('/api/assessments/type/:type', authController.verifyToken, AssessmentController.getAssessmentsByType);
+
+// ==================== ACTION MANAGEMENT ROUTES ====================
+
+/**
+ * GET ALL ACTIONS: Retrieve all actions
+ * Purpose: Get all actions for administrative purposes and chart display
+ * Method: GET /api/actions
+ * Input: None
+ * Output: { success: boolean, data: Array<ActionObject>, message: string }
+ * Authentication: Required (Admin/Staff)
+ */
+app.get('/api/actions', authController.verifyToken, ActionController.getAllActions);
+
+/**
+ * GET ACTION BY ID: Retrieve specific action
+ * Purpose: Get detailed information about a specific action
+ * Method: GET /api/actions/:id
+ * Input: Path params: { id: number }
+ * Output: { success: boolean, data: ActionObject, message: string }
+ * Authentication: Required (Admin/Staff)
+ */
+app.get('/api/actions/:id', authController.verifyToken, ActionController.getActionById);
+
+/**
+ * GET ACTIONS BY TYPE: Filter actions by type
+ * Purpose: Get actions filtered by type
+ * Method: GET /api/actions/type/:type
+ * Input: Path params: { type: string }
+ * Output: { success: boolean, data: Array<ActionObject>, count: number, message: string }
+ * Authentication: Required (Admin/Staff)
+ */
+app.get('/api/actions/type/:type', authController.verifyToken, ActionController.getActionsByType);
+
+/**
+ * GET ACTIONS WITH ASSESSMENTS: Get actions with related assessments
+ * Purpose: Get actions including their related assessment data
+ * Method: GET /api/actions/with-assessments
+ * Input: None
+ * Output: { success: boolean, data: Array<ActionObject>, count: number, message: string }
+ * Authentication: Required (Admin/Staff)
+ */
+app.get('/api/actions/with-assessments', authController.verifyToken, ActionController.getActionsWithAssessments);
 
 /**
  * TAKE ASSESSMENT: Submit assessment test

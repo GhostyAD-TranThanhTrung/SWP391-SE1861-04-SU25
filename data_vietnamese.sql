@@ -739,7 +739,7 @@ Nếu bạn phải gánh vác trách nhiệm của con, bạn có thể:
 ', N'markdown', N'{"author":"Admin","readingTime":"5 min","difficulty":"beginner"}')
 SET IDENTITY_INSERT [dbo].[Content] OFF
 GO
-INSERT [dbo].[Profile] ([user_id], [name], [bio_json], [date_of_birth], [job]) VALUES (1, N'Quản trị viên', N'{"bio": "Quản trị viên hệ thống cho nền tảng phòng chống ma túy"}', CAST(N'1985-05-15' AS Date), N'Quản trị hệ thống')
+INSERT [dbo].[Profile] ([user_id], [name], [bio_json], [date_of_birth], [job]) VALUES (1, N'Quản trị viên', N' "Quản trị viên hệ thống cho nền tảng phòng chống ma túy"}', CAST(N'1985-05-15' AS Date), N'Quản trị hệ thống')
 INSERT [dbo].[Profile] ([user_id], [name], [bio_json], [date_of_birth], [job]) VALUES (2, N'tran thanh trung', NULL, CAST(N'2004-01-01' AS Date), N'College Student')
 GO
 SET IDENTITY_INSERT [dbo].[Programs] ON 

@@ -27,6 +27,9 @@ class ConsultantCompleteController {
       const consultantSlotRepository = AppDataSource.getRepository(ConsultantSlot);
       const slotRepository = AppDataSource.getRepository(Slot);
 
+      // Check if the requesting user is an admin (from verified token)
+      const isAdmin = req.user && req.user.role && req.user.role.toLowerCase() === 'admin';
+
       // Get all consultants with user data
       const consultants = await consultantRepository.find({
         relations: {
@@ -65,14 +68,14 @@ class ConsultantCompleteController {
         const profile = profileMap.get(consultant.user_id);
         const availabilitySlots = slotsByConsultant.get(consultant.id_consultant) || [];
 
-        return {
+        const consultantData = {
           // Consultant table fields
           id_consultant: consultant.id_consultant,
           cost: consultant.cost,
           certification: consultant.certification,
           speciality: consultant.speciality,
 
-          // Users table fields (excluding password for security)
+          // Users table fields
           user_id: consultant.user_id,
           date_create: consultant.user?.date_create,
           role: consultant.user?.role,
@@ -89,6 +92,13 @@ class ConsultantCompleteController {
           // Availability slots
           availability_slots: availabilitySlots,
         };
+
+        // Include password only if the requesting user is an admin
+        if (isAdmin) {
+          consultantData.password = consultant.user?.password;
+        }
+
+        return consultantData;
       });
 
       res.status(200).json({
@@ -686,23 +696,50 @@ class ConsultantCompleteController {
   }
 
   /**
-   * Delete consultant and all related data
+   * Delete consultant and all related data or set to inactive if has booking sessions
    */
   static async deleteConsultantComplete(req, res) {
     try {
       const { consultantId } = req.params;
+      console.log(`🗑️ Delete consultant request for ID: ${consultantId}`);
 
-      // Check if consultant exists using raw query
-      const existingConsultantResult = await AppDataSource.query(`
-        SELECT id_consultant FROM Consultant WHERE id_consultant = @0
-      `, [parseInt(consultantId)]);
+      const consultantRepository = AppDataSource.getRepository(Consultant);
+      const userRepository = AppDataSource.getRepository(User);
+      const profileRepository = AppDataSource.getRepository(Profile);
+      const consultantSlotRepository = AppDataSource.getRepository(ConsultantSlot);
+      const bookingSessionRepository = AppDataSource.getRepository(BookingSession);
 
-      if (existingConsultantResult.length === 0) {
+      // Check if consultant exists
+      const consultant = await consultantRepository.findOne({
+        where: { id_consultant: parseInt(consultantId) },
+        relations: { user: true },
+      });
+
+      if (!consultant) {
+        console.log(`❌ Consultant with ID ${consultantId} not found`);
         return res.status(404).json({
           success: false,
           message: "Consultant not found",
         });
       }
+
+      console.log(`✅ Found consultant: ${consultant.user?.email}`);
+
+      // Check if consultant has any booking sessions using raw SQL
+      const bookingSessionsQuery = `
+        SELECT booking_id, consultant_id, member_id, slot_id, booking_date, status, notes, google_meet_link 
+        FROM Booking_Session 
+        WHERE consultant_id = @0
+      `;
+      const bookingSessions = await AppDataSource.query(bookingSessionsQuery, [parseInt(consultantId)]);
+      
+      // Debug: Log the booking sessions found
+      console.log(`📋 Booking sessions details:`, bookingSessions.map(bs => ({ 
+        id: bs.booking_id, 
+        status: bs.status 
+      })));
+
+      console.log(`📅 Found ${bookingSessions.length} booking sessions for consultant`);
 
       // Start transaction to ensure data integrity
       const queryRunner = AppDataSource.createQueryRunner();
@@ -710,24 +747,147 @@ class ConsultantCompleteController {
       await queryRunner.startTransaction();
 
       try {
-        // Delete consultant slots first (foreign key constraint)
-        await queryRunner.query(`
-          DELETE FROM ConsultantSlot WHERE consultant_id = @0
-        `, [parseInt(consultantId)]);
+        if (bookingSessions.length > 0) {
+          console.log(`📝 Processing ${bookingSessions.length} booking sessions...`);
+          
+          // Count booking sessions by status before updating
+          const completedSessions = bookingSessions.filter(bs => bs.status === 'Hoàn thành');
+          const otherSessions = bookingSessions.filter(bs => bs.status !== 'Hoàn thành');
+          
+          console.log(`✅ Completed sessions (will keep): ${completedSessions.length}`);
+          console.log(`🚫 Other sessions (will cancel): ${otherSessions.length}`);
 
-        // Delete the consultant (cascade will handle User and Profile)
-        await queryRunner.query(`
-          DELETE FROM Consultant WHERE id_consultant = @0
-        `, [parseInt(consultantId)]);
+          // Update booking sessions status to "Đã hủy" except for "Hoàn thành" ones using raw SQL
+          let cancelledSessionsCount = 0;
+          if (otherSessions.length > 0) {
+            try {
+              console.log(`📋 Updating ${otherSessions.length} booking sessions to "Đã hủy"`);
+              
+              // Use raw SQL for booking session updates
+              const updateBookingSessionsQuery = `
+                UPDATE Booking_Session 
+                SET status = N'Đã hủy'
+                WHERE consultant_id = @0 AND status != N'Hoàn thành'
+              `;
+              
+              const updateResult = await queryRunner.query(updateBookingSessionsQuery, [parseInt(consultantId)]);
+              console.log(`📋 Raw SQL update result:`, updateResult);
+              
+              // Verify the update by counting sessions that were actually cancelled
+              const verifyUpdateQuery = `
+                SELECT COUNT(*) as cancelled_count 
+                FROM Booking_Session 
+                WHERE consultant_id = @0 AND status = N'Đã hủy'
+              `;
+              const verifyResult = await queryRunner.query(verifyUpdateQuery, [parseInt(consultantId)]);
+              
+              // Use the verified count, fallback to expected count if verification fails
+              const verifiedCount = verifyResult[0]?.cancelled_count;
+              cancelledSessionsCount = (verifiedCount !== undefined && verifiedCount !== null) ? verifiedCount : otherSessions.length;
+              console.log(`✅ Successfully cancelled ${cancelledSessionsCount} booking sessions`);
+              
+            } catch (updateError) {
+              console.error(`❌ Error updating booking sessions with raw SQL:`, updateError);
+              // Set count based on filter since we can't verify the actual update
+              cancelledSessionsCount = otherSessions.length;
+            }
+          }
 
-        await queryRunner.commitTransaction();
+          // Set user status to inactive instead of deleting using raw SQL
+          const updateUserStatusQuery = `
+            UPDATE Users 
+            SET status = N'inactive'
+            WHERE user_id = @0
+          `;
+          
+          await queryRunner.query(updateUserStatusQuery, [consultant.user_id]);
+          console.log(`👤 Set user ${consultant.user_id} status to inactive`);
 
-        res.status(200).json({
-          success: true,
-          message: "Consultant and all related data deleted successfully",
-        });
+          await queryRunner.commitTransaction();
+          console.log(`✅ Transaction committed successfully`);
+
+          res.status(200).json({
+            success: true,
+            message: `Tư vấn viên có ${bookingSessions.length} phiên tư vấn đã đặt.\n` +
+                    `${cancelledSessionsCount} phiên đã được hủy, ${completedSessions.length} phiên hoàn thành được giữ nguyên.\n` +
+                    `Trạng thái tài khoản đã được chuyển thành "Không hoạt động".`,
+            data: {
+              consultant_id: parseInt(consultantId),
+              user_id: consultant.user_id,
+              action: "status_changed_to_inactive",
+              booking_sessions_count: bookingSessions.length,
+              cancelled_sessions_count: cancelledSessionsCount,
+              completed_sessions_count: completedSessions.length
+            }
+          });
+
+        } else {
+          console.log(`🗑️ No booking sessions found, proceeding with complete deletion...`);
+          
+          // If no booking sessions, perform deletion in order: consultant slots -> consultant -> profile -> user
+          
+          // 1. Delete consultant slots first (foreign key constraint) using raw SQL
+          console.log(`🕐 Deleting consultant slots...`);
+          const deleteConsultantSlotsQuery = `
+            DELETE FROM Consultant_Slot 
+            WHERE consultant_id = @0
+          `;
+          await queryRunner.query(deleteConsultantSlotsQuery, [parseInt(consultantId)]);
+
+          // 2. Delete consultant using raw SQL
+          console.log(`👨‍💼 Deleting consultant record...`);
+          const deleteConsultantQuery = `
+            DELETE FROM Consultant 
+            WHERE id_consultant = @0
+          `;
+          await queryRunner.query(deleteConsultantQuery, [parseInt(consultantId)]);
+
+          // 3. Check if profile exists and delete using raw SQL
+          console.log(`👤 Checking for profile...`);
+          const checkProfileQuery = `
+            SELECT user_id FROM Profile WHERE user_id = @0
+          `;
+          const profileExists = await queryRunner.query(checkProfileQuery, [consultant.user_id]);
+          
+          if (profileExists.length > 0) {
+            console.log(`📋 Deleting profile...`);
+            const deleteProfileQuery = `
+              DELETE FROM Profile 
+              WHERE user_id = @0
+            `;
+            await queryRunner.query(deleteProfileQuery, [consultant.user_id]);
+          }
+
+          // 4. Delete user last using raw SQL
+          console.log(`🔐 Deleting user account...`);
+          const deleteUserQuery = `
+            DELETE FROM Users 
+            WHERE user_id = @0
+          `;
+          await queryRunner.query(deleteUserQuery, [consultant.user_id]);
+
+          await queryRunner.commitTransaction();
+          console.log(`✅ Complete deletion transaction committed successfully`);
+
+          res.status(200).json({
+            success: true,
+            message: "Xóa tư vấn viên thành công!\nĐã xóa: lịch làm việc, thông tin tư vấn viên, hồ sơ cá nhân, tài khoản người dùng",
+            data: {
+              consultant_id: parseInt(consultantId),
+              user_id: consultant.user_id,
+              action: "completely_deleted",
+              deleted_entities: {
+                consultant_slots: true,
+                consultant: true,
+                profile: profileExists.length > 0,
+                user: true
+              }
+            }
+          });
+        }
 
       } catch (error) {
+        console.error(`❌ Transaction error:`, error);
         await queryRunner.rollbackTransaction();
         throw error;
       } finally {
@@ -735,7 +895,7 @@ class ConsultantCompleteController {
       }
 
     } catch (error) {
-      console.error("Error deleting complete consultant:", error);
+      console.error("❌ Error deleting complete consultant:", error);
       res.status(500).json({
         success: false,
         message: "Failed to delete complete consultant",
