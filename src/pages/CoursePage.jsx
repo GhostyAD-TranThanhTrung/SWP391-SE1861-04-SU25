@@ -538,8 +538,30 @@ const CoursePage = () => {
                     {/* Content Section */}
                     <div style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
                         <hr className="card-divider" />
-                        <h5 className="card-title" style={{ fontWeight: 700, fontSize: 20, marginBottom: 8, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{program.title}</h5>
-                        <p className="card-description" style={{ marginBottom: 12, color: '#444', fontSize: 15, minHeight: 38, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        <h5 className="card-title" style={{ 
+                            fontWeight: 700, 
+                            fontSize: 20, 
+                            marginBottom: 8, 
+                            minHeight: '48px',
+                            lineHeight: '1.2',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                        }}>{program.title}</h5>
+                        <p className="card-description" style={{ 
+                            marginBottom: 12, 
+                            color: '#444', 
+                            fontSize: 15, 
+                            minHeight: '96px', 
+                            lineHeight: '1.5',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 4,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                        }}>
                             {program.description}
                         </p>
 
@@ -676,8 +698,30 @@ const CoursePage = () => {
                                     </div>
                                     <div style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
                                         <hr className="card-divider" />
-                                        <h5 className="card-title" style={{ fontWeight: 700, fontSize: 20, marginBottom: 8, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.title}</h5>
-                                        <p className="card-description" style={{ marginBottom: 8, color: '#444', fontSize: 15, minHeight: 38, overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.description}</p>
+                                        <h5 className="card-title" style={{ 
+                                            fontWeight: 700, 
+                                            fontSize: 20, 
+                                            marginBottom: 8, 
+                                            minHeight: '48px',
+                                            lineHeight: '1.2',
+                                            display: '-webkit-box',
+                                            WebkitLineClamp: 2,
+                                            WebkitBoxOrient: 'vertical',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis'
+                                        }}>{item.title}</h5>
+                                        <p className="card-description" style={{ 
+                                            marginBottom: 8, 
+                                            color: '#444', 
+                                            fontSize: 15, 
+                                            minHeight: '96px', 
+                                            lineHeight: '1.5',
+                                            display: '-webkit-box',
+                                            WebkitLineClamp: 4,
+                                            WebkitBoxOrient: 'vertical',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis'
+                                        }}>{item.description}</p>
                                         <p className="card-meta" style={{ fontSize: 14, marginBottom: 0 }}>
                                             <strong>Người tạo:</strong> {item.creator?.name || item.creator?.email || 'Không xác định'}<br />
                                             <strong>Nhóm tuổi:</strong> {item.age_group || 'N/A'}

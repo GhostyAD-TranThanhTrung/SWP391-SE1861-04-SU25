@@ -6,7 +6,8 @@ import Image from '../images/Images.jpg';
 const BookingPage = () => {
     const navigate = useNavigate();
     const [selectedSpecialization, setSelectedSpecialization] = useState('all');
-    const [selectedDate, setSelectedDate] = useState('');
+    const [selectedDayOfWeek, setSelectedDayOfWeek] = useState('all');
+    const [selectedTimeSlot, setSelectedTimeSlot] = useState('all');
     const [consultants, setConsultants] = useState([]);
     const [loading, setLoading] = useState(true);
     const [bookingStatus, setBookingStatus] = useState(null);
@@ -73,7 +74,10 @@ const BookingPage = () => {
                 name: apiConsultant.name || 'N/A',
                 bio_json: apiConsultant.bio_json || 'N/A',
                 date_of_birth: apiConsultant.date_of_birth || 'N/A',
-                job: apiConsultant.job || 'N/A'
+                job: apiConsultant.job || 'N/A',
+
+                // Các trường Slot
+                available_slots: apiConsultant.available_slots || []
             };
         });
     };
@@ -97,6 +101,30 @@ const BookingPage = () => {
             });
         } catch (error) {
             return timeString; // Trả về gốc nếu parse thất bại
+        }
+    };
+
+    // Check if time slot falls within the selected time period
+    const isTimeInSlot = (timeString, timeSlotFilter) => {
+        if (timeSlotFilter === 'all') return true;
+        if (!timeString) return false;
+
+        try {
+            const time = new Date(`2000-01-01T${timeString}`);
+            const hours = time.getHours();
+
+            switch (timeSlotFilter) {
+                case 'morning':
+                    return hours >= 6 && hours < 12;
+                case 'afternoon':
+                    return hours >= 12 && hours < 18;
+                case 'evening':
+                    return hours >= 18 && hours < 22;
+                default:
+                    return true;
+            }
+        } catch (error) {
+            return false;
         }
     };
 
@@ -251,9 +279,45 @@ const BookingPage = () => {
         { value: 'Rehabilitation', label: 'Phục hồi chức năng' }
     ];
 
+    const daysOfWeek = [
+        { value: 'all', label: 'Tất cả các ngày' },
+        { value: 'Monday', label: 'Thứ Hai' },
+        { value: 'Tuesday', label: 'Thứ Ba' },
+        { value: 'Wednesday', label: 'Thứ Tư' },
+        { value: 'Thursday', label: 'Thứ Năm' },
+        { value: 'Friday', label: 'Thứ Sáu' },
+        { value: 'Saturday', label: 'Thứ Bảy' },
+        { value: 'Sunday', label: 'Chủ Nhật' }
+    ];
+
+    const timeSlots = [
+        { value: 'all', label: 'Tất cả khung giờ' },
+        { value: 'morning', label: 'Buổi sáng (6:00 - 12:00)' },
+        { value: 'afternoon', label: 'Buổi chiều (12:00 - 18:00)' },
+        { value: 'evening', label: 'Buổi tối (18:00 - 22:00)' }
+    ];
+
     const filteredConsultants = consultants.filter(consultant => {
         const specialization = getSpecializationFromSpeciality(consultant.speciality);
-        return selectedSpecialization === 'all' || specialization === selectedSpecialization;
+        
+        // Filter by specialization
+        const matchesSpecialization = selectedSpecialization === 'all' || specialization === selectedSpecialization;
+        
+        // Filter by day of week
+        let matchesDayOfWeek = selectedDayOfWeek === 'all';
+        if (!matchesDayOfWeek && consultant.available_slots) {
+            matchesDayOfWeek = consultant.available_slots.some(slot => slot.day_of_week === selectedDayOfWeek);
+        }
+        
+        // Filter by time slot
+        let matchesTimeSlot = selectedTimeSlot === 'all';
+        if (!matchesTimeSlot && consultant.available_slots) {
+            matchesTimeSlot = consultant.available_slots.some(slot => 
+                isTimeInSlot(slot.start_time, selectedTimeSlot)
+            );
+        }
+        
+        return matchesSpecialization && matchesDayOfWeek && matchesTimeSlot;
     });
 
     if (loading) {
@@ -457,7 +521,7 @@ const BookingPage = () => {
 
                     <div className="filter-controls">
                         <div className="row justify-content-center">
-                            <div className="col-lg-3 col-md-6 mb-3">
+                            <div className="col-lg-4 col-md-6 mb-3">
                                 <label className="filter-label">Chuyên môn</label>
                                 <select
                                     className="form-select filter-select"
@@ -469,16 +533,31 @@ const BookingPage = () => {
                                     ))}
                                 </select>
                             </div>
-                            <div className="col-lg-3 col-md-6 mb-3">
-                                <label className="filter-label">Chọn ngày</label>
-                                <input
-                                    type="date"
-                                    className="form-control filter-select"
-                                    value={selectedDate}
-                                    onChange={(e) => setSelectedDate(e.target.value)}
-                                    min={new Date().toISOString().split('T')[0]}
-                                />
+                            <div className="col-lg-4 col-md-6 mb-3">
+                                <label className="filter-label">Thứ trong tuần</label>
+                                <select
+                                    className="form-select filter-select"
+                                    value={selectedDayOfWeek}
+                                    onChange={(e) => setSelectedDayOfWeek(e.target.value)}
+                                >
+                                    {daysOfWeek.map(day => (
+                                        <option key={day.value} value={day.value}>{day.label}</option>
+                                    ))}
+                                </select>
                             </div>
+                            <div className="col-lg-4 col-md-6 mb-3">
+                                <label className="filter-label">Khung giờ</label>
+                                <select
+                                    className="form-select filter-select"
+                                    value={selectedTimeSlot}
+                                    onChange={(e) => setSelectedTimeSlot(e.target.value)}
+                                >
+                                    {timeSlots.map(slot => (
+                                        <option key={slot.value} value={slot.value}>{slot.label}</option>
+                                    ))}
+                                </select>
+                            </div>
+
                         </div>
                     </div>
                 </section>
@@ -520,23 +599,48 @@ const BookingPage = () => {
 
                                     <div className="consultant-body">
                                         <p className="consultant-description">
-                                            {consultant.bio_json !== 'N/A' ? (() => {
+                                            {(() => {
+                                                if (!consultant.bio_json || consultant.bio_json === 'N/A') {
+                                                    return 'N/A';
+                                                }
+                                                
                                                 try {
+                                                    // Try to parse as JSON first
                                                     const bioData = typeof consultant.bio_json === 'string'
                                                         ? JSON.parse(consultant.bio_json)
                                                         : consultant.bio_json;
-                                                    return bioData?.bio || consultant.bio_json;
+                                                    
+                                                    // Extract bio content from various possible fields
+                                                    const bioContent = bioData?.bio || bioData?.description || bioData?.content;
+                                                    
+                                                    // Check if we have any meaningful bio content
+                                                    if (!bioContent || bioContent.trim() === '' || bioContent === 'N/A') {
+                                                        return 'N/A';
+                                                    }
+                                                    
+                                                    return bioContent;
                                                 } catch (error) {
-                                                    return consultant.bio_json;
+                                                    // If JSON parsing fails, treat as plain text
+                                                    const plainText = consultant.bio_json.trim();
+                                                    
+                                                    // Check if it looks like malformed JSON (starts with { but failed to parse)
+                                                    if (plainText.startsWith('{') && plainText.includes('"')) {
+                                                        return 'N/A';
+                                                    }
+                                                    
+                                                    // Return plain text if it has content, otherwise N/A
+                                                    return plainText !== '' ? plainText : 'N/A';
                                                 }
-                                            })() : 'Không có tiểu sử'}
+                                            })()}
                                         </p>
 
                                         <div className="consultant-qualifications">
-                                            {consultant.certification !== 'N/A' && (
-                                                <span className="qualification-badge">
-                                                    {consultant.certification}
-                                                </span>
+                                            {consultant.certification !== 'N/A' && consultant.certification && (
+                                                consultant.certification.split(',').map((cert, index) => (
+                                                    <span key={index} className="qualification-badge">
+                                                        {cert.trim()}
+                                                    </span>
+                                                ))
                                             )}
                                             <span className="qualification-badge">
                                                 Chuyên gia có giấy phép
@@ -544,12 +648,58 @@ const BookingPage = () => {
                                         </div>
 
                                         <div className="consultant-details">
-                                            <div className="detail-item" style={{ padding: '10px 0', marginBottom: '15px' }}>
-                                                <i className="bi bi-currency-dollar me-2"></i>
-                                                <span style={{ fontSize: '1.1rem', fontWeight: '500' }}>
+                                            <div className="detail-item">
+                                                <i className="bi bi-tag me-2"></i>
+                                                <span>
                                                     {consultant.cost !== 'N/A' ? `${Number(consultant.cost).toLocaleString('vi-VN')}VNĐ mỗi buổi` : 'Giá N/A'}
                                                 </span>
                                             </div>
+                                            
+                                            {/* Available Slots Display */}
+                                            {consultant.available_slots && consultant.available_slots.length > 0 && (
+                                                <div className="detail-item">
+                                                    <i className="bi bi-clock me-2"></i>
+                                                    <div className="slot-info">
+                                                        <span className="slot-label">Lịch có sẵn:</span>
+                                                        <div className="available-slots">
+                                                            {(() => {
+                                                                // Group slots by day of week
+                                                                const groupedSlots = consultant.available_slots.reduce((acc, slot) => {
+                                                                    if (!acc[slot.day_of_week]) {
+                                                                        acc[slot.day_of_week] = [];
+                                                                    }
+                                                                    acc[slot.day_of_week].push(slot);
+                                                                    return acc;
+                                                                }, {});
+
+                                                                // Convert day names to Vietnamese
+                                                                const dayNames = {
+                                                                    'Monday': 'T2',
+                                                                    'Tuesday': 'T3',
+                                                                    'Wednesday': 'T4',
+                                                                    'Thursday': 'T5',
+                                                                    'Friday': 'T6',
+                                                                    'Saturday': 'T7',
+                                                                    'Sunday': 'CN'
+                                                                };
+
+                                                                return Object.entries(groupedSlots).map(([day, slots]) => (
+                                                                    <div key={day} className="day-slots">
+                                                                        <span className="day-name">
+                                                                            {dayNames[day] || day}:
+                                                                        </span>
+                                                                        {slots.map((slot, index) => (
+                                                                            <span key={index} className="time-slot">
+                                                                                {formatTime(slot.start_time)}
+                                                                            </span>
+                                                                        ))}
+                                                                    </div>
+                                                                ));
+                                                            })()}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
 
                                         <div className="consultant-footer">
@@ -577,6 +727,8 @@ const BookingPage = () => {
                                     className="btn btn-outline-primary"
                                     onClick={() => {
                                         setSelectedSpecialization('all');
+                                        setSelectedDayOfWeek('all');
+                                        setSelectedTimeSlot('all');
                                     }}
                                 >
                                     Xóa bộ lọc

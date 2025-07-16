@@ -134,6 +134,15 @@
     .consultants-section {
         padding: 0 2rem;
 
+        .row {
+            margin: 0 -0.75rem;
+
+            > [class*="col-"] {
+                padding: 0 0.75rem;
+                margin-bottom: 1.5rem;
+            }
+        }
+
         .consultant-card {
             background: white;
             border-radius: 20px;
@@ -142,6 +151,8 @@
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
             height: 100%;
             border: 1px solid #e9ecef;
+            display: flex;
+            flex-direction: column;
 
             &:hover {
                 transform: translateY(-8px);
@@ -203,12 +214,16 @@
 
             .consultant-body {
                 padding: 1.5rem;
+                flex-grow: 1;
+                display: flex;
+                flex-direction: column;
 
                 .consultant-description {
                     font-size: 0.95rem;
                     line-height: 1.6;
                     color: #6c757d;
                     margin-bottom: 1rem;
+                    flex-grow: 1;
                 }
 
                 .consultant-qualifications {
@@ -230,18 +245,98 @@
                 .consultant-details {
                     .detail-item {
                         display: flex;
-                        align-items: center;
-                        margin-bottom: 0.5rem;
+                        align-items: flex-start;
+                        margin-bottom: 1rem;
                         font-size: 0.9rem;
                         color: #2c3e50;
 
                         i {
                             color: #17a2b8;
                             width: 16px;
+                            margin-top: 2px;
+                            flex-shrink: 0;
+                        }
+
+                        > span {
+                            font-size: 1rem;
+                            font-weight: 500;
+                            color: #2c3e50;
                         }
 
                         &:last-child {
                             margin-bottom: 0;
+                        }
+
+                        // Available slots styling
+                        .slot-info {
+                            flex-grow: 1;
+                            width: 100%;
+
+                            .slot-label {
+                                font-size: 0.9rem;
+                                font-weight: 500;
+                                color: #2c3e50;
+                                display: block;
+                                margin-bottom: 0.5rem;
+                            }
+
+                            .available-slots {
+                                width: 100%;
+
+                                .day-slots {
+                                    display: flex;
+                                    align-items: center;
+                                    flex-wrap: wrap;
+                                    margin-bottom: 8px;
+                                    min-height: 28px;
+
+                                    &:last-child {
+                                        margin-bottom: 0;
+                                    }
+
+                                    .day-name {
+                                        background: linear-gradient(135deg, #667eea, #764ba2);
+                                        color: white;
+                                        padding: 4px 8px;
+                                        border-radius: 12px;
+                                        font-size: 0.75rem;
+                                        font-weight: 600;
+                                        min-width: 30px;
+                                        text-align: center;
+                                        margin-right: 8px;
+                                        flex-shrink: 0;
+                                        display: inline-flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+                                    }
+
+                                    .time-slot {
+                                        background: linear-gradient(135deg, #e3f2fd, #f0f8ff);
+                                        color: #1976d2;
+                                        border: 1px solid rgba(25, 118, 210, 0.2);
+                                        padding: 3px 8px;
+                                        border-radius: 8px;
+                                        font-size: 0.75rem;
+                                        font-weight: 500;
+                                        margin: 2px 4px 2px 0;
+                                        display: inline-block;
+                                        box-shadow: 0 1px 3px rgba(25, 118, 210, 0.1);
+                                        transition: all 0.2s ease;
+
+                                        &:hover {
+                                            background: linear-gradient(135deg, #1976d2, #1565c0);
+                                            color: white;
+                                            transform: translateY(-1px);
+                                            box-shadow: 0 2px 6px rgba(25, 118, 210, 0.3);
+                                        }
+
+                                        &:last-child {
+                                            margin-right: 0;
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -688,6 +783,32 @@
 
             .consultant-body {
                 padding: 1rem;
+
+                .consultant-details {
+                    .detail-item {
+                        .slot-info {
+                            .slot-label {
+                                font-size: 0.8rem;
+                            }
+
+                            .available-slots {
+                                .day-slots {
+                                    .day-name {
+                                        font-size: 0.7rem;
+                                        padding: 3px 6px;
+                                        min-width: 25px;
+                                    }
+
+                                    .time-slot {
+                                        font-size: 0.7rem;
+                                        padding: 2px 6px;
+                                        margin: 1px 3px 1px 0;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             .consultant-footer {

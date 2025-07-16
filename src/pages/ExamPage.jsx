@@ -74,7 +74,21 @@ const ExamPage = () => {
             return;
         }
 
-        const newScore = result.score + (selectedOption?.score || 0);
+        // Calculate score differently for CRAFFT vs ASSIST
+        const scoreToAdd = type.toLowerCase() === 'crafft' 
+            ? (currentQuestionIndex >= 3 ? (selectedOption?.score || 0) : 0) // Only Part B (questions 4-9) count for CRAFFT score
+            : (selectedOption?.score || 0); // All questions count for ASSIST
+
+        const newScore = result.score + scoreToAdd;
+
+        // Update savedAnswers with current answer for final calculation
+        const updatedAnswers = {
+            ...savedAnswers,
+            [currentQuestionIndex]: currentQuestionIndex === 0 && type.toLowerCase() === 'assist' 
+                ? selectedOptions 
+                : selectedOption
+        };
+        setSavedAnswers(updatedAnswers);
 
         setResult((prev) => ({
             ...prev,
@@ -98,12 +112,16 @@ const ExamPage = () => {
                 setSelectedOptions([]);
             }
         } else {
-            const riskLevel = assessRiskLevel(newScore);
+            // Enhanced risk assessment for CRAFFT, simple for ASSIST
+            const riskLevel = type.toLowerCase() === 'crafft' 
+                ? assessRiskLevel(newScore, updatedAnswers)
+                : assessRiskLevel(newScore);
+            
             navigate('/result', {
                 state: {
                     result: { ...result, score: newScore, riskLevel },
                     type,
-                    userAnswers: savedAnswers
+                    userAnswers: updatedAnswers
                 }
             });
         }

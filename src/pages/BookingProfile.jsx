@@ -58,7 +58,10 @@ const BookingProfile = () => {
             name: apiConsultant.name || 'N/A',
             bio_json: apiConsultant.bio_json || 'N/A',
             date_of_birth: apiConsultant.date_of_birth || 'N/A',
-            job: apiConsultant.job || 'N/A'
+            job: apiConsultant.job || 'N/A',
+
+            // Slot information
+            available_slots: apiConsultant.available_slots || []
         };
     };
 
@@ -133,6 +136,71 @@ const BookingProfile = () => {
     const formatCost = (cost) => {
         if (!cost || cost === 'N/A') return 'Liên hệ để biết giá';
         return `${parseFloat(cost).toFixed(0)} VNĐ`;
+    };
+
+    // Format time from API time format
+    const formatTime = (timeString) => {
+        if (!timeString) return '12:00 PM';
+
+        try {
+            const time = new Date(`2000-01-01T${timeString}`);
+            return time.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            });
+        } catch (error) {
+            return timeString;
+        }
+    };
+
+    // Group and format consultant schedule
+    const getFormattedSchedule = (availableSlots) => {
+        console.log('Available slots:', availableSlots); // Debug log
+        
+        if (!availableSlots || availableSlots.length === 0) {
+            return [
+                { day: 'Không có lịch làm việc', time: 'Liên hệ để biết thêm thông tin' }
+            ];
+        }
+
+        // Group slots by day of week
+        const groupedSlots = availableSlots.reduce((acc, slot) => {
+            if (!acc[slot.day_of_week]) {
+                acc[slot.day_of_week] = [];
+            }
+            acc[slot.day_of_week].push(slot);
+            return acc;
+        }, {});
+
+        // Convert day names to Vietnamese and sort
+        const dayNames = {
+            'Monday': { vn: 'Thứ Hai', order: 1 },
+            'Tuesday': { vn: 'Thứ Ba', order: 2 },
+            'Wednesday': { vn: 'Thứ Tư', order: 3 },
+            'Thursday': { vn: 'Thứ Năm', order: 4 },
+            'Friday': { vn: 'Thứ Sáu', order: 5 },
+            'Saturday': { vn: 'Thứ Bảy', order: 6 },
+            'Sunday': { vn: 'Chủ Nhật', order: 7 }
+        };
+
+        // Format schedule by day
+        return Object.entries(groupedSlots)
+            .map(([day, slots]) => {
+                // Sort slots by start time
+                const sortedSlots = slots.sort((a, b) => a.start_time.localeCompare(b.start_time));
+                
+                // Get first and last slot times
+                const firstSlot = sortedSlots[0];
+                const lastSlot = sortedSlots[sortedSlots.length - 1];
+                
+                return {
+                    day: dayNames[day]?.vn || day,
+                    time: `${formatTime(firstSlot.start_time)} - ${formatTime(lastSlot.end_time)}`,
+                    order: dayNames[day]?.order || 8
+                };
+            })
+            .sort((a, b) => a.order - b.order);
     };
 
     // Thêm hàm xử lý đóng modal
@@ -292,26 +360,36 @@ const BookingProfile = () => {
                                             <p className="bio-text">
                                                 {(() => {
                                                     if (!consultant.bio_json || consultant.bio_json === 'N/A') {
-                                                        return 'Không có tiểu sử';
+                                                        return 'N/A';
                                                     }
-
-                                                    // If it's a string that looks like JSON, parse it
-                                                    if (typeof consultant.bio_json === 'string') {
-                                                        try {
-                                                            const parsed = JSON.parse(consultant.bio_json);
-                                                            return parsed.bio || 'Không có tiểu sử';
-                                                        } catch (e) {
-                                                            // If JSON parsing fails, return the string as-is
-                                                            return consultant.bio_json;
+                                                    
+                                                    try {
+                                                        // Try to parse as JSON first
+                                                        const bioData = typeof consultant.bio_json === 'string'
+                                                            ? JSON.parse(consultant.bio_json)
+                                                            : consultant.bio_json;
+                                                        
+                                                        // Extract bio content from various possible fields
+                                                        const bioContent = bioData?.bio || bioData?.description || bioData?.content;
+                                                        
+                                                        // Check if we have any meaningful bio content
+                                                        if (!bioContent || bioContent.trim() === '' || bioContent === 'N/A') {
+                                                            return 'N/A';
                                                         }
+                                                        
+                                                        return bioContent;
+                                                    } catch (error) {
+                                                        // If JSON parsing fails, treat as plain text
+                                                        const plainText = consultant.bio_json.trim();
+                                                        
+                                                        // Check if it looks like malformed JSON (starts with { but failed to parse)
+                                                        if (plainText.startsWith('{') && plainText.includes('"')) {
+                                                            return 'N/A';
+                                                        }
+                                                        
+                                                        // Return plain text if it has content, otherwise N/A
+                                                        return plainText !== '' ? plainText : 'N/A';
                                                     }
-
-                                                    // If it's already an object
-                                                    if (typeof consultant.bio_json === 'object') {
-                                                        return consultant.bio_json.bio || 'Không có tiểu sử';
-                                                    }
-
-                                                    return consultant.bio_json;
                                                 })()}
                                             </p>
                                             {(() => {
@@ -339,29 +417,10 @@ const BookingProfile = () => {
                                             })()}
                                             <div className="key-stats">
                                                 <div className="stat-item">
-                                                    <div className="stat-value">{formatCost(consultant.cost)}</div>
                                                     <div className="stat-label">Mỗi buổi tư vấn</div>
+                                                    <div className="stat-value">{formatCost(consultant.cost)}</div>
                                                 </div>
                                                 <div className="stat-item">
-                                                    <div className="stat-value">{(() => {
-                                                        let bio = '';
-                                                        if (consultant.bio_json && consultant.bio_json !== 'N/A') {
-                                                            if (typeof consultant.bio_json === 'string') {
-                                                                try {
-                                                                    const parsed = JSON.parse(consultant.bio_json);
-                                                                    bio = parsed.bio || '';
-                                                                } catch (e) {
-                                                                    bio = consultant.bio_json;
-                                                                }
-                                                            } else if (typeof consultant.bio_json === 'object') {
-                                                                bio = consultant.bio_json.bio || '';
-                                                            }
-                                                        }
-
-                                                        const match = bio.match(/(\d+)\s+years?\s+of\s+experience/i);
-                                                        const years = match ? match[1] : null;
-                                                        return years ? `${years}+` : (consultant.status !== 'N/A' ? consultant.status.charAt(0).toUpperCase() + consultant.status.slice(1) : 'Có sẵn');
-                                                    })()}</div>
                                                     <div className="stat-label">{(() => {
                                                         let bio = '';
                                                         if (consultant.bio_json && consultant.bio_json !== 'N/A') {
@@ -380,6 +439,25 @@ const BookingProfile = () => {
                                                         const match = bio.match(/(\d+)\s+years?\s+of\s+experience/i);
                                                         const years = match ? match[1] : null;
                                                         return years ? 'Năm kinh nghiệm' : 'Trạng thái';
+                                                    })()}</div>
+                                                    <div className="stat-value">{(() => {
+                                                        let bio = '';
+                                                        if (consultant.bio_json && consultant.bio_json !== 'N/A') {
+                                                            if (typeof consultant.bio_json === 'string') {
+                                                                try {
+                                                                    const parsed = JSON.parse(consultant.bio_json);
+                                                                    bio = parsed.bio || '';
+                                                                } catch (e) {
+                                                                    bio = consultant.bio_json;
+                                                                }
+                                                            } else if (typeof consultant.bio_json === 'object') {
+                                                                bio = consultant.bio_json.bio || '';
+                                                            }
+                                                        }
+
+                                                        const match = bio.match(/(\d+)\s+years?\s+of\s+experience/i);
+                                                        const years = match ? match[1] : null;
+                                                        return years ? `${years}+` : (consultant.status !== 'N/A' ? consultant.status.charAt(0).toUpperCase() + consultant.status.slice(1) : 'Có sẵn');
                                                     })()}</div>
                                                 </div>
                                             </div>
@@ -587,20 +665,13 @@ const BookingProfile = () => {
                                         </div>
                                         <div className="card-body">
                                             <div className="availability-info">
-                                                <div className="availability-item">
-                                                    <span className="day">Thứ 2 - Thứ 6</span>
-                                                    <span className="time">9:00 AM - 5:00 PM</span>
-                                                </div>
-                                                <div className="availability-item">
-                                                    <span className="day">Thứ 7</span>
-                                                    <span className="time">10:00 AM - 2:00 PM</span>
-                                                </div>
-                                                <div className="availability-item">
-                                                    <span className="day">Chủ nhật</span>
-                                                    <span className="time">Chỉ khẩn cấp</span>
-                                                </div>
+                                                {getFormattedSchedule(consultant.available_slots).map((schedule, index) => (
+                                                    <div key={index} className="availability-item">
+                                                        <span className="day">{schedule.day}</span>
+                                                        <span className="time">{schedule.time}</span>
+                                                    </div>
+                                                ))}
                                             </div>
-
                                         </div>
                                     </div>
                                 </div>

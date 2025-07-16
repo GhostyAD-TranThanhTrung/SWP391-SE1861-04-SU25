@@ -393,28 +393,28 @@ const MemberListPage = () => {
               </button>
             </div>
             <div className="d-flex gap-2 flex-wrap">
-              <select
+          <select
                 className="form-select shadow-sm"
                 style={{ minWidth: '150px' }}
-                value={statusFilter}
-                onChange={e => setStatusFilter(e.target.value)}
-              >
-                <option value="">Tất cả trạng thái</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="banned">Banned</option>
-              </select>
+            value={statusFilter}
+            onChange={e => setStatusFilter(e.target.value)}
+          >
+            <option value="">Tất cả trạng thái</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="banned">Banned</option>
+          </select>
               <div className="input-group" style={{ minWidth: '250px' }}>
-                <input
-                  type="text"
+          <input
+            type="text"
                   className="form-control shadow-sm"
-                                      placeholder="Tìm kiếm thành viên..."
-                  value={searchTerm}
-                  onChange={handleSearch}
-                />
+            placeholder="Tìm kiếm thành viên..."
+            value={searchTerm}
+            onChange={handleSearch}
+          />
                 <button className="btn btn-outline-secondary shadow-sm" onClick={handleSearchClick}>
-                  <FaSearch />
-                </button>
+            <FaSearch />
+          </button>
               </div>
             </div>
           </div>
@@ -526,11 +526,11 @@ const MemberListPage = () => {
                       <span className="member-detail-label">Họ và tên:</span>
                       <span className="member-detail-value" style={{ fontWeight: 'bold' }}>{selectedMember.profile?.name || 'Chưa cập nhật'}</span>
                     </div>
-                    <div className="member-detail-row">
+              <div className="member-detail-row">
                       <span className="member-detail-label">Email:</span>
                       <span className="member-detail-value">{selectedMember.user?.email || selectedMember.email || 'Chưa cập nhật'}</span>
-                    </div>
-                    <div className="member-detail-row">
+              </div>
+              <div className="member-detail-row">
                       <span className="member-detail-label">Nghề nghiệp:</span>
                       <span className="member-detail-value">{selectedMember.profile?.job || 'Chưa cập nhật'}</span>
                     </div>
@@ -543,20 +543,20 @@ const MemberListPage = () => {
                           new Date(selectedMember.profile.date_of_birth).toLocaleDateString('vi-VN') :
                           'Chưa cập nhật'}
                       </span>
-                    </div>
-                    <div className="member-detail-row">
+              </div>
+              <div className="member-detail-row">
                       <span className="member-detail-label">Vai trò:</span>
                       <span className="member-detail-value">{selectedMember.user?.role || selectedMember.role || 'Chưa cập nhật'}</span>
-                    </div>
-                    <div className="member-detail-row">
+              </div>
+              <div className="member-detail-row">
                       <span className="member-detail-label">Trạng thái:</span>
                       <span className="member-detail-value">
                         <span className={`status-badge ${(selectedMember.user?.status || selectedMember.status)?.toLowerCase()}`}>
                           {selectedMember.user?.status || selectedMember.status || 'Không xác định'}
                         </span>
                       </span>
-                    </div>
-                    <div className="member-detail-row">
+              </div>
+              <div className="member-detail-row">
                       <span className="member-detail-label">Ngày tạo tài khoản:</span>
                       <span className="member-detail-value">
                         {(selectedMember.user?.date_create || selectedMember.date_create) ?
@@ -606,7 +606,7 @@ const MemberListPage = () => {
                   paddingBottom: '8px'
                 }}>📊 Tổng quan đánh giá</h5>
 
-                <div className="member-detail-row">
+              <div className="member-detail-row">
                   <span className="member-detail-label">Số lượng đánh giá:</span>
                   <span className="member-detail-value">
                     <span style={{
@@ -723,10 +723,10 @@ const MemberListPage = () => {
                               <div className="member-detail-row">
                                 <span className="member-detail-label">Số câu hỏi:</span>
                                 <span className="member-detail-value">{questionCount} câu</span>
-                              </div>
-                              <div className="member-detail-row">
+              </div>
+              <div className="member-detail-row">
                                 <span className="member-detail-label">Mức độ rủi ro:</span>
-                                <span className="member-detail-value">
+                <span className="member-detail-value">
                                   <span style={{
                                     padding: '3px 8px',
                                     borderRadius: '3px',
@@ -795,8 +795,8 @@ const MemberListPage = () => {
                             <span className="member-detail-label">Kết quả:</span>
                             <span className="member-detail-value" style={{ fontSize: '0.9em', color: '#666' }}>
                               Dữ liệu đánh giá không thể hiển thị
-                            </span>
-                          </div>
+                </span>
+              </div>
                         )}
                       </div>
                     );
@@ -859,10 +859,10 @@ const MemberListPage = () => {
                 <div className="form-group">
                   <label className="form-label">Mật khẩu *</label>
                   <div className="d-flex align-items-center">
-                    <input
+                  <input
                       type={showPassword ? "text" : "password"}
-                      name="password"
-                      placeholder="Mật khẩu"
+                    name="password"
+                    placeholder="Mật khẩu"
                       value={getPasswordDisplayValue()}
                       onChange={(e) => {
                         if (showPassword) {
@@ -871,7 +871,7 @@ const MemberListPage = () => {
                         }
                       }}
                       disabled={!showPassword}
-                      className="form-input"
+                    className="form-input"
                       style={{ color: '#000', backgroundColor: '#fff' }}
                     />
                     {isAdmin && (
