@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { FaSearch, FaPlus, FaEdit, FaEye, FaFlag } from "react-icons/fa";
+import { FaSearch, FaPlus, FaEdit, FaEye, FaFlag, FaUsers } from "react-icons/fa";
 import { FaTrash } from "react-icons/fa6";
 import { MdCancel, MdApproval, MdBlock } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
@@ -67,6 +67,8 @@ const BlogListPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [totalBlogs, setTotalBlogs] = useState(0);
+  
+  // Statistics state - no longer needed as we'll calculate from filtered data
 
   const token = sessionStorage.getItem("token");
   const navigate = useNavigate()
@@ -117,6 +119,8 @@ const BlogListPage = () => {
       console.error("Lỗi khi gọi API:", err);
     }
   };
+
+
 
   useEffect(() => {
     setCurrentPage(1); // Reset to first page when viewMode changes
@@ -429,66 +433,167 @@ const BlogListPage = () => {
   // Filter blogs theo status
   const filteredBlogs = blogs.filter(b => filterStatus === 'all' || b.status === filterStatus);
 
+  // Calculate statistics from all blogs data
+  const publishedCount = blogs.filter(b => b.status === 'published' || b.status === 'Đã xuất bản').length;
+  const draftCount = blogs.filter(b => b.status === 'draft').length;
+  const pendingCount = blogs.filter(b => b.status === 'pending').length;
+
   return (
-    <div className={`blog-list-container ${showPopup ? 'modal-open' : ''}`}>
+    <div className={`staff-container ${showPopup ? 'modal-open' : ''}`}>
 
-       <div className="card">
-          <div>Tổng số blog trong danh sách</div>
-          <h4>{filteredBlogs.length}</h4>
-          <small>blog</small>
-        </div>
-
-      <div className="top-bar d-flex justify-content-between align-items-center mb-3">
-        <div className="d-flex align-items-center">
-          <button className="btn btn-primary me-3" onClick={handleOpenPopup}>
-            <FaPlus className="me-2" /> Tạo blog mới
-          </button>
-
-          <div className="btn-group" role="group">
-            <button
-              className={`btn btn-sm ${viewMode === 'all' ? 'btn-primary' : 'btn-outline-primary'}`}
-              onClick={() => setViewMode('all')}
-            >
-              Tất cả
-            </button>
-            <button
-              className={`btn btn-sm ${viewMode === 'pending' ? 'btn-warning' : 'btn-outline-warning'}`}
-              onClick={() => setViewMode('pending')}
-            >
-              Chờ duyệt
-            </button>
-            <button
-              className={`btn btn-sm ${viewMode === 'my' ? 'btn-info' : 'btn-outline-info'}`}
-              onClick={() => setViewMode('my')}
-            >
-              Blog của tôi
-            </button>
+      <div className="row g-4 mb-4">
+        {/* Total Blogs Card */}
+        <div className="col-xl-3 col-md-6">
+          <div className="card border-0 shadow-sm h-100" style={{
+            background: '#f8f9fa',
+            color: '#212529'
+          }}>
+            <div className="card-body d-flex align-items-center">
+              <div className="flex-shrink-0">
+                <div className="p-3 rounded-circle" style={{
+                  backgroundColor: '#e9ecef',
+                  fontSize: '2rem'
+                }}>
+                  <FaUsers />
+                </div>
+              </div>
+              <div className="ms-3">
+                <div className="small text-muted">Tổng số blog</div>
+                <div className="h3 mb-0 fw-bold">{blogs.length}</div>
+                <div className="small text-muted">trong danh sách</div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="d-flex align-items-center gap-2" style={{ maxWidth: '500px' }}>
-          <select
-            className="form-select status-select"
-            value={filterStatus}
-            onChange={e => setFilterStatus(e.target.value)}
-            style={{ maxWidth: '200px' }}
-          >
-            <option value="all">Tất cả trạng thái</option>
-            <option value="published">Đã xuất bản</option>
-            <option value="draft">Bản nháp</option>
-            <option value="rejected">Bị từ chối</option>
-          </select>
-          <div className="input-group" style={{ maxWidth: '300px' }}>
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Tìm kiếm blog..."
-              value={searchTerm}
-              onChange={handleSearch}
-            />
-            <button className="btn btn-outline-secondary" onClick={handleSearchClick}>
-              <FaSearch />
-            </button>
+        {/* Published Blogs Card */}
+        <div className="col-xl-3 col-md-6">
+          <div className="card border-0 shadow-sm h-100" style={{
+            background: '#f8f9fa',
+            color: '#212529'
+          }}>
+            <div className="card-body d-flex align-items-center">
+              <div className="flex-shrink-0">
+                <div className="p-3 rounded-circle" style={{
+                  backgroundColor: '#e9ecef',
+                  fontSize: '2rem'
+                }}>
+                  <FaUsers />
+                </div>
+              </div>
+              <div className="ms-3">
+                <div className="small text-muted">Blog đã xuất bản</div>
+                <div className="h3 mb-0 fw-bold">{publishedCount}</div>
+                <div className="small text-muted">published</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Draft Blogs Card */}
+        <div className="col-xl-3 col-md-6">
+          <div className="card border-0 shadow-sm h-100" style={{
+            background: '#f8f9fa',
+            color: '#212529'
+          }}>
+            <div className="card-body d-flex align-items-center">
+              <div className="flex-shrink-0">
+                <div className="p-3 rounded-circle" style={{
+                  backgroundColor: '#e9ecef',
+                  fontSize: '2rem'
+                }}>
+                  <FaUsers />
+                </div>
+              </div>
+              <div className="ms-3">
+                <div className="small text-muted">Bản nháp</div>
+                <div className="h3 mb-0 fw-bold">{draftCount}</div>
+                <div className="small text-muted">draft</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Pending Blogs Card */}
+        <div className="col-xl-3 col-md-6">
+          <div className="card border-0 shadow-sm h-100" style={{
+            background: '#f8f9fa',
+            color: '#212529'
+          }}>
+            <div className="card-body d-flex align-items-center">
+              <div className="flex-shrink-0">
+                <div className="p-3 rounded-circle" style={{
+                  backgroundColor: '#e9ecef',
+                  fontSize: '2rem'
+                }}>
+                  <FaUsers />
+                </div>
+              </div>
+              <div className="ms-3">
+                <div className="small text-muted">Chờ duyệt</div>
+                <div className="h3 mb-0 fw-bold">{pendingCount}</div>
+                <div className="small text-muted">pending</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="card border-0 shadow-sm mb-4">
+        <div className="card-body">
+          <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div className="d-flex align-items-center flex-wrap gap-3">
+              <button className="btn btn-primary shadow-sm" onClick={handleOpenPopup}>
+                <FaPlus className="me-2" /> Tạo blog mới
+              </button>
+
+              <div className="btn-group" role="group">
+                <button
+                  className={`btn btn-sm ${viewMode === 'all' ? 'btn-primary' : 'btn-outline-primary'}`}
+                  onClick={() => setViewMode('all')}
+                >
+                  Tất cả
+                </button>
+                <button
+                  className={`btn btn-sm ${viewMode === 'pending' ? 'btn-warning' : 'btn-outline-warning'}`}
+                  onClick={() => setViewMode('pending')}
+                >
+                  Chờ duyệt
+                </button>
+                <button
+                  className={`btn btn-sm ${viewMode === 'my' ? 'btn-info' : 'btn-outline-info'}`}
+                  onClick={() => setViewMode('my')}
+                >
+                  Blog của tôi
+                </button>
+              </div>
+            </div>
+
+            <div className="d-flex gap-2 flex-wrap">
+              <select
+                className="form-select shadow-sm"
+                style={{ minWidth: '150px' }}
+                value={filterStatus}
+                onChange={e => setFilterStatus(e.target.value)}
+              >
+                <option value="all">Tất cả trạng thái</option>
+                <option value="published">Đã xuất bản</option>
+                <option value="draft">Bản nháp</option>
+                <option value="rejected">Bị từ chối</option>
+              </select>
+              <div className="input-group" style={{ minWidth: '250px' }}>
+                <input
+                  type="text"
+                  className="form-control shadow-sm"
+                  placeholder="Tìm kiếm blog..."
+                  value={searchTerm}
+                  onChange={handleSearch}
+                />
+                <button className="btn btn-outline-secondary shadow-sm" onClick={handleSearchClick}>
+                  <FaSearch />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -636,78 +741,117 @@ const BlogListPage = () => {
       />
 
       {showPopup && (
-        <div className="popup">
-          <div className="popup-content">
-            <span className="close" onClick={handleClosePopup}><MdCancel /></span>
-            <div className="form">
-              <h2>Tạo blog mới</h2>
-              <form className="form-grid" onSubmit={handleSubmit}>
-                <div style={{ gridColumn: 'span 2' }} className="title-input-container">
-                  <label className="form-label">Tiêu đề blog *</label>
-                  <input
-                    type="text"
-                    name="title"
-                    placeholder="Nhập tiêu đề cho blog của bạn..."
-                    value={newBlog.title}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                <div style={{ gridColumn: 'span 2' }} className="quill-editor-container">
-                  <div className="d-flex justify-content-between align-items-center">
-                    <label className="form-label text-start mb-0">Nội dung blog *</label>
-                    <small className="text-muted">
-                      {(() => {
-                        const tempDiv = document.createElement('div');
-                        tempDiv.innerHTML = newBlog.body;
-                        const textContent = tempDiv.textContent || tempDiv.innerText || '';
-                        const wordCount = textContent.trim().split(/\s+/).filter(word => word.length > 0).length;
-                        return `${textContent.length} ký tự, ${wordCount} từ`;
-                      })()}
-                    </small>
+        <div className="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }} tabIndex="-1">
+          <div className="modal-dialog modal-xl modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h4 className="modal-title fw-bold">Tạo blog mới</h4>
+                <button type="button" className="btn-close" onClick={handleClosePopup} aria-label="Close"></button>
+              </div>
+              <div className="modal-body">
+                <form onSubmit={handleSubmit}>
+                  <div className="row g-3">
+                    {/* Title Input */}
+                    <div className="col-12">
+                      <label className="form-label fw-semibold">
+                        Tiêu đề blog <span className="text-danger">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="title"
+                        className="form-control"
+                        placeholder="Nhập tiêu đề cho blog của bạn..."
+                        value={newBlog.title}
+                        onChange={handleChange}
+                        required
+                        style={{ fontSize: '1rem', padding: '0.75rem' }}
+                      />
+                    </div>
+
+                    {/* Content Editor */}
+                    <div className="col-12">
+                      <div className="d-flex justify-content-between align-items-center mb-2">
+                        <label className="form-label fw-semibold mb-0">
+                          Nội dung blog <span className="text-danger">*</span>
+                        </label>
+                        <small className="text-muted">
+                          {(() => {
+                            const tempDiv = document.createElement('div');
+                            tempDiv.innerHTML = newBlog.body;
+                            const textContent = tempDiv.textContent || tempDiv.innerText || '';
+                            const wordCount = textContent.trim().split(/\s+/).filter(word => word.length > 0).length;
+                            return `${textContent.length} ký tự, ${wordCount} từ`;
+                          })()}
+                        </small>
+                      </div>
+                      <div style={{ 
+                        border: '1px solid #dee2e6', 
+                        borderRadius: '0.375rem',
+                        backgroundColor: '#fff'
+                      }}>
+                        <ReactQuill
+                          theme="snow"
+                          value={newBlog.body}
+                          onChange={handleQuillChange}
+                          modules={quillModules}
+                          formats={quillFormats}
+                          placeholder="Viết nội dung blog của bạn..."
+                          style={{
+                            minHeight: '300px',
+                            backgroundColor: '#fff'
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Image Link and Status Row */}
+                    <div className="col-md-8">
+                      <label className="form-label fw-semibold">Link hình ảnh (không bắt buộc)</label>
+                      <input
+                        type="url"
+                        name="img_link"
+                        className="form-control"
+                        placeholder="https://example.com/image.jpg"
+                        value={newBlog.img_link}
+                        onChange={handleChange}
+                        style={{ fontSize: '1rem', padding: '0.75rem' }}
+                      />
+                    </div>
+
+                    <div className="col-md-4">
+                      <label className="form-label fw-semibold">
+                        Trạng thái <span className="text-danger">*</span>
+                      </label>
+                      <select
+                        name="status"
+                        className="form-select"
+                        value={newBlog.status}
+                        onChange={handleChange}
+                        required
+                        style={{ fontSize: '1rem', padding: '0.75rem' }}
+                      >
+                        <option value="draft">Bản nháp</option>
+                        <option value="pending">Chờ duyệt</option>
+                        <option value="published">Đã xuất bản</option>
+                        <option value="rejected">Bị từ chối</option>
+                      </select>
+                    </div>
                   </div>
-                  <ReactQuill
-                    theme="snow"
-                    value={newBlog.body}
-                    onChange={handleQuillChange}
-                    modules={quillModules}
-                    formats={quillFormats}
-                    placeholder="Viết nội dung blog của bạn..."
-                    style={{
-                      backgroundColor: '#fff',
-                      borderRadius: '5px',
-                      minHeight: '200px'
-                    }}
-                  />
-                </div>
-                <div style={{ gridColumn: 'span 2' }} className="image-input-container">
-                  <label className="form-label">Link hình ảnh (không bắt buộc)</label>
-                  <input
-                    type="url"
-                    name="img_link"
-                    placeholder="https://example.com/image.jpg"
-                    value={newBlog.img_link}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div style={{ gridColumn: 'span 1' }} className="select-container">
-                  <label className="form-label">Trạng thái *</label>
-                  <select
-                    name="status"
-                    value={newBlog.status}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="draft">Bản nháp</option>
-                    <option value="pending">Chờ duyệt</option>
-                    <option value="published">Đã xuất bản</option>
-                    <option value="rejected">Bị từ chối</option>
-                  </select>
-                </div>
-                <button type="submit" className="form-button">
-                  Tạo
+                </form>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={handleClosePopup}>
+                  Hủy
                 </button>
-              </form>
+                <button 
+                  type="submit" 
+                  className="btn btn-primary"
+                  onClick={handleSubmit}
+                  style={{ minWidth: '100px' }}
+                >
+                  Tạo blog
+                </button>
+              </div>
             </div>
           </div>
         </div>

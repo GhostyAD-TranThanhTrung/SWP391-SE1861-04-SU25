@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { FaSearch, FaPlus, FaEdit } from "react-icons/fa";
+import { FaSearch, FaPlus, FaEdit, FaEye, FaEyeSlash, FaUsers, FaUserShield, FaUserTie, FaCrown } from "react-icons/fa";
 import { FaTrash } from "react-icons/fa6";
 import { MdCancel } from "react-icons/md";
 import "../../styles/StaffListPage.scss";
@@ -28,6 +28,9 @@ const StaffListPage = () => {
   const token = sessionStorage.getItem("token");
   const isAdminEditing = editingStaffId && editStaffData?.role === 'admin';
   const [filterStatus, setFilterStatus] = useState('all');
+  const [filterRole, setFilterRole] = useState('all');
+  const [showInactive, setShowInactive] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const maxPageNumbersToShow = 5;
@@ -72,6 +75,7 @@ const StaffListPage = () => {
   const handleClosePopup = () => {
     setShowPopup(false);
     setNewPassword("");
+    setShowPassword(false);
     setEditingStaffId(null);
     setEditStaffData(null);
     setNewStaff({
@@ -147,11 +151,28 @@ const StaffListPage = () => {
         education: staff.profile?.bio_json?.education || "",
         date_of_birth: staff.profile?.date_of_birth?.slice(0, 10) || "",
         job: staff.profile?.job || "",
+        password: staff.password || "", // Include actual password from API
       };
       setEditStaffData(flatData);
       setEditingStaffId(staffId);
       setNewPassword("");
+      setShowPassword(false);
       setShowPopup(true);
+    }
+  };
+
+  // Function to get password display value
+  const getPasswordDisplayValue = () => {
+    if (editingStaffId) {
+      // When editing existing staff
+      if (showPassword) {
+        return newPassword || ""; // Show new password being typed
+      } else {
+        return "*********"; // Hide password by default when editing
+      }
+    } else {
+      // When creating new staff
+      return newPassword;
     }
   };
 
@@ -168,9 +189,12 @@ const StaffListPage = () => {
       delete payload.bio;
       delete payload.education;
 
-
-      if (newPassword.trim() !== "") {
+      // Only include password if a new password was entered
+      if (newPassword && newPassword.trim() !== "") {
         payload.password = newPassword;
+      } else {
+        // Remove password from payload if it's empty or hidden
+        delete payload.password;
       }
 
       console.log("Payload gửi:", payload);
@@ -182,11 +206,17 @@ const StaffListPage = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (res.data.success) {
+        alert("Cập nhật nhân viên thành công!");
         fetchStaffs();
         handleClosePopup();
       }
     } catch (err) {
       console.error("Lỗi khi cập nhật nhân viên:", err);
+      if (err.response?.data?.message) {
+        alert(`Lỗi: ${err.response.data.message}`);
+      } else {
+        alert("Có lỗi xảy ra khi cập nhật nhân viên. Vui lòng thử lại.");
+      }
     }
   };
 
@@ -208,10 +238,33 @@ const StaffListPage = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (res.data.success) {
+        const { data } = res.data;
+        
+        if (data.action === "status_changed_to_inactive") {
+          // Staff has references, status changed to inactive
+          alert(`Nhân viên có ${data.references.total_count} tham chiếu (${data.references.programs_count} chương trình, ${data.references.flags_count} cờ).\nTrạng thái đã được chuyển thành "Không hoạt động" thay vì xóa.`);
+        } else if (data.action === "completely_deleted") {
+          // Staff was completely deleted
+          let deletedEntities = [];
+          if (data.deleted_entities.profile) deletedEntities.push("hồ sơ cá nhân");
+          if (data.deleted_entities.user) deletedEntities.push("tài khoản người dùng");
+          
+          alert(`Xóa nhân viên thành công!\nĐã xóa: ${deletedEntities.join(", ")}`);
+        } else {
+          // Fallback message
+          alert("Thao tác thành công!");
+        }
+        
+        // Refresh the staff list to reflect changes
         fetchStaffs();
       }
     } catch (err) {
       console.error("Lỗi khi xóa nhân viên:", err);
+      if (err.response?.data?.message) {
+        alert(`Lỗi: ${err.response.data.message}`);
+      } else {
+        alert("Có lỗi xảy ra khi thực hiện thao tác. Vui lòng thử lại.");
+      }
     }
     handleCloseDeleteDialog();
   };
@@ -242,10 +295,23 @@ const StaffListPage = () => {
     setFilterStatus(e.target.value);
   };
 
-  // Filter staffs theo status
-  const filteredStaffs = staffs.filter(s =>
-    filterStatus === 'all' || s.status === filterStatus
-  );
+  const handleRoleChange = (e) => {
+    setFilterRole(e.target.value);
+  };
+
+  // Filter staffs by status, role, and inactive visibility
+  const filteredStaffs = staffs.filter(s => {
+    // Hide inactive users by default unless showInactive is true
+    if (!showInactive && s.status === 'inactive') {
+      return false;
+    }
+    // Apply status filter
+    const statusMatch = filterStatus === 'all' || s.status === filterStatus;
+    // Apply role filter
+    const roleMatch = filterRole === 'all' || s.role === filterRole;
+    
+    return statusMatch && roleMatch;
+  });
 
   // Pagination logic
   const totalItems = filteredStaffs.length;
@@ -263,61 +329,161 @@ const StaffListPage = () => {
   useEffect(() => {
     // Reset to page 1 if filter/search changes and current page is out of range
     if (currentPage > totalPages) setCurrentPage(1);
-  }, [filterStatus, searchTerm, staffs]);
+  }, [filterStatus, filterRole, searchTerm, showInactive, staffs]);
 
   return (
     <div className="staff-container">
       
-      <div className="stat-cards">
-        <div className="card">
-          <div>Tổng số nhân viên trong danh sách</div>
-          <h4>{totalItems}</h4>
-          <small>nhân viên</small>
+      <div className="row g-4 mb-4">
+        {/* Total Staff Card */}
+        <div className="col-xl-3 col-md-6">
+          <div className="card border-0 shadow-sm h-100" style={{
+            background: '#f8f9fa',
+            color: '#212529'
+          }}>
+            <div className="card-body d-flex align-items-center">
+              <div className="flex-shrink-0">
+                <div className="p-3 rounded-circle" style={{
+                  backgroundColor: '#e9ecef',
+                  fontSize: '2rem'
+                }}>
+                  <FaUsers />
+                </div>
+              </div>
+              <div className="ms-3">
+                <div className="small text-muted">Tổng số nhân viên</div>
+                <div className="h3 mb-0 fw-bold">{totalItems}</div>
+                <div className="small text-muted">trong danh sách</div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="card">
-          <div>Số admin</div>
-          <h4>{adminCount}</h4>
-          <small>người</small>
+        {/* Admin Card */}
+        <div className="col-xl-3 col-md-6">
+          <div className="card border-0 shadow-sm h-100" style={{
+            background: '#f8f9fa',
+            color: '#212529'
+          }}>
+            <div className="card-body d-flex align-items-center">
+              <div className="flex-shrink-0">
+                <div className="p-3 rounded-circle" style={{
+                  backgroundColor: '#e9ecef',
+                  fontSize: '2rem'
+                }}>
+                  <FaCrown />
+                </div>
+              </div>
+              <div className="ms-3">
+                <div className="small text-muted">Quản trị viên</div>
+                <div className="h3 mb-0 fw-bold">{adminCount}</div>
+                <div className="small text-muted">admin</div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="card">
-          <div>Số staff</div>
-          <h4>{staffCount}</h4>
-          <small>người</small>
+
+        {/* Staff Card */}
+        <div className="col-xl-3 col-md-6">
+          <div className="card border-0 shadow-sm h-100" style={{
+            background: '#f8f9fa',
+            color: '#212529'
+          }}>
+            <div className="card-body d-flex align-items-center">
+              <div className="flex-shrink-0">
+                <div className="p-3 rounded-circle" style={{
+                  backgroundColor: '#e9ecef',
+                  fontSize: '2rem'
+                }}>
+                  <FaUserShield />
+                </div>
+              </div>
+              <div className="ms-3">
+                <div className="small text-muted">Nhân viên</div>
+                <div className="h3 mb-0 fw-bold">{staffCount}</div>
+                <div className="small text-muted">staff</div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="card">
-          <div>Số manager</div>
-          <h4>{managerCount}</h4>
-          <small>người</small>
+
+        {/* Manager Card */}
+        <div className="col-xl-3 col-md-6">
+          <div className="card border-0 shadow-sm h-100" style={{
+            background: '#f8f9fa',
+            color: '#212529'
+          }}>
+            <div className="card-body d-flex align-items-center">
+              <div className="flex-shrink-0">
+                <div className="p-3 rounded-circle" style={{
+                  backgroundColor: '#e9ecef',
+                  fontSize: '2rem'
+                }}>
+                  <FaUserTie />
+                </div>
+              </div>
+              <div className="ms-3">
+                <div className="small text-muted">Quản lý</div>
+                <div className="h3 mb-0 fw-bold">{managerCount}</div>
+                <div className="small text-muted">manager</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <button className="btn btn-primary" onClick={handleOpenPopup}>
-          <FaPlus className="me-1" /> Tạo nhân viên mới
-        </button>
-        <div className="input-group" style={{ maxWidth: '450px' }}>
-          <select
-            className="form-select me-2"
-            style={{ maxWidth: '200px' }}
-            value={filterStatus}
-            onChange={handleStatusChange}
-          >
-            <option value="all">Tất cả trạng thái</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="banned">Banned</option>
-          </select>
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Tìm kiếm nhân viên..."
-            value={searchTerm}
-            onChange={handleSearch}
-          />
-          <button className="btn btn-outline-secondary" onClick={handleSearchClick}>
-            <FaSearch />
-          </button>
+      <div className="card border-0 shadow-sm mb-4">
+        <div className="card-body">
+          <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div className="d-flex gap-2 flex-wrap">
+              <button className="btn btn-primary shadow-sm" onClick={handleOpenPopup}>
+                <FaPlus className="me-1" /> Tạo nhân viên mới
+              </button>
+              <button 
+                onClick={() => setShowInactive(!showInactive)} 
+                className={`btn shadow-sm ${showInactive ? 'btn-warning' : 'btn-outline-warning'}`}
+                title={showInactive ? "Ẩn người dùng không hoạt động" : "Hiển thị người dùng không hoạt động"}
+              >
+                {showInactive ? "Ẩn không hoạt động" : "Hiện không hoạt động"}
+              </button>
+            </div>
+            <div className="d-flex gap-2 flex-wrap">
+              <select
+                className="form-select shadow-sm"
+                style={{ minWidth: '150px' }}
+                value={filterStatus}
+                onChange={handleStatusChange}
+              >
+                <option value="all">Tất cả trạng thái</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="banned">Banned</option>
+              </select>
+              <select
+                className="form-select shadow-sm"
+                style={{ minWidth: '140px' }}
+                value={filterRole}
+                onChange={handleRoleChange}
+              >
+                <option value="all">Tất cả vai trò</option>
+                <option value="admin">Admin</option>
+                <option value="staff">Staff</option>
+                <option value="manager">Manager</option>
+              </select>
+              <div className="input-group" style={{ minWidth: '250px' }}>
+                <input
+                  type="text"
+                  className="form-control shadow-sm"
+                  placeholder="Tìm kiếm nhân viên..."
+                  value={searchTerm}
+                  onChange={handleSearch}
+                />
+                <button className="btn btn-outline-secondary shadow-sm" onClick={handleSearchClick}>
+                  <FaSearch />
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -376,6 +542,12 @@ const StaffListPage = () => {
             <div className="form">
               <h2>{editingStaffId ? "Chỉnh sửa nhân viên" : "Tạo nhân viên mới"}</h2>
               <form className="form-grid" onSubmit={editingStaffId ? handleUpdateSubmit : handleSubmit}>
+                
+                {/* User Information Section */}
+                <div className="form-section-header form-grid-col-span-2">
+                  <h3>Thông tin tài khoản</h3>
+                </div>
+
                 <div className="form-group">
                   <label className="form-label">Email *</label>
                   <input
@@ -386,20 +558,49 @@ const StaffListPage = () => {
                     required
                     disabled={isAdminEditing}
                     className="form-input"
+                    style={{ color: '#000', backgroundColor: '#fff' }}
                   />
                 </div>
+
                 <div className="form-group">
                   <label className="form-label">Mật khẩu {!editingStaffId && '*'}</label>
-                  <input
-                    type="password"
-                    name="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    required={!editingStaffId}
-                    disabled={isAdminEditing}
-                    className="form-input"
-                  />
+                  <div className="d-flex align-items-center">
+                    <input
+                      type={editingStaffId && showPassword ? "text" : "password"}
+                      name="password"
+                      value={getPasswordDisplayValue()}
+                      onChange={(e) => {
+                        if (editingStaffId) {
+                          // When editing staff, always update newPassword for changes
+                          setNewPassword(e.target.value);
+                        } else {
+                          // When creating new staff
+                          setNewPassword(e.target.value);
+                        }
+                      }}
+                      required={!editingStaffId}
+                      disabled={isAdminEditing}
+                      className="form-input"
+                      style={{ color: '#000', backgroundColor: '#fff' }}
+                    />
+                    {editingStaffId && isAdmin && (
+                      <button
+                        type="button"
+                        className="btn btn-outline-secondary ms-2"
+                        onClick={() => setShowPassword(!showPassword)}
+                        title={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                      >
+                        {showPassword ? <FaEyeSlash /> : <FaEye />}
+                      </button>
+                    )}
+                  </div>
+                  {editingStaffId && (
+                    <small className="text-muted mt-1">
+                      {showPassword ? "Để trống nếu không muốn thay đổi mật khẩu" : "Nhấn nút mắt để xem/chỉnh sửa mật khẩu"}
+                    </small>
+                  )}
                 </div>
+
                 <div className="form-group">
                   <label className="form-label">Vai trò *</label>
                   <select
@@ -409,6 +610,7 @@ const StaffListPage = () => {
                     required
                     disabled={isAdminEditing}
                     className="form-select"
+                    style={{ color: '#000', backgroundColor: '#fff' }}
                   >
                     <option value="">Chọn vai trò</option>
                     {editingStaffId && editStaffData?.role === 'admin' && <option value="admin">Admin</option>}
@@ -417,6 +619,7 @@ const StaffListPage = () => {
                     <option value="manager">Manager</option>
                   </select>
                 </div>
+
                 {editingStaffId && (
                   <div className="form-group">
                     <label className="form-label">Trạng thái *</label>
@@ -427,6 +630,7 @@ const StaffListPage = () => {
                       required
                       disabled={isAdminEditing}
                       className="form-select"
+                      style={{ color: '#000', backgroundColor: '#fff' }}
                     >
                       <option value="">Chọn trạng thái</option>
                       <option value="active">Active</option>
@@ -435,6 +639,12 @@ const StaffListPage = () => {
                     </select>
                   </div>
                 )}
+
+                {/* Profile Information Section */}
+                <div className="form-section-header form-grid-col-span-2">
+                  <h3>Thông tin cá nhân</h3>
+                </div>
+
                 <div className="form-group">
                   <label className="form-label">Tên *</label>
                   <input
@@ -445,36 +655,10 @@ const StaffListPage = () => {
                     required
                     disabled={isAdminEditing}
                     className="form-input"
+                    style={{ color: '#000', backgroundColor: '#fff' }}
                   />
                 </div>
-                <div className="form-group">
-                  <label className="form-label">Tiểu sử</label>
-                  <input
-                    type="text"
-                    name="bio"
-                    value={editingStaffId ? editStaffData?.bio || "" : newStaff.bio}
-                    onChange={editingStaffId ? handleEditChange : handleChange}
-                    disabled={isAdminEditing}
-                    className="form-input"
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Học vấn</label>
-                  <select
-                    name="education"
-                    value={editingStaffId ? editStaffData?.education || "" : newStaff.education}
-                    onChange={editingStaffId ? handleEditChange : handleChange}
-                    disabled={isAdminEditing}
-                    className="form-select"
-                  >
-                    <option value="">Chọn trình độ học vấn</option>
-                    <option value="Cao đẳng">Cao đẳng</option>
-                    <option value="Đại học">Đại học</option>
-                    <option value="Thạc sĩ">Thạc sĩ</option>
-                    <option value="Tiến sĩ">Tiến sĩ</option>
-                    <option value="Khác">Khác</option>
-                  </select>
-                </div>
+
                 <div className="form-group">
                   <label className="form-label">Ngày sinh</label>
                   <input
@@ -484,8 +668,10 @@ const StaffListPage = () => {
                     onChange={editingStaffId ? handleEditChange : handleChange}
                     disabled={isAdminEditing}
                     className="form-input"
+                    style={{ color: '#000', backgroundColor: '#fff' }}
                   />
                 </div>
+
                 <div className="form-group">
                   <label className="form-label">Công việc</label>
                   <input
@@ -495,8 +681,43 @@ const StaffListPage = () => {
                     onChange={editingStaffId ? handleEditChange : handleChange}
                     disabled={isAdminEditing}
                     className="form-input"
+                    style={{ color: '#000', backgroundColor: '#fff' }}
                   />
                 </div>
+
+                <div className="form-group">
+                  <label className="form-label">Học vấn</label>
+                  <select
+                    name="education"
+                    value={editingStaffId ? editStaffData?.education || "" : newStaff.education}
+                    onChange={editingStaffId ? handleEditChange : handleChange}
+                    disabled={isAdminEditing}
+                    className="form-select"
+                    style={{ color: '#000', backgroundColor: '#fff' }}
+                  >
+                    <option value="">Chọn trình độ học vấn</option>
+                    <option value="Cao đẳng">Cao đẳng</option>
+                    <option value="Đại học">Đại học</option>
+                    <option value="Thạc sĩ">Thạc sĩ</option>
+                    <option value="Tiến sĩ">Tiến sĩ</option>
+                    <option value="Khác">Khác</option>
+                  </select>
+                </div>
+
+                <div className="form-group form-grid-col-span-2">
+                  <label className="form-label">Tiểu sử</label>
+                  <textarea
+                    name="bio"
+                    value={editingStaffId ? editStaffData?.bio || "" : newStaff.bio}
+                    onChange={editingStaffId ? handleEditChange : handleChange}
+                    disabled={isAdminEditing}
+                    className="form-textarea"
+                    rows="4"
+                    placeholder="Nhập tiểu sử chi tiết của nhân viên..."
+                    style={{ color: '#000', backgroundColor: '#fff', resize: 'vertical' }}
+                  />
+                </div>
+
                 <button type="submit" className="form-button form-grid-col-span-2" disabled={isAdminEditing}>
                   {editingStaffId ? "Cập nhật" : "Tạo"}
                 </button>
@@ -517,10 +738,13 @@ const StaffListPage = () => {
                 <span><MdCancel size={20} /></span>
               </button>
               <div className="modal-header border-0 pb-0">
-                <h5 className="modal-title">Xác nhận xóa</h5>
+                <h5 className="modal-title">Xác nhận thao tác</h5>
               </div>
               <div className="modal-body">
-                <p>Bạn có chắc chắn muốn xóa nhân viên này không?</p>
+                <p>Bạn có chắc chắn muốn thực hiện thao tác này không?</p>
+                <small className="text-muted">
+                  Lưu ý: Nếu nhân viên có chương trình hoặc cờ liên quan, trạng thái sẽ được chuyển thành "Không hoạt động" thay vì xóa hoàn toàn.
+                </small>
               </div>
               <div className="modal-footer border-0 pt-0">
                 <button type="button" className="btn btn-secondary" onClick={handleCloseDeleteDialog}>Không</button>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { FaSearch, FaPlus, FaEdit, FaTrash, FaEye, FaChartBar, FaFile, FaQuestion, FaImage, FaCode, FaEyeSlash } from "react-icons/fa";
+import { FaSearch, FaPlus, FaEdit, FaTrash, FaEye, FaChartBar, FaFile, FaQuestion, FaImage, FaCode, FaEyeSlash, FaUsers } from "react-icons/fa";
 import { MdCancel, MdSave, MdPreview } from "react-icons/md";
 import { Bar } from 'react-chartjs-2';
 import {
@@ -104,6 +104,8 @@ const CourseListPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const maxPageNumbersToShow = 5;
+  
+  // Statistics state - no longer needed as we'll calculate from filtered data
 
   useEffect(() => {
     fetchPrograms();
@@ -720,6 +722,12 @@ const CourseListPage = () => {
     currentPage * itemsPerPage
   );
 
+  // Calculate statistics from all programs data
+  const allPrograms = getAllPrograms();
+  const activeCount = allPrograms.filter(p => p.status === 'active').length;
+  const inactiveCount = allPrograms.filter(p => p.status === 'inactive').length;
+  const draftCount = allPrograms.filter(p => p.status === 'draft').length;
+
   useEffect(() => {
     if (currentPage > totalPages) {
       setCurrentPage(1);
@@ -728,51 +736,148 @@ const CourseListPage = () => {
   }, [statusFilter, searchTerm, totalPages]);
 
   return (
-    <div className="course-list-container">
+    <div className="staff-container">
 
-      <div className="card">
-          <div>Tổng số khóa học trong danh sách</div>
-          <h4>{totalItems}</h4>
-          <small>khóa học</small>
-        </div>
-
-      <div className="top-bar d-flex justify-content-between align-items-center mb-3">
-        <div>
-          <button
-            className="btn btn-primary me-2"
-            onClick={() => setShowCreateModal(true)}
-          >
-            <FaPlus className="me-1" /> Create New Program
-          </button>
-          <button
-            className="btn btn-outline-secondary"
-            onClick={() => setShowCategoryModal(true)}
-          >
-            <FaEdit className="me-1" /> Manage Categories
-          </button>
-        </div>
-        <div className="d-flex align-items-center">
-          <div className="filter-status me-2">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="all">Tất cả trạng thái</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-              <option value="draft">Draft</option>
-            </select>
+      <div className="row g-4 mb-4">
+        {/* Total Courses Card */}
+        <div className="col-xl-3 col-md-6">
+          <div className="card border-0 shadow-sm h-100" style={{
+            background: '#f8f9fa',
+            color: '#212529'
+          }}>
+            <div className="card-body d-flex align-items-center">
+              <div className="flex-shrink-0">
+                <div className="p-3 rounded-circle" style={{
+                  backgroundColor: '#e9ecef',
+                  fontSize: '2rem'
+                }}>
+                  <FaUsers />
+                </div>
+              </div>
+              <div className="ms-3">
+                <div className="small text-muted">Tổng số khóa học</div>
+                <div className="h3 mb-0 fw-bold">{allPrograms.length}</div>
+                <div className="small text-muted">trong danh sách</div>
+              </div>
+            </div>
           </div>
-          <div className="search-box">
-            <input
-              type="text"
-              placeholder="Search programs..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <button>
-              <FaSearch />
-            </button>
+        </div>
+
+        {/* Active Courses Card */}
+        <div className="col-xl-3 col-md-6">
+          <div className="card border-0 shadow-sm h-100" style={{
+            background: '#f8f9fa',
+            color: '#212529'
+          }}>
+            <div className="card-body d-flex align-items-center">
+              <div className="flex-shrink-0">
+                <div className="p-3 rounded-circle" style={{
+                  backgroundColor: '#e9ecef',
+                  fontSize: '2rem'
+                }}>
+                  <FaUsers />
+                </div>
+              </div>
+              <div className="ms-3">
+                <div className="small text-muted">Khóa học hoạt động</div>
+                <div className="h3 mb-0 fw-bold">{activeCount}</div>
+                <div className="small text-muted">active</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Inactive Courses Card */}
+        <div className="col-xl-3 col-md-6">
+          <div className="card border-0 shadow-sm h-100" style={{
+            background: '#f8f9fa',
+            color: '#212529'
+          }}>
+            <div className="card-body d-flex align-items-center">
+              <div className="flex-shrink-0">
+                <div className="p-3 rounded-circle" style={{
+                  backgroundColor: '#e9ecef',
+                  fontSize: '2rem'
+                }}>
+                  <FaUsers />
+                </div>
+              </div>
+              <div className="ms-3">
+                <div className="small text-muted">Không hoạt động</div>
+                <div className="h3 mb-0 fw-bold">{inactiveCount}</div>
+                <div className="small text-muted">inactive</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Draft Courses Card */}
+        <div className="col-xl-3 col-md-6">
+          <div className="card border-0 shadow-sm h-100" style={{
+            background: '#f8f9fa',
+            color: '#212529'
+          }}>
+            <div className="card-body d-flex align-items-center">
+              <div className="flex-shrink-0">
+                <div className="p-3 rounded-circle" style={{
+                  backgroundColor: '#e9ecef',
+                  fontSize: '2rem'
+                }}>
+                  <FaUsers />
+                </div>
+              </div>
+              <div className="ms-3">
+                <div className="small text-muted">Bản nháp</div>
+                <div className="h3 mb-0 fw-bold">{draftCount}</div>
+                <div className="small text-muted">draft</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="card border-0 shadow-sm mb-4">
+        <div className="card-body">
+          <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div className="d-flex gap-2 flex-wrap">
+              <button
+                className="btn btn-primary shadow-sm"
+                onClick={() => setShowCreateModal(true)}
+              >
+                <FaPlus className="me-1" /> Create New Program
+              </button>
+              <button
+                className="btn btn-outline-secondary shadow-sm"
+                onClick={() => setShowCategoryModal(true)}
+              >
+                <FaEdit className="me-1" /> Manage Categories
+              </button>
+            </div>
+            <div className="d-flex gap-2 flex-wrap">
+              <select
+                className="form-select shadow-sm"
+                style={{ minWidth: '150px' }}
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="all">Tất cả trạng thái</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="draft">Draft</option>
+              </select>
+              <div className="input-group" style={{ minWidth: '250px' }}>
+                <input
+                  type="text"
+                  className="form-control shadow-sm"
+                  placeholder="Search programs..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <button className="btn btn-outline-secondary shadow-sm">
+                  <FaSearch />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

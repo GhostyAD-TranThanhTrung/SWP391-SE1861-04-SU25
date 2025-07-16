@@ -43,7 +43,7 @@ const BookingPage = () => {
                 throw new Error(data.message || 'Không thể lấy danh sách tư vấn viên');
             }
 
-            return data.data.consultants;
+            return data.data.consultants.filter(consultant => consultant.status !== 'inactive');
         } catch (error) {
             throw error;
         }
@@ -289,43 +289,36 @@ const BookingPage = () => {
             </section>
 
             <div className="container" style={{ paddingTop: '5rem', paddingBottom: '5rem' }}>
-                {/* Phần lịch hẹn đã lên lịch */}
-                <section className="scheduled-bookings mb-5">
-                    <div className="section-header text-center mb-4">
-                        <h2 className="section-title">
-                            {showAllBookings ? 'Tất cả lịch tư vấn' : 'Lịch tư vấn đang hoạt động'}
-                        </h2>
-                        <p className="section-subtitle">
-                            {showAllBookings 
-                                ? 'Bao gồm tất cả các cuộc hẹn: đang chờ, đã xác nhận, hoàn thành và đã hủy'
-                                : 'Các cuộc hẹn đang chờ xác nhận và đã được xác nhận'
-                            }
-                        </p>
-                        <div className="booking-toggle-container mt-3">
-                            <button
-                                className={`btn ${showAllBookings ? 'btn-outline-primary' : 'btn-primary'} me-2`}
-                                onClick={() => setShowAllBookings(false)}
-                            >
-                                <i className="bi bi-clock me-1"></i>
-                                Đang hoạt động ({scheduledBookings.length})
-                            </button>
-                            <button
-                                className={`btn ${showAllBookings ? 'btn-primary' : 'btn-outline-primary'}`}
-                                onClick={() => setShowAllBookings(true)}
-                            >
-                                <i className="bi bi-list-ul me-1"></i>
-                                Tất cả ({allBookings.length})
-                            </button>
-                        </div>
-                    </div>
-                    {loadingBookings ? (
-                        <div className="text-center py-4">
-                            <div className="spinner-border text-primary" role="status">
-                                <span className="visually-hidden">Đang tải...</span>
+                {/* Phần lịch hẹn đã lên lịch - chỉ hiển thị khi có booking */}
+                {!loadingBookings && ((showAllBookings ? allBookings : scheduledBookings) && (showAllBookings ? allBookings : scheduledBookings).length > 0) && (
+                    <section className="scheduled-bookings mb-5">
+                        <div className="section-header text-center mb-4">
+                            <h2 className="section-title">
+                                {showAllBookings ? 'Tất cả lịch tư vấn' : 'Lịch tư vấn đang hoạt động'}
+                            </h2>
+                            <p className="section-subtitle">
+                                {showAllBookings 
+                                    ? 'Bao gồm tất cả các cuộc hẹn: đang chờ, đã xác nhận, hoàn thành và đã hủy'
+                                    : 'Các cuộc hẹn đang chờ xác nhận và đã được xác nhận'
+                                }
+                            </p>
+                            <div className="booking-toggle-container mt-3">
+                                <button
+                                    className={`btn ${showAllBookings ? 'btn-outline-primary' : 'btn-primary'} me-2`}
+                                    onClick={() => setShowAllBookings(false)}
+                                >
+                                    <i className="bi bi-clock me-1"></i>
+                                    Đang hoạt động ({scheduledBookings.length})
+                                </button>
+                                <button
+                                    className={`btn ${showAllBookings ? 'btn-primary' : 'btn-outline-primary'}`}
+                                    onClick={() => setShowAllBookings(true)}
+                                >
+                                    <i className="bi bi-list-ul me-1"></i>
+                                    Tất cả ({allBookings.length})
+                                </button>
                             </div>
-                            <p className="mt-2">Đang tải lịch hẹn...</p>
                         </div>
-                    ) : (showAllBookings ? allBookings : scheduledBookings) && (showAllBookings ? allBookings : scheduledBookings).length > 0 ? (
                         <div className="scheduled-bookings-container">
                             {(showAllBookings ? allBookings : scheduledBookings).map((booking) => {
                                 const consultant = consultants.find(c => c.id_consultant === booking.consultant_id);
@@ -428,21 +421,20 @@ const BookingPage = () => {
                                 );
                             })}
                         </div>
-                    ) : (
-                        <div className="no-bookings">
-                            <div className="no-bookings-icon">
-                                <i className="bi bi-calendar-x"></i>
+                    </section>
+                )}
+
+                {/* Loading state cho bookings */}
+                {loadingBookings && (
+                    <section className="scheduled-bookings mb-5">
+                        <div className="text-center py-4">
+                            <div className="spinner-border text-primary" role="status">
+                                <span className="visually-hidden">Đang tải...</span>
                             </div>
-                            <h4>
-                                {showAllBookings 
-                                    ? 'Bạn chưa có lịch hẹn nào' 
-                                    : 'Bạn chưa có lịch hẹn đang hoạt động'
-                                }
-                            </h4>
-                            <p>Hãy đặt lịch với các chuyên gia của chúng tôi để được tư vấn.</p>
+                            <p className="mt-2">Đang tải lịch hẹn...</p>
                         </div>
-                    )}
-                </section>
+                    </section>
+                )}
 
                 {/* Thông báo trạng thái đặt lịch */}
                 {bookingStatus && (

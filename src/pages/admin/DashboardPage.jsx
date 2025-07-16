@@ -3,6 +3,7 @@ import { Chart } from 'chart.js/auto';
 import '../../styles/DashboardPage.scss';
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
+import { FaUsers, FaUserGraduate, FaUserCheck, FaCalendarCheck } from 'react-icons/fa';
 const DashboardPage = () => {
   const userStatsCanvasRef = useRef(null);
   const bookingStatsCanvasRef = useRef(null);
@@ -164,56 +165,106 @@ const DashboardPage = () => {
   }, [dashboardData.bookingStats]);
 
   return (
-    <div className="dashboard-container">
-      <div className="stat-cards">
-        <div className="card">
-          <div>Tổng thành viên đăng ký khóa học</div>
-          <h4>{dashboardData.totalMonthlyCourseEnrollment}</h4>
-          <small>thành viên/tháng</small>
+    <div className="staff-container">
+      <div className="row mb-4">
+        <div className="col-md-3 col-sm-6 mb-3">
+          <div className="card h-100" style={{ background: '#f8f9fa', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
+            <div className="card-body d-flex align-items-center">
+              <div className="icon-wrapper me-3 p-3 rounded-circle" style={{ background: '#e9ecef', minWidth: '60px', height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <FaUserGraduate size={24} color="#212529" />
+              </div>
+              <div>
+                <h3 className="mb-1" style={{ color: '#212529', fontSize: '1.8rem', fontWeight: 'bold' }}>{dashboardData.totalMonthlyCourseEnrollment}</h3>
+                <p className="text-muted mb-0" style={{ fontSize: '0.9rem' }}>Đăng ký khóa học</p>
+                <small className="text-muted">thành viên/tháng</small>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="card">
-          <div>Tổng người dùng</div>
-          <h4>{dashboardData.monthlyCreatedMember}</h4>
-          <small>người dùng/tháng</small>
+        <div className="col-md-3 col-sm-6 mb-3">
+          <div className="card h-100" style={{ background: '#f8f9fa', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
+            <div className="card-body d-flex align-items-center">
+              <div className="icon-wrapper me-3 p-3 rounded-circle" style={{ background: '#e9ecef', minWidth: '60px', height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <FaUsers size={24} color="#212529" />
+              </div>
+              <div>
+                <h3 className="mb-1" style={{ color: '#212529', fontSize: '1.8rem', fontWeight: 'bold' }}>{dashboardData.monthlyCreatedMember}</h3>
+                <p className="text-muted mb-0" style={{ fontSize: '0.9rem' }}>Tổng người dùng</p>
+                <small className="text-muted">người dùng/tháng</small>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="card">
-          <div>Người dùng hoạt động</div>
-          <h4>{dashboardData.memberActiveCount}</h4>
-          <small>hoạt động/tháng</small>
+
+        <div className="col-md-3 col-sm-6 mb-3">
+          <div className="card h-100" style={{ background: '#f8f9fa', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
+            <div className="card-body d-flex align-items-center">
+              <div className="icon-wrapper me-3 p-3 rounded-circle" style={{ background: '#e9ecef', minWidth: '60px', height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <FaUserCheck size={24} color="#212529" />
+              </div>
+              <div>
+                <h3 className="mb-1" style={{ color: '#212529', fontSize: '1.8rem', fontWeight: 'bold' }}>{dashboardData.memberActiveCount}</h3>
+                <p className="text-muted mb-0" style={{ fontSize: '0.9rem' }}>Người dùng hoạt động</p>
+                <small className="text-muted">hoạt động/tháng</small>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="card">
-          <div>Tổng tư vấn</div>
-          <h4>{dashboardData.totalMonthlyBookingSession}</h4>
-          <small>lượt tư vấn/tháng</small>
+
+        <div className="col-md-3 col-sm-6 mb-3">
+          <div className="card h-100" style={{ background: '#f8f9fa', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
+            <div className="card-body d-flex align-items-center">
+              <div className="icon-wrapper me-3 p-3 rounded-circle" style={{ background: '#e9ecef', minWidth: '60px', height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <FaCalendarCheck size={24} color="#212529" />
+              </div>
+              <div>
+                <h3 className="mb-1" style={{ color: '#212529', fontSize: '1.8rem', fontWeight: 'bold' }}>{dashboardData.totalMonthlyBookingSession}</h3>
+                <p className="text-muted mb-0" style={{ fontSize: '0.9rem' }}>Tổng tư vấn</p>
+                <small className="text-muted">lượt tư vấn/tháng</small>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       {dashboardData.dateRange && dashboardData.dateRange.startDate && dashboardData.dateRange.endDate && (
-        <div className="current-month-info">
-          <h3>
-            Thống kê tháng {new Date(dashboardData.dateRange.startDate).getMonth() + 1} năm {new Date(dashboardData.dateRange.startDate).getFullYear()}
-          </h3>
-          <p>
-            (Từ {new Date(dashboardData.dateRange.startDate).toLocaleDateString('vi-VN')} đến {new Date(dashboardData.dateRange.endDate).toLocaleDateString('vi-VN')})
-          </p>
+        <div className="card mb-4" style={{ background: '#fff', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
+          <div className="card-body text-center">
+            <h4 className="mb-2" style={{ color: '#212529', fontWeight: 'bold' }}>
+              Thống kê tháng {new Date(dashboardData.dateRange.startDate).getMonth() + 1} năm {new Date(dashboardData.dateRange.startDate).getFullYear()}
+            </h4>
+            <p className="text-muted mb-0">
+              (Từ {new Date(dashboardData.dateRange.startDate).toLocaleDateString('vi-VN')} đến {new Date(dashboardData.dateRange.endDate).toLocaleDateString('vi-VN')})
+            </p>
+          </div>
         </div>
       )}
-      <div
-        className="charts-grid"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
-          gap: '2rem',
-          marginTop: '2rem'
-        }}
-      >
-        <div className="chart-container">
-          <h2>Thống kê người dùng</h2>
-          <canvas ref={userStatsCanvasRef}></canvas>
+      
+      <div className="row">
+        <div className="col-lg-6 mb-4">
+          <div className="card h-100" style={{ background: '#fff', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
+            <div className="card-header" style={{ background: '#f8f9fa', borderBottom: '1px solid #e9ecef' }}>
+              <h5 className="mb-0" style={{ color: '#212529', fontWeight: 'bold' }}>Thống kê người dùng</h5>
+            </div>
+            <div className="card-body">
+              <div className="chart-container" style={{ height: '400px', position: 'relative' }}>
+                <canvas ref={userStatsCanvasRef}></canvas>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="chart-container">
-          <h2>Thống kê đặt lịch</h2>
-          <canvas ref={bookingStatsCanvasRef}></canvas>
+        
+        <div className="col-lg-6 mb-4">
+          <div className="card h-100" style={{ background: '#fff', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
+            <div className="card-header" style={{ background: '#f8f9fa', borderBottom: '1px solid #e9ecef' }}>
+              <h5 className="mb-0" style={{ color: '#212529', fontWeight: 'bold' }}>Thống kê đặt lịch</h5>
+            </div>
+            <div className="card-body">
+              <div className="chart-container" style={{ height: '400px', position: 'relative' }}>
+                <canvas ref={bookingStatsCanvasRef}></canvas>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

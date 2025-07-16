@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FaSearch, FaPlus, FaEdit, FaClock } from "react-icons/fa";
+import { FaSearch, FaPlus, FaEdit, FaClock, FaEye, FaEyeSlash, FaUsers } from "react-icons/fa";
 import { FaTrash } from "react-icons/fa6";
 import { MdCancel } from "react-icons/md";
 import "../../styles/ConsultantListPage.scss";
@@ -32,6 +32,8 @@ const ConsultantListPage = () => {
   const [consultantIdToDelete, setConsultantIdToDelete] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [showInactive, setShowInactive] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Slot management state
   const [showSlotModal, setShowSlotModal] = useState(false);
@@ -45,6 +47,8 @@ const ConsultantListPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const maxPageNumbersToShow = 5;
+  
+  // Statistics state - no longer needed as we'll calculate from filtered data
 
   const token = sessionStorage.getItem("token");
   const navigate = useNavigate()
@@ -217,6 +221,7 @@ const ConsultantListPage = () => {
   const handleClosePopup = () => {
     setShowPopup(false);
     setNewPassword("");
+    setShowPassword(false);
     setEditingConsultantId(null);
     setEditConsultantData(null);
     setNewConsultant({
@@ -237,7 +242,9 @@ const ConsultantListPage = () => {
 
   const fetchConsultants = async () => {
     try {
-      const res = await axios.get("http://localhost:3000/api/consultants-complete");
+      const res = await axios.get("http://localhost:3000/api/consultants-complete", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       if (res.data.success) {
         setConsultants(res.data.data.consultants);
       }
@@ -245,6 +252,8 @@ const ConsultantListPage = () => {
       console.error("Lỗi khi gọi API:", err);
     }
   };
+
+
 
   const handleChange = (e) => {
     setNewConsultant({ ...newConsultant, [e.target.name]: e.target.value });
@@ -325,11 +334,12 @@ const ConsultantListPage = () => {
       return;
     }
 
-
     try {
       // For now, we'll filter on the frontend since there's no search endpoint for complete consultants
       // You could implement a search endpoint in the backend later
-      const res = await axios.get("http://localhost:3000/api/consultants-complete");
+      const res = await axios.get("http://localhost:3000/api/consultants-complete", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       if (res.data.success) {
         const filteredConsultants = res.data.data.consultants.filter(consultant =>
           consultant.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -356,20 +366,43 @@ const ConsultantListPage = () => {
   const handleConfirmDelete = async () => {
     if (!consultantIdToDelete) return;
     try {
+      console.log(`🗑️ Frontend: Deleting consultant ${consultantIdToDelete}`);
+      
       const res = await axios.delete(
         `http://localhost:3000/api/consultants-complete/${consultantIdToDelete}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      
+      console.log(`📋 Frontend: Delete response:`, res.data);
+      
       if (res.data.success) {
-        alert("Xóa tư vấn viên thành công!");
+        const { data, message } = res.data;
+        
+        if (data.action === "status_changed_to_inactive") {
+          // Consultant has booking sessions, some were cancelled, status changed to inactive
+          alert(message || `Tư vấn viên có ${data.booking_sessions_count} phiên tư vấn đã đặt.\n` +
+                           `${data.cancelled_sessions_count} phiên đã được hủy, ${data.completed_sessions_count} phiên hoàn thành được giữ nguyên.\n` +
+                           `Trạng thái tài khoản đã được chuyển thành "Không hoạt động".`);
+        } else if (data.action === "completely_deleted") {
+          // Consultant was completely deleted
+          alert(message || "Xóa tư vấn viên thành công!\nĐã xóa: lịch làm việc, thông tin tư vấn viên, hồ sơ cá nhân, tài khoản người dùng");
+        } else {
+          // Fallback message
+          alert(message || "Thao tác thành công!");
+        }
+        
+        console.log(`✅ Frontend: Delete operation completed, refreshing list...`);
+        // Refresh the consultant list to reflect changes
         fetchConsultants();
       }
     } catch (err) {
-      console.error("Lỗi khi xóa consultant:", err);
+      console.error("❌ Frontend: Error deleting consultant:", err);
       if (err.response?.data?.message) {
         alert(`Lỗi: ${err.response.data.message}`);
+      } else if (err.response?.data?.error) {
+        alert(`Lỗi hệ thống: ${err.response.data.error}`);
       } else {
-        alert("Có lỗi xảy ra khi xóa tư vấn viên. Vui lòng thử lại.");
+        alert("Có lỗi xảy ra khi thực hiện thao tác. Vui lòng thử lại.");
       }
     }
     handleCloseDeleteDialog();
@@ -406,12 +439,29 @@ const ConsultantListPage = () => {
           bio,
           education,
           date_of_birth: consultant.date_of_birth ? consultant.date_of_birth.slice(0, 10) : "",
+          password: consultant.password || "", // Include actual password from API
         });
         setEditingConsultantId(consultantId);
+        setShowPassword(false);
         setShowPopup(true);
       }
     } catch (err) {
       console.error("Lỗi khi lấy thông tin consultant:", err);
+    }
+  };
+
+  // Function to get password display value
+  const getPasswordDisplayValue = () => {
+    if (editingConsultantId) {
+      // When editing existing consultant
+      if (showPassword) {
+        return editConsultantData?.password || ""; // Show actual password when admin toggles visibility
+      } else {
+        return "*********"; // Hide password by default when editing
+      }
+    } else {
+      // When creating new consultant
+      return newPassword;
     }
   };
 
@@ -463,10 +513,15 @@ const ConsultantListPage = () => {
     }
   };
 
-  // Filter consultants by status
-  const filteredConsultants = consultants.filter(c =>
-    statusFilter === 'all' || c.status === statusFilter
-  );
+  // Filter consultants by status and inactive visibility
+  const filteredConsultants = consultants.filter(c => {
+    // Hide inactive users by default unless showInactive is true
+    if (!showInactive && c.status === 'inactive') {
+      return false;
+    }
+    // Apply status filter
+    return statusFilter === 'all' || c.status === statusFilter;
+  });
 
   // Pagination logic
   const totalItems = filteredConsultants.length;
@@ -476,49 +531,160 @@ const ConsultantListPage = () => {
     currentPage * itemsPerPage
   );
 
+  // Calculate statistics from all consultants data
+  const activeCount = consultants.filter(c => c.status === 'active').length;
+  const inactiveCount = consultants.filter(c => c.status === 'inactive').length;
+  const bannedCount = consultants.filter(c => c.status === 'banned').length;
+
   useEffect(() => {
     if (currentPage > totalPages) {
       setCurrentPage(1);
     }
     // eslint-disable-next-line
-  }, [statusFilter, searchTerm, totalPages]);
+  }, [statusFilter, searchTerm, showInactive, totalPages]);
 
   return (
-    <div className="consultant-list-container">
+    <div className="staff-container">
 
-      <div className="card">
-          <div>Tổng số tư vấn viên trong danh sách</div>
-          <h4>{totalItems}</h4>
-          <small>tư vấn viên</small>
+      <div className="row g-4 mb-4">
+        {/* Total Consultants Card */}
+        <div className="col-xl-3 col-md-6">
+          <div className="card border-0 shadow-sm h-100" style={{
+            background: '#f8f9fa',
+            color: '#212529'
+          }}>
+            <div className="card-body d-flex align-items-center">
+              <div className="flex-shrink-0">
+                <div className="p-3 rounded-circle" style={{
+                  backgroundColor: '#e9ecef',
+                  fontSize: '2rem'
+                }}>
+                  <FaUsers />
+                </div>
+              </div>
+              <div className="ms-3">
+                <div className="small text-muted">Tổng số tư vấn viên</div>
+                <div className="h3 mb-0 fw-bold">{consultants.length}</div>
+                <div className="small text-muted">trong danh sách</div>
+              </div>
+            </div>
+          </div>
         </div>
 
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <button onClick={() => { handleEdit(null) }} className="btn btn-primary" title="Tạo tư vấn viên tạm thời">
-          <FaPlus className="me-1" /> Tạo tư vấn viên mới
-        </button>
-        <div className="input-group" style={{ maxWidth: '450px' }}>
-          <select
-            className="form-select"
-            style={{ maxWidth: '200px', marginRight: '10px' }}
-            value={statusFilter}
-            onChange={handleStatusFilterChange}
-          >
-            <option value="all">Tất cả trạng thái</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="banned">Banned</option>
-          </select>
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Tìm kiếm tư vấn viên..."
-            value={searchTerm}
-            onChange={handleSearch}
-            style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
-          />
-          <button className="btn btn-outline-secondary" onClick={handleSearchClick}>
-            <FaSearch />
-          </button>
+        {/* Active Consultants Card */}
+        <div className="col-xl-3 col-md-6">
+          <div className="card border-0 shadow-sm h-100" style={{
+            background: '#f8f9fa',
+            color: '#212529'
+          }}>
+            <div className="card-body d-flex align-items-center">
+              <div className="flex-shrink-0">
+                <div className="p-3 rounded-circle" style={{
+                  backgroundColor: '#e9ecef',
+                  fontSize: '2rem'
+                }}>
+                  <FaUsers />
+                </div>
+              </div>
+              <div className="ms-3">
+                <div className="small text-muted">Tư vấn viên hoạt động</div>
+                <div className="h3 mb-0 fw-bold">{activeCount}</div>
+                <div className="small text-muted">active</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Inactive Consultants Card */}
+        <div className="col-xl-3 col-md-6">
+          <div className="card border-0 shadow-sm h-100" style={{
+            background: '#f8f9fa',
+            color: '#212529'
+          }}>
+            <div className="card-body d-flex align-items-center">
+              <div className="flex-shrink-0">
+                <div className="p-3 rounded-circle" style={{
+                  backgroundColor: '#e9ecef',
+                  fontSize: '2rem'
+                }}>
+                  <FaUsers />
+                </div>
+              </div>
+              <div className="ms-3">
+                <div className="small text-muted">Không hoạt động</div>
+                <div className="h3 mb-0 fw-bold">{inactiveCount}</div>
+                <div className="small text-muted">inactive</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Banned Consultants Card */}
+        <div className="col-xl-3 col-md-6">
+          <div className="card border-0 shadow-sm h-100" style={{
+            background: '#f8f9fa',
+            color: '#212529'
+          }}>
+            <div className="card-body d-flex align-items-center">
+              <div className="flex-shrink-0">
+                <div className="p-3 rounded-circle" style={{
+                  backgroundColor: '#e9ecef',
+                  fontSize: '2rem'
+                }}>
+                  <FaUsers />
+                </div>
+              </div>
+              <div className="ms-3">
+                <div className="small text-muted">Bị cấm</div>
+                <div className="h3 mb-0 fw-bold">{bannedCount}</div>
+                <div className="small text-muted">banned</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="card border-0 shadow-sm mb-4">
+        <div className="card-body">
+          <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div className="d-flex gap-2 flex-wrap">
+              <button onClick={() => { handleEdit(null) }} className="btn btn-primary shadow-sm" title="Tạo tư vấn viên tạm thời">
+                <FaPlus className="me-1" /> Tạo tư vấn viên mới
+              </button>
+              <button 
+                onClick={() => setShowInactive(!showInactive)} 
+                className={`btn shadow-sm ${showInactive ? 'btn-warning' : 'btn-outline-warning'}`}
+                title={showInactive ? "Ẩn người dùng không hoạt động" : "Hiển thị người dùng không hoạt động"}
+              >
+                {showInactive ? "Ẩn không hoạt động" : "Hiện không hoạt động"}
+              </button>
+            </div>
+            <div className="d-flex gap-2 flex-wrap">
+              <select
+                className="form-select shadow-sm"
+                style={{ minWidth: '150px' }}
+                value={statusFilter}
+                onChange={handleStatusFilterChange}
+              >
+                <option value="all">Tất cả trạng thái</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="banned">Banned</option>
+              </select>
+              <div className="input-group" style={{ minWidth: '250px' }}>
+                <input
+                  type="text"
+                  className="form-control shadow-sm"
+                  placeholder="Tìm kiếm tư vấn viên..."
+                  value={searchTerm}
+                  onChange={handleSearch}
+                />
+                <button className="btn btn-outline-secondary shadow-sm" onClick={handleSearchClick}>
+                  <FaSearch />
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -577,17 +743,12 @@ const ConsultantListPage = () => {
             <div className="form">
               <h2>{editingConsultantId ? "Chỉnh sửa Tư vấn viên" : "Tạo mới Tư vấn viên"}</h2>
               <form className="form-grid" onSubmit={editingConsultantId ? handleUpdate : handleSubmit}>
-                <div className="form-group">
-                  <label className="form-label">Họ và tên *</label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={editingConsultantId ? editConsultantData?.name ?? '' : newConsultant.name}
-                    onChange={editingConsultantId ? handleEditChange : handleChange}
-                    required
-                    className="form-input"
-                  />
+                
+                {/* User Information Section */}
+                <div className="form-section-header form-grid-col-span-2">
+                  <h3>Thông tin tài khoản</h3>
                 </div>
+                
                 <div className="form-group">
                   <label className="form-label">Email *</label>
                   <input
@@ -597,19 +758,49 @@ const ConsultantListPage = () => {
                     onChange={editingConsultantId ? handleEditChange : handleChange}
                     required
                     className="form-input"
+                    style={{ color: '#000', backgroundColor: '#fff' }}
                   />
                 </div>
+                
                 <div className="form-group">
                   <label className="form-label">Mật khẩu {!editingConsultantId && '*'}</label>
-                  <input
-                    type="password"
-                    name="password"
-                    value={editingConsultantId ? '' : newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    required={!editingConsultantId}
-                    className="form-input"
-                  />
+                  <div className="d-flex align-items-center">
+                    <input
+                      type={editingConsultantId && showPassword ? "text" : "password"}
+                      name="password"
+                      value={getPasswordDisplayValue()}
+                      onChange={(e) => {
+                        if (editingConsultantId && showPassword) {
+                          // When editing and password is visible, allow editing
+                          setEditConsultantData({ ...editConsultantData, password: e.target.value });
+                        } else if (!editingConsultantId) {
+                          // When creating new consultant
+                          setNewPassword(e.target.value);
+                        }
+                      }}
+                      required={!editingConsultantId}
+                      disabled={editingConsultantId && !showPassword}
+                      className="form-input"
+                      style={{ color: '#000', backgroundColor: '#fff' }}
+                    />
+                    {editingConsultantId && isAdmin && (
+                      <button
+                        type="button"
+                        className="btn btn-outline-secondary ms-2"
+                        onClick={() => setShowPassword(!showPassword)}
+                        title={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                      >
+                        {showPassword ? <FaEyeSlash /> : <FaEye />}
+                      </button>
+                    )}
+                  </div>
+                  {editingConsultantId && (
+                    <small className="text-muted mt-1">
+                      {showPassword ? "Để trống nếu không muốn thay đổi mật khẩu" : "Nhấn nút mắt để xem/chỉnh sửa mật khẩu"}
+                    </small>
+                  )}
                 </div>
+
                 <div className="form-group">
                   <label className="form-label">Vai trò</label>
                   <input
@@ -619,9 +810,11 @@ const ConsultantListPage = () => {
                     disabled
                     readOnly
                     className="form-input"
+                    style={{ color: '#000', backgroundColor: '#fff' }}
                   />
                   <input type="hidden" name="role" value="consultant" />
                 </div>
+
                 {editingConsultantId && (
                   <div className="form-group">
                     <label className="form-label">Trạng thái *</label>
@@ -631,6 +824,7 @@ const ConsultantListPage = () => {
                       onChange={handleEditChange}
                       required
                       className="form-select"
+                      style={{ color: '#000', backgroundColor: '#fff' }}
                     >
                       <option value="">Chọn trạng thái</option>
                       <option value="active">Hoạt Động</option>
@@ -639,6 +833,86 @@ const ConsultantListPage = () => {
                     </select>
                   </div>
                 )}
+
+                {/* Profile Information Section */}
+                <div className="form-section-header form-grid-col-span-2">
+                  <h3>Thông tin cá nhân</h3>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Họ và tên *</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={editingConsultantId ? editConsultantData?.name ?? '' : newConsultant.name}
+                    onChange={editingConsultantId ? handleEditChange : handleChange}
+                    required
+                    className="form-input"
+                    style={{ color: '#000', backgroundColor: '#fff' }}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Ngày sinh</label>
+                  <input
+                    type="date"
+                    name="date_of_birth"
+                    value={editingConsultantId ? editConsultantData?.date_of_birth ?? '' : newConsultant.date_of_birth}
+                    onChange={editingConsultantId ? handleEditChange : handleChange}
+                    className="form-input"
+                    style={{ color: '#000', backgroundColor: '#fff' }}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Nghề nghiệp</label>
+                  <input
+                    type="text"
+                    name="job"
+                    value={editingConsultantId ? editConsultantData?.job ?? '' : newConsultant.job}
+                    onChange={editingConsultantId ? handleEditChange : handleChange}
+                    className="form-input"
+                    style={{ color: '#000', backgroundColor: '#fff' }}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Học vấn</label>
+                  <select
+                    name="education"
+                    value={editingConsultantId ? editConsultantData?.education ?? '' : newConsultant.education}
+                    onChange={editingConsultantId ? handleEditChange : handleChange}
+                    className="form-select"
+                    style={{ color: '#000', backgroundColor: '#fff' }}
+                  >
+                    <option value="">Chọn trình độ học vấn</option>
+                    <option value="Trung học phổ thông">Trung học phổ thông</option>
+                    <option value="Cao đẳng">Cao đẳng</option>
+                    <option value="Đại học">Đại học</option>
+                    <option value="Thạc sĩ">Thạc sĩ</option>
+                    <option value="Tiến sĩ">Tiến sĩ</option>
+                    <option value="Khác">Khác</option>
+                  </select>
+                </div>
+
+                <div className="form-group form-grid-col-span-2">
+                  <label className="form-label">Tiểu sử</label>
+                  <textarea
+                    name="bio"
+                    value={editingConsultantId ? editConsultantData?.bio ?? '' : newConsultant.bio}
+                    onChange={editingConsultantId ? handleEditChange : handleChange}
+                    className="form-textarea"
+                    rows="4"
+                    placeholder="Nhập tiểu sử chi tiết của tư vấn viên..."
+                    style={{ color: '#000', backgroundColor: '#fff', resize: 'vertical' }}
+                  />
+                </div>
+
+                {/* Consultant Specific Information Section */}
+                <div className="form-section-header form-grid-col-span-2">
+                  <h3>Thông tin tư vấn viên</h3>
+                </div>
+
                 <div className="form-group">
                   <label className="form-label">Chi phí (VND) *</label>
                   <input
@@ -650,8 +924,10 @@ const ConsultantListPage = () => {
                     onChange={editingConsultantId ? handleEditChange : handleChange}
                     required
                     className="form-input"
+                    style={{ color: '#000', backgroundColor: '#fff' }}
                   />
                 </div>
+
                 <div className="form-group">
                   <label className="form-label">Chứng chỉ</label>
                   <input
@@ -660,9 +936,11 @@ const ConsultantListPage = () => {
                     value={editingConsultantId ? editConsultantData?.certification ?? '' : newConsultant.certification}
                     onChange={editingConsultantId ? handleEditChange : handleChange}
                     className="form-input"
+                    style={{ color: '#000', backgroundColor: '#fff' }}
                   />
                 </div>
-                <div className="form-group">
+
+                <div className="form-group form-grid-col-span-2">
                   <label className="form-label">Chuyên môn</label>
                   <input
                     type="text"
@@ -670,55 +948,10 @@ const ConsultantListPage = () => {
                     value={editingConsultantId ? editConsultantData?.speciality ?? '' : newConsultant.speciality}
                     onChange={editingConsultantId ? handleEditChange : handleChange}
                     className="form-input"
+                    style={{ color: '#000', backgroundColor: '#fff' }}
                   />
                 </div>
-                <div className="form-group">
-                  <label className="form-label">Ngày sinh</label>
-                  <input
-                    type="date"
-                    name="date_of_birth"
-                    value={editingConsultantId ? editConsultantData?.date_of_birth ?? '' : newConsultant.date_of_birth}
-                    onChange={editingConsultantId ? handleEditChange : handleChange}
-                    className="form-input"
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Nghề nghiệp</label>
-                  <input
-                    type="text"
-                    name="job"
-                    value={editingConsultantId ? editConsultantData?.job ?? '' : newConsultant.job}
-                    onChange={editingConsultantId ? handleEditChange : handleChange}
-                    className="form-input"
-                  />
-                </div>
-                <div className="form-group form-grid-col-span-2">
-                  <label className="form-label">Tiểu sử</label>
-                  <textarea
-                    name="bio"
-                    value={editingConsultantId ? editConsultantData?.bio ?? '' : newConsultant.bio}
-                    onChange={editingConsultantId ? handleEditChange : handleChange}
-                    className="form-textarea"
-                    rows="3"
-                  />
-                </div>
-                <div className="form-group form-grid-col-span-2">
-                  <label className="form-label">Học vấn</label>
-                  <select
-                    name="education"
-                    value={editingConsultantId ? editConsultantData?.education ?? '' : newConsultant.education}
-                    onChange={editingConsultantId ? handleEditChange : handleChange}
-                    className="form-select"
-                  >
-                    <option value="">Chọn trình độ học vấn</option>
-                    <option value="Trung học phổ thông">Trung học phổ thông</option>
-                    <option value="Cao đẳng">Cao đẳng</option>
-                    <option value="Đại học">Đại học</option>
-                    <option value="Thạc sĩ">Thạc sĩ</option>
-                    <option value="Tiến sĩ">Tiến sĩ</option>
-                    <option value="Khác">Khác</option>
-                  </select>
-                </div>
+
                 <button type="submit" className="form-button form-grid-col-span-2">
                   {editingConsultantId ? "Cập nhật" : "Tạo mới"}
                 </button>
@@ -739,10 +972,23 @@ const ConsultantListPage = () => {
                 <span><MdCancel size={20} /></span>
               </button>
               <div className="modal-header border-0 pb-0">
-                <h5 className="modal-title">Xác nhận xóa</h5>
+                <h5 className="modal-title">Xác nhận thao tác</h5>
               </div>
               <div className="modal-body">
-                <p>Bạn có chắc chắn muốn xóa tư vấn viên này không?</p>
+                <p>Bạn có chắc chắn muốn thực hiện thao tác này không?</p>
+                <div className="text-muted small">
+                  <strong>Lưu ý:</strong>
+                  <ul className="mb-0 mt-2">
+                    <li>Nếu tư vấn viên có phiên tư vấn đã đặt:
+                      <ul>
+                        <li>Các phiên tư vấn chưa hoàn thành sẽ được chuyển thành trạng thái "Đã hủy"</li>
+                        <li>Các phiên tư vấn đã hoàn thành sẽ được giữ nguyên</li>
+                        <li>Tài khoản tư vấn viên sẽ được chuyển thành "Không hoạt động"</li>
+                      </ul>
+                    </li>
+                    <li>Nếu tư vấn viên không có phiên tư vấn nào: Tài khoản và tất cả dữ liệu sẽ được xóa hoàn toàn</li>
+                  </ul>
+                </div>
               </div>
               <div className="modal-footer border-0 pt-0">
                 <button type="button" className="btn btn-secondary" onClick={handleCloseDeleteDialog}>Không</button>
