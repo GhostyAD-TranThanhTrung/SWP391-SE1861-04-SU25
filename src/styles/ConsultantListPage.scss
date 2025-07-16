@@ -1,6 +1,16 @@
 .consultant-list-container {
   padding: 20px;
-  background-color: #f9f9f9;
+
+
+  .card {
+    background-color: #e6e6e6;
+    padding: 15px;
+    border-radius: 10px;
+    flex: 1;
+    width: 270px;
+    margin-bottom: 25px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  }
 
   .top-bar {
     .btn-primary {
@@ -48,7 +58,7 @@
   .table-wrapper {
     background: white;
     border-radius: 10px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.10), 0 1.5px 4px 0 rgba(102, 176, 198, 0.07);
     padding: 20px;
 
     table {

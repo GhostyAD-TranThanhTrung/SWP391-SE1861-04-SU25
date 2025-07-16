@@ -216,10 +216,6 @@ const DashboardPage = () => {
           <canvas ref={bookingStatsCanvasRef}></canvas>
         </div>
       </div>
-
-      <button className="export-button">
-        <i className="bi bi-file-earmark-excel"></i> Xuất ra Excel
-      </button>
     </div>
   );
 };

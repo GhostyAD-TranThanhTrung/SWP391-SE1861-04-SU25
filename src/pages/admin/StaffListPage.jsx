@@ -255,6 +255,11 @@ const StaffListPage = () => {
     currentPage * itemsPerPage
   );
 
+  // Đếm số lượng từng vai trò
+  const adminCount = filteredStaffs.filter(s => s.role === 'admin').length;
+  const staffCount = filteredStaffs.filter(s => s.role === 'staff').length;
+  const managerCount = filteredStaffs.filter(s => s.role === 'manager').length;
+
   useEffect(() => {
     // Reset to page 1 if filter/search changes and current page is out of range
     if (currentPage > totalPages) setCurrentPage(1);
@@ -262,6 +267,31 @@ const StaffListPage = () => {
 
   return (
     <div className="staff-container">
+      
+      <div className="stat-cards">
+        <div className="card">
+          <div>Tổng số nhân viên trong danh sách</div>
+          <h4>{totalItems}</h4>
+          <small>nhân viên</small>
+        </div>
+
+        <div className="card">
+          <div>Số admin</div>
+          <h4>{adminCount}</h4>
+          <small>người</small>
+        </div>
+        <div className="card">
+          <div>Số staff</div>
+          <h4>{staffCount}</h4>
+          <small>người</small>
+        </div>
+        <div className="card">
+          <div>Số manager</div>
+          <h4>{managerCount}</h4>
+          <small>người</small>
+        </div>
+      </div>
+
       <div className="d-flex justify-content-between align-items-center mb-3">
         <button className="btn btn-primary" onClick={handleOpenPopup}>
           <FaPlus className="me-1" /> Tạo nhân viên mới
@@ -327,6 +357,7 @@ const StaffListPage = () => {
             ))}
           </tbody>
         </table>
+
       </div>
 
       {/* Pagination below the table */}

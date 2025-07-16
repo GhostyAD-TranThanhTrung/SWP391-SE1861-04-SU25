@@ -485,6 +485,13 @@ const ConsultantListPage = () => {
 
   return (
     <div className="consultant-list-container">
+
+      <div className="card">
+          <div>Tổng số tư vấn viên trong danh sách</div>
+          <h4>{totalItems}</h4>
+          <small>tư vấn viên</small>
+        </div>
+
       <div className="d-flex justify-content-between align-items-center mb-3">
         <button onClick={() => { handleEdit(null) }} className="btn btn-primary" title="Tạo tư vấn viên tạm thời">
           <FaPlus className="me-1" /> Tạo tư vấn viên mới
@@ -553,6 +560,7 @@ const ConsultantListPage = () => {
           </tbody>
         </table>
       </div>
+
 
       <PaginationComp
         totalItems={totalItems}

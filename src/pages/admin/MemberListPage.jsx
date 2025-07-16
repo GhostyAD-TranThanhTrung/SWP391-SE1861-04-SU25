@@ -201,6 +201,13 @@ const MemberListPage = () => {
 
   return (
     <div className="member-container">
+
+        <div className="card">
+          <div>Tổng số thành viên trong danh sách</div>
+          <h4>{totalItems}</h4>
+          <small>thành viên</small>
+        </div>
+
       <div className="top-bar d-flex justify-content-between align-items-center mb-3">
         <div className="search-box" style={{ display: "flex", justifyContent: "flex-end", margin: "0 auto", width: "100%" }}>
           <select

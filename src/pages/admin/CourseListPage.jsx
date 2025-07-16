@@ -729,6 +729,13 @@ const CourseListPage = () => {
 
   return (
     <div className="course-list-container">
+
+      <div className="card">
+          <div>Tổng số khóa học trong danh sách</div>
+          <h4>{totalItems}</h4>
+          <small>khóa học</small>
+        </div>
+
       <div className="top-bar d-flex justify-content-between align-items-center mb-3">
         <div>
           <button
@@ -828,6 +835,7 @@ const CourseListPage = () => {
               ))}
             </tbody>
           </table>
+
         </div>
       )}
 

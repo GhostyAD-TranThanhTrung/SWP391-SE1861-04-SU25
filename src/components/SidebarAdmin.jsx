@@ -70,9 +70,6 @@ const SidebarAdmin = ({ isOpen }) => {
                 <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/2048px-No_image_available.svg.png" alt="Ảnh đại diện Admin" />
                 <div>
                     <strong>Quản trị viên</strong>
-                    <Link to="#">
-                        <div className="text-muted">Xem hồ sơ</div>
-                    </Link>
                 </div>
             </div>
         </div>

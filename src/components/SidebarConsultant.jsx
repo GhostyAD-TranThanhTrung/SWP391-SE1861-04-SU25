@@ -44,10 +44,7 @@ const SidebarConsultant = ({ isOpen }) => {
           alt="Admin Avatar"
         />
         <div>
-          <strong>{email ? email : 'Tư vấn viêsdfdsn'}</strong>
-          <Link to="#">
-            <div className="text-muted">Xem hồ sơ</div>
-          </Link>
+          <strong>{email ? email : 'Tư vấn viên'}</strong>
         </div>
       </div>
     </div>
