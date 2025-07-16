@@ -7,6 +7,8 @@ const Consultant = require("../src/entities/Consultant");
 const User = require("../src/entities/User");
 const Profile = require("../src/entities/Profile");
 const BookingSession = require("../src/entities/BookingSession");
+const ConsultantSlot = require("../src/entities/ConsultantSlot");
+const Slot = require("../src/entities/Slot");
 
 class ConsultantController {
   /**
@@ -26,13 +28,35 @@ class ConsultantController {
       const profileRepository = AppDataSource.getRepository(Profile);
       const profiles = await profileRepository.find();
 
-      // Create a map for quick profile lookup
+      // Get consultant slots with slot details
+      const consultantSlotRepository = AppDataSource.getRepository(ConsultantSlot);
+      const consultantSlots = await consultantSlotRepository.find({
+        relations: {
+          slot: true,
+        },
+      });
+
+      // Create maps for quick lookup
       const profileMap = new Map();
       profiles.forEach((profile) => profileMap.set(profile.user_id, profile));
 
-      // Transform the data to include ALL fields from Users, Consultant, and Profile tables
+      const consultantSlotsMap = new Map();
+      consultantSlots.forEach((consultantSlot) => {
+        if (!consultantSlotsMap.has(consultantSlot.consultant_id)) {
+          consultantSlotsMap.set(consultantSlot.consultant_id, []);
+        }
+        consultantSlotsMap.get(consultantSlot.consultant_id).push({
+          day_of_week: consultantSlot.day_of_week,
+          slot_id: consultantSlot.slot_id,
+          start_time: consultantSlot.slot?.start_time,
+          end_time: consultantSlot.slot?.end_time,
+        });
+      });
+
+      // Transform the data to include ALL fields from Users, Consultant, Profile, and Slot tables
       const consultantDetails = consultants.map((consultant) => {
         const profile = profileMap.get(consultant.user_id);
+        const slots = consultantSlotsMap.get(consultant.id_consultant) || [];
 
         return {
           // Consultant table fields
@@ -54,6 +78,9 @@ class ConsultantController {
           bio_json: profile?.bio_json,
           date_of_birth: profile?.date_of_birth,
           job: profile?.job,
+
+          // Slot information
+          available_slots: slots,
         };
       });
 
@@ -102,7 +129,24 @@ class ConsultantController {
         where: { user_id: consultant.user_id },
       });
 
-      // Format consultant information with ALL fields from Users, Consultant, and Profile tables
+      // Get consultant slots with slot details
+      const consultantSlotRepository = AppDataSource.getRepository(ConsultantSlot);
+      const consultantSlots = await consultantSlotRepository.find({
+        where: { consultant_id: parseInt(consultantId) },
+        relations: {
+          slot: true,
+        },
+      });
+
+      // Transform slots data
+      const slots = consultantSlots.map((consultantSlot) => ({
+        day_of_week: consultantSlot.day_of_week,
+        slot_id: consultantSlot.slot_id,
+        start_time: consultantSlot.slot?.start_time,
+        end_time: consultantSlot.slot?.end_time,
+      }));
+
+      // Format consultant information with ALL fields from Users, Consultant, Profile, and Slot tables
       const consultantDetail = {
         // Consultant table fields
         id_consultant: consultant.id_consultant,
@@ -123,6 +167,9 @@ class ConsultantController {
         bio_json: profile?.bio_json,
         date_of_birth: profile?.date_of_birth,
         job: profile?.job,
+
+        // Slot information
+        available_slots: slots,
       };
 
       res.status(200).json({
