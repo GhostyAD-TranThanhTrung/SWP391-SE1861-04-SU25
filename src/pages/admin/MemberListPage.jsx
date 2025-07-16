@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FaEdit, FaSearch, FaEye, FaEyeSlash, FaUsers, FaPlus, FaCrown, FaUserShield, FaUserTie } from "react-icons/fa";
+import { FaEdit, FaSearch, FaEye, FaEyeSlash, FaUsers, FaPlus, FaCrown, FaUserShield, FaUserTie, FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
 import { FaTrash } from "react-icons/fa6";
 import { MdCancel } from "react-icons/md";
 import "../../styles/MemberListPage.scss";
@@ -26,6 +26,10 @@ const MemberListPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const maxPageNumbersToShow = 5;
+  
+  // Sorting state
+  const [sortField, setSortField] = useState('');
+  const [sortDirection, setSortDirection] = useState('asc'); // 'asc' or 'desc'
   
   // Statistics state - no longer needed as we'll calculate from filtered data
 
@@ -247,6 +251,28 @@ const MemberListPage = () => {
     }
   };
 
+  // Sorting function
+  const handleSort = (field) => {
+    if (sortField === field) {
+      // If same field, toggle direction
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // If different field, set new field and default to ascending
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  // Get sort icon for column headers
+  const getSortIcon = (field) => {
+    if (sortField !== field) {
+      return <FaSort className="ms-1 text-muted" />;
+    }
+    return sortDirection === 'asc' ? 
+      <FaSortUp className="ms-1 text-primary" /> : 
+      <FaSortDown className="ms-1 text-primary" />;
+  };
+
   // Filter members by status, search term, and inactive visibility (frontend)
   const filteredMembers = members.filter(member => {
     // Hide inactive users by default unless showInactive is true
@@ -258,10 +284,41 @@ const MemberListPage = () => {
            (searchTerm === '' || member.profile?.name?.toLowerCase().includes(searchTerm.toLowerCase()));
   });
 
+  // Sort filtered members
+  const sortedMembers = [...filteredMembers].sort((a, b) => {
+    if (!sortField) return 0;
+
+    let aValue = a[sortField];
+    let bValue = b[sortField];
+
+    // Handle nested properties
+    if (sortField === 'name') {
+      aValue = a.profile?.name || '';
+      bValue = b.profile?.name || '';
+    } else if (sortField === 'date_create') {
+      aValue = new Date(aValue);
+      bValue = new Date(bValue);
+    }
+
+    // Handle string comparisons
+    if (typeof aValue === 'string') {
+      aValue = aValue.toLowerCase();
+      bValue = bValue.toLowerCase();
+    }
+
+    if (aValue < bValue) {
+      return sortDirection === 'asc' ? -1 : 1;
+    }
+    if (aValue > bValue) {
+      return sortDirection === 'asc' ? 1 : -1;
+    }
+    return 0;
+  });
+
   // Pagination logic
-  const totalItems = filteredMembers.length;
+  const totalItems = sortedMembers.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const paginatedMembers = filteredMembers.slice(
+  const paginatedMembers = sortedMembers.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -426,11 +483,41 @@ const MemberListPage = () => {
           <thead>
             <tr>
               <th>#</th>
-              <th>Tên</th>
-              <th>Email</th>
-              <th>Vai trò</th>
-              <th>Trạng thái</th>
-              <th>Ngày tạo</th>
+              <th 
+                onClick={() => handleSort('name')} 
+                style={{ cursor: 'pointer', userSelect: 'none' }}
+                title="Click to sort by name"
+              >
+                Tên {getSortIcon('name')}
+              </th>
+              <th 
+                onClick={() => handleSort('email')} 
+                style={{ cursor: 'pointer', userSelect: 'none' }}
+                title="Click to sort by email"
+              >
+                Email {getSortIcon('email')}
+              </th>
+              <th 
+                onClick={() => handleSort('role')} 
+                style={{ cursor: 'pointer', userSelect: 'none' }}
+                title="Click to sort by role"
+              >
+                Vai trò {getSortIcon('role')}
+              </th>
+              <th 
+                onClick={() => handleSort('status')} 
+                style={{ cursor: 'pointer', userSelect: 'none' }}
+                title="Click to sort by status"
+              >
+                Trạng thái {getSortIcon('status')}
+              </th>
+              <th 
+                onClick={() => handleSort('date_create')} 
+                style={{ cursor: 'pointer', userSelect: 'none' }}
+                title="Click to sort by creation date"
+              >
+                Ngày tạo {getSortIcon('date_create')}
+              </th>
               <th>Hành động</th>
             </tr>
           </thead>
