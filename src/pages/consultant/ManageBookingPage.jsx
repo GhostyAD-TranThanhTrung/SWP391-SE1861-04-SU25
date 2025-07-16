@@ -43,6 +43,67 @@ const ManageBookingPage = () => {
   userRole()
   const statusOptions = ['Hoàn thành', 'Lên lịch', 'Đã hủy', 'Đang chờ xác nhận', 'Xác nhận thành công'];
 
+  // Function to check and auto-cancel expired bookings
+  const checkAndCancelExpiredBookings = async (bookings) => {
+    const now = new Date();
+    const expiredBookings = [];
+
+    bookings.forEach(booking => {
+      // Skip if already completed, cancelled, or pending confirmation
+      if (booking.status === 'Hoàn thành' || booking.status === 'Đã hủy' || booking.status === 'Đang chờ xác nhận') {
+        return;
+      }
+
+      // Create a Date object from booking_date and end_time
+      const bookingDate = new Date(booking.booking_date);
+      const [endHour, endMinute] = booking.end_time.split(':').map(Number);
+      
+      // Set the end time on the booking date
+      const bookingEndTime = new Date(bookingDate);
+      bookingEndTime.setHours(endHour, endMinute, 0, 0);
+
+      // Check if the booking has passed its end time
+      if (now > bookingEndTime) {
+        expiredBookings.push(booking);
+      }
+    });
+
+    // Auto-cancel expired bookings
+    if (expiredBookings.length > 0) {
+      console.log(`Found ${expiredBookings.length} expired bookings to cancel:`, expiredBookings);
+      
+      for (const expiredBooking of expiredBookings) {
+        try {
+          const updateData = {
+            consultant_id: expiredBooking.consultant_id,
+            slot_id: expiredBooking.slot_id,
+            booking_date: expiredBooking.booking_date,
+            status: 'Đã hủy',
+            notes: expiredBooking.notes ? 
+              `${expiredBooking.notes} | Tự động hủy do quá thời gian` : 
+              'Tự động hủy do quá thời gian',
+            google_meet_link: expiredBooking.google_meet_link || ''
+          };
+
+          await axios.put(
+            `http://localhost:3000/api/booking-sessions/${expiredBooking.booking_id}`,
+            updateData,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+
+          console.log(`Auto-cancelled booking ${expiredBooking.booking_id}`);
+        } catch (err) {
+          console.error(`Failed to auto-cancel booking ${expiredBooking.booking_id}:`, err);
+        }
+      }
+
+      // Refresh the booking list to show updated statuses
+      return true; // Indicates that some bookings were cancelled
+    }
+
+    return false; // No bookings were cancelled
+  };
+
   const handleCloseViewPopup = () => setShowViewPopup(false);
   const handleCloseEditPopup = () => {
     setShowEditPopup(false);
@@ -73,10 +134,12 @@ const ManageBookingPage = () => {
 
       const consultantId = consultantResponse.data.data.consultant_id;
       console.log(consultantId);
+      
       // Get booking sessions for this consultant
       const res = await axios.get(`http://localhost:3000/api/booking-sessions/consultant/${consultantId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      
       if (res.data.success) {
         console.log('Raw booking data:', res.data.data);
 
@@ -88,8 +151,27 @@ const ManageBookingPage = () => {
         console.log('Unique bookings after filtering:', uniqueBookings);
         console.log('Original count:', res.data.data.length, 'Unique count:', uniqueBookings.length);
 
-        setOriginalBookingSessions(uniqueBookings);
-        setBookingSessions(uniqueBookings);
+        // Check and auto-cancel expired bookings
+        const hadCancellations = await checkAndCancelExpiredBookings(uniqueBookings);
+        
+        // If we had cancellations, fetch the updated data
+        if (hadCancellations) {
+          console.log('Refetching booking data after auto-cancellations...');
+          const updatedRes = await axios.get(`http://localhost:3000/api/booking-sessions/consultant/${consultantId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          
+          if (updatedRes.data.success) {
+            const updatedUniqueBookings = updatedRes.data.data.filter((booking, index, self) =>
+              index === self.findIndex(b => b.booking_id === booking.booking_id)
+            );
+            setOriginalBookingSessions(updatedUniqueBookings);
+            setBookingSessions(updatedUniqueBookings);
+          }
+        } else {
+          setOriginalBookingSessions(uniqueBookings);
+          setBookingSessions(uniqueBookings);
+        }
       }
     } catch (err) {
       console.error("Lỗi khi gọi API:", err);
@@ -187,7 +269,38 @@ const ManageBookingPage = () => {
     fetchBookingSessions();
     fetchConsultants();
     fetchSlots();
+
+    // Set up periodic check for expired bookings every 5 minutes
+    const intervalId = setInterval(async () => {
+      console.log('Running periodic check for expired bookings...');
+      if (originalBookingSessions.length > 0) {
+        const hadCancellations = await checkAndCancelExpiredBookings(originalBookingSessions);
+        if (hadCancellations) {
+          console.log('Found expired bookings, refreshing data...');
+          fetchBookingSessions();
+        }
+      }
+    }, 5 * 60 * 1000); // 5 minutes
+
+    // Cleanup interval on component unmount
+    return () => {
+      clearInterval(intervalId);
+    };
   }, []); // Empty dependency array to run only once
+
+  // Additional useEffect to monitor changes in booking sessions for expired bookings
+  useEffect(() => {
+    if (originalBookingSessions.length > 0) {
+      checkAndCancelExpiredBookings(originalBookingSessions).then(hadCancellations => {
+        if (hadCancellations) {
+          // Small delay before refetching to ensure database updates are complete
+          setTimeout(() => {
+            fetchBookingSessions();
+          }, 1000);
+        }
+      });
+    }
+  }, [originalBookingSessions.length]); // Run when bookings are first loaded
 
 
   const handleOpenDeleteDialog = (bookingId) => {
@@ -286,9 +399,65 @@ const ManageBookingPage = () => {
     }
   };
 
+  // Function to check if a booking is close to expiring or has expired
+  const getBookingTimeStatus = (booking) => {
+    if (booking.status === 'Hoàn thành' || booking.status === 'Đã hủy') {
+      return 'completed';
+    }
+
+    const now = new Date();
+    const bookingDate = new Date(booking.booking_date);
+    const [endHour, endMinute] = booking.end_time.split(':').map(Number);
+    const [startHour, startMinute] = booking.start_time.split(':').map(Number);
+    
+    const bookingEndTime = new Date(bookingDate);
+    bookingEndTime.setHours(endHour, endMinute, 0, 0);
+    
+    const bookingStartTime = new Date(bookingDate);
+    bookingStartTime.setHours(startHour, startMinute, 0, 0);
+
+    // Check if booking has passed its end time
+    if (now > bookingEndTime) {
+      return 'expired';
+    }
+    
+    // Check if booking is currently in progress
+    if (now >= bookingStartTime && now <= bookingEndTime) {
+      return 'in-progress';
+    }
+    
+    // Check if booking is within 30 minutes of starting
+    const thirtyMinutesFromNow = new Date(now.getTime() + (30 * 60 * 1000));
+    if (thirtyMinutesFromNow >= bookingStartTime) {
+      return 'starting-soon';
+    }
+
+    return 'scheduled';
+  };
+
+  // Manual check for expired bookings
+  const handleManualExpiredCheck = async () => {
+    console.log('Manual check for expired bookings triggered...');
+    const hadCancellations = await checkAndCancelExpiredBookings(originalBookingSessions);
+    if (hadCancellations) {
+      alert('Đã tìm thấy và hủy các buổi hẹn đã quá thời gian. Danh sách sẽ được cập nhật.');
+      await fetchBookingSessions();
+    } else {
+      alert('Không có buổi hẹn nào quá thời gian cần hủy.');
+    }
+  };
+
   return (
     <div className="member-list-container">
       <div className="top-bar d-flex justify-content-between align-items-center mb-3">
+        <button 
+          className="btn btn-warning btn-sm"
+          onClick={handleManualExpiredCheck}
+          title="Kiểm tra và hủy các buổi hẹn đã quá thời gian"
+        >
+          <FaSearch className="me-1" />
+          Kiểm tra hẹn quá hạn
+        </button>
         <div
           className="search-box"
           style={{
@@ -326,35 +495,65 @@ const ManageBookingPage = () => {
             </tr>
           </thead>
           <tbody>
-            {bookingSessions.map((booking, index) => (
-              <tr key={`booking-${booking.booking_id}-${index}`}>
-                <td>{index + 1}</td>
-                <td>{booking.member_name}</td>
-                <td>{booking.member_email}</td>
-                <td>{new Date(booking.booking_date).toLocaleDateString('vi-VN')}</td>
-                <td>{`${booking.start_time} - ${booking.end_time}`}</td>
-                <td>
-                  <span className={`status-badge ${booking.status?.toLowerCase().replace(/\s+/g, '-')}`}>
-                    {booking.status}
-                  </span>
-                </td>
-                <td>{booking.notes || 'Không có'}</td>
-                <td className="action-buttons">
-                  <button className="btn btn-light me-2" onClick={() => handleView(booking.booking_id)}>
-                    <FaEye color="blue" />
-                  </button>
-                  <button className="btn btn-light me-2" onClick={() => handleViewMemberDetail(booking)}>
-                    <FaUser color="purple" />
-                  </button>
-                  <button className="btn btn-light me-2" onClick={() => handleEdit(booking.booking_id)}>
-                    <FaWrench color="green" />
-                  </button>
-                  <button className="btn btn-light" onClick={() => handleOpenDeleteDialog(booking.booking_id)}>
-                    <FaTrash color="red" />
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {bookingSessions.map((booking, index) => {
+              const timeStatus = getBookingTimeStatus(booking);
+              return (
+                <tr 
+                  key={`booking-${booking.booking_id}-${index}`}
+                  className={`booking-row ${timeStatus}`}
+                  style={{
+                    backgroundColor: 
+                      timeStatus === 'expired' ? '#ffebee' :
+                      timeStatus === 'in-progress' ? '#e8f5e8' :
+                      timeStatus === 'starting-soon' ? '#fff3e0' :
+                      'transparent'
+                  }}
+                >
+                  <td>{index + 1}</td>
+                  <td>{booking.member_name}</td>
+                  <td>{booking.member_email}</td>
+                  <td>{new Date(booking.booking_date).toLocaleDateString('vi-VN')}</td>
+                  <td>
+                    {`${booking.start_time} - ${booking.end_time}`}
+                    {timeStatus === 'expired' && (
+                      <span className="badge bg-danger ms-2" title="Đã quá thời gian">
+                        Quá hạn
+                      </span>
+                    )}
+                    {timeStatus === 'in-progress' && (
+                      <span className="badge bg-success ms-2" title="Đang diễn ra">
+                        Đang diễn ra
+                      </span>
+                    )}
+                    {timeStatus === 'starting-soon' && (
+                      <span className="badge bg-warning ms-2" title="Sắp bắt đầu">
+                        Sắp bắt đầu
+                      </span>
+                    )}
+                  </td>
+                  <td>
+                    <span className={`status-badge ${booking.status?.toLowerCase().replace(/\s+/g, '-')}`}>
+                      {booking.status}
+                    </span>
+                  </td>
+                  <td>{booking.notes || 'Không có'}</td>
+                  <td className="action-buttons">
+                    <button className="btn btn-light me-2" onClick={() => handleView(booking.booking_id)}>
+                      <FaEye color="blue" />
+                    </button>
+                    <button className="btn btn-light me-2" onClick={() => handleViewMemberDetail(booking)}>
+                      <FaUser color="purple" />
+                    </button>
+                    <button className="btn btn-light me-2" onClick={() => handleEdit(booking.booking_id)}>
+                      <FaWrench color="green" />
+                    </button>
+                    <button className="btn btn-light" onClick={() => handleOpenDeleteDialog(booking.booking_id)}>
+                      <FaTrash color="red" />
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

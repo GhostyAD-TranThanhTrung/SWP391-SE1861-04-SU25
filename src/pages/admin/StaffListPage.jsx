@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { FaSearch, FaPlus, FaEdit, FaEye, FaEyeSlash, FaUsers, FaUserShield, FaUserTie, FaCrown } from "react-icons/fa";
+import { FaSearch, FaPlus, FaEdit, FaEye, FaEyeSlash, FaUsers, FaUserShield, FaUserTie, FaCrown, FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
 import { FaTrash } from "react-icons/fa6";
 import { MdCancel } from "react-icons/md";
 import "../../styles/StaffListPage.scss";
@@ -34,6 +34,10 @@ const StaffListPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const maxPageNumbersToShow = 5;
+
+  // Sorting state
+  const [sortField, setSortField] = useState('');
+  const [sortDirection, setSortDirection] = useState('asc'); // 'asc' or 'desc'
 
   const navigate = useNavigate()
   const userRole = async () => {
@@ -239,7 +243,7 @@ const StaffListPage = () => {
       );
       if (res.data.success) {
         const { data } = res.data;
-        
+
         if (data.action === "status_changed_to_inactive") {
           // Staff has references, status changed to inactive
           alert(`Nhân viên có ${data.references.total_count} tham chiếu (${data.references.programs_count} chương trình, ${data.references.flags_count} cờ).\nTrạng thái đã được chuyển thành "Không hoạt động" thay vì xóa.`);
@@ -248,13 +252,13 @@ const StaffListPage = () => {
           let deletedEntities = [];
           if (data.deleted_entities.profile) deletedEntities.push("hồ sơ cá nhân");
           if (data.deleted_entities.user) deletedEntities.push("tài khoản người dùng");
-          
+
           alert(`Xóa nhân viên thành công!\nĐã xóa: ${deletedEntities.join(", ")}`);
         } else {
           // Fallback message
           alert("Thao tác thành công!");
         }
-        
+
         // Refresh the staff list to reflect changes
         fetchStaffs();
       }
@@ -299,6 +303,28 @@ const StaffListPage = () => {
     setFilterRole(e.target.value);
   };
 
+  // Sorting function
+  const handleSort = (field) => {
+    if (sortField === field) {
+      // If same field, toggle direction
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // If different field, set new field and default to ascending
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  // Get sort icon for column headers
+  const getSortIcon = (field) => {
+    if (sortField !== field) {
+      return <FaSort className="ms-1 text-muted" />;
+    }
+    return sortDirection === 'asc' ? 
+      <FaSortUp className="ms-1 text-primary" /> : 
+      <FaSortDown className="ms-1 text-primary" />;
+  };
+
   // Filter staffs by status, role, and inactive visibility
   const filteredStaffs = staffs.filter(s => {
     // Hide inactive users by default unless showInactive is true
@@ -309,22 +335,53 @@ const StaffListPage = () => {
     const statusMatch = filterStatus === 'all' || s.status === filterStatus;
     // Apply role filter
     const roleMatch = filterRole === 'all' || s.role === filterRole;
-    
+
     return statusMatch && roleMatch;
   });
 
+  // Sort filtered staffs
+  const sortedStaffs = [...filteredStaffs].sort((a, b) => {
+    if (!sortField) return 0;
+
+    let aValue = a[sortField];
+    let bValue = b[sortField];
+
+    // Handle nested properties
+    if (sortField === 'name') {
+      aValue = a.profile?.name || '';
+      bValue = b.profile?.name || '';
+    } else if (sortField === 'date_create') {
+      aValue = new Date(aValue);
+      bValue = new Date(bValue);
+    }
+
+    // Handle string comparisons
+    if (typeof aValue === 'string') {
+      aValue = aValue.toLowerCase();
+      bValue = bValue.toLowerCase();
+    }
+
+    if (aValue < bValue) {
+      return sortDirection === 'asc' ? -1 : 1;
+    }
+    if (aValue > bValue) {
+      return sortDirection === 'asc' ? 1 : -1;
+    }
+    return 0;
+  });
+
   // Pagination logic
-  const totalItems = filteredStaffs.length;
+  const totalItems = sortedStaffs.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const paginatedStaffs = filteredStaffs.slice(
+  const paginatedStaffs = sortedStaffs.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
   // Đếm số lượng từng vai trò
-  const adminCount = filteredStaffs.filter(s => s.role === 'admin').length;
-  const staffCount = filteredStaffs.filter(s => s.role === 'staff').length;
-  const managerCount = filteredStaffs.filter(s => s.role === 'manager').length;
+  const adminCount = sortedStaffs.filter(s => s.role === 'admin').length;
+  const staffCount = sortedStaffs.filter(s => s.role === 'staff').length;
+  const managerCount = sortedStaffs.filter(s => s.role === 'manager').length;
 
   useEffect(() => {
     // Reset to page 1 if filter/search changes and current page is out of range
@@ -333,7 +390,7 @@ const StaffListPage = () => {
 
   return (
     <div className="staff-container">
-      
+
       <div className="row g-4 mb-4">
         {/* Total Staff Card */}
         <div className="col-xl-3 col-md-6">
@@ -436,11 +493,11 @@ const StaffListPage = () => {
         <div className="card-body">
           <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div className="d-flex gap-2 flex-wrap">
-              <button className="btn btn-primary shadow-sm" onClick={handleOpenPopup}>
+              <button disabled={!isAdmin} className="btn btn-primary shadow-sm" onClick={handleOpenPopup}>
                 <FaPlus className="me-1" /> Tạo nhân viên mới
               </button>
-              <button 
-                onClick={() => setShowInactive(!showInactive)} 
+              <button
+                onClick={() => setShowInactive(!showInactive)}
                 className={`btn shadow-sm ${showInactive ? 'btn-warning' : 'btn-outline-warning'}`}
                 title={showInactive ? "Ẩn người dùng không hoạt động" : "Hiển thị người dùng không hoạt động"}
               >
@@ -492,11 +549,41 @@ const StaffListPage = () => {
           <thead>
             <tr>
               <th>#</th>
-              <th>Tên</th>
-              <th>Email</th>
-              <th>Vai trò</th>
-              <th>Trạng thái</th>
-              <th>Ngày tạo</th>
+              <th 
+                onClick={() => handleSort('name')} 
+                style={{ cursor: 'pointer', userSelect: 'none' }}
+                title="Click to sort by name"
+              >
+                Tên {getSortIcon('name')}
+              </th>
+              <th 
+                onClick={() => handleSort('email')} 
+                style={{ cursor: 'pointer', userSelect: 'none' }}
+                title="Click to sort by email"
+              >
+                Email {getSortIcon('email')}
+              </th>
+              <th 
+                onClick={() => handleSort('role')} 
+                style={{ cursor: 'pointer', userSelect: 'none' }}
+                title="Click to sort by role"
+              >
+                Vai trò {getSortIcon('role')}
+              </th>
+              <th 
+                onClick={() => handleSort('status')} 
+                style={{ cursor: 'pointer', userSelect: 'none' }}
+                title="Click to sort by status"
+              >
+                Trạng thái {getSortIcon('status')}
+              </th>
+              <th 
+                onClick={() => handleSort('date_create')} 
+                style={{ cursor: 'pointer', userSelect: 'none' }}
+                title="Click to sort by creation date"
+              >
+                Ngày tạo {getSortIcon('date_create')}
+              </th>
               <th>Thao tác</th>
             </tr>
           </thead>
@@ -542,7 +629,7 @@ const StaffListPage = () => {
             <div className="form">
               <h2>{editingStaffId ? "Chỉnh sửa nhân viên" : "Tạo nhân viên mới"}</h2>
               <form className="form-grid" onSubmit={editingStaffId ? handleUpdateSubmit : handleSubmit}>
-                
+
                 {/* User Information Section */}
                 <div className="form-section-header form-grid-col-span-2">
                   <h3>Thông tin tài khoản</h3>

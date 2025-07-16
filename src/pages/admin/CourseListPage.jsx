@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { FaSearch, FaPlus, FaEdit, FaTrash, FaEye, FaChartBar, FaFile, FaQuestion, FaImage, FaCode, FaEyeSlash, FaUsers } from "react-icons/fa";
+import { FaSearch, FaPlus, FaEdit, FaTrash, FaEye, FaChartBar, FaFile, FaQuestion, FaImage, FaCode, FaEyeSlash, FaUsers, FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
 import { MdCancel, MdSave, MdPreview } from "react-icons/md";
 import { Bar } from 'react-chartjs-2';
 import {
@@ -104,7 +104,26 @@ const CourseListPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const maxPageNumbersToShow = 5;
+
+  // Sorting state
+  const [sortField, setSortField] = useState('');
+  const [sortDirection, setSortDirection] = useState('asc'); // 'asc' or 'desc'
   
+  // Sorting functions
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const getSortIcon = (field) => {
+    if (sortField !== field) return <FaSort />;
+    return sortDirection === 'asc' ? <FaSortUp /> : <FaSortDown />;
+  };
+
   // Statistics state - no longer needed as we'll calculate from filtered data
 
   useEffect(() => {
@@ -699,7 +718,7 @@ const CourseListPage = () => {
 
   const filteredPrograms = () => {
     const allPrograms = getAllPrograms();
-    return allPrograms.filter(program => {
+    let filtered = allPrograms.filter(program => {
       const title = program.title ? program.title.toLowerCase() : '';
       const description = program.description ? program.description.toLowerCase() : '';
       const search = searchTerm.trim().toLowerCase();
@@ -711,6 +730,32 @@ const CourseListPage = () => {
         statusFilter === 'all' || program.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
+
+    // Apply sorting
+    if (sortField) {
+      filtered.sort((a, b) => {
+        let aValue = a[sortField];
+        let bValue = b[sortField];
+
+        // Handle nested properties and different data types
+        if (sortField === 'category_name') {
+          aValue = a.category?.name || '';
+          bValue = b.category?.name || '';
+        } else if (sortField === 'created_at' || sortField === 'updated_at') {
+          aValue = new Date(aValue);
+          bValue = new Date(bValue);
+        } else if (typeof aValue === 'string') {
+          aValue = aValue.toLowerCase();
+          bValue = bValue.toLowerCase();
+        }
+
+        if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return filtered;
   };
 
   // Pagination logic
@@ -890,12 +935,24 @@ const CourseListPage = () => {
             <thead>
               <tr>
                 <th>#</th>
-                <th>Title</th>
-                <th>Description</th>
-                <th>Age Group</th>
-                <th>Category</th>
-                <th>Status</th>
-                <th>Creation Date</th>
+                <th onClick={() => handleSort('title')} style={{ cursor: 'pointer' }}>
+                  Title {getSortIcon('title')}
+                </th>
+                <th onClick={() => handleSort('description')} style={{ cursor: 'pointer' }}>
+                  Description {getSortIcon('description')}
+                </th>
+                <th onClick={() => handleSort('age_group')} style={{ cursor: 'pointer' }}>
+                  Age Group {getSortIcon('age_group')}
+                </th>
+                <th onClick={() => handleSort('category_name')} style={{ cursor: 'pointer' }}>
+                  Category {getSortIcon('category_name')}
+                </th>
+                <th onClick={() => handleSort('status')} style={{ cursor: 'pointer' }}>
+                  Status {getSortIcon('status')}
+                </th>
+                <th onClick={() => handleSort('created_at')} style={{ cursor: 'pointer' }}>
+                  Creation Date {getSortIcon('created_at')}
+                </th>
                 <th>Actions</th>
               </tr>
             </thead>

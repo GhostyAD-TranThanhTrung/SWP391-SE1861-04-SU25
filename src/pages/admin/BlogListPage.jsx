@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { FaSearch, FaPlus, FaEdit, FaEye, FaFlag, FaUsers } from "react-icons/fa";
+import { FaSearch, FaPlus, FaEdit, FaEye, FaFlag, FaUsers, FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
 import { FaTrash } from "react-icons/fa6";
 import { MdCancel, MdApproval, MdBlock } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
@@ -67,7 +67,26 @@ const BlogListPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [totalBlogs, setTotalBlogs] = useState(0);
-  
+
+  // Sorting state
+  const [sortField, setSortField] = useState('');
+  const [sortDirection, setSortDirection] = useState('asc');
+
+  // Sorting functions
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const getSortIcon = (field) => {
+    if (sortField !== field) return <FaSort />;
+    return sortDirection === 'asc' ? <FaSortUp /> : <FaSortDown />;
+  };
+
   // Statistics state - no longer needed as we'll calculate from filtered data
 
   const token = sessionStorage.getItem("token");
@@ -78,7 +97,7 @@ const BlogListPage = () => {
       const res = await axios.get('http://localhost:3000/api/user/role/',
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      if (!(res.data.role && res.data.role === 'staff')) navigate('/admin/login')
+      if (!(res.data.role && (res.data.role === 'staff' || res.data.role === 'manager'))) navigate('/admin/login')
     } catch {
       navigate('/admin/login')
     }
@@ -430,8 +449,39 @@ const BlogListPage = () => {
   };
 
 
-  // Filter blogs theo status
+  // Filter and sort blogs
   const filteredBlogs = blogs.filter(b => filterStatus === 'all' || b.status === filterStatus);
+
+  // Sort filtered blogs
+  const sortedBlogs = [...filteredBlogs].sort((a, b) => {
+    if (!sortField) return 0;
+
+    let aValue = a[sortField];
+    let bValue = b[sortField];
+
+    // Handle different data types
+    if (sortField === 'created_at' || sortField === 'date_create') {
+      aValue = new Date(aValue);
+      bValue = new Date(bValue);
+    } else if (sortField === 'name' || sortField === 'author_name') {
+      // Handle author name (nested property)
+      aValue = a.author_name || a.name || '';
+      bValue = b.author_name || b.name || '';
+      aValue = aValue.toLowerCase();
+      bValue = bValue.toLowerCase();
+    } else if (typeof aValue === 'string') {
+      aValue = aValue.toLowerCase();
+      bValue = bValue.toLowerCase();
+    }
+
+    if (aValue < bValue) {
+      return sortDirection === 'asc' ? -1 : 1;
+    }
+    if (aValue > bValue) {
+      return sortDirection === 'asc' ? 1 : -1;
+    }
+    return 0;
+  });
 
   // Calculate statistics from all blogs data
   const publishedCount = blogs.filter(b => b.status === 'published' || b.status === 'Đã xuất bản').length;
@@ -578,6 +628,7 @@ const BlogListPage = () => {
               >
                 <option value="all">Tất cả trạng thái</option>
                 <option value="published">Đã xuất bản</option>
+                <option value="pending">Chờ duyệt</option>
                 <option value="draft">Bản nháp</option>
                 <option value="rejected">Bị từ chối</option>
               </select>
@@ -603,18 +654,26 @@ const BlogListPage = () => {
           <thead>
             <tr>
               <th>#</th>
-              <th>Tiêu đề</th>
+              <th onClick={() => handleSort('title')} style={{ cursor: 'pointer', userSelect: 'none' }} title="Click to sort by title">
+                Tiêu đề {getSortIcon('title')}
+              </th>
               <th>Nội dung</th>
-              <th>Trạng thái</th>
+              <th onClick={() => handleSort('status')} style={{ cursor: 'pointer', userSelect: 'none' }} title="Click to sort by status">
+                Trạng thái {getSortIcon('status')}
+              </th>
               <th>Báo cáo</th>
-              <th>Tác giả</th>
-              <th>Ngày tạo</th>
+              <th onClick={() => handleSort('author_name')} style={{ cursor: 'pointer', userSelect: 'none' }} title="Click to sort by author">
+                Tác giả {getSortIcon('author_name')}
+              </th>
+              <th onClick={() => handleSort('created_at')} style={{ cursor: 'pointer', userSelect: 'none' }} title="Click to sort by creation date">
+                Ngày tạo {getSortIcon('created_at')}
+              </th>
               <th>Hình ảnh</th>
               <th>Thao tác</th>
             </tr>
           </thead>
           <tbody>
-            {filteredBlogs.map((blog, index) => (
+            {sortedBlogs.map((blog, index) => (
               <tr key={blog.blog_id}>
                 <td>{index + 1}</td>
                 <td>
@@ -624,7 +683,7 @@ const BlogListPage = () => {
                 </td>
                 <td>
                   <div style={{ maxWidth: '300px' }}>
-                    {truncateText(blog.body, 100)}
+                    {truncateText(blog.body, 75)}
                   </div>
                 </td>
                 <td>
@@ -724,7 +783,7 @@ const BlogListPage = () => {
           </tbody>
         </table>
 
-        {filteredBlogs.length === 0 && (
+        {sortedBlogs.length === 0 && (
           <div className="text-center py-4">
             <p>Không có blog nào để hiển thị.</p>
           </div>
@@ -784,8 +843,8 @@ const BlogListPage = () => {
                           })()}
                         </small>
                       </div>
-                      <div style={{ 
-                        border: '1px solid #dee2e6', 
+                      <div style={{
+                        border: '1px solid #dee2e6',
                         borderRadius: '0.375rem',
                         backgroundColor: '#fff'
                       }}>
@@ -843,8 +902,8 @@ const BlogListPage = () => {
                 <button type="button" className="btn btn-secondary" onClick={handleClosePopup}>
                   Hủy
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className="btn btn-primary"
                   onClick={handleSubmit}
                   style={{ minWidth: '100px' }}

@@ -3,7 +3,7 @@ import axios from "axios";
 import { Chart } from 'chart.js/auto';
 import "../../styles/AssessmentListPage.scss";
 import { useNavigate } from "react-router-dom";
-import { FaUsers, FaClipboardList, FaSearch, FaEye } from 'react-icons/fa';
+import { FaUsers, FaClipboardList, FaSearch, FaEye, FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
 import PaginationComp from "../../components/Pagination.jsx";
 
 const AssessmentListPage = () => {
@@ -22,6 +22,10 @@ const AssessmentListPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [maxPageNumbersToShow] = useState(5);
+
+  // Sorting state
+  const [sortField, setSortField] = useState('');
+  const [sortDirection, setSortDirection] = useState('asc'); // 'asc' or 'desc'
 
   const token = sessionStorage.getItem("token");
   const navigate = useNavigate()
@@ -70,6 +74,28 @@ const AssessmentListPage = () => {
     fetchActions();
   }, []);
 
+  // Sorting function
+  const handleSort = (field) => {
+    if (sortField === field) {
+      // If same field, toggle direction
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // If different field, set new field and default to ascending
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  // Get sort icon for column headers
+  const getSortIcon = (field) => {
+    if (sortField !== field) {
+      return <FaSort className="ms-1 text-muted" />;
+    }
+    return sortDirection === 'asc' ? 
+      <FaSortUp className="ms-1 text-primary" /> : 
+      <FaSortDown className="ms-1 text-primary" />;
+  };
+
   // Filtering and pagination logic
   const filteredAssessments = assessments.filter(assessment => {
     const matchesSearch = assessment.user_id?.toString().includes(searchTerm) ||
@@ -81,9 +107,34 @@ const AssessmentListPage = () => {
     return matchesSearch && matchesType;
   });
 
-  const totalItems = filteredAssessments.length;
+  // Sort filtered assessments
+  const sortedAssessments = [...filteredAssessments].sort((a, b) => {
+    if (!sortField) return 0;
+
+    let aValue = a[sortField];
+    let bValue = b[sortField];
+
+    // Handle different data types
+    if (sortField === 'created_at' || sortField === 'completed_at') {
+      aValue = new Date(aValue);
+      bValue = new Date(bValue);
+    } else if (typeof aValue === 'string') {
+      aValue = aValue.toLowerCase();
+      bValue = bValue.toLowerCase();
+    }
+
+    if (aValue < bValue) {
+      return sortDirection === 'asc' ? -1 : 1;
+    }
+    if (aValue > bValue) {
+      return sortDirection === 'asc' ? 1 : -1;
+    }
+    return 0;
+  });
+
+  const totalItems = sortedAssessments.length;
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedAssessments = filteredAssessments.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedAssessments = sortedAssessments.slice(startIndex, startIndex + itemsPerPage);
 
   // Statistics calculations
   const totalAssessments = assessments.length;
@@ -323,11 +374,41 @@ const AssessmentListPage = () => {
           <thead>
             <tr>
               <th>#</th>
-              <th>ID Bài đánh giá</th>
-              <th>ID Người dùng</th>
-              <th>Loại</th>
-              <th>Action ID</th>
-              <th>Ngày tạo</th>
+              <th 
+                onClick={() => handleSort('assessment_id')} 
+                style={{ cursor: 'pointer', userSelect: 'none' }}
+                title="Click to sort by assessment ID"
+              >
+                ID Bài đánh giá {getSortIcon('assessment_id')}
+              </th>
+              <th 
+                onClick={() => handleSort('user_id')} 
+                style={{ cursor: 'pointer', userSelect: 'none' }}
+                title="Click to sort by user ID"
+              >
+                ID Người dùng {getSortIcon('user_id')}
+              </th>
+              <th 
+                onClick={() => handleSort('type')} 
+                style={{ cursor: 'pointer', userSelect: 'none' }}
+                title="Click to sort by type"
+              >
+                Loại {getSortIcon('type')}
+              </th>
+              <th 
+                onClick={() => handleSort('action_id')} 
+                style={{ cursor: 'pointer', userSelect: 'none' }}
+                title="Click to sort by action ID"
+              >
+                Action ID {getSortIcon('action_id')}
+              </th>
+              <th 
+                onClick={() => handleSort('created_at')} 
+                style={{ cursor: 'pointer', userSelect: 'none' }}
+                title="Click to sort by creation date"
+              >
+                Ngày tạo {getSortIcon('created_at')}
+              </th>
               <th>Thao tác</th>
             </tr>
           </thead>

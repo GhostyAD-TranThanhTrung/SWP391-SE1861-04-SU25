@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FaSearch, FaPlus, FaEdit, FaClock, FaEye, FaEyeSlash, FaUsers } from "react-icons/fa";
+import { FaSearch, FaPlus, FaEdit, FaClock, FaEye, FaEyeSlash, FaUsers, FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
 import { FaTrash } from "react-icons/fa6";
 import { MdCancel } from "react-icons/md";
 import "../../styles/ConsultantListPage.scss";
@@ -47,7 +47,11 @@ const ConsultantListPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const maxPageNumbersToShow = 5;
-  
+
+  // Sorting state
+  const [sortField, setSortField] = useState('');
+  const [sortDirection, setSortDirection] = useState('asc'); // 'asc' or 'desc'
+
   // Statistics state - no longer needed as we'll calculate from filtered data
 
   const token = sessionStorage.getItem("token");
@@ -328,6 +332,28 @@ const ConsultantListPage = () => {
     setStatusFilter(e.target.value);
   };
 
+  // Sorting function
+  const handleSort = (field) => {
+    if (sortField === field) {
+      // If same field, toggle direction
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // If different field, set new field and default to ascending
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  // Get sort icon for column headers
+  const getSortIcon = (field) => {
+    if (sortField !== field) {
+      return <FaSort className="ms-1 text-muted" />;
+    }
+    return sortDirection === 'asc' ?
+      <FaSortUp className="ms-1 text-primary" /> :
+      <FaSortDown className="ms-1 text-primary" />;
+  };
+
   const handleSearchClick = async () => {
     if (searchTerm.trim() === "") {
       fetchConsultants();
@@ -367,22 +393,22 @@ const ConsultantListPage = () => {
     if (!consultantIdToDelete) return;
     try {
       console.log(`🗑️ Frontend: Deleting consultant ${consultantIdToDelete}`);
-      
+
       const res = await axios.delete(
         `http://localhost:3000/api/consultants-complete/${consultantIdToDelete}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       console.log(`📋 Frontend: Delete response:`, res.data);
-      
+
       if (res.data.success) {
         const { data, message } = res.data;
-        
+
         if (data.action === "status_changed_to_inactive") {
           // Consultant has booking sessions, some were cancelled, status changed to inactive
           alert(message || `Tư vấn viên có ${data.booking_sessions_count} phiên tư vấn đã đặt.\n` +
-                           `${data.cancelled_sessions_count} phiên đã được hủy, ${data.completed_sessions_count} phiên hoàn thành được giữ nguyên.\n` +
-                           `Trạng thái tài khoản đã được chuyển thành "Không hoạt động".`);
+            `${data.cancelled_sessions_count} phiên đã được hủy, ${data.completed_sessions_count} phiên hoàn thành được giữ nguyên.\n` +
+            `Trạng thái tài khoản đã được chuyển thành "Không hoạt động".`);
         } else if (data.action === "completely_deleted") {
           // Consultant was completely deleted
           alert(message || "Xóa tư vấn viên thành công!\nĐã xóa: lịch làm việc, thông tin tư vấn viên, hồ sơ cá nhân, tài khoản người dùng");
@@ -390,7 +416,7 @@ const ConsultantListPage = () => {
           // Fallback message
           alert(message || "Thao tác thành công!");
         }
-        
+
         console.log(`✅ Frontend: Delete operation completed, refreshing list...`);
         // Refresh the consultant list to reflect changes
         fetchConsultants();
@@ -523,10 +549,35 @@ const ConsultantListPage = () => {
     return statusFilter === 'all' || c.status === statusFilter;
   });
 
+  // Sort filtered consultants
+  const sortedConsultants = [...filteredConsultants].sort((a, b) => {
+    if (!sortField) return 0;
+
+    let aValue = a[sortField];
+    let bValue = b[sortField];
+
+    // Handle different data types
+    if (sortField === 'date_create') {
+      aValue = new Date(aValue);
+      bValue = new Date(bValue);
+    } else if (typeof aValue === 'string') {
+      aValue = aValue.toLowerCase();
+      bValue = bValue.toLowerCase();
+    }
+
+    if (aValue < bValue) {
+      return sortDirection === 'asc' ? -1 : 1;
+    }
+    if (aValue > bValue) {
+      return sortDirection === 'asc' ? 1 : -1;
+    }
+    return 0;
+  });
+
   // Pagination logic
-  const totalItems = filteredConsultants.length;
+  const totalItems = sortedConsultants.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const paginatedConsultants = filteredConsultants.slice(
+  const paginatedConsultants = sortedConsultants.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -648,11 +699,11 @@ const ConsultantListPage = () => {
         <div className="card-body">
           <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div className="d-flex gap-2 flex-wrap">
-              <button onClick={() => { handleEdit(null) }} className="btn btn-primary shadow-sm" title="Tạo tư vấn viên tạm thời">
+              <button onClick={() => { handleEdit(null) }} disabled={!isAdmin} className="btn btn-primary shadow-sm" title="Tạo tư vấn viên tạm thời">
                 <FaPlus className="me-1" /> Tạo tư vấn viên mới
               </button>
-              <button 
-                onClick={() => setShowInactive(!showInactive)} 
+              <button
+                onClick={() => setShowInactive(!showInactive)}
                 className={`btn shadow-sm ${showInactive ? 'btn-warning' : 'btn-outline-warning'}`}
                 title={showInactive ? "Ẩn người dùng không hoạt động" : "Hiển thị người dùng không hoạt động"}
               >
@@ -693,11 +744,41 @@ const ConsultantListPage = () => {
           <thead>
             <tr>
               <th>#</th>
-              <th>Tên</th>
-              <th>Email</th>
-              <th>Vai trò</th>
-              <th>Trạng thái</th>
-              <th>Ngày tạo</th>
+              <th
+                onClick={() => handleSort('name')}
+                style={{ cursor: 'pointer', userSelect: 'none' }}
+                title="Click to sort by name"
+              >
+                Tên {getSortIcon('name')}
+              </th>
+              <th
+                onClick={() => handleSort('email')}
+                style={{ cursor: 'pointer', userSelect: 'none' }}
+                title="Click to sort by email"
+              >
+                Email {getSortIcon('email')}
+              </th>
+              <th
+                onClick={() => handleSort('role')}
+                style={{ cursor: 'pointer', userSelect: 'none' }}
+                title="Click to sort by role"
+              >
+                Vai trò {getSortIcon('role')}
+              </th>
+              <th
+                onClick={() => handleSort('status')}
+                style={{ cursor: 'pointer', userSelect: 'none' }}
+                title="Click to sort by status"
+              >
+                Trạng thái {getSortIcon('status')}
+              </th>
+              <th
+                onClick={() => handleSort('date_create')}
+                style={{ cursor: 'pointer', userSelect: 'none' }}
+                title="Click to sort by creation date"
+              >
+                Ngày tạo {getSortIcon('date_create')}
+              </th>
               <th>Hành động</th>
             </tr>
           </thead>
@@ -743,12 +824,12 @@ const ConsultantListPage = () => {
             <div className="form">
               <h2>{editingConsultantId ? "Chỉnh sửa Tư vấn viên" : "Tạo mới Tư vấn viên"}</h2>
               <form className="form-grid" onSubmit={editingConsultantId ? handleUpdate : handleSubmit}>
-                
+
                 {/* User Information Section */}
                 <div className="form-section-header form-grid-col-span-2">
                   <h3>Thông tin tài khoản</h3>
                 </div>
-                
+
                 <div className="form-group">
                   <label className="form-label">Email *</label>
                   <input
@@ -761,7 +842,7 @@ const ConsultantListPage = () => {
                     style={{ color: '#000', backgroundColor: '#fff' }}
                   />
                 </div>
-                
+
                 <div className="form-group">
                   <label className="form-label">Mật khẩu {!editingConsultantId && '*'}</label>
                   <div className="d-flex align-items-center">
@@ -886,9 +967,6 @@ const ConsultantListPage = () => {
                     style={{ color: '#000', backgroundColor: '#fff' }}
                   >
                     <option value="">Chọn trình độ học vấn</option>
-                    <option value="Trung học phổ thông">Trung học phổ thông</option>
-                    <option value="Cao đẳng">Cao đẳng</option>
-                    <option value="Đại học">Đại học</option>
                     <option value="Thạc sĩ">Thạc sĩ</option>
                     <option value="Tiến sĩ">Tiến sĩ</option>
                     <option value="Khác">Khác</option>
@@ -942,14 +1020,20 @@ const ConsultantListPage = () => {
 
                 <div className="form-group form-grid-col-span-2">
                   <label className="form-label">Chuyên môn</label>
-                  <input
-                    type="text"
+                  <select
                     name="speciality"
                     value={editingConsultantId ? editConsultantData?.speciality ?? '' : newConsultant.speciality}
                     onChange={editingConsultantId ? handleEditChange : handleChange}
-                    className="form-input"
+                    className="form-select"
                     style={{ color: '#000', backgroundColor: '#fff' }}
-                  />
+                  >
+                    <option value="">Tất cả chuyên môn</option>
+                    <option value="Chuyên gia phòng ngừa">Chuyên gia phòng ngừa</option>
+                    <option value="Tư vấn & Trị liệu">Tư vấn & Trị liệu</option>
+                    <option value="Tiếp cận cộng đồng">Tiếp cận cộng đồng</option>
+                    <option value="Tâm lý học lâm sàng">Tâm lý học lâm sàng</option>
+                    <option value="Phục hồi chức năng">Phục hồi chức năng</option>
+                  </select>
                 </div>
 
                 <button type="submit" className="form-button form-grid-col-span-2">

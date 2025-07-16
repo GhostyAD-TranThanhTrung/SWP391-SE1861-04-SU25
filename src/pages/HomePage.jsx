@@ -9,6 +9,7 @@ import PreventionImg from '../images/Prevention.jpg';
 import SupportImg from '../images/supporthug.jpg';
 import GroupSessionImg from '../images/groupsession.jpg';
 import OutdoorsImg from '../images/outdoors.jpg';
+import axios from 'axios';
 
 const HomePage = () => {
 
@@ -17,7 +18,18 @@ const HomePage = () => {
     const [communityEvents, setCommunityEvents] = useState([]);
     const [eventsLoading, setEventsLoading] = useState(true);
     const [eventsError, setEventsError] = useState(null);
-
+    const [userInfo, setUserInfo] = useState(null);
+    const [recommendedPrograms, setRecommendedPrograms] = useState([]);
+    const [loadingRecommendations, setLoadingRecommendations] = useState(true);
+    const [recommendationsError, setRecommendationsError] = useState(null);
+    const [recommendedBlogs, setRecommendedBlogs] = useState([]);
+    const [loadingBlogs, setLoadingBlogs] = useState(true);
+    const [blogsError, setBlogsError] = useState(null);
+    const token = sessionStorage.getItem("token");
+    const truncateText = (text, maxLength = 100) => {
+        if (!text) return '';
+        return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+    };
     // Animated counter effect
     useEffect(() => {
         const targets = { users: 5000, courses: 150, consultations: 2500, success: 95 };
@@ -88,28 +100,74 @@ const HomePage = () => {
         fetchCommunityEvents();
     }, []);
 
-    const cardData = (titles, images = []) =>
-        titles.map((title, index) => ({
-            title,
-            date: '31 tháng 5, 2025',
-            image: images[index] || Image,
-            id: index + 1,
-            excerpt: getExcerpt(title)
-        }));
+    // State for user info from recommendations API
 
-    const getExcerpt = (title) => {
-        const excerpts = {
-            "Lạm dụng chất: Nhận thức & Phòng ngừa": "Tìm hiểu về các chiến lược phòng ngừa mới nhất và cách nhận biết các dấu hiệu cảnh báo sớm.",
-            "12 cách phòng ngừa lạm dụng ma túy": "Các mẹo thực tế và phương pháp dựa trên bằng chứng để phòng ngừa lạm dụng chất trong cộng đồng.",
-            "Nhận thức về lạm dụng ma túy": "Hướng dẫn toàn diện về hiểu biết và giải quyết vấn đề lạm dụng ma túy trong xã hội ngày nay.",
-            "Tác động của việc sử dụng ma túy lâu dài": "Phân tích chi tiết về tác động sức khỏe thể chất và tinh thần của việc sử dụng chất kéo dài.",
-            "Sự thật về ma túy": "Thông tin dựa trên bằng chứng về các loại chất khác nhau và tác động của chúng đối với cơ thể và tâm trí.",
-            "Sự thật về lạm dụng thuốc kê đơn": "Hiểu về rủi ro và phòng ngừa việc sử dụng sai thuốc kê đơn.",
-            "Con đường phục hồi - Khóa học trực tuyến": "Khóa học tương tác hướng dẫn bạn qua hành trình phục hồi và chữa lành.",
-            "Bộ công cụ phòng ngừa ma túy cho thanh thiếu niên": "Tài nguyên và chiến lược được thiết kế đặc biệt để phòng ngừa lạm dụng chất ở thanh thiếu niên."
+    // Gọi API recommendations khi trang load
+    useEffect(() => {
+        const fetchRecommendations = async () => {
+            setLoadingRecommendations(true);
+            setRecommendationsError(null);
+            try {
+                const response = await axios.get('http://localhost:3000/api/programs/recommendations', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                const res = response.data;
+                if (res.success && res.data) {
+                    // Handle new API response structure
+                    setUserInfo(res.data.user_info);
+                    setRecommendedPrograms(res.data.recommended_programs || []);
+                } else {
+                    setRecommendedPrograms([]);
+                    setUserInfo(null);
+                }
+            } catch (error) {
+                console.error('Error fetching recommendations:', error);
+                setRecommendationsError('Không thể tải chương trình đề xuất. Vui lòng thử lại sau.');
+                setRecommendedPrograms([]);
+                setUserInfo(null);
+            } finally {
+                setLoadingRecommendations(false);
+            }
         };
-        return excerpts[title] || "Khám phá những hiểu biết có giá trị và hướng dẫn thực tế trong tài nguyên toàn diện này.";
-    };
+
+        // Only fetch if user is logged in
+        if (token) {
+            fetchRecommendations();
+        } else {
+            setLoadingRecommendations(false);
+        }
+    }, [token]);
+
+    // Fetch recommended blogs
+    useEffect(() => {
+        const fetchRecommendedBlogs = async () => {
+            setLoadingBlogs(true);
+            setBlogsError(null);
+            try {
+                const response = await axios.get('http://localhost:3000/api/blogs', {
+                    headers: token ? { Authorization: `Bearer ${token}` } : {}
+                });
+                const res = response.data;
+                if (res.success && res.data) {
+                    // Sort by creation date and take the most recent ones
+                    const sortedBlogs = res.data
+                        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                        .slice(0, 6); // Get top 6 recent blogs
+                    setRecommendedBlogs(sortedBlogs);
+                } else {
+                    setRecommendedBlogs([]);
+                }
+            } catch (error) {
+                console.error('Error fetching blogs:', error);
+                setBlogsError('Không thể tải bài viết blog. Vui lòng thử lại sau.');
+                setRecommendedBlogs([]);
+            } finally {
+                setLoadingBlogs(false);
+            }
+        };
+
+        fetchRecommendedBlogs();
+    }, [token]);
 
     const testimonials = [
         {
@@ -132,32 +190,196 @@ const HomePage = () => {
         }
     ];
 
-    const renderCards = (data, basePath, showExcerpt = true) => (
-        data.map((item) => (
-            <div className="col-lg-3 col-md-6 col-sm-12 mb-4" key={item.id}>
-                <Link to={`${basePath}/${item.id}`} className="custom-card-link">
-                    <div className="custom-card">
-                        <div className="card-image-wrapper">
-                            <img src={item.image} alt={item.title} className="card-image" />
-                            <div className="card-overlay">
-                                <i className="bi bi-arrow-right-circle"></i>
-                            </div>
-                        </div>
-                        <div className="card-content">
-                            <h5 className="card-title">{item.title}</h5>
-                            {showExcerpt && <p className="card-excerpt">{item.excerpt}</p>}
-                            <div className="card-meta">
-                                <span className="card-date">
-                                    <i className="bi bi-calendar3"></i> {item.date}
-                                </span>
-                                <span className="read-more">Đọc thêm →</span>
-                            </div>
-                        </div>
+    // Hàm render danh sách chương trình đề xuất
+    const renderRecommendedPrograms = () => {
+        if (loadingRecommendations) return <div className="text-center">Đang tải chương trình đề xuất...</div>;
+        if (recommendationsError) return <div className="text-center text-danger">{recommendationsError}</div>;
+        if (!token) return <div className="text-center">Vui lòng đăng nhập để xem chương trình đề xuất</div>;
+        if (!recommendedPrograms.length) return <div className="text-center">Không có chương trình đề xuất</div>;
+
+        return (
+            <>
+                {/* User Info Display */}
+                {userInfo && (
+                    <div className="user-info-banner mb-4 p-3" style={{
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        borderRadius: '15px',
+                        color: 'white',
+                        textAlign: 'center'
+                    }}>
+                        <h5 className="mb-2">
+                            <i className="bi bi-person-circle me-2"></i>
+                            Xin chào, {userInfo.name}!
+                        </h5>
+                        <p className="mb-0">
+                            <i className="bi bi-calendar-event me-2"></i>
+                            Tuổi: {userInfo.age} ({userInfo.age_group_label}) |
+                            <i className="bi bi-star-fill ms-3 me-2"></i>
+                            {recommendedPrograms.length} chương trình được đề xuất dựa trên hồ sơ của bạn
+                        </p>
                     </div>
-                </Link>
+                )}
+
+                {/* Programs Grid */}
+                <div className="row gx-4 gy-4">
+                    {recommendedPrograms.slice(0, 8).map((item) => (
+                        <div className="col-md-3" key={item.program_id}>
+                            <Link to={`/program/${item.program_id}`} className="custom-card-link" style={{ textDecoration: 'none' }}>
+                                <div className="custom-card" style={{
+                                    borderRadius: 20,
+                                    boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+                                    minHeight: 450,
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'space-between',
+                                    padding: 0,
+                                    border: item.recommendation_score >= 80 ? '2px solid #28a745' : 'none'
+                                }}>
+                                    {/* Recommendation Score Badge */}
+                                    {item.recommendation_score && (
+                                        <div style={{
+                                            position: 'absolute',
+                                            top: '10px',
+                                            right: '10px',
+                                            background: item.recommendation_score >= 80 ? '#28a745' : item.recommendation_score >= 60 ? '#ffc107' : '#6c757d',
+                                            color: 'white',
+                                            padding: '4px 8px',
+                                            borderRadius: '12px',
+                                            fontSize: '12px',
+                                            fontWeight: 'bold',
+                                            zIndex: 1
+                                        }}>
+                                            {item.recommendation_score}%
+                                        </div>
+                                    )}
+
+                                    <div style={{ height: 160, width: '100%', background: '#f7f7f7', borderTopLeftRadius: 20, borderTopRightRadius: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                                        <img
+                                            src={item.img_link || Image}
+                                            alt={item.title || 'Hình ảnh chương trình'}
+                                            style={{ maxHeight: 140, maxWidth: '90%', objectFit: 'cover', borderRadius: 12, margin: '0 auto', display: 'block' }}
+                                            onError={e => { e.target.onerror = null; e.target.src = Image; }}
+                                        />
+                                    </div>
+                                    <div style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                                        <hr className="card-divider" />
+                                        <h5 className="card-title" style={{ fontWeight: 700, fontSize: 20, marginBottom: 8, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{truncateText(item.title, 30)}</h5>
+                                        <p className="card-description" style={{ marginBottom: 8, color: '#444', fontSize: 15, minHeight: 38, overflow: 'hidden', textOverflow: 'ellipsis' }}>{truncateText(item.description, 80)}</p>
+
+                                        {/* Enhanced metadata */}
+                                        <div className="card-meta" style={{ fontSize: 14, marginBottom: 12 }}>
+                                            <p style={{ marginBottom: 4 }}>
+                                                <strong>Người tạo:</strong> {truncateText(item.creator?.name || 'Không xác định', 20)}
+                                            </p>
+                                            <p style={{ marginBottom: 4 }}>
+                                                <strong>Danh mục:</strong> {truncateText(item.category?.name || 'N/A', 25)}
+                                            </p>
+                                            <p style={{ marginBottom: 4 }}>
+                                                <strong>Nhóm tuổi:</strong> {item.age_group === 'all' ? 'Tất cả độ tuổi' :
+                                                    item.age_group === 'youth' ? 'Thanh thiếu niên (13-18)' :
+                                                        item.age_group === 'adult' ? 'Người lớn (18-65)' :
+                                                            item.age_group === 'senior' ? 'Người cao tuổi (65+)' : item.age_group}
+                                            </p>
+                                        </div>
+
+                                        {/* Program statistics */}
+                                        <div className="program-stats" style={{ fontSize: 13, color: '#6c757d', marginBottom: 8 }}>
+                                            <span className="me-3">
+                                                <i className="bi bi-people-fill me-1"></i>
+                                                {item.enrollment_count || 0} đăng ký
+                                            </span>
+                                            <span>
+                                                <i className="bi bi-file-text-fill me-1"></i>
+                                                {item.content_count || 0} nội dung
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div style={{ padding: '0 1rem 1rem 1rem', display: 'flex', alignItems: 'center', color: '#6c63ff', fontSize: 15 }}>
+                                        <i className="bi bi-calendar-event" style={{ marginRight: 6 }}></i>
+                                        <span style={{ color: '#6c63ff' }}>{item.create_at ? new Date(item.create_at).toLocaleDateString() : ''}</span>
+                                    </div>
+                                </div>
+                            </Link>
+                        </div>
+                    ))}
+                </div>
+            </>
+        );
+    };
+
+    // Hàm render danh sách blog đề xuất
+    const renderRecommendedBlogs = () => {
+        if (loadingBlogs) return <div className="text-center">Đang tải bài viết đề xuất...</div>;
+        if (blogsError) return <div className="text-center text-danger">{blogsError}</div>;
+        if (!recommendedBlogs.length) return <div className="text-center">Không có bài viết nào</div>;
+
+        return (
+            <div className="row gx-4 gy-4">
+                {recommendedBlogs.map((blog) => (
+                    <div className="col-md-4" key={blog.blog_id}>
+                        <Link to={`/blog/${blog.blog_id}`} className="text-decoration-none">
+                            <div className="blog-card" style={{
+                                borderRadius: 15,
+                                boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+                                minHeight: 350,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                overflow: 'hidden',
+                                transition: 'transform 0.3s ease, box-shadow 0.3s ease'
+                            }}>
+                                {/* Blog Image */}
+                                <div style={{ height: 180, width: '100%', background: '#f7f7f7', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                                    <img
+                                        src={blog.img_link || Image}
+                                        alt={blog.title || 'Blog image'}
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                        onError={e => { e.target.onerror = null; e.target.src = Image; }}
+                                    />
+                                </div>
+                                
+                                {/* Blog Content */}
+                                <div style={{ padding: '1.2rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                                    <h5 className="blog-title" style={{ 
+                                        fontWeight: 600, 
+                                        fontSize: 18, 
+                                        marginBottom: 8, 
+                                        color: '#333',
+                                        lineHeight: 1.4
+                                    }}>
+                                        {truncateText(blog.title, 60)}
+                                    </h5>
+                                    
+                                    <p className="blog-description" style={{ 
+                                        marginBottom: 12, 
+                                        color: '#666', 
+                                        fontSize: 14, 
+                                        lineHeight: 1.5,
+                                        flex: 1
+                                    }}>
+                                        {truncateText(blog.description, 120)}
+                                    </p>
+
+                                    {/* Blog Meta */}
+                                    <div className="blog-meta" style={{ fontSize: 13, color: '#888', marginTop: 'auto' }}>
+                                        <div className="d-flex justify-content-between align-items-center">
+                                            <span>
+                                                <i className="bi bi-person-circle me-1"></i>
+                                                {truncateText(blog.author || 'Admin', 15)}
+                                            </span>
+                                            <span>
+                                                <i className="bi bi-calendar3 me-1"></i>
+                                                {blog.created_at ? new Date(blog.created_at).toLocaleDateString('vi-VN') : ''}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </Link>
+                    </div>
+                ))}
             </div>
-        ))
-    );
+        );
+    };
 
     return (
         <div className="homepage">
@@ -312,6 +534,30 @@ const HomePage = () => {
 
 
                 {/* Recommendation Programs Section*/}
+                <section className="section mb-5">
+                    <div className="section-header-wrapper text-center mb-5">
+                        <h2 className="section-header">
+                            {userInfo ? `Chương trình đề xuất cho bạn` : 'Chương trình đề xuất cho bạn'}
+                        </h2>
+                        <p className="section-subtitle">
+                            {userInfo ?
+                                `Các chương trình phù hợp với nhóm tuổi ${userInfo.age_group_label} (${userInfo.age} tuổi) dựa trên hồ sơ của bạn` :
+                                'Các chương trình phù hợp nhất dựa trên hồ sơ của bạn'
+                            }
+                        </p>
+                    </div>
+                    {renderRecommendedPrograms()}
+                </section>
+
+
+                {/* Blog Recommendations Section */}
+                <section className="section mb-5">
+                    <div className="section-header-wrapper text-center mb-5">
+                        <h2 className="section-header">Bài viết đề xuất</h2>
+                        <p className="section-subtitle">Khám phá những bài viết hữu ích về phục hồi, phòng ngừa và sức khỏe tâm thần</p>
+                    </div>
+                    {renderRecommendedBlogs()}
+                </section>
 
 
                 {/* Community Events Section */}

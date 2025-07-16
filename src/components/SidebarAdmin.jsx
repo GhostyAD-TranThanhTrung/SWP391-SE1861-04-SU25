@@ -58,7 +58,7 @@ const SidebarAdmin = ({ isOpen }) => {
                     <Link className={userRole !== 'manager' ? 'disabled btn btn-link' : ''} to="/course-list"><FaBook className='icon' /> Khóa học</Link>
                 </li>
                 <li className={currentPath === "/blog-list" ? "active" : ""}>
-                    <Link className={userRole !== 'staff' ? 'disabled btn btn-link' : ''} to="/blog-list"><FaBlog className='icon' /> Blog</Link>
+                    <Link className={(userRole === 'staff' || userRole === 'manager') ? '' : 'disabled btn btn-link'} to="/blog-list"><FaBlog className='icon' /> Blog</Link>
                 </li>
                 <li>
                     <Link to="#" onClick={handleLogout}><FaRightFromBracket className='icon' /> Đăng xuất</Link>
