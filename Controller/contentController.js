@@ -34,12 +34,12 @@ const multer = require('multer');
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const uploadPath = path.join(__dirname, '..', 'content', 'image');
-    
+
     // Create directory if it doesn't exist
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
     }
-    
+
     cb(null, uploadPath);
   },
   filename: function (req, file, cb) {
@@ -62,7 +62,7 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-const upload = multer({ 
+const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
@@ -97,7 +97,7 @@ class ContentController {
 
         // Return relative path for frontend use
         const relativePath = `../image/${req.file.filename}`;
-        
+
         res.status(200).json({
           success: true,
           data: {
@@ -366,6 +366,11 @@ class ContentController {
 
       const savedContent = await contentRepository.save(newContent);
 
+      // Update enrollment progress for all users enrolled in this program (if content was added to a program)
+      if (program_id) {
+        await ContentController.updateEnrollmentProgressForProgram(parseInt(program_id));
+      }
+
       res.status(201).json({
         success: true,
         data: savedContent,
@@ -396,14 +401,14 @@ class ContentController {
    */
   static async createYouTubeContent(req, res) {
     try {
-      const { 
-        program_id, 
-        title, 
-        youtube_url, 
-        orders, 
-        instructor, 
-        duration, 
-        description 
+      const {
+        program_id,
+        title,
+        youtube_url,
+        orders,
+        instructor,
+        duration,
+        description
       } = req.body;
 
       // Validate required fields
@@ -463,6 +468,9 @@ class ContentController {
 
       const savedContent = await contentRepository.save(newContent);
 
+      // Update enrollment progress for all users enrolled in this program
+      await ContentController.updateEnrollmentProgressForProgram(parseInt(program_id));
+
       res.status(201).json({
         success: true,
         data: {
@@ -499,15 +507,15 @@ class ContentController {
    */
   static async createMarkdownContent(req, res) {
     try {
-      const { 
-        program_id, 
-        title, 
+      const {
+        program_id,
+        title,
         markdown_content,
         markdown_file,
         image_file,
-        orders, 
-        author, 
-        reading_time, 
+        orders,
+        author,
+        reading_time,
         difficulty,
         tags,
         description
@@ -541,7 +549,7 @@ class ContentController {
       if (markdown_content) {
         finalMarkdownContent = markdown_content;
         wordCount = markdown_content.split(/\s+/).filter(word => word.length > 0).length;
-      } 
+      }
       // Handle file-based markdown content (legacy format)
       else if (markdown_file) {
         // Validate markdown file exists
@@ -625,6 +633,9 @@ class ContentController {
 
       const savedContent = await contentRepository.save(newContent);
 
+      // Update enrollment progress for all users enrolled in this program
+      await ContentController.updateEnrollmentProgressForProgram(parseInt(program_id));
+
       res.status(201).json({
         success: true,
         data: {
@@ -658,13 +669,13 @@ class ContentController {
    */
   static async createPodcastContent(req, res) {
     try {
-      const { 
-        program_id, 
-        title, 
-        audio_url, 
-        orders, 
-        host, 
-        duration, 
+      const {
+        program_id,
+        title,
+        audio_url,
+        orders,
+        host,
+        duration,
         description,
         episode_number,
         season
@@ -726,6 +737,9 @@ class ContentController {
       });
 
       const savedContent = await contentRepository.save(newContent);
+
+      // Update enrollment progress for all users enrolled in this program
+      await ContentController.updateEnrollmentProgressForProgram(parseInt(program_id));
 
       res.status(201).json({
         success: true,
@@ -803,7 +817,7 @@ class ContentController {
       if (orders !== undefined) content.orders = orders ? parseInt(orders) : null;
       if (content_file_link !== undefined) {
         content.content_file_link = content_file_link;
-        
+
         // If updating markdown content with direct content, update metadata
         if (content.content_type === 'markdown' && (content_file_link.startsWith('#') || content_file_link.includes('\n'))) {
           try {
@@ -811,17 +825,17 @@ class ContentController {
             if (content.content_metadata_json) {
               metadata = JSON.parse(content.content_metadata_json);
             }
-            
+
             // Calculate word count for new content
             const wordCount = content_file_link.split(/\s+/).filter(word => word.length > 0).length;
             metadata.word_count = wordCount;
             metadata.content_type = 'direct';
             metadata.updated_at = new Date().toISOString();
-            
+
             // Recalculate reading time (average 200 words per minute)
             const estimatedMinutes = Math.ceil(wordCount / 200);
             metadata.reading_time = `${estimatedMinutes} min`;
-            
+
             content.content_metadata_json = JSON.stringify(metadata);
           } catch (error) {
             console.warn("Could not update metadata for direct markdown content:", error.message);
@@ -880,8 +894,16 @@ class ContentController {
         });
       }
 
+      // Store program_id before deletion for enrollment progress update
+      const programId = content.program_id;
+
       // Delete the content
       await contentRepository.remove(content);
+
+      // Update enrollment progress for all users enrolled in this program (if content was part of a program)
+      if (programId) {
+        await ContentController.updateEnrollmentProgressForProgram(programId);
+      }
 
       res.status(200).json({
         success: true,
@@ -1270,9 +1292,9 @@ class ContentController {
     }
   }
 
-    /**
-   * Get preview content by program_id - returns only Title, Type, and Order
-   */
+  /**
+ * Get preview content by program_id - returns only Title, Type, and Order
+ */
   static async getPreviewContent(req, res) {
     try {
       const { program_id } = req.params;
@@ -1370,7 +1392,7 @@ class ContentController {
       metadata.word_count = wordCount;
       metadata.content_type = 'direct';
       metadata.updated_at = new Date().toISOString();
-      
+
       // Recalculate reading time (average 200 words per minute)
       const estimatedMinutes = Math.ceil(wordCount / 200);
       metadata.reading_time = `${estimatedMinutes} min`;
@@ -1440,7 +1462,7 @@ class ContentController {
         // Analyze markdown formats
         if (content.content_type === 'markdown') {
           const fileLink = content.content_file_link;
-          
+
           if (fileLink.startsWith('http://') || fileLink.startsWith('https://')) {
             stats.markdown_formats.external_links++;
           } else if (fileLink.startsWith('#') || fileLink.includes('\n')) {
@@ -1568,6 +1590,133 @@ class ContentController {
         message: "Failed to convert markdown content",
         error: error.message
       });
+    }
+  }
+
+  /**
+   * Manually recalculate enrollment progress for a program
+   * Useful for fixing any inconsistencies in progress tracking
+   */
+  static async recalculateEnrollmentProgress(req, res) {
+    try {
+      const { programId } = req.params;
+
+      if (!programId || isNaN(parseInt(programId))) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid program ID provided"
+        });
+      }
+
+      // Check if program exists
+      const programRepository = AppDataSource.getRepository(Program);
+      const program = await programRepository.findOne({
+        where: { program_id: parseInt(programId) }
+      });
+
+      if (!program) {
+        return res.status(404).json({
+          success: false,
+          message: "Program not found"
+        });
+      }
+
+      // Update enrollment progress
+      const success = await ContentController.updateEnrollmentProgressForProgram(parseInt(programId));
+
+      if (success) {
+        res.status(200).json({
+          success: true,
+          message: `Enrollment progress recalculated successfully for program ${programId}`
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          message: "Failed to recalculate enrollment progress"
+        });
+      }
+    } catch (error) {
+      console.error("Error recalculating enrollment progress:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to recalculate enrollment progress",
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Helper method to update enrollment progress for all users enrolled in a program
+   * This method synchronizes the progress array with current content items
+   * Used when content is added or removed from a program
+   */
+  static async updateEnrollmentProgressForProgram(programId) {
+    try {
+      const Enroll = require('../src/entities/Enroll');
+      const enrollRepository = AppDataSource.getRepository(Enroll);
+      const contentRepository = AppDataSource.getRepository(Content);
+
+      // Get all current content for this program
+      const programContents = await contentRepository.find({
+        where: { program_id: parseInt(programId) },
+        order: { orders: 'ASC' }
+      });
+
+      // Get all enrollments for this program
+      const enrollments = await enrollRepository.find({
+        where: { program_id: parseInt(programId) }
+      });
+
+      console.log(`Updating progress for ${enrollments.length} enrollments in program ${programId} with ${programContents.length} content items`);
+
+      // Update each enrollment's progress array
+      for (const enrollment of enrollments) {
+        try {
+          // Parse current progress
+          let currentProgress = [];
+          try {
+            currentProgress = enrollment.progress ? JSON.parse(enrollment.progress) : [];
+          } catch (parseError) {
+            console.error('Error parsing progress JSON:', parseError);
+            currentProgress = [];
+          }
+
+          // Create a map of existing progress by content_id
+          const progressMap = new Map();
+          currentProgress.forEach(item => {
+            if (item && item.content_id) {
+              progressMap.set(item.content_id, item.complete || false);
+            }
+          });
+
+          // Create new progress array based on current content
+          const updatedProgress = programContents.map(content => ({
+            content_id: content.content_id,
+            complete: progressMap.get(content.content_id) || false
+          }));
+
+          // Update the enrollment with new progress
+          await enrollRepository.update(
+            {
+              user_id: enrollment.user_id,
+              program_id: enrollment.program_id
+            },
+            {
+              progress: JSON.stringify(updatedProgress)
+            }
+          );
+
+          console.log(`Updated progress for user ${enrollment.user_id} in program ${programId}`);
+
+        } catch (enrollmentError) {
+          console.error(`Error updating enrollment for user ${enrollment.user_id}:`, enrollmentError);
+        }
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error updating enrollment progress for program:', error);
+      return false;
     }
   }
 }

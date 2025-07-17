@@ -9,6 +9,8 @@
 const AppDataSource = require('../src/data-source');
 const User = require('../src/entities/User');
 const Profile = require('../src/entities/Profile');
+const Program = require('../src/entities/Program');
+const Flag = require('../src/entities/Flag');
 const bcrypt = require('bcryptjs');
 
 class StaffController {
@@ -21,6 +23,9 @@ class StaffController {
             const userRepository = AppDataSource.getRepository(User);
             const profileRepository = AppDataSource.getRepository(Profile);
 
+            // Check if the requesting user is an admin (from verified token)
+            const isAdmin = req.user && req.user.role && req.user.role.toLowerCase() === 'admin';
+
             // Get all staff users (admin and consultant roles)
             const staffUsers = await userRepository.find({
                 where: [
@@ -28,7 +33,9 @@ class StaffController {
                     { role: 'staff' },
                     { role: 'manager' }
                 ]
-            });            // Get profile information for each staff member
+            });
+
+            // Get profile information for each staff member
             const staffWithProfiles = await Promise.all(
                 staffUsers.map(async (user) => {
                     const profile = await profileRepository.findOne({
@@ -45,10 +52,17 @@ class StaffController {
                         }
                     }
 
-                    return {
+                    const staffData = {
                         ...user,
                         profile: profile || null
                     };
+
+                    // Include password only if the requesting user is an admin
+                    if (!isAdmin) {
+                        delete staffData.password;
+                    }
+
+                    return staffData;
                 })
             );
 
@@ -159,7 +173,7 @@ class StaffController {
             // Create new user (ERD compliant - no username field)
             const newUser = userRepository.create({
                 email,
-                password,
+                password: await bcrypt.hash(password, 10),
                 role,
                 status
                 // date_create is handled by database default
@@ -232,8 +246,20 @@ class StaffController {
     static async updateStaff(req, res) {
         try {
             const { staffId } = req.params;
+            console.log('Update staff request received for ID:', staffId);
+            console.log('Request body:', req.body);
+            
             const userRepository = AppDataSource.getRepository(User);
             const profileRepository = AppDataSource.getRepository(Profile);
+
+            // Validate staff ID
+            if (!staffId || isNaN(parseInt(staffId))) {
+                console.error('Invalid staff ID provided:', staffId);
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid staff ID provided'
+                });
+            }
 
             // Find the staff user
             const user = await userRepository.findOne({
@@ -241,14 +267,23 @@ class StaffController {
             });
 
             if (!user) {
+                console.error('Staff not found for ID:', staffId);
                 return res.status(404).json({
                     success: false,
                     message: 'Staff not found'
                 });
             }
 
+            console.log('Staff found for update:', {
+                user_id: user.user_id,
+                email: user.email,
+                role: user.role,
+                status: user.status
+            });
+
             // Verify user is staff
             if (!['admin', 'staff', 'manager'].includes(user.role.toLowerCase())) {
+                console.error('User is not a staff member. User role:', user.role);
                 return res.status(400).json({
                     success: false,
                     message: 'User is not a staff member'
@@ -270,12 +305,14 @@ class StaffController {
 
             // Update user fields if provided
             if (email !== undefined) user.email = email;
-            if (password !== undefined) user.password = password; //await bcrypt.hash(password, 10)
+            if (password !== undefined && password.trim() !== "") {
+                user.password = await bcrypt.hash(password, 10);
+            }
             if (role !== undefined) {
-                if (!['staff', 'consultant'].includes(role)) {
+                if (!['staff', 'manager', 'admin'].includes(role)) {
                     return res.status(400).json({
                         success: false,
-                        message: 'Role must be staff or manager'
+                        message: 'Role must be staff, manager, or admin'
                     });
                 }
                 user.role = role;
@@ -304,7 +341,9 @@ class StaffController {
                 }
             }
 
+            console.log('Saving user updates...');
             const updatedUser = await userRepository.save(user);
+            console.log('User updated successfully');
 
             // Update or create profile
             let updatedProfile = await profileRepository.findOne({
@@ -313,6 +352,9 @@ class StaffController {
 
             const hasProfileData = name !== undefined || bio_json !== undefined ||
                 date_of_birth !== undefined || job !== undefined;
+                
+            console.log('Has profile data:', hasProfileData);
+            console.log('Profile data:', { name, bio_json, date_of_birth, job });
 
             if (hasProfileData) {
                 // Validate bio_json if provided
@@ -342,7 +384,7 @@ class StaffController {
                     const newProfile = profileRepository.create({
                         user_id: parseInt(staffId),
                         name,
-                        bio_json: parsedBioJson,
+                        bio_json: bioJsonString,
                         date_of_birth: date_of_birth ? new Date(date_of_birth) : null,
                         job
                     });
@@ -351,6 +393,7 @@ class StaffController {
                 }
             }
 
+            console.log('Update completed successfully');
             res.status(200).json({
                 success: true,
                 data: {
@@ -361,21 +404,25 @@ class StaffController {
             });
         } catch (error) {
             console.error('Error updating staff:', error);
+            console.error('Error stack:', error.stack);
             res.status(500).json({
                 success: false,
                 message: 'Failed to update staff',
-                error: error.message
+                error: error.message,
+                details: process.env.NODE_ENV === 'development' ? error.stack : undefined
             });
         }
     }    /**
-     * DELETE /api/staff/{staffId} - Delete staff by ID
-     * Deletes both user and associated profile
+     * DELETE /api/staff/{staffId} - Delete staff by ID or set to inactive if has programs/flags
+     * Deletes both user and associated profile, or sets status to inactive if references exist
      */
     static async deleteStaff(req, res) {
         try {
             const { staffId } = req.params;
             const userRepository = AppDataSource.getRepository(User);
             const profileRepository = AppDataSource.getRepository(Profile);
+            const programRepository = AppDataSource.getRepository(Program);
+            const flagRepository = AppDataSource.getRepository(Flag);
 
             // Find the staff user
             const user = await userRepository.findOne({
@@ -387,34 +434,102 @@ class StaffController {
                     success: false,
                     message: 'Staff not found'
                 });
-            }            // Verify user is staff
-            if (!['admin', 'consultant'].includes(user.role.toLowerCase())) {
+            }
+
+            // Verify user is staff
+            if (!['admin', 'staff', 'manager'].includes(user.role.toLowerCase())) {
                 return res.status(400).json({
                     success: false,
                     message: 'User is not a staff member'
                 });
             }
 
-            // Delete profile first (if exists) due to foreign key constraint
-            const profile = await profileRepository.findOne({
-                where: { user_id: parseInt(staffId) }
+            // Check if staff has any programs or flags
+            const programs = await programRepository.find({
+                where: { creator: { user_id: parseInt(staffId) } },
+                relations: { creator: true }
             });
 
-            if (profile) {
-                await profileRepository.remove(profile);
+            const flags = await flagRepository.find({
+                where: { user: { user_id: parseInt(staffId) } },
+                relations: { user: true }
+            });
+
+            const totalReferences = programs.length + flags.length;
+
+            // Start transaction to ensure data integrity
+            const queryRunner = AppDataSource.createQueryRunner();
+            await queryRunner.connect();
+            await queryRunner.startTransaction();
+
+            try {
+                if (totalReferences > 0) {
+                    // If staff has programs or flags, set user status to inactive instead of deleting
+                    await queryRunner.manager.update(User, 
+                        { user_id: parseInt(staffId) }, 
+                        { status: "inactive" }
+                    );
+
+                    await queryRunner.commitTransaction();
+
+                    res.status(200).json({
+                        success: true,
+                        message: `Staff has ${totalReferences} reference(s) (${programs.length} programs, ${flags.length} flags). User status set to inactive instead of deletion.`,
+                        data: {
+                            staff_id: parseInt(staffId),
+                            user_id: parseInt(staffId),
+                            action: "status_changed_to_inactive",
+                            references: {
+                                programs_count: programs.length,
+                                flags_count: flags.length,
+                                total_count: totalReferences
+                            }
+                        }
+                    });
+
+                } else {
+                    // If no references, perform deletion in order: profile -> user
+                    
+                    // 1. Delete profile if exists
+                    const profile = await queryRunner.manager.findOne(Profile, {
+                        where: { user_id: parseInt(staffId) }
+                    });
+                    
+                    if (profile) {
+                        await queryRunner.manager.delete(Profile, { 
+                            user_id: parseInt(staffId) 
+                        });
+                    }
+
+                    // 2. Delete user
+                    await queryRunner.manager.delete(User, { 
+                        user_id: parseInt(staffId) 
+                    });
+
+                    await queryRunner.commitTransaction();
+
+                    res.status(200).json({
+                        success: true,
+                        message: "Staff and all related data deleted successfully",
+                        data: {
+                            staff_id: parseInt(staffId),
+                            user_id: parseInt(staffId),
+                            action: "completely_deleted",
+                            deleted_entities: {
+                                profile: profile ? true : false,
+                                user: true
+                            }
+                        }
+                    });
+                }
+
+            } catch (error) {
+                await queryRunner.rollbackTransaction();
+                throw error;
+            } finally {
+                await queryRunner.release();
             }
 
-            // Delete user
-            await userRepository.remove(user);
-
-            res.status(200).json({
-                success: true,
-                message: 'Staff deleted successfully',
-                data: {
-                    deleted_user_id: parseInt(staffId),
-                    deleted_profile: profile ? true : false
-                }
-            });
         } catch (error) {
             console.error('Error deleting staff:', error);
             res.status(500).json({

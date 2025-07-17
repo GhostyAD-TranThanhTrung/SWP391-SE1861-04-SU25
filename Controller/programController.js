@@ -8,6 +8,7 @@ const Enroll = require('../src/entities/Enroll');
 const Category = require('../src/entities/Category');
 const Survey = require('../src/entities/Survey');
 const SurveyResponse = require('../src/entities/SurveyResponse');
+const Profile = require('../src/entities/Profile');
 
 class ProgramController {
     /**
@@ -428,6 +429,8 @@ class ProgramController {
     /**
      * Get comprehensive survey analytics for a program
      * This complex function analyzes all survey responses for a program and returns detailed statistics
+     * Also includes program completion tracking based on enrollment progress data
+     * Completion logic: A participant is considered complete only if ALL progress items have complete: true
      */
     static async getProgramSurveyAnalytics(req, res) {
         try {
@@ -437,6 +440,7 @@ class ProgramController {
             const programRepository = AppDataSource.getRepository(Program);
             const surveyRepository = AppDataSource.getRepository(Survey);
             const surveyResponseRepository = AppDataSource.getRepository(SurveyResponse);
+            const enrollRepository = AppDataSource.getRepository(Enroll);
 
             // 1. Verify program exists
             const program = await programRepository.findOne({
@@ -449,6 +453,51 @@ class ProgramController {
                     message: 'Program not found'
                 });
             }
+
+            // 1.5. Get enrollment data for completion tracking
+            const enrollments = await enrollRepository.find({
+                where: { program_id: parseInt(programId) },
+                relations: ['user']
+            });
+
+            // Analyze completion status based on progress
+            let completedParticipants = 0;
+            let incompleteParticipants = 0;
+            const participantDetails = [];
+
+            enrollments.forEach(enrollment => {
+                let isCompleted = true; // Assume completed unless we find incomplete content
+                let progressArray = [];
+
+                try {
+                    progressArray = enrollment.progress ? JSON.parse(enrollment.progress) : [];
+                } catch (err) {
+                    console.error('Error parsing progress JSON:', err);
+                    progressArray = [];
+                }
+
+                // Check if any content is incomplete (complete: false)
+                if (progressArray.length > 0) {
+                    isCompleted = progressArray.every(item => item.complete === true);
+                } else {
+                    // If no progress data, consider as incomplete
+                    isCompleted = false;
+                }
+
+                if (isCompleted) {
+                    completedParticipants++;
+                } else {
+                    incompleteParticipants++;
+                }
+
+                participantDetails.push({
+                    user_id: enrollment.user_id,
+                    user_name: enrollment.user ? enrollment.user.username : 'Unknown',
+                    is_completed: isCompleted,
+                    progress_items: progressArray.length,
+                    completed_items: progressArray.filter(item => item.complete === true).length,
+                });
+            });
 
             // 2. Get all surveys for this program
             const surveys = await surveyRepository.find({
@@ -464,6 +513,14 @@ class ProgramController {
                         program_title: program.title,
                         total_surveys: 0,
                         total_responses: 0,
+                        completion_statistics: {
+                            total_participants: enrollments.length,
+                            completed_participants: completedParticipants,
+                            incomplete_participants: incompleteParticipants,
+                            completion_rate: enrollments.length > 0 ?
+                                Math.round((completedParticipants / enrollments.length) * 100) : 0,
+                            participant_details: participantDetails
+                        },
                         surveys: []
                     },
                     message: 'No surveys found for this program'
@@ -480,17 +537,17 @@ class ProgramController {
                     let questions = [];
                     let deletedQuestions = [];
                     let allQuestions = [];
-                    
+
                     try {
                         if (survey.questions_json) {
                             const parsed = JSON.parse(survey.questions_json);
                             allQuestions = Array.isArray(parsed) ? parsed : (parsed.questions || []);
-                            
+
                             // Separate active and deleted questions
-                            questions = allQuestions.filter(question => 
+                            questions = allQuestions.filter(question =>
                                 question.deleted === false || question.deleted === undefined
                             );
-                            deletedQuestions = allQuestions.filter(question => 
+                            deletedQuestions = allQuestions.filter(question =>
                                 question.deleted === true
                             );
                         } else {
@@ -577,8 +634,8 @@ class ProgramController {
 
                         questionsToAnalyze.forEach((question, questionIndex) => {
                             // Find the original index of this question in allQuestions array
-                            const originalIndex = allQuestions.findIndex(q => 
-                                q.id === question.id || 
+                            const originalIndex = allQuestions.findIndex(q =>
+                                q.id === question.id ||
                                 (q.question === question.question && q.options === question.options)
                             );
 
@@ -640,9 +697,9 @@ class ProgramController {
 
                     // Analyze active questions
                     const activeQuestionAnalytics = analyzeQuestions(questions);
-                    
+
                     // Analyze deleted questions if requested
-                    const deletedQuestionAnalytics = (show_deleted_questions === 'true' || show_deleted_questions === true) ? 
+                    const deletedQuestionAnalytics = (show_deleted_questions === 'true' || show_deleted_questions === true) ?
                         analyzeQuestions(deletedQuestions, '[DELETED] ') : {};
 
                     // 5. Compile survey analytics
@@ -676,7 +733,7 @@ class ProgramController {
                             deleted: true
                         }));
                         surveyData.deleted_responses = deletedQuestionAnalytics;
-                        
+
                         // Combine active and deleted analytics for complete view
                         surveyData.all_responses = {
                             ...activeQuestionAnalytics,
@@ -708,9 +765,17 @@ class ProgramController {
                     total_surveys: surveys.length,
                     total_responses: totalResponses,
                     show_deleted_questions: show_deleted_questions === 'true' || show_deleted_questions === true,
+                    completion_statistics: {
+                        total_participants: enrollments.length,
+                        completed_participants: completedParticipants,
+                        incomplete_participants: incompleteParticipants,
+                        completion_rate: enrollments.length > 0 ?
+                            Math.round((completedParticipants / enrollments.length) * 100) : 0,
+                        participant_details: participantDetails
+                    },
                     surveys: surveyAnalytics
                 },
-                message: 'Survey analytics retrieved successfully'
+                message: 'Survey analytics with completion statistics retrieved successfully'
             });
 
         } catch (error) {
@@ -832,6 +897,7 @@ class ProgramController {
             }
 
             const programRepository = AppDataSource.getRepository(Program);
+            const categoryRepository = AppDataSource.getRepository(Category);
 
             // Check if program exists
             const program = await programRepository.findOne({
@@ -848,26 +914,36 @@ class ProgramController {
 
             // Check if category exists if category_id is provided
             if (category_id !== undefined && category_id !== null) {
-                const categoryRepository = AppDataSource.getRepository(Category);
+                // Convert to number and validate
+                const categoryIdNum = parseInt(category_id);
+
+                if (isNaN(categoryIdNum)) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Invalid category_id: Must be a valid number'
+                    });
+                }
+
                 const category = await categoryRepository.findOne({
-                    where: { category_id: parseInt(category_id) }
+                    where: { category_id: categoryIdNum }
                 });
 
                 if (!category) {
                     return res.status(404).json({
                         success: false,
-                        message: 'Category not found'
+                        message: `Invalid category_id: Category with ID ${category_id} not found`
                     });
                 }
+                console.log('Category validation passed:', category);
             }
 
-            // Check if title already exists for other programs (using proper TypeORM syntax)
-            if (title && title !== program.title) {
+            // Check if title already exists for other programs
+            if (title && title.trim() !== '' && title !== program.title) {
                 const { Not } = require('typeorm');
                 const existingProgram = await programRepository.findOne({
                     where: {
-                        title: title,
-                        program_id: Not(parseInt(id)) // Proper TypeORM syntax for "not equal"
+                        title: title.trim(),
+                        program_id: Not(parseInt(id))
                     }
                 });
 
@@ -879,26 +955,108 @@ class ProgramController {
                 }
             }
 
-            // Update program fields only if they are provided
-            if (title !== undefined) program.title = title;
-            if (description !== undefined) program.description = description;
-            if (age_group !== undefined) program.age_group = age_group;
-            if (category_id !== undefined && category_id !== null) program.category_id = parseInt(category_id);
-            if (status !== undefined) program.status = status;
-            if (img_link !== undefined) program.img_link = img_link;
-
-            console.log('Updating program with data:', {
-                program_id: program.program_id,
+            // Store original values for logging
+            const originalData = {
                 title: program.title,
+                description: program.description,
+                age_group: program.age_group,
                 category_id: program.category_id,
-                status: program.status
+                status: program.status,
+                img_link: program.img_link
+            };
+
+            // Update program fields only if they are provided
+            if (title !== undefined && title.trim() !== '') {
+                program.title = title.trim();
+            }
+            if (description !== undefined) {
+                program.description = description;
+            }
+            if (age_group !== undefined) {
+                program.age_group = age_group;
+            }
+            // Fixed category update logic - category_id is required field, so handle it properly
+            if (category_id !== undefined && category_id !== null) {
+                const categoryIdNum = parseInt(category_id);
+                program.category_id = categoryIdNum;
+                console.log(`Updating category_id from ${originalData.category_id} to ${program.category_id}`);
+            }
+            if (status !== undefined) {
+                program.status = status;
+            }
+            if (img_link !== undefined) {
+                program.img_link = img_link;
+            }
+
+            console.log('About to update program with data:', {
+                program_id: program.program_id,
+                original: originalData,
+                updated: {
+                    title: program.title,
+                    description: program.description,
+                    age_group: program.age_group,
+                    category_id: program.category_id,
+                    status: program.status,
+                    img_link: program.img_link
+                }
             });
 
-            const updatedProgram = await programRepository.save(program);
+            // Use only the update method for more reliable partial updates
+            const updateData = {};
+            if (title !== undefined && title.trim() !== '') {
+                updateData.title = title.trim();
+            }
+            if (description !== undefined) {
+                updateData.description = description;
+            }
+            if (age_group !== undefined) {
+                updateData.age_group = age_group;
+            }
+            if (category_id !== undefined && category_id !== null) {
+                updateData.category_id = parseInt(category_id);
+            }
+            if (status !== undefined) {
+                updateData.status = status;
+            }
+            if (img_link !== undefined) {
+                updateData.img_link = img_link;
+            }
 
-            // Fetch updated program with relations
+            console.log('Update data to be applied:', updateData);
+
+            // Check if we actually have data to update
+            if (Object.keys(updateData).length === 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'No valid fields provided for update'
+                });
+            }
+
+            // Use update method for direct database update
+            const updateResult = await programRepository.update(
+                { program_id: parseInt(id) },
+                updateData
+            );
+
+            console.log('Update result:', updateResult);
+
+            // Additional check: Try direct SQL update for category_id if it was provided
+            if (category_id !== undefined && category_id !== null) {
+                console.log('Performing direct SQL update for category_id...');
+                try {
+                    const directUpdateResult = await AppDataSource.query(
+                        'UPDATE Programs SET category_id = ? WHERE program_id = @0',
+                        [parseInt(category_id), parseInt(id)]
+                    );
+                    console.log('Direct SQL update result:', directUpdateResult);
+                } catch (sqlError) {
+                    console.error('Direct SQL update failed:', sqlError);
+                }
+            }
+
+            // Fetch updated program with relations to confirm the update
             const programWithRelations = await programRepository.findOne({
-                where: { program_id: updatedProgram.program_id },
+                where: { program_id: parseInt(id) },
                 relations: ['creator', 'category', 'enrollments', 'contents', 'surveys']
             });
 
@@ -978,6 +1136,328 @@ class ProgramController {
             res.status(500).json({
                 success: false,
                 message: 'Failed to delete program',
+                error: error.message
+            });
+        }
+    }
+
+    /**
+     * Get program recommendations based on user's date of birth from profile
+     * Age groups: Youth (13-18), Adult (18-65), Senior (65+)
+     * Requires authentication token to get user_id
+     * Uses raw SQL for better performance with fallback to ORM
+     */
+    static async getProgramRecommendationsByAge(req, res) {
+        try {
+            // Get user ID from JWT token (set by verifyToken middleware)
+            const userId = req.user.userId;
+
+            // Get user's profile - try raw SQL first, fall back to ORM if needed
+            let userProfile;
+            try {
+                const userProfileQuery = `
+                    SELECT 
+                        pr.user_id,
+                        pr.name,
+                        pr.date_of_birth
+                    FROM Profile pr
+                    WHERE pr.user_id = ?
+                `;
+                const userProfileResult = await AppDataSource.query(userProfileQuery, [parseInt(userId)]);
+
+                if (!userProfileResult || userProfileResult.length === 0) {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'User profile not found. Please complete your profile first.'
+                    });
+                }
+                userProfile = userProfileResult[0];
+            } catch (sqlError) {
+                console.log('Raw SQL failed, falling back to ORM:', sqlError.message);
+                // Fallback to ORM
+                const profileRepository = AppDataSource.getRepository(Profile);
+                const userProfileORM = await profileRepository.findOne({
+                    where: { user_id: parseInt(userId) }
+                });
+
+                if (!userProfileORM) {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'User profile not found. Please complete your profile first.'
+                    });
+                }
+                userProfile = userProfileORM;
+            }
+
+            if (!userProfile.date_of_birth) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Date of birth not found in profile. Please update your profile.'
+                });
+            }
+
+            // Calculate age from profile date of birth
+            const birthDate = new Date(userProfile.date_of_birth);
+            const today = new Date();
+
+            // Debug logging for date parsing
+            console.log('Date parsing debug:', {
+                raw_date_of_birth: userProfile.date_of_birth,
+                parsed_birth_date: birthDate,
+                today: today,
+                birth_date_valid: !isNaN(birthDate.getTime())
+            });
+
+            // Validate that date was parsed correctly
+            if (isNaN(birthDate.getTime())) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid date format in profile. Expected format: YYYY-MM-DD (e.g., 1985-05-15)'
+                });
+            }
+
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+
+
+            console.log('Age calculation debug:', {
+                birth_year: birthDate.getFullYear(),
+                current_year: today.getFullYear(),
+                month_diff: monthDiff,
+                calculated_age: age
+            });
+
+            // Validate age
+            if (age < 0 || age > 120) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid date of birth in profile'
+                });
+            }
+
+            // Determine age group based on age
+            let ageGroup;
+            let ageGroupLabel;
+
+            if (age >= 13 && age <= 18) {
+                ageGroup = 'youth';
+                ageGroupLabel = 'Youth (13-18)';
+            } else if (age > 18 && age <= 65) {
+                ageGroup = 'adult';
+                ageGroupLabel = 'Adult (18-65)';
+            } else if (age > 65) {
+                ageGroup = 'senior';
+                ageGroupLabel = 'Senior (65+)';
+            } else {
+                // For children under 13, we might not have specific programs
+                return res.status(200).json({
+                    success: true,
+                    data: {
+                        user_info: {
+                            user_id: userId,
+                            name: userProfile.name,
+                            age: age,
+                            age_group: 'child',
+                            age_group_label: 'Child (Under 13)',
+                            date_of_birth: userProfile.date_of_birth
+                        },
+                        recommended_programs: [],
+                        total_recommended: 0
+                    },
+                    message: 'No specific programs available for children under 13'
+                });
+            }
+
+            // Get programs - try raw SQL first, fall back to ORM if needed
+            let processedPrograms;
+            try {
+                const programsQuery = `
+                    SELECT 
+                        p.program_id,
+                        p.title,
+                        p.description,
+                        p.age_group,
+                        p.status,
+                        p.img_link,
+                        p.create_at,
+                        p.create_by,
+                        p.category_id,
+                        c.name as category_name,
+                        c.description as category_description,
+                        pr.name as creator_name,
+                        COUNT(DISTINCT e.enroll_id) as enrollment_count,
+                        COUNT(DISTINCT cont.content_id) as content_count
+                    FROM Programs p
+                    LEFT JOIN Categories c ON p.category_id = c.category_id
+                    LEFT JOIN Profiles pr ON p.create_by = pr.user_id
+                    LEFT JOIN Enrolls e ON p.program_id = e.program_id
+                    LEFT JOIN Contents cont ON p.program_id = cont.program_id
+                    WHERE p.status = 'active' 
+                    AND (p.age_group = ? OR p.age_group = 'all')
+                    GROUP BY p.program_id, p.title, p.description, p.age_group, p.status, 
+                             p.img_link, p.create_at, p.create_by, p.category_id,
+                             c.name, c.description, pr.name
+                    ORDER BY p.create_at DESC
+                `;
+
+                const programsResult = await AppDataSource.query(programsQuery, [ageGroup]);
+
+                // Process programs and add recommendation scores
+                processedPrograms = programsResult.map(program => {
+                    // Calculate recommendation score
+                    let score = 50; // Base score
+
+                    // Boost score based on enrollment count (popularity)
+                    const enrollmentCount = parseInt(program.enrollment_count) || 0;
+                    score += Math.min(enrollmentCount * 2, 20); // Max 20 points for popularity
+
+                    // Boost score based on content availability
+                    const contentCount = parseInt(program.content_count) || 0;
+                    score += Math.min(contentCount * 3, 15); // Max 15 points for content richness
+
+                    // Boost score for recent programs
+                    if (program.create_at) {
+                        const daysSinceCreation = (new Date() - new Date(program.create_at)) / (1000 * 60 * 60 * 24);
+                        if (daysSinceCreation <= 30) {
+                            score += 10; // New programs get boost
+                        } else if (daysSinceCreation <= 90) {
+                            score += 5; // Recent programs get smaller boost
+                        }
+                    }
+
+                    // Age-specific scoring adjustments
+                    if (program.age_group === 'youth' && age >= 13 && age <= 18) {
+                        score += 15; // Perfect age match for youth
+                    } else if (program.age_group === 'adult' && age > 18 && age <= 65) {
+                        score += 15; // Perfect age match for adult
+                    } else if (program.age_group === 'senior' && age > 65) {
+                        score += 15; // Perfect age match for senior
+                    } else if (program.age_group === 'all') {
+                        score += 5; // All ages programs get smaller boost
+                    }
+
+                    const recommendationScore = Math.min(score, 100); // Cap at 100
+
+                    return {
+                        program_id: program.program_id,
+                        title: program.title,
+                        description: program.description,
+                        age_group: program.age_group,
+                        status: program.status,
+                        img_link: program.img_link,
+                        create_at: program.create_at,
+                        category: {
+                            category_id: program.category_id,
+                            name: program.category_name,
+                            description: program.category_description
+                        },
+                        creator: {
+                            name: program.creator_name
+                        },
+                        enrollment_count: enrollmentCount,
+                        content_count: contentCount,
+                        recommendation_score: recommendationScore
+                    };
+                });
+            } catch (sqlError) {
+                console.log('Raw SQL failed, falling back to ORM for programs:', sqlError.message);
+                // Fallback to ORM approach
+                const programRepository = AppDataSource.getRepository(Program);
+                const recommendedPrograms = await programRepository.find({
+                    where: [
+                        { age_group: ageGroup, status: 'active' },
+                        { age_group: 'all', status: 'active' }
+                    ],
+                    relations: ['creator', 'category', 'enrollments', 'contents'],
+                    order: {
+                        create_at: 'DESC'
+                    }
+                });
+
+                // Process ORM results
+                processedPrograms = recommendedPrograms.map(program => {
+                    // Calculate recommendation score
+                    let score = 50; // Base score
+
+                    // Boost score based on enrollment count (popularity)
+                    const enrollmentCount = program.enrollments ? program.enrollments.length : 0;
+                    score += Math.min(enrollmentCount * 2, 20); // Max 20 points for popularity
+
+                    // Boost score based on content availability
+                    const contentCount = program.contents ? program.contents.length : 0;
+                    score += Math.min(contentCount * 3, 15); // Max 15 points for content richness
+
+                    // Boost score for recent programs
+                    if (program.create_at) {
+                        const daysSinceCreation = (new Date() - new Date(program.create_at)) / (1000 * 60 * 60 * 24);
+                        if (daysSinceCreation <= 30) {
+                            score += 10; // New programs get boost
+                        } else if (daysSinceCreation <= 90) {
+                            score += 5; // Recent programs get smaller boost
+                        }
+                    }
+
+                    // Age-specific scoring adjustments
+                    if (program.age_group === 'youth' && age >= 13 && age <= 18) {
+                        score += 15; // Perfect age match for youth
+                    } else if (program.age_group === 'adult' && age > 18 && age <= 65) {
+                        score += 15; // Perfect age match for adult
+                    } else if (program.age_group === 'senior' && age > 65) {
+                        score += 15; // Perfect age match for senior
+                    } else if (program.age_group === 'all') {
+                        score += 5; // All ages programs get smaller boost
+                    }
+
+                    const recommendationScore = Math.min(score, 100); // Cap at 100
+
+                    return {
+                        program_id: program.program_id,
+                        title: program.title,
+                        description: program.description,
+                        age_group: program.age_group,
+                        status: program.status,
+                        img_link: program.img_link,
+                        create_at: program.create_at,
+                        category: program.category ? {
+                            category_id: program.category.category_id,
+                            name: program.category.name,
+                            description: program.category.description
+                        } : null,
+                        creator: program.creator ? {
+                            name: program.creator.name || program.creator.username
+                        } : null,
+                        enrollment_count: enrollmentCount,
+                        content_count: contentCount,
+                        recommendation_score: recommendationScore
+                    };
+                });
+            }
+
+            // Sort by recommendation score (highest first)
+            processedPrograms.sort((a, b) => b.recommendation_score - a.recommendation_score);
+
+            res.status(200).json({
+                success: true,
+                data: {
+                    user_info: {
+                        user_id: userId,
+                        name: userProfile.name,
+                        age: age,
+                        age_group: ageGroup,
+                        age_group_label: ageGroupLabel,
+                        date_of_birth: userProfile.date_of_birth
+                    },
+                    recommended_programs: processedPrograms,
+                    total_recommended: processedPrograms.length
+                },
+                message: `Found ${processedPrograms.length} recommended programs for ${ageGroupLabel}`
+            });
+
+        } catch (error) {
+            console.error('Error getting program recommendations:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to get program recommendations',
                 error: error.message
             });
         }

@@ -10,6 +10,9 @@ const AppDataSource = require('../src/data-source');
 const User = require('../src/entities/User');
 const Profile = require('../src/entities/Profile');
 const Assessment = require('../src/entities/Assessment');
+const Blog = require('../src/entities/Blog');
+const BookingSession = require('../src/entities/BookingSession');
+const SurveyResponse = require('../src/entities/SurveyResponse');
 const bcrypt = require('bcryptjs');
 
 class MemberController {
@@ -21,6 +24,9 @@ class MemberController {
         try {
             const userRepository = AppDataSource.getRepository(User);
             const profileRepository = AppDataSource.getRepository(Profile);
+
+            // Check if the requesting user is an admin (from verified token)
+            const isAdmin = req.user && req.user.role && req.user.role.toLowerCase() === 'admin';
 
             // Get all member users
             const memberUsers = await userRepository.find({
@@ -44,10 +50,17 @@ class MemberController {
                         }
                     }
 
-                    return {
+                    const memberData = {
                         ...user,
                         profile: profile || null
                     };
+
+                    // Include password only if the requesting user is an admin
+                    if (!isAdmin) {
+                        delete memberData.password;
+                    }
+
+                    return memberData;
                 })
             );
 
@@ -454,18 +467,35 @@ class MemberController {
             });
         }
     }    /**
-     * DELETE /api/members/{memberId} - Delete member by ID
-     * Deletes both user and associated profile
+     * DELETE /api/members/{memberId} - Delete member by ID or set to inactive if has references
+     * Deletes both user and associated profile, or sets status to inactive if references exist
      */
     static async deleteMember(req, res) {
         try {
             const { memberId } = req.params;
+            console.log('Delete member request received for ID:', memberId);
+            
+            // Validate member ID
+            if (!memberId || isNaN(parseInt(memberId))) {
+                console.error('Invalid member ID provided:', memberId);
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid member ID provided'
+                });
+            }
+
             const userRepository = AppDataSource.getRepository(User);
             const profileRepository = AppDataSource.getRepository(Profile);
+            const assessmentRepository = AppDataSource.getRepository(Assessment);
+            const blogRepository = AppDataSource.getRepository(Blog);
+            const bookingSessionRepository = AppDataSource.getRepository(BookingSession);
+            const surveyResponseRepository = AppDataSource.getRepository(SurveyResponse);
+
+            const memberIdInt = parseInt(memberId);
 
             // Find the member user
             const user = await userRepository.findOne({
-                where: { user_id: parseInt(memberId) }
+                where: { user_id: memberIdInt }
             });
 
             if (!user) {
@@ -477,38 +507,138 @@ class MemberController {
 
             // Verify user is member
             if (user.role.toLowerCase() !== 'member') {
+                console.error('User is not a member. User role:', user.role);
                 return res.status(400).json({
                     success: false,
                     message: 'User is not a member'
                 });
             }
 
-            // Delete profile first (if exists) due to foreign key constraint
-            const profile = await profileRepository.findOne({
-                where: { user_id: parseInt(memberId) }
+            console.log('Member found for deletion:', {
+                user_id: user.user_id,
+                email: user.email,
+                role: user.role,
+                status: user.status
             });
 
-            if (profile) {
-                await profileRepository.remove(profile);
+            // Check if member has any blogs, booking sessions, survey responses, or assessments
+            // Use simple where clauses instead of complex relations to avoid relation errors
+            let blogs = [];
+            let bookingSessions = [];
+            let surveyResponses = [];
+            let assessments = [];
+
+            try {
+                blogs = await blogRepository.find({
+                    where: { author_id: memberIdInt }
+                });
+            } catch (error) {
+                console.warn('Error checking blogs:', error.message);
+                blogs = [];
             }
 
-            // Delete user
-            await userRepository.remove(user);
+            try {
+                bookingSessions = await bookingSessionRepository.find({
+                    where: { member_id: memberIdInt }
+                });
+            } catch (error) {
+                console.warn('Error checking booking sessions:', error.message);
+                bookingSessions = [];
+            }
 
-            res.status(200).json({
-                success: true,
-                message: 'Member deleted successfully',
-                data: {
-                    deleted_user_id: parseInt(memberId),
-                    deleted_profile: profile ? true : false
+            try {
+                surveyResponses = await surveyResponseRepository.find({
+                    where: { user_id: memberIdInt }
+                });
+            } catch (error) {
+                console.warn('Error checking survey responses:', error.message);
+                surveyResponses = [];
+            }
+
+            try {
+                assessments = await assessmentRepository.find({
+                    where: { user_id: memberIdInt }
+                });
+            } catch (error) {
+                console.warn('Error checking assessments:', error.message);
+                assessments = [];
+            }
+
+            const totalReferences = blogs.length + bookingSessions.length + surveyResponses.length + assessments.length;
+
+            if (totalReferences > 0) {
+                // If member has references, set user status to inactive instead of deleting
+                try {
+                    await userRepository.update(
+                        { user_id: memberIdInt }, 
+                        { status: "inactive" }
+                    );
+
+                    res.status(200).json({
+                        success: true,
+                        message: `Member has ${totalReferences} reference(s) (${blogs.length} blogs, ${bookingSessions.length} booking sessions, ${surveyResponses.length} survey responses, ${assessments.length} assessments). User status set to inactive instead of deletion.`,
+                        data: {
+                            member_id: memberIdInt,
+                            user_id: memberIdInt,
+                            action: "status_changed_to_inactive",
+                            references: {
+                                blogs_count: blogs.length,
+                                booking_sessions_count: bookingSessions.length,
+                                survey_responses_count: surveyResponses.length,
+                                assessments_count: assessments.length,
+                                total_count: totalReferences
+                            }
+                        }
+                    });
+                } catch (updateError) {
+                    console.error('Error updating user status:', updateError);
+                    throw new Error('Failed to update user status to inactive');
                 }
-            });
+
+            } else {
+                // If no references, perform deletion in order: profile -> user
+                try {
+                    // 1. Delete profile if exists
+                    const profile = await profileRepository.findOne({
+                        where: { user_id: memberIdInt }
+                    });
+                    
+                    if (profile) {
+                        await profileRepository.delete({ user_id: memberIdInt });
+                    }
+
+                    // 2. Delete user
+                    await userRepository.delete({ user_id: memberIdInt });
+
+                    res.status(200).json({
+                        success: true,
+                        message: "Member and all related data deleted successfully",
+                        data: {
+                            member_id: memberIdInt,
+                            user_id: memberIdInt,
+                            action: "completely_deleted",
+                            deleted_entities: {
+                                profile: profile ? true : false,
+                                user: true
+                            }
+                        }
+                    });
+                } catch (deleteError) {
+                    console.error('Error deleting member data:', deleteError);
+                    throw new Error('Failed to delete member data');
+                }
+            }
+
         } catch (error) {
             console.error('Error deleting member:', error);
+            console.error('Error stack:', error.stack);
+            
+            // Send more detailed error information for debugging
             res.status(500).json({
                 success: false,
                 message: 'Failed to delete member',
-                error: error.message
+                error: error.message,
+                details: process.env.NODE_ENV === 'development' ? error.stack : undefined
             });
         }
     }
