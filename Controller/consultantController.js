@@ -61,7 +61,7 @@ class ConsultantController {
         return {
           // Consultant table fields
           id_consultant: consultant.id_consultant,
-          cost: consultant.cost,
+          google_meet_link: consultant.google_meet_link,
           certification: consultant.certification,
           speciality: consultant.speciality,
 
@@ -150,7 +150,7 @@ class ConsultantController {
       const consultantDetail = {
         // Consultant table fields
         id_consultant: consultant.id_consultant,
-        cost: consultant.cost,
+        google_meet_link: consultant.google_meet_link,
         certification: consultant.certification,
         speciality: consultant.speciality,
 
@@ -219,7 +219,7 @@ class ConsultantController {
       const consultantData = {
         // Consultant table fields
         id_consultant: consultant.id_consultant,
-        cost: consultant.cost,
+        google_meet_link: consultant.google_meet_link,
         certification: consultant.certification,
         speciality: consultant.speciality,
 
@@ -265,7 +265,7 @@ class ConsultantController {
         status,
         email,
         // Consultant table fields
-        cost,
+        google_meet_link,
         certification,
         speciality,
         // Profile table fields
@@ -318,7 +318,7 @@ class ConsultantController {
         // Create consultant profile
         const newConsultant = queryRunner.manager.create(Consultant, {
           user_id: savedUser.user_id,
-          cost: cost || null,
+          google_meet_link: google_meet_link || null,
           certification: certification || null,
           speciality: speciality || null,
         });
@@ -345,7 +345,7 @@ class ConsultantController {
         const completeConsultantData = {
           // Consultant table fields
           id_consultant: savedConsultant.id_consultant,
-          cost: savedConsultant.cost,
+          google_meet_link: savedConsultant.google_meet_link,
           certification: savedConsultant.certification,
           speciality: savedConsultant.speciality,
 
@@ -397,7 +397,7 @@ class ConsultantController {
         status,
         email,
         // Consultant table fields
-        cost,
+        google_meet_link,
         certification,
         speciality,
         // Profile table fields
@@ -431,7 +431,7 @@ class ConsultantController {
 
       try {
         // Update consultant fields
-        if (cost !== undefined) consultant.cost = cost;
+        if (google_meet_link !== undefined) consultant.google_meet_link = google_meet_link;
         if (certification !== undefined)
           consultant.certification = certification;
         if (speciality !== undefined) consultant.speciality = speciality;
@@ -489,7 +489,7 @@ class ConsultantController {
         const completeUpdatedData = {
           // Consultant table fields
           id_consultant: updatedConsultant.id_consultant,
-          cost: updatedConsultant.cost,
+          google_meet_link: updatedConsultant.google_meet_link,
           certification: updatedConsultant.certification,
           speciality: updatedConsultant.speciality,
 
@@ -564,7 +564,7 @@ class ConsultantController {
         return {
           // Consultant table fields
           id_consultant: consultant.id_consultant,
-          cost: consultant.cost,
+          google_meet_link: consultant.google_meet_link,
           certification: consultant.certification,
           speciality: consultant.speciality,
 

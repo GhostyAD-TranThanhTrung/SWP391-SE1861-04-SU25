@@ -175,10 +175,9 @@ class BookingSessionController {
             const startTime = getSlot[0].start_time.toTimeString().split(' ')[0]; // Gets "01:00:00"
             const endTime = getSlot[0].end_time.toTimeString().split(' ')[0]; // Gets "02:00:00"
 
-
             const startDateWithTime = `${booking_date}T${startTime}`;
             const endDateWithTime = `${booking_date}T${endTime}`;
-            const google_meet_link = null;
+            
             if (getSlot.length === 0) {
                 console.log('Slot not found:', slot_id);
                 return res.status(404).json({
@@ -188,6 +187,22 @@ class BookingSessionController {
                     message: 'Khung giờ không tồn tại'
                 });
             }
+
+            // Get consultant's google meet link
+            const getConsultant = await AppDataSource.query('SELECT google_meet_link FROM Consultant WHERE id_consultant = @0', [consultant_id]);
+            let google_meet_link = null;
+            
+            if (getConsultant.length === 0) {
+                console.log('Consultant not found:', consultant_id);
+                return res.status(404).json({
+                    success: false,
+                    data: [],
+                    count: 0,
+                    message: 'Chuyên gia không tồn tại'
+                });
+            }
+            
+            google_meet_link = getConsultant[0].google_meet_link;
 
 
             console.log('Parsed input data:', {

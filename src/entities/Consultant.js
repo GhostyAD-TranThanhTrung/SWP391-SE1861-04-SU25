@@ -18,10 +18,9 @@ const Consultant = new EntitySchema({
       nullable: false,
       unique: true,
     },
-    cost: {
-      type: "decimal",
-      precision: 10,
-      scale: 2,
+    google_meet_link: {
+      type: "nvarchar",
+      length: "MAX",
       nullable: true,
     },
     certification: {

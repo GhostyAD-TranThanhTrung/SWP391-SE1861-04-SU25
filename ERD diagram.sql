@@ -33,7 +33,7 @@ CREATE TABLE Users (
 CREATE TABLE Consultant (
   id_consultant INT IDENTITY(1,1) PRIMARY KEY,
   user_id INT NOT NULL UNIQUE,
-  cost DECIMAL(10,2),
+  google_meet_link NVARCHAR(MAX),
   certification NVARCHAR(MAX),
   speciality NVARCHAR(MAX),
   FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
