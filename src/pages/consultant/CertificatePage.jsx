@@ -26,7 +26,7 @@ const CertificatePage = () => {
     bio: "",
     education: "",
     date_of_birth: "",
-    cost: "",
+    google_meet_link: "",
     certification: "",
     speciality: "",
     job: "",
@@ -38,7 +38,7 @@ const CertificatePage = () => {
     bio: "",
     education: "",
     date_of_birth: "",
-    cost: "",
+    google_meet_link: "",
     certification: "",
     speciality: "",
     job: "",
@@ -125,7 +125,7 @@ const CertificatePage = () => {
           bio: bio_json.bio || "",
           education: bio_json.education || "",
           date_of_birth: profile.date_of_birth?.slice(0, 10) || "",
-          cost: profile.cost || "",
+          google_meet_link: profile.google_meet_link || "",
           certification: profile.certification || "",
           speciality: profile.speciality || "",
           job: profile.job || "",
@@ -154,7 +154,7 @@ const CertificatePage = () => {
       bio: consultantProfile.bio || "",
       education: consultantProfile.education || "",
       date_of_birth: consultantProfile.date_of_birth || "",
-      cost: consultantProfile.cost || "",
+      google_meet_link: consultantProfile.google_meet_link || "",
       certification: consultantProfile.certification || "",
       speciality: consultantProfile.speciality || "",
       job: consultantProfile.job || "",
@@ -194,7 +194,7 @@ const CertificatePage = () => {
         date_of_birth: editData.date_of_birth,
         job: editData.job,
         // Consultant fields
-        cost: parseFloat(editData.cost) || null,
+        google_meet_link: editData.google_meet_link || null,
         certification: editData.certification,
         speciality: editData.speciality,
       };
@@ -259,9 +259,9 @@ const CertificatePage = () => {
                   </p>
                 </div>
                 <div className="col-md-6 mb-3">
-                  <label className="form-label fw-bold">Chi phí (VNĐ):</label>
+                  <label className="form-label fw-bold">Google Meet Link:</label>
                   <p className="form-control-plaintext">
-                    {consultantProfile.cost ? `${Number(consultantProfile.cost).toLocaleString('vi-VN')} VNĐ` : "Chưa cập nhật"}
+                    {consultantProfile.google_meet_link ? "Đã thiết lập" : "Chưa cập nhật"}
                   </p>
                 </div>
                 <div className="col-md-6 mb-3">
@@ -386,17 +386,15 @@ const CertificatePage = () => {
                       />
                     </div>
                     <div className="col-md-6 mb-3">
-                      <label htmlFor="cost" className="form-label">Chi phí (VNĐ)</label>
+                      <label htmlFor="google_meet_link" className="form-label">Google Meet Link</label>
                       <input
-                        type="number"
+                        type="text"
                         className="form-control"
-                        id="cost"
-                        name="cost"
-                        value={editData.cost}
+                        id="google_meet_link"
+                        name="google_meet_link"
+                        value={editData.google_meet_link}
                         onChange={handleEditChange}
-                        placeholder="Nhập chi phí tư vấn"
-                        min="0"
-                        step="10000000"
+                        placeholder="https://meet.google.com/xxx-xxxx-xxx"
                       />
                     </div>
                     <div className="col-md-6 mb-3">

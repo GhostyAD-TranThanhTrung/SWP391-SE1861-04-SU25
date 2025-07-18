@@ -408,292 +408,215 @@ const DetailCoursePage = () => {
 
     return (
         <div className="detailcourse-container">
-            {/* Header với breadcrumb */}
-            <div className="detailcourse-header">
-                <div className="breadcrumb">
-                    <Link to="/" className="breadcrumb-item">Trang chủ</Link>
-                    <span className="breadcrumb-separator">/</span>
-                    <Link to="/courses" className="breadcrumb-item">Khóa học</Link>
-                    <span className="breadcrumb-separator">/</span>
-                    <span className="breadcrumb-current">{program.title}</span>
-                </div>
-            </div>
-
-            {/* Main content */}
-            <div className="detailcourse-main">
-                {/* Left column - Image */}
-                <div className="detailcourse-left">
-                    <div className="detailcourse-img-container">
+            {/* Course Overview Section */}
+            <div className="course-overview-section">
+                <div className="course-overview-left">
+                    <div className="course-image-container">
                         <img
                             src={program.img_link || DefaultImage}
                             alt={program.title}
-                            className="detailcourse-img"
+                            className="course-image"
                             onError={e => { e.target.onerror = null; e.target.src = DefaultImage; }}
                         />
-                        <div className="img-overlay">
-                            <div className="overlay-content">
-                                <span className="course-badge">Khóa học</span>
-                            </div>
-                        </div>
                     </div>
                 </div>
-
-                {/* Right column - Info */}
-                <div className="detailcourse-right">
-                    <div className="course-header">
-                        <h1 className="detailcourse-title">{program.title}</h1>
+                <div className="course-overview-right">
+                    <div className="course-info">
+                        <h1 className="course-name">{program.title}</h1>
                         <div className="course-meta">
                             <div className="meta-item">
-                                <span className="meta-icon"></span>
                                 <span className="meta-label">Người tạo:</span>
                                 <span className="meta-value">{program.creator?.name || program.creator?.email || 'Không rõ'}</span>
                             </div>
                             <div className="meta-item">
-                                <span className="meta-icon"></span>
                                 <span className="meta-label">Nhóm tuổi:</span>
                                 <span className="meta-value">{program.age_group || 'Không rõ'}</span>
                             </div>
                             <div className="meta-item">
-                                <span className="meta-icon">📅</span>
                                 <span className="meta-label">Ngày tạo:</span>
                                 <span className="meta-value">{new Date(program.create_at).toLocaleDateString('vi-VN')}</span>
                             </div>
                         </div>
-                    </div>
-
-                    <div className="course-description">
-                        <h3>Mô tả khóa học</h3>
-                        <p>{program.description}</p>
-                    </div>
-
-                    {/* Enroll/Status section */}
-                    <div className="enroll-section">
-                        <div className="enroll-card">
-                            {checkingEnrollment ? (
-                                <div className="enrollment-checking">
-                                    <div className="loading-spinner"></div>
-                                    <p>Đang kiểm tra trạng thái đăng ký...</p>
-                                </div>
-                            ) : isEnrolled ? (
-                                <div className="enrolled-info">
-                                    <div className="enrolled-status">
-                                        {isCompleted ? (
-                                            <>
-                                                <span className="completed-icon"></span>
-                                                <h3>Chúc mừng! Bạn đã hoàn thành khóa học</h3>
-                                                <p>Bạn đã hoàn thành tất cả nội dung của khóa học này. Chúc mừng bạn!</p>
-                                                {enrollmentData?.complete_at && (
-                                                    <p className="completion-date">
-                                                        Hoàn thành vào: {new Date(enrollmentData.complete_at).toLocaleDateString('vi-VN')}
-                                                    </p>
-                                                )}
-                                            </>
-                                        ) : (
-                                            <>
-                                                <span className="enrolled-icon"></span>
-                                                <h3>Bạn đã đăng ký khóa học này</h3>
-                                                <p>Bạn có thể xem tất cả nội dung khóa học bên dưới. Chúc bạn học tập hiệu quả!</p>
-                                            </>
-                                        )}
-                                    </div>
-
-                                    {/* Progress Bar */}
-                                    <div className="progress-section">
-                                        <div className="progress-header">
-                                            <h4>Tiến độ học tập</h4>
-                                            <span className="progress-percentage">{Math.round(progressPercentage)}%</span>
-                                        </div>
-                                        <div className="progress-bar-container">
-                                            <div className="progress-bar">
-                                                <div
-                                                    className="progress-fill"
-                                                    style={{ width: `${progressPercentage}%` }}
-                                                ></div>
-                                            </div>
-                                        </div>
-                                        {enrollmentData?.progress && (
-                                            <div className="progress-details">
-                                                <span className="progress-text">
-                                                    {enrollmentData.progress.filter(item => item.complete).length} / {enrollmentData.progress.length} nội dung đã hoàn thành
-                                                </span>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Survey Button */}
-                                    <div className="survey-section">
-                                        {!checkingSurveyStatus && surveysChecked && (
-                                            <>
-                                                {/* Show pre-assessment button if not completed and course not completed */}
-                                                {!isCompleted && !preAssessmentCompleted && (
-                                                    <button
-                                                        className="survey-btn pre-assessment-btn"
-                                                        onClick={() => triggerSurvey('pre-assessment')}
-                                                    >
-                                                        <span className="survey-icon">📋</span>
-                                                        Take Pre-Course Assessment
-                                                    </button>
-                                                )}
-
-                                                {/* Show post-assessment button if course completed and not completed */}
-                                                {isCompleted && !postAssessmentCompleted && (
-                                                    <button
-                                                        className="survey-btn post-assessment-btn"
-                                                        onClick={() => triggerSurvey('post-assessment')}
-                                                    >
-                                                        <span className="survey-icon">📊</span>
-                                                        Take Post-Course Assessment
-                                                    </button>
-                                                )}
-
-                                                {/* Show completion status for pre-assessment */}
-                                                {preAssessmentExists && preAssessmentCompleted && !isCompleted && (
-                                                    <div className="survey-status">
-                                                        <span className="completed-icon">✅</span>
-                                                        Pre-course assessment completed
-                                                    </div>
-                                                )}
-
-                                                {/* Show completion status when all assessments are done */}
-                                                {postAssessmentExists && postAssessmentCompleted && isCompleted && (
-                                                    <div className="survey-status">
-                                                        <span className="completed-icon">✅</span>
-                                                        All assessments completed
-                                                    </div>
-                                                )}
-
-                                                {/* Show message when no surveys are available and none completed */}
-                                                {!preAssessmentExists && !postAssessmentExists && !preAssessmentCompleted && !postAssessmentCompleted && (
-                                                    <div className="no-surveys-message">
-                                                        <span className="info-icon">ℹ️</span>
-                                                        No assessments are currently available for this course.
-                                                    </div>
-                                                )}
-                                            </>
-                                        )}
-
-                                        {checkingSurveyStatus && (
-                                            <div className="survey-loading">
-                                                <span className="loading-icon">⏳</span>
-                                                Checking survey status...
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Delete Enrollment Button - Only show if course is not completed */}
-                                    {!isCompleted && (
-                                        <div className="enrollment-actions">
-                                            <button
-                                                className={`delete-enrollment-btn ${deleting ? 'deleting' : ''}`}
-                                                onClick={handleDeleteEnrollment}
-                                                disabled={deleting}
-                                            >
-                                                {deleting ? (
-                                                    <>
-                                                        <span className="delete-spinner"></span>
-                                                        Đang hủy đăng ký...
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <span className="delete-icon"></span>
-                                                        Hủy đăng ký khóa học
-                                                    </>
-                                                )}
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            ) : userId ? (
-                                <div className="enroll-info">
-                                    <h3>Đăng ký khóa học</h3>
-                                    <p>Tham gia khóa học này để nâng cao kiến thức và kỹ năng của bạn</p>
-                                    <button
-                                        className={`enroll-btn ${enrolling ? 'enrolling' : ''}`}
-                                        onClick={handleEnroll}
-                                        disabled={enrolling}
-                                    >
-                                        {enrolling ? (
-                                            <>
-                                                <span className="enroll-spinner"></span>
-                                                Đang đăng ký...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <span className="enroll-icon"></span>
-                                                Đăng ký ngay
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
-                            ) : (
-                                <div className="login-required">
-                                    <h3>Cần đăng nhập để đăng ký</h3>
-                                    <p>Vui lòng đăng nhập để có thể đăng ký khóa học này</p>
-                                    <button
-                                        className="login-btn"
-                                        onClick={() => navigate('/login')}
-                                    >
-                                        <span className="login-icon"></span>
-                                        Đăng nhập ngay
-                                    </button>
-                                </div>
-                            )}
+                        <div className="course-description">
+                            <p>{program.description}</p>
                         </div>
+                    </div>
+                    
+                    <div className="enroll-section">
+                        {checkingEnrollment ? (
+                            <div className="enrollment-checking">
+                                <div className="loading-spinner"></div>
+                                <p>Đang kiểm tra trạng thái đăng ký...</p>
+                            </div>
+                        ) : isEnrolled ? (
+                            <div className="enrolled-status">
+                                {isCompleted ? (
+                                    <div className="completion-message">
+                                        <span className="completion-icon">🎉</span>
+                                        <h3>Chúc mừng! Bạn đã hoàn thành khóa học</h3>
+                                        {enrollmentData?.complete_at && (
+                                            <p>Hoàn thành vào: {new Date(enrollmentData.complete_at).toLocaleDateString('vi-VN')}</p>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="enrolled-message">
+                                        <span className="enrolled-icon">✅</span>
+                                        <h3>Bạn đã đăng ký khóa học này</h3>
+                                        <p>Bạn có thể xem tất cả nội dung khóa học bên dưới</p>
+                                    </div>
+                                )}
+                                
+                                {/* Survey Buttons */}
+                                {!checkingSurveyStatus && surveysChecked && (
+                                    <div className="survey-buttons">
+                                        {!isCompleted && !preAssessmentCompleted && preAssessmentExists && (
+                                            <button
+                                                className="survey-btn pre-assessment-btn"
+                                                onClick={() => triggerSurvey('pre-assessment')}
+                                            >
+                                                📋 Làm đánh giá trước khóa học
+                                            </button>
+                                        )}
+                                        {isCompleted && !postAssessmentCompleted && postAssessmentExists && (
+                                            <button
+                                                className="survey-btn post-assessment-btn"
+                                                onClick={() => triggerSurvey('post-assessment')}
+                                            >
+                                                📊 Làm đánh giá sau khóa học
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                                
+                                {/* Delete Enrollment Button */}
+                                {!isCompleted && (
+                                    <button
+                                        className={`delete-enrollment-btn ${deleting ? 'deleting' : ''}`}
+                                        onClick={handleDeleteEnrollment}
+                                        disabled={deleting}
+                                    >
+                                        {deleting ? 'Đang hủy đăng ký...' : 'Hủy đăng ký khóa học'}
+                                    </button>
+                                )}
+                            </div>
+                        ) : userId ? (
+                            <div className="enroll-button-section">
+                                <button
+                                    className={`enroll-button ${enrolling ? 'enrolling' : ''}`}
+                                    onClick={handleEnroll}
+                                    disabled={enrolling}
+                                >
+                                    {enrolling ? 'Đang đăng ký...' : 'Đăng ký khóa học'}
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="login-required">
+                                <p>Vui lòng đăng nhập để đăng ký khóa học</p>
+                                <button
+                                    className="login-button"
+                                    onClick={() => navigate('/login')}
+                                >
+                                    Đăng nhập ngay
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
 
-            {/* Course content */}
-            <div className="detailcourse-content-section">
-                <div className="content-header">
-                    <h2>Nội dung chi tiết khóa học</h2>
-                </div>
-                <div className="detailcourse-content-card">
-                    <div className="detailcourse-content">
-                        {contentLoading ? (
-                            <div className="content-loading">
-                                <div className="loading-spinner"></div>
-                                <p>Đang tải nội dung khóa học...</p>
-                            </div>
-                        ) : contentPreview.length > 0 ? (
-                            <div className="content-preview-list">
-                                <div className="preview-header">
-                                    <h3>Danh sách nội dung ({contentPreview.length} mục)</h3>
-                                </div>
-                                {contentPreview.map((content, index) => (
-                                    <div key={index} className="content-preview-item">
-                                        <div className="content-order">
-                                            <span className="order-number">{content.orders}</span>
-                                        </div>
-                                        <div className="content-info">
-                                            <h4 className="content-title">{content.title}</h4>
-                                            <div className="content-type-badge">
-                                                <span className={`type-badge ${content.type}`}>
-                                                    {content.type}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        {isEnrolled && (
-                                            <div className="content-actions">
-                                                <button
-                                                    className="view-content-btn"
-                                                    onClick={() => handleViewContent(content.content_id)}
-                                                >
-                                                    <span className="view-icon"></span>
-                                                    Xem nội dung
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="no-content">
-                                <span className="no-content-icon"></span>
-                                <p>Nội dung chi tiết sẽ được cập nhật sớm nhất</p>
-                            </div>
-                        )}
+            {/* Progress Bar Section */}
+            {isEnrolled && (
+                <div className="progress-section">
+                    <div className="progress-header">
+                        <h3>Tiến độ học tập</h3>
+                        <span className="progress-percentage">{Math.round(progressPercentage)}%</span>
                     </div>
+                    <div className="progress-bar-container">
+                        <div className="progress-bar">
+                            <div
+                                className="progress-fill"
+                                style={{ width: `${progressPercentage}%` }}
+                            ></div>
+                        </div>
+                    </div>
+                    {enrollmentData?.progress && (
+                        <div className="progress-details">
+                            <span>
+                                {enrollmentData.progress.filter(item => item.complete).length} / {enrollmentData.progress.length} nội dung đã hoàn thành
+                            </span>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Course Content Section */}
+            <div className="course-content-section">
+                <div className="content-header">
+                    <h2>Nội dung khóa học</h2>
+                </div>
+                <div className="content-table-container">
+                    {contentLoading ? (
+                        <div className="content-loading">
+                            <div className="loading-spinner"></div>
+                            <p>Đang tải nội dung khóa học...</p>
+                        </div>
+                    ) : contentPreview.length > 0 ? (
+                        <table className="content-table">
+                            <thead>
+                                <tr>
+                                    <th>Thứ tự</th>
+                                    <th>Tên nội dung</th>
+                                    <th>Loại nội dung</th>
+                                    <th>Hoàn thành</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {contentPreview.map((content, index) => {
+                                    const isCompleted = enrollmentData?.progress?.find(p => p.content_id === content.content_id)?.complete || false;
+                                    return (
+                                        <tr key={index} className={isCompleted ? 'completed-row' : ''}>
+                                            <td className="order-cell">{content.orders}</td>
+                                            <td className="title-cell">{content.title}</td>
+                                            <td className="type-cell">
+                                                <span className={`content-type ${content.type}`}>
+                                                    {content.type === 'article' ? 'Bài viết' : 
+                                                     content.type === 'video' ? 'Video' : 
+                                                     content.type === 'audio' ? 'Âm thanh' : content.type}
+                                                </span>
+                                            </td>
+                                            <td className="complete-cell">
+                                                {isEnrolled ? (
+                                                    <span className={`completion-status ${isCompleted ? 'completed' : 'pending'}`}>
+                                                        {isCompleted ? '✅' : '⏳'}
+                                                    </span>
+                                                ) : (
+                                                    <span className="not-enrolled">-</span>
+                                                )}
+                                            </td>
+                                            <td className="action-cell">
+                                                {isEnrolled ? (
+                                                    <button
+                                                        className="view-content-btn"
+                                                        onClick={() => handleViewContent(content.content_id)}
+                                                    >
+                                                        Xem nội dung
+                                                    </button>
+                                                ) : (
+                                                    <span className="enroll-required">Cần đăng ký</span>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    ) : (
+                        <div className="no-content">
+                            <span className="no-content-icon">📚</span>
+                            <p>Nội dung khóa học sẽ được cập nhật sớm nhất</p>
+                        </div>
+                    )}
                 </div>
             </div>
 

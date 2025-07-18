@@ -232,6 +232,7 @@ const ExamPage = () => {
                                 {currentQuestion.options.map((option, index) => (
                                     <motion.div
                                         className="form-check"
+                                        style={{paddingLeft: "1.2rem"}}
                                         key={option.id}
                                         initial={{ x: -20, opacity: 0 }}
                                         animate={{ x: 0, opacity: 1 }}

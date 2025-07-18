@@ -12,9 +12,9 @@ const ConsultantListPage = () => {
   const [newConsultant, setNewConsultant] = useState({
     email: "",
     password: "",
-    role: "",
+    role: "consultant",
     status: "active",
-    cost: 0,
+    google_meet_link: "",
     certification: "",
     speciality: "",
     name: "",
@@ -233,14 +233,14 @@ const ConsultantListPage = () => {
       password: "",
       role: "consultant",
       status: "active",
+      google_meet_link: "",
+      certification: "",
+      speciality: "",
       name: "",
-      bio_json: "",
+      bio: "",
       education: "",
       date_of_birth: "",
       job: "",
-      cost: 0,
-      certification: "",
-      speciality: ""
     });
   };
 
@@ -280,18 +280,38 @@ const ConsultantListPage = () => {
       return;
     }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newConsultant.email)) {
+      alert("Định dạng email không hợp lệ");
+      return;
+    }
+
+    // Validate password length
+    if (newPassword.length < 6) {
+      alert("Mật khẩu phải có ít nhất 6 ký tự");
+      return;
+    }
+
+    // Validate Google Meet link format if provided
+    if (newConsultant.google_meet_link && !newConsultant.google_meet_link.includes('meet.google.com')) {
+      alert("Link Google Meet không hợp lệ. Vui lòng sử dụng định dạng: https://meet.google.com/xxx-xxxx-xxx");
+      return;
+    }
+
     try {
       const payload = {
         // User table fields
         email: newConsultant.email,
         password: newPassword,
         role: "consultant",
-        status: "active", // Vietnamese status value
+        status: "active",
+        img_link: null, // Can be added later via profile update
 
         // Consultant table fields
-        cost: newConsultant.cost || 0,
-        certification: newConsultant.certification || "",
-        speciality: newConsultant.speciality || "",
+        google_meet_link: newConsultant.google_meet_link || null,
+        certification: newConsultant.certification || null,
+        speciality: newConsultant.speciality || null,
 
         // Profile table fields
         name: newConsultant.name,
@@ -300,7 +320,7 @@ const ConsultantListPage = () => {
           education: newConsultant.education || "",
         }),
         date_of_birth: newConsultant.date_of_birth || null,
-        job: newConsultant.job || "",
+        job: newConsultant.job || null,
       };
 
       console.log("Payload gửi:", payload);
@@ -496,17 +516,43 @@ const ConsultantListPage = () => {
     e.preventDefault();
     if (!editingConsultantId) return;
 
+    // Validate required fields
+    if (!editConsultantData.email || !editConsultantData.name) {
+      alert("Vui lòng điền đầy đủ thông tin bắt buộc (Email, Tên)");
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(editConsultantData.email)) {
+      alert("Định dạng email không hợp lệ");
+      return;
+    }
+
+    // Validate password length if changed
+    if (showPassword && editConsultantData.password && editConsultantData.password.length < 6) {
+      alert("Mật khẩu phải có ít nhất 6 ký tự");
+      return;
+    }
+
+    // Validate Google Meet link format if provided
+    if (editConsultantData.google_meet_link && !editConsultantData.google_meet_link.includes('meet.google.com')) {
+      alert("Link Google Meet không hợp lệ. Vui lòng sử dụng định dạng: https://meet.google.com/xxx-xxxx-xxx");
+      return;
+    }
+
     try {
       const payload = {
         // User table fields
         email: editConsultantData.email,
         role: "consultant",
         status: editConsultantData.status,
+        img_link: editConsultantData.img_link || null,
 
         // Consultant table fields
-        cost: editConsultantData.cost,
-        certification: editConsultantData.certification,
-        speciality: editConsultantData.speciality,
+        google_meet_link: editConsultantData.google_meet_link || null,
+        certification: editConsultantData.certification || null,
+        speciality: editConsultantData.speciality || null,
 
         // Profile table fields
         name: editConsultantData.name,
@@ -514,8 +560,11 @@ const ConsultantListPage = () => {
           bio: editConsultantData.bio || "",
           education: editConsultantData.education || "",
         }),
-        date_of_birth: editConsultantData.date_of_birth,
-        job: editConsultantData.job,
+        date_of_birth: editConsultantData.date_of_birth || null,
+        job: editConsultantData.job || null,
+
+        // Include password only if it was changed
+        ...(showPassword && editConsultantData.password ? { password: editConsultantData.password } : {})
       };
 
       console.log("ID cần update:", editingConsultantId);
@@ -992,16 +1041,14 @@ const ConsultantListPage = () => {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Chi phí (VND) *</label>
+                  <label className="form-label">Google Meet Link</label>
                   <input
-                    type="number"
-                    name="cost"
-                    step="10"
-                    min="100"
-                    value={editingConsultantId ? editConsultantData?.cost ?? '' : newConsultant.cost}
+                    type="text"
+                    name="google_meet_link"
+                    value={editingConsultantId ? editConsultantData?.google_meet_link ?? '' : newConsultant.google_meet_link}
                     onChange={editingConsultantId ? handleEditChange : handleChange}
-                    required
                     className="form-input"
+                    placeholder="https://meet.google.com/xxx-xxxx-xxx"
                     style={{ color: '#000', backgroundColor: '#fff' }}
                   />
                 </div>
@@ -1027,12 +1074,12 @@ const ConsultantListPage = () => {
                     className="form-select"
                     style={{ color: '#000', backgroundColor: '#fff' }}
                   >
-                    <option value="">Tất cả chuyên môn</option>
-                    <option value="Chuyên gia phòng ngừa">Chuyên gia phòng ngừa</option>
-                    <option value="Tư vấn & Trị liệu">Tư vấn & Trị liệu</option>
-                    <option value="Tiếp cận cộng đồng">Tiếp cận cộng đồng</option>
-                    <option value="Tâm lý học lâm sàng">Tâm lý học lâm sàng</option>
-                    <option value="Phục hồi chức năng">Phục hồi chức năng</option>
+                    <option value="">Chọn chuyên môn</option>
+                    <option value="Prevention Specialist">Chuyên gia phòng ngừa</option>
+                    <option value="Counseling & Therapy">Tư vấn & Trị liệu</option>
+                    <option value="Community Outreach">Tiếp cận cộng đồng</option>
+                    <option value="Clinical Psychology">Tâm lý học lâm sàng</option>
+                    <option value="Rehabilitation">Phục hồi chức năng</option>
                   </select>
                 </div>
 

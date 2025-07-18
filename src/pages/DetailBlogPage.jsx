@@ -10,7 +10,7 @@ const DetailBlogPage = () => {
     const [blog, setBlog] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-
+    const [isFavorite, setIsFavorite] = useState(false);
     const [flagModalOpen, setFlagModalOpen] = useState(false);
     const [userFlagInfo, setUserFlagInfo] = useState({ flagged: false, flagId: null });
     const [userAuthenticated, setUserAuthenticated] = useState(false);
@@ -28,15 +28,13 @@ const DetailBlogPage = () => {
                 // Normalize the blog data to handle different API response formats
                 const blogData = data.data || data;
                 console.log('Blog data structure:', blogData); // Debug log
-                
                 const normalizedBlog = {
                     ...blogData,
                     content: cleanBlogContent(blogData.content || blogData.body),
-                    // Handle author field - extract name and role from object if needed
+                    // Handle author field - extract name from object if needed
                     author_name: typeof blogData.author === 'string' ? blogData.author :
                         blogData.author?.email || blogData.author_name || 'Tác giả',
-                    author_id: typeof blogData.author === 'object' ? blogData.author?.user_id : blogData.author_id,
-                    author_role: typeof blogData.author === 'object' ? blogData.author?.role : null
+                    author_id: typeof blogData.author === 'object' ? blogData.author?.user_id : blogData.author_id
                 };
                 console.log('Normalized blog:', normalizedBlog); // Debug log
 
@@ -105,7 +103,9 @@ const DetailBlogPage = () => {
         }
     }, [blog, currentUser]);
 
-
+    const toggleFavorite = () => {
+        setIsFavorite(prev => !prev);
+    };
 
     const handleFlagSubmit = async (reason) => {
         try {
@@ -192,17 +192,6 @@ const DetailBlogPage = () => {
         return isNaN(date.getTime()) ? 'Ngày không hợp lệ' : date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
     };
 
-    // Hàm chuyển đổi role sang tiếng Việt
-    const getRoleDisplayName = (role) => {
-        const roleMap = {
-            'consultant': 'Chuyên gia tư vấn',
-            'member': 'Thành viên',
-            'admin': 'Quản trị viên',
-            'staff': 'Nhân viên'
-        };
-        return roleMap[role?.toLowerCase()] || 'Thành viên';
-    };
-
     const formattedDate = getFormattedDate(blog.created_at);
 
     return (
@@ -219,7 +208,13 @@ const DetailBlogPage = () => {
                         <span className="blog-date">
                             <i className="bi bi-calendar3 me-1"></i> {formattedDate}
                         </span>
-
+                        <button
+                            className={`btn-flag ${isFavorite ? 'favorited' : ''}`}
+                            onClick={toggleFavorite}
+                            title={isFavorite ? 'Bỏ yêu thích' : 'Thêm vào yêu thích'}
+                        >
+                            <i className={`bi ${isFavorite ? 'bi-heart-fill' : 'bi-heart'}`}></i>
+                        </button>
                         {!isOwnBlog && (
                             <button
                                 className={`btn-report ${userFlagInfo.flagged ? 'flagged' : ''}`}
@@ -241,7 +236,7 @@ const DetailBlogPage = () => {
                             <div className="author-name">
                                 {blog.author_name || 'Tác giả'}
                             </div>
-                            <div className="author-role">{getRoleDisplayName(blog.author_role)}</div>
+                            <div className="author-role">Chuyên gia tư vấn</div>
                         </div>
                     </div>
 

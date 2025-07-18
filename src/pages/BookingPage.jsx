@@ -10,13 +10,14 @@ const BookingPage = () => {
     const [selectedTimeSlot, setSelectedTimeSlot] = useState('all');
     const [consultants, setConsultants] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [bookingStatus, setBookingStatus] = useState(null);
     const [scheduledBookings, setScheduledBookings] = useState([]);
     const [loadingBookings, setLoadingBookings] = useState(true);
     const [showAllBookings, setShowAllBookings] = useState(false);
     const [allBookings, setAllBookings] = useState([]);
+    const [selectedNoteBooking, setSelectedNoteBooking] = useState(null);
+    const [showNoteModal, setShowNoteModal] = useState(false);
 
-    // Các slot dựa trên database sample.sql (9 AM - 5 PM theo giờ)
+    // Các slot dựa trên database sample.sql
     const databaseSlots = [
         { slot_id: 1, start_time: '09:00:00', end_time: '10:00:00' },
         { slot_id: 2, start_time: '10:00:00', end_time: '11:00:00' },
@@ -28,119 +29,46 @@ const BookingPage = () => {
         { slot_id: 8, start_time: '16:00:00', end_time: '17:00:00' }
     ];
 
-    // Hàm gọi API để lấy tất cả consultants
+    // API calls and data transformation functions (same as before)
     const fetchAllConsultants = async () => {
         try {
             const response = await fetch('http://localhost:3000/api/consultants', {
                 method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
             });
-
             const data = await response.json();
-
             if (!response.ok) {
                 throw new Error(data.message || 'Không thể lấy danh sách tư vấn viên');
             }
-
             return data.data.consultants.filter(consultant => consultant.status !== 'inactive');
         } catch (error) {
             throw error;
         }
     };
 
-    // Chuyển đổi dữ liệu API sang định dạng component dựa trên cấu trúc controller đã cập nhật
     const transformConsultantsArray = (apiConsultants) => {
         if (!apiConsultants || !Array.isArray(apiConsultants)) return [];
-
         return apiConsultants.map(apiConsultant => {
             return {
-                // Các trường bảng Consultant
                 id_consultant: apiConsultant.id_consultant || 'N/A',
-                cost: apiConsultant.cost || 'N/A',
+                google_meet_link: apiConsultant.google_meet_link || 'N/A',
                 certification: apiConsultant.certification || 'N/A',
                 speciality: apiConsultant.speciality || 'N/A',
-
-                // Các trường bảng Users
                 user_id: apiConsultant.user_id || 'N/A',
                 date_create: apiConsultant.date_create || 'N/A',
                 role: apiConsultant.role || 'N/A',
                 email: apiConsultant.email || 'N/A',
                 status: apiConsultant.status || 'N/A',
                 img_link: apiConsultant.img_link || null,
-
-                // Các trường bảng Profile
                 name: apiConsultant.name || 'N/A',
                 bio_json: apiConsultant.bio_json || 'N/A',
                 date_of_birth: apiConsultant.date_of_birth || 'N/A',
                 job: apiConsultant.job || 'N/A',
-
-                // Các trường Slot
                 available_slots: apiConsultant.available_slots || []
             };
         });
     };
 
-    // Lấy chuyên môn từ trường speciality (không cần parse bios nữa)
-    const getSpecializationFromSpeciality = (speciality) => {
-        if (!speciality || speciality === 'N/A') return 'Tư vấn tổng quát';
-        return speciality;
-    };
-
-    // Định dạng thời gian từ định dạng thời gian API
-    const formatTime = (timeString) => {
-        if (!timeString) return '12:00 PM';
-
-        try {
-            const time = new Date(`2000-01-01T${timeString}`);
-            return time.toLocaleTimeString('en-US', {
-                hour: 'numeric',
-                minute: '2-digit',
-                hour12: true
-            });
-        } catch (error) {
-            return timeString; // Trả về gốc nếu parse thất bại
-        }
-    };
-
-    // Check if time slot falls within the selected time period
-    const isTimeInSlot = (timeString, timeSlotFilter) => {
-        if (timeSlotFilter === 'all') return true;
-        if (!timeString) return false;
-
-        try {
-            const time = new Date(`2000-01-01T${timeString}`);
-            const hours = time.getHours();
-
-            switch (timeSlotFilter) {
-                case 'morning':
-                    return hours >= 6 && hours < 12;
-                case 'afternoon':
-                    return hours >= 12 && hours < 18;
-                case 'evening':
-                    return hours >= 18 && hours < 22;
-                default:
-                    return true;
-            }
-        } catch (error) {
-            return false;
-        }
-    };
-
-    // Tạo cấu trúc dữ liệu booking dựa trên database schema
-    const createBookingData = (consultantId, slotId, selectedDate) => {
-        return {
-            consultant_id: consultantId,
-            member_id: null, // Sẽ được set khi hệ thống xác thực người dùng được implement
-            slot_id: slotId,
-            booking_date: selectedDate,
-            status: 'pending',
-            notes: 'Đặt lịch tư vấn qua ứng dụng web'
-        };
-    };
-
-    // Lấy danh sách lịch hẹn của thành viên
     const fetchScheduledBookings = async () => {
         try {
             const token = sessionStorage.getItem('token');
@@ -151,14 +79,10 @@ const BookingPage = () => {
                     ...(token ? { 'Authorization': `Bearer ${token}` } : {})
                 },
             });
-
             const data = await response.json();
-            console.log('Dữ liệu booking lấy về:', data);
-
             if (!response.ok) {
                 throw new Error(data.message || 'Không thể lấy danh sách lịch hẹn');
             }
-
             return data.data;
         } catch (error) {
             console.error('Lỗi khi lấy danh sách lịch hẹn:', error);
@@ -166,18 +90,87 @@ const BookingPage = () => {
         }
     };
 
-    // Lọc booking theo trạng thái (ẩn các booking đã hủy và hoàn thành)
     const filterActiveBookings = (bookings) => {
         if (!bookings || !Array.isArray(bookings)) return [];
-        
         return bookings.filter(booking => {
             const status = booking.status;
-            // Ẩn các booking có trạng thái "Đã hủy" hoặc "Hoàn thành"
             return status !== 'Đã hủy' && status !== 'Hoàn thành';
         });
     };
 
-    // Load dữ liệu consultants và scheduled bookings
+    const formatTime = (timeString) => {
+        if (!timeString) return '12:00 PM';
+        try {
+            const time = new Date(`2000-01-01T${timeString}`);
+            return time.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            });
+        } catch (error) {
+            return timeString;
+        }
+    };
+
+    // Format booking date with day of week and dd/mm/yyyy
+    const formatBookingDate = (dateString) => {
+        if (!dateString) return 'N/A';
+        try {
+            const date = new Date(dateString);
+            const dayNames = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+            const dayOfWeek = dayNames[date.getDay()];
+            const formattedDate = date.toLocaleDateString('vi-VN', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+            return `${dayOfWeek}, ${formattedDate}`;
+        } catch (error) {
+            return dateString;
+        }
+    };
+
+    // Get slot time range for booking
+    const getSlotTimeRange = (slotId) => {
+        const slot = databaseSlots.find(s => s.slot_id === slotId);
+        if (!slot) return 'N/A';
+        const startTime = formatTime(slot.start_time);
+        const endTime = formatTime(slot.end_time);
+        return `${startTime} - ${endTime}`;
+    };
+
+    const getSpecializationFromSpeciality = (speciality) => {
+        if (!speciality || speciality === 'N/A') return 'Tư vấn tổng quát';
+        
+        // Map English specializations to Vietnamese
+        const specializationMapping = {
+            'Prevention Specialist': 'Chuyên gia phòng ngừa',
+            'Counseling & Therapy': 'Tư vấn & Trị liệu',
+            'Community Outreach': 'Tiếp cận cộng đồng',
+            'Clinical Psychology': 'Tâm lý học lâm sàng',
+            'Rehabilitation': 'Phục hồi chức năng'
+        };
+        
+        return specializationMapping[speciality] || speciality;
+    };
+
+    const handleViewProfile = (consultantId) => {
+        const token = sessionStorage.getItem('token') || localStorage.getItem('authToken');
+        if (!token) {
+            sessionStorage.setItem('redirectAfterLogin', `/consultant/${consultantId}`);
+            alert('Vui lòng đăng nhập để xem hồ sơ tư vấn viên');
+            navigate('/login');
+            return;
+        }
+        navigate(`/consultant/${consultantId}`);
+    };
+
+    const handleViewNote = (booking) => {
+        setSelectedNoteBooking(booking);
+        setShowNoteModal(true);
+    };
+
+    // Load data
     useEffect(() => {
         const loadData = async () => {
             try {
@@ -192,13 +185,9 @@ const BookingPage = () => {
                 const transformedConsultants = transformConsultantsArray(apiConsultants);
                 setConsultants(transformedConsultants);
                 
-                // Lưu tất cả bookings và bookings đang hoạt động
                 const activeBookings = filterActiveBookings(bookings);
                 setAllBookings(bookings || []);
                 setScheduledBookings(activeBookings);
-                
-                console.log('Tổng số bookings:', bookings?.length || 0);
-                console.log('Số bookings đang hoạt động:', activeBookings?.length || 0);
             } catch (error) {
                 console.error('Lỗi khi load dữ liệu:', error);
                 setConsultants([]);
@@ -208,68 +197,10 @@ const BookingPage = () => {
                 setLoadingBookings(false);
             }
         };
-
         loadData();
     }, []);
 
-    // Hàm kiểm tra đăng nhập
-    const checkLoginStatus = () => {
-        const token = sessionStorage.getItem('token') || localStorage.getItem('authToken');
-        return !!token;
-    };
-
-    // Hàm xử lý khi click vào nút "Xem hồ sơ"
-    const handleViewProfile = (consultantId) => {
-        if (!checkLoginStatus()) {
-            // Lưu đường dẫn đích để redirect sau khi login
-            sessionStorage.setItem('redirectAfterLogin', `/consultant/${consultantId}`);
-
-            // Hiển thị cảnh báo và chuyển hướng
-            alert('Vui lòng đăng nhập để xem hồ sơ tư vấn viên');
-            navigate('/login');
-            return;
-        }
-
-        // Nếu đã đăng nhập, chuyển hướng trực tiếp
-        navigate(`/consultant/${consultantId}`);
-    };
-
-    const bookConsultation = (consultantId, slotId) => {
-        // Kiểm tra trạng thái xác thực (placeholder cho đến khi hệ thống auth được implement)
-        const isLoggedIn = localStorage.getItem('authToken') || false;
-
-        if (!isLoggedIn) {
-            alert('Vui lòng đăng nhập để đặt lịch tư vấn');
-            return;
-        }
-
-        if (!selectedDate) {
-            alert('Vui lòng chọn ngày cho buổi tư vấn của bạn');
-            return;
-        }
-
-        // Tìm dữ liệu consultant và slot
-        const consultant = consultants.find(c => c.id_consultant === consultantId);
-        const slot = databaseSlots.find(s => s.slot_id === slotId);
-
-        if (consultant && slot) {
-            const consultantName = consultant.name !== 'N/A' ? consultant.name : 'Tư vấn viên';
-            setBookingStatus({
-                type: 'success',
-                message: `Yêu cầu tư vấn đã được gửi cho ${consultantName} vào ngày ${selectedDate} lúc ${formatTime(slot.start_time)}. Trạng thái: Đang chờ phê duyệt.`
-            });
-
-            // Tạo cấu trúc dữ liệu booking cho việc implement API trong tương lai
-            const bookingData = createBookingData(consultantId, slotId, selectedDate);
-            console.log('Dữ liệu booking đã chuẩn bị:', bookingData);
-        } else {
-            setBookingStatus({
-                type: 'error',
-                message: 'Không thể gửi yêu cầu tư vấn. Vui lòng thử lại.'
-            });
-        }
-    };
-
+    // Filter options
     const specializations = [
         { value: 'all', label: 'Tất cả chuyên môn' },
         { value: 'Prevention Specialist', label: 'Chuyên gia phòng ngừa' },
@@ -297,19 +228,33 @@ const BookingPage = () => {
         { value: 'evening', label: 'Buổi tối (18:00 - 22:00)' }
     ];
 
+    // Filter consultants
+    const isTimeInSlot = (timeString, timeSlotFilter) => {
+        if (timeSlotFilter === 'all') return true;
+        if (!timeString) return false;
+        try {
+            const time = new Date(`2000-01-01T${timeString}`);
+            const hours = time.getHours();
+            switch (timeSlotFilter) {
+                case 'morning': return hours >= 6 && hours < 12;
+                case 'afternoon': return hours >= 12 && hours < 18;
+                case 'evening': return hours >= 18 && hours < 22;
+                default: return true;
+            }
+        } catch (error) {
+            return false;
+        }
+    };
+
     const filteredConsultants = consultants.filter(consultant => {
-        const specialization = getSpecializationFromSpeciality(consultant.speciality);
+        // Compare directly with the original English speciality value
+        const matchesSpecialization = selectedSpecialization === 'all' || consultant.speciality === selectedSpecialization;
         
-        // Filter by specialization
-        const matchesSpecialization = selectedSpecialization === 'all' || specialization === selectedSpecialization;
-        
-        // Filter by day of week
         let matchesDayOfWeek = selectedDayOfWeek === 'all';
         if (!matchesDayOfWeek && consultant.available_slots) {
             matchesDayOfWeek = consultant.available_slots.some(slot => slot.day_of_week === selectedDayOfWeek);
         }
         
-        // Filter by time slot
         let matchesTimeSlot = selectedTimeSlot === 'all';
         if (!matchesTimeSlot && consultant.available_slots) {
             matchesTimeSlot = consultant.available_slots.some(slot => 
@@ -320,237 +265,280 @@ const BookingPage = () => {
         return matchesSpecialization && matchesDayOfWeek && matchesTimeSlot;
     });
 
+    const getStatusInfo = (status) => {
+        switch (status) {
+            case 'Đang chờ xác nhận':
+                return { 
+                    label: 'Đang chờ xác nhận', 
+                    class: 'status-pending',
+                    backgroundColor: '#ffc107',
+                    color: '#000'
+                };
+            case 'Xác nhận thành công':
+            case 'Đã xác nhận':
+                return { 
+                    label: 'Đã xác nhận', 
+                    class: 'status-confirmed',
+                    backgroundColor: '#28a745',
+                    color: '#fff'
+                };
+            case 'confirmed':
+                return { 
+                    label: 'Đã xác nhận', 
+                    class: 'status-confirmed',
+                    backgroundColor: '#28a745',
+                    color: '#fff'
+                };
+            case 'pending':
+                return { 
+                    label: 'Đang chờ', 
+                    class: 'status-pending',
+                    backgroundColor: '#ffc107',
+                    color: '#000'
+                };
+            case 'Đã hủy':
+                return { 
+                    label: 'Đã hủy', 
+                    class: 'status-cancelled',
+                    backgroundColor: '#dc3545',
+                    color: '#fff'
+                };
+            case 'Hoàn thành':
+                return { 
+                    label: 'Hoàn thành', 
+                    class: 'status-completed',
+                    backgroundColor: '#17a2b8',
+                    color: '#fff'
+                };
+            case 'cancelled':
+                return { 
+                    label: 'Đã hủy', 
+                    class: 'status-cancelled',
+                    backgroundColor: '#dc3545',
+                    color: '#fff'
+                };
+            case 'completed':
+                return { 
+                    label: 'Hoàn thành', 
+                    class: 'status-completed',
+                    backgroundColor: '#17a2b8',
+                    color: '#fff'
+                };
+            default:
+                return { 
+                    label: status, 
+                    class: 'status-default',
+                    backgroundColor: '#6c757d',
+                    color: '#fff'
+                };
+        }
+    };
+
     if (loading) {
         return (
-            <div className="booking-page">
+            <div className="booking-page" style={{ backgroundColor: '#ffffff', minHeight: '100vh', paddingTop: '80px' }}>
                 <div className="container text-center py-5">
                     <div className="spinner-border" role="status">
                         <span className="visually-hidden">Đang tải...</span>
                     </div>
-                    <p className="mt-3">Đang tải danh sách tư vấn viên...</p>
+                    <p className="mt-3">Đang tải dữ liệu...</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="booking-page">
-            {/* Phần Hero */}
-            <section className="booking-hero">
-                <div className="container">
-                    <div className="row align-items-center">
-                        <div className="col-lg-12 text-center">
-                            <h1 className="hero-title">
-                                Đặt lịch tư vấn
-                            </h1>
-                            <p className="hero-subtitle">
-                                Kết nối với các chuyên gia giàu kinh nghiệm của chúng tôi để được hướng dẫn và hỗ trợ cá nhân hóa.
-                                Tất cả các buổi tư vấn đều miễn phí và hoàn toàn bảo mật.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <div className="container" style={{ paddingTop: '5rem', paddingBottom: '5rem' }}>
-                {/* Phần lịch hẹn đã lên lịch - chỉ hiển thị khi có booking */}
-                {!loadingBookings && ((showAllBookings ? allBookings : scheduledBookings) && (showAllBookings ? allBookings : scheduledBookings).length > 0) && (
-                    <section className="scheduled-bookings mb-5">
-                        <div className="section-header text-center mb-4">
-                            <h2 className="section-title">
-                                {showAllBookings ? 'Tất cả lịch tư vấn' : 'Lịch tư vấn đang hoạt động'}
-                            </h2>
-                            <p className="section-subtitle">
-                                {showAllBookings 
-                                    ? 'Bao gồm tất cả các cuộc hẹn: đang chờ, đã xác nhận, hoàn thành và đã hủy'
-                                    : 'Các cuộc hẹn đang chờ xác nhận và đã được xác nhận'
-                                }
-                            </p>
-                            <div className="booking-toggle-container mt-3">
+        <div className="booking-page" style={{ backgroundColor: '#ffffff', minHeight: '100vh' }}>
+            <div className="container-fluid" style={{ padding: '2rem 1rem', backgroundColor: '#ffffff', padding:'200px', paddingTop:'100px' }}>
+                
+                {/* Booking Sessions Table Section */}
+                <section className="booking-sessions-section mb-4">
+                    <div className="card" style={{ border: '0.5px solid #e0e0e0', borderRadius: '8px' }}>
+                        <div className="card-header bg-white d-flex justify-content-between align-items-center" style={{ padding: '1rem 1.5rem', borderBottom: '1px solid #e0e0e0' }}>
+                            <h4 className="mb-0" style={{ fontWeight: '600', color: '#333' }}>Lịch tư vấn của bạn</h4>
+                            <div className="booking-toggle-buttons">
                                 <button
-                                    className={`btn ${showAllBookings ? 'btn-outline-primary' : 'btn-primary'} me-2`}
+                                    className={`btn btn-sm ${showAllBookings ? 'btn-outline-primary' : 'btn-primary'} me-2`}
                                     onClick={() => setShowAllBookings(false)}
+                                    style={{ borderRadius: '6px', padding: '0.5rem 1rem' }}
                                 >
-                                    <i className="bi bi-clock me-1"></i>
                                     Đang hoạt động ({scheduledBookings.length})
                                 </button>
                                 <button
-                                    className={`btn ${showAllBookings ? 'btn-primary' : 'btn-outline-primary'}`}
+                                    className={`btn btn-sm ${showAllBookings ? 'btn-primary' : 'btn-outline-primary'}`}
                                     onClick={() => setShowAllBookings(true)}
+                                    style={{ borderRadius: '6px', padding: '0.5rem 1rem' }}
                                 >
-                                    <i className="bi bi-list-ul me-1"></i>
                                     Tất cả ({allBookings.length})
                                 </button>
                             </div>
                         </div>
-                        <div className="scheduled-bookings-container">
+                        <div className="card-body p-0" style={{ backgroundColor: '#ffffff' }}>
+                            {loadingBookings ? (
+                                <div className="text-center py-5" style={{ margin: '2rem 0' }}>
+                                    <div className="spinner-border text-primary" role="status">
+                                        <span className="visually-hidden">Đang tải...</span>
+                                    </div>
+                                    <p className="mt-2 text-muted">Đang tải lịch hẹn...</p>
+                                </div>
+                            ) : (showAllBookings ? allBookings : scheduledBookings).length > 0 ? (
+                                <div className="table-responsive">
+                                    <table className="table table-hover mb-0" style={{ backgroundColor: '#ffffff' }}>
+                                        <thead style={{ backgroundColor: '#f8f9fa', borderBottom: '2px solid #e0e0e0' }}>
+                                            <tr>
+                                                <th style={{ padding: '1rem', fontWeight: '600', color: '#555', fontSize: '0.9rem' }}>Trạng thái</th>
+                                                <th style={{ padding: '1rem', fontWeight: '600', color: '#555', fontSize: '0.9rem' }}>Thông tin tư vấn viên</th>
+                                                <th style={{ padding: '1rem', fontWeight: '600', color: '#555', fontSize: '0.9rem' }}>Ngày & Giờ hẹn</th>
+                                                <th style={{ padding: '1rem', fontWeight: '600', color: '#555', fontSize: '0.9rem' }}>Google Meet Link</th>
+                                                <th style={{ padding: '1rem', fontWeight: '600', color: '#555', fontSize: '0.9rem' }}>Ghi chú</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
                             {(showAllBookings ? allBookings : scheduledBookings).map((booking) => {
                                 const consultant = consultants.find(c => c.id_consultant === booking.consultant_id);
                                 const slot = databaseSlots.find(s => s.slot_id === booking.slot_id);
-                                const hasMeetLink = !!booking.google_meet_link;
-                                
-                                // Mapping trạng thái và class CSS
-                                const getStatusInfo = (status) => {
-                                    switch (status) {
-                                        case 'Đang chờ xác nhận':
-                                            return { label: 'Đang chờ xác nhận', class: 'status-pending' };
-                                        case 'Xác nhận thành công':
-                                        case 'Đã xác nhận':
-                                            return { label: 'Đã xác nhận', class: 'status-confirmed' };
-                                        case 'confirmed':
-                                            return { label: 'Đã xác nhận', class: 'status-confirmed' };
-                                        case 'pending':
-                                            return { label: 'Đang chờ', class: 'status-pending' };
-                                        case 'Đã hủy':
-                                            return { label: 'Đã hủy', class: 'status-cancelled' };
-                                        case 'Hoàn thành':
-                                            return { label: 'Hoàn thành', class: 'status-completed' };
-                                        case 'cancelled':
-                                            return { label: 'Đã hủy', class: 'status-cancelled' };
-                                        case 'completed':
-                                            return { label: 'Hoàn thành', class: 'status-completed' };
-                                        default:
-                                            return { label: status, class: 'status-default' };
-                                    }
-                                };
-                                
                                 const statusInfo = getStatusInfo(booking.status);
 
                                 return (
-                                    <div key={booking.id || booking.booking_id} className={`booking-card ${booking.status === 'Đã hủy' || booking.status === 'cancelled' ? 'booking-cancelled' : ''} ${booking.status === 'Hoàn thành' || booking.status === 'completed' ? 'booking-completed' : ''}`}>
-                                        <div className="booking-card-header">
-                                            <div className="consultant-avatar">
-                                                <img
-                                                    src={consultant && consultant.img_link ? `http://localhost:3000${consultant.img_link}` : Image}
-                                                    alt={consultant ? consultant.name : (booking.consultant_name || 'Tư vấn viên')}
+                                                    <tr key={booking.id || booking.booking_id} style={{ backgroundColor: '#ffffff' }}>
+                                                        <td style={{ padding: '1rem', borderBottom: '1px solid #f0f0f0' }}>
+                                                            <span 
+                                                                className={`badge ${statusInfo.class}`} 
+                                                                style={{ 
+                                                                    padding: '0.5rem 0.75rem', 
+                                                                    borderRadius: '6px',
+                                                                    backgroundColor: statusInfo.backgroundColor,
+                                                                    color: statusInfo.color,
+                                                                    fontWeight: '600',
+                                                                    fontSize: '0.85rem'
+                                                                }}
+                                                            >
+                                                                {statusInfo.label}
+                                                            </span>
+                                                        </td>
+                                                        <td style={{ padding: '1rem', borderBottom: '1px solid #f0f0f0' }}>
+                                                            <div className="d-flex align-items-center">
+                                                                <img
+                                                                    src={consultant?.img_link ? `http://localhost:3000${consultant.img_link}` : Image}
+                                                                    alt={consultant?.name || 'Tư vấn viên'}
+                                                                    className="rounded-circle me-3"
+                                                                    style={{ width: '40px', height: '40px', objectFit: 'cover', border: '2px solid #f0f0f0' }}
                                                     onError={(e) => {
                                                         e.target.onerror = null;
                                                         e.target.src = Image;
                                                     }}
                                                 />
+                                                                <div>
+                                                                    <div className="fw-bold" style={{ color: '#333', fontSize: '0.9rem' }}>
+                                                                        {consultant?.name || booking.consultant_name || 'Tư vấn viên'}
                                             </div>
-                                            <div className="booking-info">
-                                                <h5 className="consultant-name">
-                                                    {consultant ? consultant.name : (booking.consultant_name || 'Tư vấn viên')}
-                                                </h5>
-                                                <p className="consultant-speciality">
-                                                    {consultant ? getSpecializationFromSpeciality(consultant.speciality) : 'Tư vấn viên chuyên nghiệp'}
-                                                </p>
+                                                                    <small className="text-muted" style={{ fontSize: '0.8rem' }}>
+                                                                        {getSpecializationFromSpeciality(consultant?.speciality)}
+                                                                    </small>
                                             </div>
-                                            <div className={`booking-status ${statusInfo.class}`}>
-                                                {statusInfo.label}
                                             </div>
+                                                        </td>
+                                                                                                                <td style={{ padding: '1rem', borderBottom: '1px solid #f0f0f0' }}>
+                                                            <div>
+                                                                <div className="fw-bold" style={{ color: '#333', fontSize: '0.9rem' }}>
+                                                                    {formatBookingDate(booking.booking_date)}
                                         </div>
-                                        <div className="booking-card-body">
-                                            <div className="booking-details">
-                                                <div className="booking-detail-item">
-                                                    <i className="bi bi-calendar-date"></i>
-                                                    <span>{booking.booking_date}</span>
+                                                                <small className="text-muted" style={{ fontSize: '0.8rem' }}>
+                                                                    {getSlotTimeRange(booking.slot_id)}
+                                                                </small>
                                                 </div>
-                                                <div className="booking-detail-item">
-                                                    <i className="bi bi-clock"></i>
-                                                    <span>{slot ? formatTime(slot.start_time) : (booking.start_time ? formatTime(booking.start_time) : 'N/A')}</span>
-                                                </div>
-                                            </div>
-                                            <div className="booking-actions">
-                                                {booking.status === 'Đã hủy' || booking.status === 'cancelled' ? (
-                                                    <button className="btn-meet disabled" disabled>
-                                                        <i className="bi bi-x-circle me-2"></i>
-                                                        Đã hủy
-                                                    </button>
-                                                ) : booking.status === 'Hoàn thành' || booking.status === 'completed' ? (
-                                                    <button className="btn-meet disabled" disabled>
-                                                        <i className="bi bi-check-circle me-2"></i>
-                                                        Đã hoàn thành
-                                                    </button>
-                                                ) : hasMeetLink ? (
+                                                        </td>
+                                                        <td style={{ padding: '1rem', borderBottom: '1px solid #f0f0f0' }}>
+                                                            {booking.google_meet_link ? (
                                                     <a
                                                         href={booking.google_meet_link}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="btn-meet"
+                                                                    className="btn btn-sm btn-success"
+                                                                    style={{ borderRadius: '6px', padding: '0.5rem 1rem' }}
                                                     >
-                                                        <i className="bi bi-camera-video-fill me-2"></i>
-                                                        Vào Google Meet
+                                                                    <i className="bi bi-camera-video me-1"></i>
+                                                                    Tham gia
                                                     </a>
                                                 ) : (
-                                                    <button className="btn-meet disabled" disabled>
-                                                        <i className="bi bi-camera-video me-2"></i>
-                                                        Chưa có link
+                                                                <span className="text-muted" style={{ fontSize: '0.9rem' }}>Chưa có link</span>
+                                                            )}
+                                                        </td>
+                                                        <td style={{ padding: '1rem', borderBottom: '1px solid #f0f0f0' }}>
+                                                            <button
+                                                                className="btn btn-sm btn-outline-primary"
+                                                                onClick={() => handleViewNote(booking)}
+                                                                style={{ borderRadius: '6px', padding: '0.5rem 1rem' }}
+                                                            >
+                                                                <i className="bi bi-eye me-1"></i>
+                                                                Xem ghi chú
                                                     </button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
+                                                        </td>
+                                                    </tr>
                                 );
                             })}
+                                        </tbody>
+                                    </table>
                         </div>
-                    </section>
-                )}
-
-                {/* Loading state cho bookings */}
-                {loadingBookings && (
-                    <section className="scheduled-bookings mb-5">
-                        <div className="text-center py-4">
-                            <div className="spinner-border text-primary" role="status">
-                                <span className="visually-hidden">Đang tải...</span>
+                            ) : (
+                                <div className="text-center py-5" style={{ margin: '3rem 0', backgroundColor: '#ffffff' }}>
+                                    <i className="bi bi-calendar-x display-4 text-muted mb-3"></i>
+                                    <h5 style={{ color: '#666', fontWeight: '600' }}>Không có lịch hẹn nào</h5>
+                                    <p className="text-muted" style={{ fontSize: '0.95rem' }}>Bạn chưa có lịch hẹn tư vấn nào. Hãy đặt lịch với các chuyên gia bên dưới.</p>
+                        </div>
+                            )}
                             </div>
-                            <p className="mt-2">Đang tải lịch hẹn...</p>
                         </div>
                     </section>
-                )}
 
-                {/* Thông báo trạng thái đặt lịch */}
-                {bookingStatus && (
-                    <div className={`alert alert-${bookingStatus.type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`}>
-                        {bookingStatus.message}
-                        <button
-                            type="button"
-                            className="btn-close"
-                            onClick={() => setBookingStatus(null)}
-                        ></button>
+                {/* Consultant List Section */}
+                <section className="consultant-list-section">
+                    <div className="card shadow-sm" style={{ border: '0.5px solid #e0e0e0', borderRadius: '8px' }}>
+                        <div className="card-header bg-white" style={{ padding: '1rem 1.5rem', borderBottom: '1px solid #e0e0e0' }}>
+                            <h4 className="mb-0" style={{ fontWeight: '600', color: '#333' }}>Danh sách tư vấn viên</h4>
                     </div>
-                )}
-
-                {/* Phần bộ lọc */}
-                <section className="filter-section mb-5">
-                    <div className="section-header text-center mb-4">
-                        <h2 className="section-title">Tìm chuyên gia của bạn</h2>
-                        <p className="section-subtitle">Lọc theo chuyên môn và lịch trống để tìm tư vấn viên phù hợp</p>
-                    </div>
-
-                    <div className="filter-controls">
-                        <div className="row justify-content-center">
-                            <div className="col-lg-4 col-md-6 mb-3">
-                                <label className="filter-label">Chuyên môn</label>
+                        <div className="card-body" style={{ padding: '1.5rem', backgroundColor: '#ffffff' }}>
+                            <div className="row g-4">
+                                {/* Filter Sidebar */}
+                                <div className="col-lg-3 col-md-4">
+                                    <div className="filter-sidebar" style={{ backgroundColor: '#f8f9fa', padding: '1.5rem', borderRadius: '8px', border: '0.5px solid #e0e0e0' }}>
+                                        <h6 className="fw-bold mb-3" style={{ color: '#333', fontSize: '1rem' }}>Bộ lọc tìm kiếm</h6>
+                                        
+                                        <div className="mb-3">
+                                            <label className="form-label fw-bold" style={{ color: '#555', fontSize: '0.9rem' }}>Chuyên môn</label>
                                 <select
-                                    className="form-select filter-select"
+                                                className="form-select"
                                     value={selectedSpecialization}
                                     onChange={(e) => setSelectedSpecialization(e.target.value)}
+                                                style={{ borderRadius: '6px', border: '1px solid #ddd', padding: '0.75rem' }}
                                 >
                                     {specializations.map(spec => (
                                         <option key={spec.value} value={spec.value}>{spec.label}</option>
                                     ))}
                                 </select>
                             </div>
-                            <div className="col-lg-4 col-md-6 mb-3">
-                                <label className="filter-label">Thứ trong tuần</label>
+
+                                        <div className="mb-3">
+                                            <label className="form-label fw-bold" style={{ color: '#555', fontSize: '0.9rem' }}>Thứ trong tuần</label>
                                 <select
-                                    className="form-select filter-select"
+                                                className="form-select"
                                     value={selectedDayOfWeek}
                                     onChange={(e) => setSelectedDayOfWeek(e.target.value)}
+                                                style={{ borderRadius: '6px', border: '1px solid #ddd', padding: '0.75rem' }}
                                 >
                                     {daysOfWeek.map(day => (
                                         <option key={day.value} value={day.value}>{day.label}</option>
                                     ))}
                                 </select>
                             </div>
-                            <div className="col-lg-4 col-md-6 mb-3">
-                                <label className="filter-label">Khung giờ</label>
+
+                                        <div className="mb-3">
+                                            <label className="form-label fw-bold" style={{ color: '#555', fontSize: '0.9rem' }}>Khung giờ</label>
                                 <select
-                                    className="form-select filter-select"
+                                                className="form-select"
                                     value={selectedTimeSlot}
                                     onChange={(e) => setSelectedTimeSlot(e.target.value)}
+                                                style={{ borderRadius: '6px', border: '1px solid #ddd', padding: '0.75rem' }}
                                 >
                                     {timeSlots.map(slot => (
                                         <option key={slot.value} value={slot.value}>{slot.label}</option>
@@ -558,112 +546,173 @@ const BookingPage = () => {
                                 </select>
                             </div>
 
+                                        <button
+                                            className="btn btn-outline-secondary w-100"
+                                            onClick={() => {
+                                                setSelectedSpecialization('all');
+                                                setSelectedDayOfWeek('all');
+                                                setSelectedTimeSlot('all');
+                                            }}
+                                            style={{ borderRadius: '6px', padding: '0.75rem', marginTop: '0.5rem' }}
+                                        >
+                                            <i className="bi bi-arrow-clockwise me-2"></i>
+                                            Xóa bộ lọc
+                                        </button>
                         </div>
                     </div>
-                </section>
 
-                {/* Lưới tư vấn viên */}
-                <section className="consultants-section mb-5">
-                    <div className="section-header text-center mb-5">
-                        <h2 className="section-title">Các chuyên gia của chúng tôi</h2>
-                        <p className="section-subtitle">
-                            {filteredConsultants.length} tư vấn viên có sẵn
-                        </p>
+                                {/* Consultant Cards */}
+                                <div className="col-lg-9 col-md-8">
+                                    <div className="consultant-results">
+                                        <div className="d-flex justify-content-between align-items-center mb-4" style={{ padding: '0 0.25rem' }}>
+                                            <span className="text-muted" style={{ fontSize: '0.95rem', fontWeight: '500' }}>
+                                                Tìm thấy {filteredConsultants.length} tư vấn viên
+                                            </span>
                     </div>
 
-                    <div className="row">
+                                                                {filteredConsultants.length > 0 ? (
+                            <div className="consultant-cards-list">
                         {filteredConsultants.map((consultant) => (
-                            <div key={consultant.id_consultant} className="col-lg-6 col-md-6 mb-4">
-                                <div className="consultant-card">
-                                    <div className="consultant-header">
-                                        <div className="consultant-image">
+                                    <div key={consultant.id_consultant} className="consultant-card-full-width mb-3">
+                                        <div className="card" style={{ 
+                                            border: '0.5px solid #e0e0e0', 
+                                            borderRadius: '8px', 
+                                            backgroundColor: '#ffffff',
+                                            width: '100%'
+                                        }}>
+                                            <div className="card-body" style={{ padding: '1.5rem' }}>
+                                                <div className="row align-items-center">
+                                                    
+                                                    {/* Left: Icon/Image */}
+                                                    <div className="col-auto">
+                                                        <div className="consultant-avatar">
                                             <img
                                                 src={consultant.img_link ? `http://localhost:3000${consultant.img_link}` : Image}
                                                 alt={consultant.name !== 'N/A' ? consultant.name : 'Tư vấn viên'}
-                                                className="img-fluid"
+                                                                className="rounded-circle"
+                                                                style={{ 
+                                                                    width: '80px', 
+                                                                    height: '80px', 
+                                                                    objectFit: 'cover', 
+                                                                    border: '3px solid #f0f0f0' 
+                                                                }}
                                                 onError={(e) => {
-                                                    e.target.onerror = null; // Ngăn vòng lặp vô hạn
-                                                    e.target.src = Image; // Fallback về ảnh mặc định
+                                                                    e.target.onerror = null;
+                                                                    e.target.src = Image;
                                                 }}
                                             />
                                         </div>
+                                                    </div>
+
+                                                    {/* Middle: Name, Certification, Bios */}
+                                                    <div className="col">
                                         <div className="consultant-info">
-                                            <h4 className="consultant-name">{consultant.name !== 'N/A' ? consultant.name : 'N/A'}</h4>
-                                            <p className="consultant-title">{consultant.job !== 'N/A' ? consultant.job : 'N/A'}</p>
-                                            <p className="consultant-specialization">
-                                                <i className="bi bi-award me-2"></i>
-                                                {getSpecializationFromSpeciality(consultant.speciality)}
-                                            </p>
-                                        </div>
+                                                            {/* Name */}
+                                                            <h5 className="consultant-name mb-2" style={{ 
+                                                                fontWeight: '600', 
+                                                                color: '#333', 
+                                                                fontSize: '1.2rem',
+                                                                marginBottom: '0.5rem !important'
+                                                            }}>
+                                                                {consultant.name !== 'N/A' ? consultant.name : 'Tư vấn viên'}
+                                                            </h5>
+
+                                                            {/* Certification */}
+                                                            <div className="consultant-certification mb-2">
+                                                                <small className="text-muted d-block mb-1" style={{ 
+                                                                    fontSize: '0.85rem', 
+                                                                    fontWeight: '500',
+                                                                    color: '#555'
+                                                                }}>
+                                                                    <i className="bi bi-award me-1"></i>
+                                                                    Chứng chỉ:
+                                                                </small>
+                                                                <span style={{ 
+                                                                    fontSize: '0.9rem', 
+                                                                    color: '#666',
+                                                                    backgroundColor: '#f8f9fa',
+                                                                    padding: '0.25rem 0.5rem',
+                                                                    borderRadius: '4px',
+                                                                    border: '1px solid #e9ecef'
+                                                                }}>
+                                                                    {consultant.certification !== 'N/A' && consultant.certification ? 
+                                                                        consultant.certification : 'Chưa cập nhật'}
+                                                                </span>
                                     </div>
 
-                                    <div className="consultant-body">
-                                        <p className="consultant-description">
+                                                            {/* Bios */}
+                                                            <div className="consultant-bio">
+                                                                <small className="text-muted d-block mb-1" style={{ 
+                                                                    fontSize: '0.85rem', 
+                                                                    fontWeight: '500',
+                                                                    color: '#555'
+                                                                }}>
+                                                                    <i className="bi bi-person-lines-fill me-1"></i>
+                                                                    Giới thiệu:
+                                                                </small>
+                                                                <p style={{ 
+                                                                    fontSize: '0.9rem', 
+                                                                    lineHeight: '1.4', 
+                                                                    color: '#666',
+                                                                    marginBottom: '0.5rem'
+                                                                }}>
                                             {(() => {
                                                 if (!consultant.bio_json || consultant.bio_json === 'N/A') {
-                                                    return 'N/A';
+                                                                            return 'Chưa có thông tin giới thiệu';
                                                 }
-                                                
                                                 try {
-                                                    // Try to parse as JSON first
                                                     const bioData = typeof consultant.bio_json === 'string'
                                                         ? JSON.parse(consultant.bio_json)
                                                         : consultant.bio_json;
-                                                    
-                                                    // Extract bio content from various possible fields
                                                     const bioContent = bioData?.bio || bioData?.description || bioData?.content;
-                                                    
-                                                    // Check if we have any meaningful bio content
                                                     if (!bioContent || bioContent.trim() === '' || bioContent === 'N/A') {
-                                                        return 'N/A';
+                                                                                return 'Chưa có thông tin giới thiệu';
                                                     }
-                                                    
-                                                    return bioContent;
+                                                                            return bioContent.length > 120 ? bioContent.substring(0, 120) + '...' : bioContent;
                                                 } catch (error) {
-                                                    // If JSON parsing fails, treat as plain text
                                                     const plainText = consultant.bio_json.trim();
-                                                    
-                                                    // Check if it looks like malformed JSON (starts with { but failed to parse)
                                                     if (plainText.startsWith('{') && plainText.includes('"')) {
-                                                        return 'N/A';
+                                                                                return 'Chưa có thông tin giới thiệu';
                                                     }
-                                                    
-                                                    // Return plain text if it has content, otherwise N/A
-                                                    return plainText !== '' ? plainText : 'N/A';
+                                                                            return plainText !== '' ? (plainText.length > 120 ? plainText.substring(0, 120) + '...' : plainText) : 'Chưa có thông tin giới thiệu';
                                                 }
                                             })()}
                                         </p>
 
-                                        <div className="consultant-qualifications">
-                                            {consultant.certification !== 'N/A' && consultant.certification && (
-                                                consultant.certification.split(',').map((cert, index) => (
-                                                    <span key={index} className="qualification-badge">
-                                                        {cert.trim()}
-                                                    </span>
-                                                ))
-                                            )}
-                                            <span className="qualification-badge">
-                                                Chuyên gia có giấy phép
+                                                                {/* Specialization */}
+                                                                <span className="badge bg-primary" style={{ 
+                                                                    fontSize: '0.75rem',
+                                                                    padding: '0.4rem 0.8rem'
+                                                                }}>
+                                                                    {getSpecializationFromSpeciality(consultant.speciality)}
                                             </span>
                                         </div>
-
-                                        <div className="consultant-details">
-                                            <div className="detail-item">
-                                                <i className="bi bi-tag me-2"></i>
-                                                <span>
-                                                    {consultant.cost !== 'N/A' ? `${Number(consultant.cost).toLocaleString('vi-VN')}VNĐ mỗi buổi` : 'Giá N/A'}
-                                                </span>
+                                                        </div>
                                             </div>
                                             
-                                            {/* Available Slots Display */}
-                                            {consultant.available_slots && consultant.available_slots.length > 0 && (
-                                                <div className="detail-item">
-                                                    <i className="bi bi-clock me-2"></i>
-                                                    <div className="slot-info">
-                                                        <span className="slot-label">Lịch có sẵn:</span>
-                                                        <div className="available-slots">
+                                                    {/* Right: Days of week with slots */}
+                                                    <div className="col-md-4">
+                                                        <div className="consultant-schedule">
+                                                            <h6 className="schedule-title mb-3" style={{ 
+                                                                fontWeight: '600', 
+                                                                color: '#333',
+                                                                fontSize: '1rem'
+                                                            }}>
+                                                                <i className="bi bi-calendar3 me-2"></i>
+                                                                Lịch làm việc
+                                                            </h6>
+                                                            
+                                                            {consultant.available_slots && consultant.available_slots.length > 0 ? (
+                                                                <div className="schedule-calendar" style={{
+                                                                    maxHeight: '280px',
+                                                                    overflowY: 'auto',
+                                                                    backgroundColor: '#f8f9fa',
+                                                                    borderRadius: '8px',
+                                                                    padding: '1rem',
+                                                                    border: '1px solid #e9ecef'
+                                                                }}>
                                                             {(() => {
-                                                                // Group slots by day of week
+                                                                        // Group slots by day and sort by day order
                                                                 const groupedSlots = consultant.available_slots.reduce((acc, slot) => {
                                                                     if (!acc[slot.day_of_week]) {
                                                                         acc[slot.day_of_week] = [];
@@ -672,8 +721,8 @@ const BookingPage = () => {
                                                                     return acc;
                                                                 }, {});
 
-                                                                // Convert day names to Vietnamese
-                                                                const dayNames = {
+                                                                        const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                                                                        const dayLabels = {
                                                                     'Monday': 'T2',
                                                                     'Tuesday': 'T3',
                                                                     'Wednesday': 'T4',
@@ -683,91 +732,141 @@ const BookingPage = () => {
                                                                     'Sunday': 'CN'
                                                                 };
 
-                                                                return Object.entries(groupedSlots).map(([day, slots]) => (
-                                                                    <div key={day} className="day-slots">
-                                                                        <span className="day-name">
-                                                                            {dayNames[day] || day}:
+                                                                        return dayOrder
+                                                                            .filter(day => groupedSlots[day])
+                                                                            .map(day => {
+                                                                                const daySlots = groupedSlots[day];
+                                                                                const sortedSlots = daySlots.sort((a, b) => a.start_time.localeCompare(b.start_time));
+                                                                                
+                                                                                return (
+                                                                                    <div key={day} className="schedule-day-compact mb-3" style={{
+                                                                                        backgroundColor: '#ffffff',
+                                                                                        borderRadius: '6px',
+                                                                                        padding: '0.75rem',
+                                                                                        border: '1px solid #dee2e6',
+                                                                                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                                                                    }}>
+                                                                                        <div className="day-header d-flex align-items-center justify-content-between mb-2">
+                                                                                            <span className="day-label" style={{ 
+                                                                                                fontSize: '0.85rem', 
+                                                                                                fontWeight: '700',
+                                                                                                color: '#495057',
+                                                                                                backgroundColor: '#e9ecef',
+                                                                                                padding: '0.25rem 0.5rem',
+                                                                                                borderRadius: '4px',
+                                                                                                minWidth: '30px',
+                                                                                                textAlign: 'center'
+                                                                                            }}>
+                                                                                                {dayLabels[day]}
                                                                         </span>
-                                                                        {slots.map((slot, index) => (
-                                                                            <span key={index} className="time-slot">
-                                                                                {formatTime(slot.start_time)}
+                                                                                            <span className="slots-count" style={{
+                                                                                                fontSize: '0.7rem',
+                                                                                                color: '#6c757d'
+                                                                                            }}>
+                                                                                                {sortedSlots.length} slot{sortedSlots.length > 1 ? 's' : ''}
                                                                             </span>
-                                                                        ))}
                                                                     </div>
-                                                                ));
-                                                            })()}
+                                                                                        <div className="time-slots-grid" style={{
+                                                                                            display: 'grid',
+                                                                                            gridTemplateColumns: 'repeat(auto-fill, minmax(60px, 1fr))',
+                                                                                            gap: '0.4rem'
+                                                                                        }}>
+                                                                                            {sortedSlots.slice(0, 6).map((slot, index) => (
+                                                                                                <div 
+                                                                                                    key={index}
+                                                                                                    className="time-slot-compact"
+                                                                                                    style={{ 
+                                                                                                        fontSize: '0.7rem',
+                                                                                                        padding: '0.35rem 0.25rem',
+                                                                                                        backgroundColor: '#007bff',
+                                                                                                        color: '#ffffff',
+                                                                                                        borderRadius: '4px',
+                                                                                                        textAlign: 'center',
+                                                                                                        fontWeight: '500',
+                                                                                                        border: '1px solid #0056b3'
+                                                                                                    }}
+                                                                                                >
+                                                                                                    {formatTime(slot.start_time)}
+                                                        </div>
+                                                                                            ))}
+                                                                                            {sortedSlots.length > 6 && (
+                                                                                                <div 
+                                                                                                    className="more-slots-indicator"
+                                                                                                    style={{ 
+                                                                                                        fontSize: '0.7rem',
+                                                                                                        padding: '0.35rem 0.25rem',
+                                                                                                        backgroundColor: '#6c757d',
+                                                                                                        color: '#ffffff',
+                                                                                                        borderRadius: '4px',
+                                                                                                        textAlign: 'center',
+                                                                                                        fontWeight: '500',
+                                                                                                        border: '1px solid #545b62'
+                                                                                                    }}
+                                                                                                    title={`${sortedSlots.length - 6} more slots: ${sortedSlots.slice(6).map(s => formatTime(s.start_time)).join(', ')}`}
+                                                                                                >
+                                                                                                    +{sortedSlots.length - 6}
+                                                                    </div>
+                                            )}
                                                         </div>
                                                     </div>
+                                                                                );
+                                                                            });
+                                                                    })()}
                                                 </div>
-                                            )}
+                                                            ) : (
+                                                                <div className="no-schedule text-muted" style={{ 
+                                                                    fontSize: '0.9rem',
+                                                                    textAlign: 'center',
+                                                                    padding: '2rem 1rem',
+                                                                    backgroundColor: '#f8f9fa',
+                                                                    borderRadius: '8px',
+                                                                    border: '1px solid #e9ecef'
+                                                                }}>
+                                                                    <i className="bi bi-calendar-x mb-2 d-block" style={{ fontSize: '1.5rem' }}></i>
+                                                                    Chưa thiết lập lịch làm việc
                                         </div>
+                                                            )}
 
-                                        <div className="consultant-footer">
+                                                            {/* Action Button */}
+                                                            <div className="mt-3 pt-2" style={{ borderTop: '1px solid #f0f0f0' }}>
                                             <button
                                                 onClick={() => handleViewProfile(consultant.id_consultant)}
-                                                className="btn btn-outline-primary"
+                                                                    className="btn btn-primary w-100"
+                                                                    style={{ 
+                                                                        borderRadius: '6px', 
+                                                                        padding: '0.6rem 1rem',
+                                                                        fontSize: '0.9rem',
+                                                                        fontWeight: '500'
+                                                                    }}
                                             >
                                                 <i className="bi bi-person me-2"></i>
-                                                Xem hồ sơ
+                                                                    Xem hồ sơ & Đặt lịch
                                             </button>
+                                                                
+                                                                <div className="mt-2 text-center">
+                                                                    <small className="text-success" style={{ fontSize: '0.8rem', fontWeight: '500' }}>
+                                                                        <i className="bi bi-camera-video me-1"></i>
+                                                                        {consultant.google_meet_link !== 'N/A' && consultant.google_meet_link ? 
+                                                                            'Google Meet có sẵn' : 'Link Meet chưa thiết lập'}
+                                                                    </small>
+                                        </div>
+                                    </div>
+                                </div>
+                    </div>
+
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         ))}
                     </div>
-
-                    {filteredConsultants.length === 0 && (
-                        <div className="no-results">
-                            <div className="text-center">
+                                        ) : (
+                                            <div className="no-results text-center py-5" style={{ backgroundColor: '#ffffff', margin: '2rem 0', padding: '3rem 1rem' }}>
                                 <i className="bi bi-search display-4 text-muted mb-3"></i>
-                                <h4>Không tìm thấy tư vấn viên</h4>
-                                <p className="text-muted">Hãy thử điều chỉnh bộ lọc để xem thêm tùy chọn.</p>
-                                <button
-                                    className="btn btn-outline-primary"
-                                    onClick={() => {
-                                        setSelectedSpecialization('all');
-                                        setSelectedDayOfWeek('all');
-                                        setSelectedTimeSlot('all');
-                                    }}
-                                >
-                                    Xóa bộ lọc
-                                </button>
-                            </div>
+                                                <h5 style={{ color: '#666', fontWeight: '600' }}>Không tìm thấy tư vấn viên</h5>
+                                                <p className="text-muted" style={{ fontSize: '0.95rem' }}>Hãy thử điều chỉnh bộ lọc để xem thêm tùy chọn.</p>
                         </div>
                     )}
-                </section>
-
-                {/* Phần thông tin */}
-                <section className="info-section">
-                    <div className="row">
-                        <div className="col-lg-8 mx-auto">
-                            <div className="info-card">
-                                <h3 className="info-title">
-                                    <i className="bi bi-shield-heart me-2"></i>
-                                    Cách thức hoạt động
-                                </h3>
-                                <div className="row">
-                                    <div className="col-md-4 text-center mb-3">
-                                        <div className="step-icon">
-                                            <i className="bi bi-1-circle-fill"></i>
-                                        </div>
-                                        <h5>Chọn chuyên gia</h5>
-                                        <p>Chọn tư vấn viên dựa trên chuyên môn và lịch trống của họ.</p>
-                                    </div>
-                                    <div className="col-md-4 text-center mb-3">
-                                        <div className="step-icon">
-                                            <i className="bi bi-2-circle-fill"></i>
-                                        </div>
-                                        <h5>Đặt lịch</h5>
-                                        <p>Chọn khung giờ và gửi yêu cầu tư vấn để được phê duyệt.</p>
-                                    </div>
-                                    <div className="col-md-4 text-center mb-3">
-                                        <div className="step-icon">
-                                            <i className="bi bi-3-circle-fill"></i>
-                                        </div>
-                                        <h5>Nhận hỗ trợ</h5>
-                                        <p>Nhận hướng dẫn và hỗ trợ cá nhân hóa từ các chuyên gia giàu kinh nghiệm.</p>
                                     </div>
                                 </div>
                             </div>
@@ -775,6 +874,47 @@ const BookingPage = () => {
                     </div>
                 </section>
             </div>
+
+            {/* Note Modal */}
+            {showNoteModal && selectedNoteBooking && (
+                <div className="modal fade show" style={{ display: 'block', background: 'rgba(0,0,0,0.5)' }} tabIndex="-1">
+                    <div className="modal-dialog modal-dialog-centered">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">Ghi chú cuộc hẹn</h5>
+                                <button
+                                    type="button"
+                                    className="btn-close"
+                                    onClick={() => setShowNoteModal(false)}
+                                ></button>
+                                        </div>
+                            <div className="modal-body">
+                                <div className="mb-3">
+                                    <strong>Ngày hẹn:</strong> {formatBookingDate(selectedNoteBooking.booking_date)}
+                                    </div>
+                                <div className="mb-3">
+                                    <strong>Trạng thái:</strong> {getStatusInfo(selectedNoteBooking.status).label}
+                                        </div>
+                                <div className="mb-3">
+                                    <strong>Ghi chú:</strong>
+                                    <div className="mt-2 p-3 bg-light rounded">
+                                        {selectedNoteBooking.notes || 'Không có ghi chú'}
+                                    </div>
+                                        </div>
+                                    </div>
+                            <div className="modal-footer">
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary"
+                                    onClick={() => setShowNoteModal(false)}
+                                >
+                                    Đóng
+                                </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            )}
         </div>
     );
 };

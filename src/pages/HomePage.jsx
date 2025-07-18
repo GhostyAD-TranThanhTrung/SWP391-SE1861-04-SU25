@@ -269,10 +269,13 @@ const HomePage = () => {
                                         {/* Enhanced metadata */}
                                         <div className="card-meta" style={{ fontSize: 14, marginBottom: 12 }}>
                                             <p style={{ marginBottom: 4 }}>
-                                                <strong>Người tạo:</strong> {truncateText(item.creator?.name || 'Không xác định', 20)}
+                                                <strong>Người tạo:</strong> {truncateText(
+                                                    item.creator?.name || 
+                                                    item.creator_name || 
+                                                    'SUBSTANCE Team', 20)}
                                             </p>
                                             <p style={{ marginBottom: 4 }}>
-                                                <strong>Danh mục:</strong> {truncateText(item.category?.name || 'N/A', 25)}
+                                                <strong>Danh mục:</strong> {truncateText(item.category?.name || 'Chương trình phục hồi', 25)}
                                             </p>
                                             <p style={{ marginBottom: 4 }}>
                                                 <strong>Nhóm tuổi:</strong> {item.age_group === 'all' ? 'Tất cả độ tuổi' :

@@ -26,6 +26,32 @@ const BookingModal = ({ isOpen, onClose, consultantId }) => {
         return days[date.getDay()];
     };
 
+    // Get unique available days of week from consultant slots
+    const getAvailableDaysOfWeek = () => {
+        if (!availableSlots || availableSlots.length === 0) return [];
+        const uniqueDays = [...new Set(availableSlots.map(slot => slot.day_of_week))];
+        return uniqueDays;
+    };
+
+    // Custom date filter function - only allow dates that match consultant's available days
+    const filterAvailableDates = (date) => {
+        if (!date) return false;
+        
+        // Don't allow past dates
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (date < today) return false;
+
+        // Get the day of week for this date
+        const dayOfWeek = getEnglishDayOfWeek(date);
+        
+        // Get consultant's available days
+        const availableDays = getAvailableDaysOfWeek();
+        
+        // Only allow dates that match consultant's available days
+        return availableDays.includes(dayOfWeek);
+    };
+
     // Get session token
     const getSessionToken = () => {
         const token = sessionStorage.getItem('token');
@@ -225,6 +251,28 @@ const BookingModal = ({ isOpen, onClose, consultantId }) => {
 
                     <div className="date-picker-section">
                         <label>Chọn Ngày:</label>
+                        
+                        {/* Show available days information */}
+                        {availableSlots.length > 0 && (
+                            <div className="available-days-info mb-2">
+                                <small className="text-muted">
+                                    <i className="bi bi-info-circle me-1"></i>
+                                    Tư vấn viên có sẵn vào: {getAvailableDaysOfWeek().map(day => {
+                                        const dayLabels = {
+                                            'Monday': 'Thứ Hai',
+                                            'Tuesday': 'Thứ Ba',
+                                            'Wednesday': 'Thứ Tư',
+                                            'Thursday': 'Thứ Năm',
+                                            'Friday': 'Thứ Sáu',
+                                            'Saturday': 'Thứ Bảy',
+                                            'Sunday': 'Chủ Nhật'
+                                        };
+                                        return dayLabels[day] || day;
+                                    }).join(', ')}
+                                </small>
+                            </div>
+                        )}
+
                         <DatePicker
                             selected={selectedDate}
                             onChange={date => {
@@ -232,6 +280,7 @@ const BookingModal = ({ isOpen, onClose, consultantId }) => {
                                 setSelectedSlot(null);
                             }}
                             minDate={new Date()}
+                            filterDate={filterAvailableDates}
                             dateFormat="dd/MM/yyyy"
                             placeholderText="Chọn ngày tư vấn"
                             className="form-control"
@@ -242,6 +291,13 @@ const BookingModal = ({ isOpen, onClose, consultantId }) => {
                             <p className="selected-day">
                                 Ngày đã chọn: {getVietnameseDayOfWeek(selectedDate)}
                             </p>
+                        )}
+                        
+                        {availableSlots.length === 0 && !loading && (
+                            <div className="alert alert-info mt-2">
+                                <i className="bi bi-exclamation-circle me-2"></i>
+                                Tư vấn viên chưa thiết lập lịch làm việc. Vui lòng liên hệ để biết thêm thông tin.
+                            </div>
                         )}
                     </div>
 
