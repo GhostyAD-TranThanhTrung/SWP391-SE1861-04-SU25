@@ -445,32 +445,54 @@
 
                 .result-score {
                     display: flex;
+                    flex-direction: column;
                     align-items: center;
-                    margin: 1rem 0;
-                    padding: 0.8rem 1rem;
-                    background-color: #e6f7f9;
+                    padding: 1rem;
+                    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
                     border-radius: 8px;
+                    margin: 0.5rem 0;
 
                     .score-label {
+                        font-size: 0.9rem;
+                        color: #1976d2;
+                        margin-bottom: 0.5rem;
                         font-weight: 500;
-                        color: #2c3e50;
-                        margin-right: 0.5rem;
                     }
 
                     .score-value {
-                        font-size: 1.2rem;
+                        font-size: 2rem;
                         font-weight: 700;
-                        color: #2bb6cc;
+                        color: #1565c0;
+                        line-height: 1;
+                    }
+
+                    .assist-score-info {
+                        text-align: center;
+                        
+                        small {
+                            font-size: 0.8rem;
+                            color: #546e7a;
+                        }
                     }
                 }
 
                 .result-summary {
-                    margin: 1rem 0;
-                    padding: 0.8rem 1rem;
-                    background-color: #e6f7f9;
+                    text-align: center;
+                    padding: 1rem;
+                    background: #f8f9fa;
                     border-radius: 8px;
-                    color: #2c3e50;
-                    font-weight: 500;
+                    margin: 0.5rem 0;
+
+                    div {
+                        font-weight: 500;
+                        color: #495057;
+                        margin-bottom: 0.5rem;
+                    }
+
+                    small {
+                        font-size: 0.8rem;
+                        color: #6c757d;
+                    }
                 }
 
                 .result-error {
@@ -494,15 +516,20 @@
                         max-height: 300px;
                         overflow-y: auto;
 
-                        table {
+                        .table {
                             width: 100%;
                             border-collapse: collapse;
+                            margin-top: 1rem;
+                            background: white;
+                            border-radius: 8px;
+                            overflow: hidden;
+                            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 
-                            th,
-                            td {
-                                padding: 10px;
+                            th, td {
+                                padding: 0.8rem;
                                 text-align: left;
                                 border: 1px solid #e0e0e0;
+                                vertical-align: top;
                             }
 
                             th {
@@ -516,6 +543,58 @@
 
                             tr:hover {
                                 background-color: #e6f7f9;
+                            }
+
+                            .question-text {
+                                strong {
+                                    color: #2c3e50;
+                                    font-size: 0.95rem;
+                                }
+
+                                small {
+                                    color: #6c757d;
+                                    line-height: 1.4;
+                                    font-size: 0.85rem;
+                                }
+
+                                .question-note {
+                                    small {
+                                        color: #17a2b8;
+                                        font-weight: 500;
+                                    }
+                                }
+                            }
+
+                            .answer-content {
+                                .answer-note {
+                                    small {
+                                        color: #6c757d;
+                                        font-style: italic;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                .assist-info {
+                    .alert-info {
+                        background-color: #d1ecf1;
+                        border-color: #bee5eb;
+                        color: #0c5460;
+
+                        h6 {
+                            color: #0c5460;
+                            font-weight: 600;
+                        }
+
+                        ul {
+                            padding-left: 1.2rem;
+                            
+                            li {
+                                margin-bottom: 0.3rem;
+                                font-size: 0.9rem;
+                                line-height: 1.4;
                             }
                         }
                     }

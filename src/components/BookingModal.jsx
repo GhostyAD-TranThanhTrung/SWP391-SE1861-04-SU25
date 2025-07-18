@@ -10,6 +10,7 @@ const BookingModal = ({ isOpen, onClose, consultantId }) => {
     const [loading, setLoading] = useState(false);
     const [currentBookings, setCurrentBookings] = useState([]);
     const [bookingCount, setBookingCount] = useState(0);
+    const [consentGiven, setConsentGiven] = useState(false);
     const MAX_BOOKINGS = 3;
 
     // Get day of week in English for database comparison
@@ -156,6 +157,11 @@ const BookingModal = ({ isOpen, onClose, consultantId }) => {
     const handleBooking = async () => {
         if (!selectedSlot || !selectedDate) {
             alert('Vui lòng chọn ngày và khung giờ tư vấn');
+            return;
+        }
+
+        if (!consentGiven) {
+            alert('Vui lòng đồng ý với điều khoản chia sẻ thông tin trước khi đặt lịch');
             return;
         }
 
@@ -328,6 +334,40 @@ const BookingModal = ({ isOpen, onClose, consultantId }) => {
                             )}
                         </div>
                     )}
+
+                    {/* Consent Section */}
+                    <div className="consent-section">
+                        <div className="consent-box">
+                            <div className="consent-header">
+                                <i className="bi bi-shield-check text-primary me-2"></i>
+                                <strong>Đồng Ý Chia Sẻ Thông Tin</strong>
+                            </div>
+                            <div className="consent-content">
+                                <p className="consent-text">
+                                    Bằng việc đặt lịch tư vấn này, tôi đồng ý rằng:
+                                </p>
+                                <ul className="consent-list">
+                                    <li>Tư vấn viên sẽ có quyền truy cập vào thông tin cá nhân của tôi trong hệ thống</li>
+                                    <li>Tư vấn viên có thể xem kết quả đánh giá trước đó của tôi để phục vụ tư vấn tốt hơn</li>
+                                    <li>Thông tin này chỉ được sử dụng cho mục đích tư vấn và sẽ được bảo mật</li>
+                                </ul>
+                            </div>
+                            <div className="consent-checkbox">
+                                <label className="consent-label">
+                                    <input
+                                        type="checkbox"
+                                        checked={consentGiven}
+                                        onChange={(e) => setConsentGiven(e.target.checked)}
+                                        disabled={bookingCount >= MAX_BOOKINGS}
+                                    />
+                                    <span className="checkmark"></span>
+                                    <span className="consent-text">
+                                        Tôi đã đọc và đồng ý với các điều khoản chia sẻ thông tin trên
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="modal-footer">
@@ -341,7 +381,7 @@ const BookingModal = ({ isOpen, onClose, consultantId }) => {
                     <button
                         className="btn btn-primary"
                         onClick={handleBooking}
-                        disabled={!selectedSlot || loading || bookingCount >= MAX_BOOKINGS}
+                        disabled={!selectedSlot || !consentGiven || loading || bookingCount >= MAX_BOOKINGS}
                     >
                         {loading ? (
                             <>

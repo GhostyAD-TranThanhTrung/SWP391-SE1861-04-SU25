@@ -5,6 +5,8 @@ import "../../styles/AssessmentListPage.scss";
 import { useNavigate } from "react-router-dom";
 import { FaUsers, FaClipboardList, FaSearch, FaEye, FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
 import PaginationComp from "../../components/Pagination.jsx";
+import { assessRiskLevel as assessCrafftRisk } from "../../QuizData/Crafft-Data";
+import { assessRiskLevel as assessAssistRisk } from "../../QuizData/Assist_Data";
 
 const AssessmentListPage = () => {
 
@@ -271,6 +273,69 @@ const AssessmentListPage = () => {
   // Get unique assessment types for filter dropdown
   const uniqueTypes = [...new Set(assessments.map(a => a.type).filter(Boolean))];
 
+  // Helper function to calculate risk level from assessment data
+  const calculateRiskLevel = (assessment) => {
+    try {
+      const resultData = typeof assessment.result_json === 'string'
+        ? JSON.parse(assessment.result_json)
+        : assessment.result_json;
+
+      if (!resultData || resultData.score === undefined) {
+        return { riskLevel: 'Không xác định', score: 0 };
+      }
+
+      const score = resultData.score;
+      let riskLevel = 'Không xác định';
+      const assessmentType = assessment.type?.toLowerCase();
+
+      if (assessmentType === 'crafft') {
+        // For CRAFFT, we need to check substance use from Part A
+        const hasSubstanceUse = resultData.result && resultData.result.some((answer, index) => {
+          return index < 3 && answer.score > 0; // First 3 questions are Part A
+        });
+        
+        // Check CAR question (question 4, index 3)
+        const hasCarRisk = resultData.result && resultData.result[3]?.score === 1;
+        
+        // Create userAnswers object for CRAFFT assessment
+        const userAnswers = {};
+        if (resultData.result) {
+          resultData.result.forEach((answer, index) => {
+            userAnswers[index] = answer;
+          });
+        }
+        
+        riskLevel = assessCrafftRisk(score, userAnswers);
+      } else if (assessmentType === 'assist') {
+        // For ASSIST, check if it's cannabis or other substances
+        const isCannabis = resultData.result && resultData.result[0] && 
+          resultData.result[0].selectedOption && 
+          resultData.result[0].selectedOption.includes('Cần sa');
+        
+        riskLevel = assessAssistRisk(score, isCannabis);
+      }
+
+      return { riskLevel, score };
+    } catch (error) {
+      console.error('Error calculating risk level:', error);
+      return { riskLevel: 'Lỗi', score: 0 };
+    }
+  };
+
+  // Get risk level color class
+  const getRiskLevelClass = (riskLevel) => {
+    switch (riskLevel.toLowerCase()) {
+      case 'thấp':
+        return 'bg-success';
+      case 'trung bình':
+        return 'bg-warning';
+      case 'cao':
+        return 'bg-danger';
+      default:
+        return 'bg-secondary';
+    }
+  };
+
 
   return (
     <div className="staff-container">
@@ -395,6 +460,8 @@ const AssessmentListPage = () => {
               >
                 Loại {getSortIcon('type')}
               </th>
+              <th>Điểm số</th>
+              <th>Mức độ rủi ro</th>
               <th 
                 onClick={() => handleSort('action_id')} 
                 style={{ cursor: 'pointer', userSelect: 'none' }}
@@ -413,25 +480,38 @@ const AssessmentListPage = () => {
             </tr>
           </thead>
           <tbody>
-            {paginatedAssessments.map((assessment, index) => (
-              <tr key={assessment.assessment_id}>
-                <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
-                <td>{assessment.assessment_id}</td>
-                <td>{assessment.user_id || 'N/A'}</td>
-                <td>
-                  <span className={`badge ${assessment.type === 'CRAFFT' ? 'bg-primary' : 'bg-success'}`}>
-                    {assessment.type || 'N/A'}
-                  </span>
-                </td>
-                <td>{assessment.action_id || 'N/A'}</td>
-                <td>{assessment.create_at ? new Date(assessment.create_at).toLocaleDateString('vi-VN') : 'N/A'}</td>
-                <td className="action-buttons">
-                  <button className="btn btn-light me-2" title="Xem chi tiết">
-                    <FaEye color="#0ea5e9" />
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {paginatedAssessments.map((assessment, index) => {
+              const { riskLevel, score } = calculateRiskLevel(assessment);
+              return (
+                <tr key={assessment.assessment_id}>
+                  <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
+                  <td>{assessment.assessment_id}</td>
+                  <td>{assessment.user_id || 'N/A'}</td>
+                  <td>
+                    <span className={`badge ${assessment.type === 'CRAFFT' ? 'bg-primary' : 'bg-success'}`}>
+                      {assessment.type || 'N/A'}
+                    </span>
+                  </td>
+                  <td>
+                    <strong style={{ color: score >= 15 ? '#dc3545' : score >= 10 ? '#fd7e14' : '#28a745' }}>
+                      {score}
+                    </strong>
+                  </td>
+                  <td>
+                    <span className={`badge ${getRiskLevelClass(riskLevel)}`}>
+                      {riskLevel}
+                    </span>
+                  </td>
+                  <td>{assessment.action_id || 'N/A'}</td>
+                  <td>{assessment.create_at ? new Date(assessment.create_at).toLocaleDateString('vi-VN') : 'N/A'}</td>
+                  <td className="action-buttons">
+                    <button className="btn btn-light me-2" title="Xem chi tiết">
+                      <FaEye color="#0ea5e9" />
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

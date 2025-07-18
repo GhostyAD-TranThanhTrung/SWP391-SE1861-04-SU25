@@ -6,6 +6,8 @@ import "../../styles/MemberListPage.scss";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import PaginationComp from "../../components/Pagination";
+import { assessRiskLevel as assessCrafftRisk } from "../../QuizData/Crafft-Data";
+import { assessRiskLevel as assessAssistRisk } from "../../QuizData/Assist_Data";
 
 
 const MemberListPage = () => {
@@ -32,6 +34,69 @@ const MemberListPage = () => {
   const [sortDirection, setSortDirection] = useState('asc'); // 'asc' or 'desc'
   
   // Statistics state - no longer needed as we'll calculate from filtered data
+
+  // Helper function to calculate risk level from assessment data
+  const calculateRiskLevel = (assessment) => {
+    try {
+      const resultData = typeof assessment.result_json === 'string'
+        ? JSON.parse(assessment.result_json)
+        : assessment.result_json;
+
+      if (!resultData || resultData.score === undefined) {
+        return { riskLevel: 'Không xác định', score: 0 };
+      }
+
+      const score = resultData.score;
+      let riskLevel = 'Không xác định';
+      const assessmentType = assessment.type?.toLowerCase();
+
+      if (assessmentType === 'crafft') {
+        // For CRAFFT, we need to check substance use from Part A
+        const hasSubstanceUse = resultData.result && resultData.result.some((answer, index) => {
+          return index < 3 && answer.score > 0; // First 3 questions are Part A
+        });
+        
+        // Check CAR question (question 4, index 3)
+        const hasCarRisk = resultData.result && resultData.result[3]?.score === 1;
+        
+        // Create userAnswers object for CRAFFT assessment
+        const userAnswers = {};
+        if (resultData.result) {
+          resultData.result.forEach((answer, index) => {
+            userAnswers[index] = answer;
+          });
+        }
+        
+        riskLevel = assessCrafftRisk(score, userAnswers);
+      } else if (assessmentType === 'assist') {
+        // For ASSIST, check if it's cannabis or other substances
+        const isCannabis = resultData.result && resultData.result[0] && 
+          resultData.result[0].selectedOption && 
+          resultData.result[0].selectedOption.includes('Cần sa');
+        
+        riskLevel = assessAssistRisk(score, isCannabis);
+      }
+
+      return { riskLevel, score };
+    } catch (error) {
+      console.error('Error calculating risk level:', error);
+      return { riskLevel: 'Lỗi', score: 0 };
+    }
+  };
+
+  // Get risk level color class
+  const getRiskLevelClass = (riskLevel) => {
+    switch (riskLevel.toLowerCase()) {
+      case 'thấp':
+        return 'bg-success';
+      case 'trung bình':
+        return 'bg-warning';
+      case 'cao':
+        return 'bg-danger';
+      default:
+        return 'bg-secondary';
+    }
+  };
 
   useEffect(() => {
     if (!token) {
@@ -744,6 +809,9 @@ const MemberListPage = () => {
                       console.error('Error parsing assessment result:', e);
                     }
 
+                    const { riskLevel, score } = calculateRiskLevel(assessment);
+                    const riskLevelClass = getRiskLevelClass(riskLevel);
+
                     return (
                       <div key={index} className="assessment-item" style={{
                         backgroundColor: '#ffffff',
@@ -798,35 +866,24 @@ const MemberListPage = () => {
                                 <span className="member-detail-label">Tổng điểm:</span>
                                 <span className="member-detail-value">
                                   <strong style={{
-                                    color: totalScore >= 15 ? '#dc3545' :
-                                      totalScore >= 10 ? '#fd7e14' :
-                                        totalScore >= 5 ? '#ffc107' : '#28a745',
+                                    color: score >= 15 ? '#dc3545' :
+                                      score >= 10 ? '#fd7e14' :
+                                        score >= 5 ? '#ffc107' : '#28a745',
                                     fontSize: '1.1em'
                                   }}>
-                                    {totalScore}
+                                    {score}
                                   </strong>
                                 </span>
                               </div>
                               <div className="member-detail-row">
                                 <span className="member-detail-label">Số câu hỏi:</span>
                                 <span className="member-detail-value">{questionCount} câu</span>
-              </div>
-              <div className="member-detail-row">
+                              </div>
+                              <div className="member-detail-row">
                                 <span className="member-detail-label">Mức độ rủi ro:</span>
-                <span className="member-detail-value">
-                                  <span style={{
-                                    padding: '3px 8px',
-                                    borderRadius: '3px',
-                                    fontSize: '0.9em',
-                                    fontWeight: 'bold',
-                                    color: 'white',
-                                    backgroundColor: totalScore >= 15 ? '#dc3545' :
-                                      totalScore >= 10 ? '#fd7e14' :
-                                        totalScore >= 5 ? '#ffc107' : '#28a745'
-                                  }}>
-                                    {totalScore >= 15 ? 'Cao' :
-                                      totalScore >= 10 ? 'Trung bình' :
-                                        totalScore >= 5 ? 'Thấp' : 'Rất thấp'}
+                                <span className="member-detail-value">
+                                  <span className={`badge ${riskLevelClass}`} style={{ fontSize: '0.9em' }}>
+                                    {riskLevel}
                                   </span>
                                 </span>
                               </div>

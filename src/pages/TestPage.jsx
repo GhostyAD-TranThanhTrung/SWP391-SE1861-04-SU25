@@ -73,17 +73,39 @@ const TestPage = () => {
                 ? JSON.parse(assessment.result_json)
                 : assessment.result_json;
 
+            // Check if this is ASSIST assessment
+            const isAssist = assessment.type && assessment.type.toLowerCase() === 'assist';
+
             // Hiển thị điểm số nếu có
             if (resultData && resultData.score !== undefined) {
                 return (
                     <div className="result-score">
                         <span className="score-label">Điểm đánh giá:</span>
                         <span className="score-value">{resultData.score}</span>
+                        {isAssist && (
+                            <div className="assist-score-info mt-2">
+                                <small className="text-muted">
+                                    <i className="fas fa-info-circle me-1"></i>
+                                    {resultData.score <= 3 ? 'Nguy cơ thấp' : 
+                                     resultData.score <= 26 ? 'Nguy cơ trung bình' : 'Nguy cơ cao'}
+                                </small>
+                            </div>
+                        )}
                     </div>
                 );
             } else {
                 // Hiển thị dạng rút gọn của kết quả
-                return <div className="result-summary">Đã hoàn thành đánh giá</div>;
+                return (
+                    <div className="result-summary">
+                        <div>Đã hoàn thành đánh giá</div>
+                        {isAssist && (
+                            <small className="text-muted">
+                                <i className="fas fa-clipboard-list me-1"></i>
+                                ASSIST - Đánh giá rủi ro sử dụng chất
+                            </small>
+                        )}
+                    </div>
+                );
             }
         } catch (err) {
             return <div className="result-error">Không thể hiển thị kết quả</div>;
@@ -117,6 +139,9 @@ const TestPage = () => {
                 return <div>Không có dữ liệu câu trả lời chi tiết</div>;
             }
 
+            // Check if this is ASSIST assessment
+            const isAssist = assessment.type && assessment.type.toLowerCase() === 'assist';
+
             return (
                 <div className="answers-details">
                     <div className="table-responsive">
@@ -129,16 +154,63 @@ const TestPage = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {resultData.result.map((answer, index) => (
-                                    <tr key={index}>
-                                        <td>Câu {answer.questionId}</td>
-                                        <td>{answer.selectedOption}</td>
-                                        <td>{answer.score}</td>
-                                    </tr>
-                                ))}
+                                {resultData.result.map((answer, index) => {
+                                    // For ASSIST, check if this is the first question (multi-select)
+                                    const isFirstQuestion = isAssist && answer.questionId === "1";
+                                    
+                                    return (
+                                        <tr key={index}>
+                                            <td>
+                                                <div className="question-text">
+                                                    <strong>Câu {answer.questionId}:</strong>
+                                                    <br />
+                                                    <small className="text-muted">
+                                                        {answer.question || `Câu hỏi ${answer.questionId}`}
+                                                    </small>
+                                                    {isFirstQuestion && (
+                                                        <div className="question-note mt-1">
+                                                            <small className="text-info">
+                                                                <i className="fas fa-info-circle me-1"></i>
+                                                                Câu hỏi đa lựa chọn
+                                                            </small>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div className="answer-content">
+                                                    {answer.selectedOption || 'Không có câu trả lời'}
+                                                    {isFirstQuestion && answer.selectedOption && (
+                                                        <div className="answer-note mt-1">
+                                                            <small className="text-muted">
+                                                                <i className="fas fa-check-circle me-1"></i>
+                                                                Đã chọn {answer.selectedOption.split(', ').length} lựa chọn
+                                                            </small>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td>{answer.score}</td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>
+                    
+                    {/* Additional info for ASSIST assessments */}
+                    {isAssist && (
+                        <div className="assist-info mt-3">
+                            <div className="alert alert-info">
+                                <h6><i className="fas fa-info-circle me-2"></i>Thông tin về bài đánh giá ASSIST</h6>
+                                <ul className="mb-0 mt-2">
+                                    <li>Câu hỏi 1: Chọn tất cả các chất bạn đã từng sử dụng</li>
+                                    <li>Câu hỏi 2-15: Dựa trên các chất đã chọn ở câu 1</li>
+                                    <li>Điểm số được tính dựa trên tần suất và mức độ nghiêm trọng của việc sử dụng chất</li>
+                                </ul>
+                            </div>
+                        </div>
+                    )}
                 </div>
             );
         } catch (err) {

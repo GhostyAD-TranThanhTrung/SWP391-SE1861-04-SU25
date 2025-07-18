@@ -45,22 +45,57 @@ const ExamPage = () => {
                     ? prev.filter(opt => opt.id !== option.id)
                     : [...prev, option];
 
-                // Lưu đáp án đã chọn
+                // Lưu đáp án đã chọn với câu hỏi
                 setSavedAnswers(prev => ({
                     ...prev,
-                    [currentQuestionIndex]: newOptions
+                    [currentQuestionIndex]: {
+                        question: quizData.questions[currentQuestionIndex].question,
+                        selectedOptions: newOptions
+                    }
                 }));
 
                 return newOptions;
             });
         } else {
             setSelectedOption(option);
-            // Lưu đáp án đã chọn
+            // Lưu đáp án đã chọn với câu hỏi
             setSavedAnswers(prev => ({
                 ...prev,
-                [currentQuestionIndex]: option
+                [currentQuestionIndex]: {
+                    question: getCurrentQuestionText(),
+                    selectedOption: option
+                }
             }));
         }
+    };
+
+    // Function to get current question text with substance replacement for ASSIST
+    const getCurrentQuestionText = () => {
+        const currentQuestion = quizData.questions[currentQuestionIndex];
+        let questionText = currentQuestion.question;
+        
+        // For ASSIST, replace [chất] with selected substances
+        if (type.toLowerCase() === 'assist' && currentQuestionIndex > 0) {
+            const firstQuestionAnswer = savedAnswers[0];
+            if (firstQuestionAnswer && firstQuestionAnswer.selectedOptions) {
+                const selectedSubstances = firstQuestionAnswer.selectedOptions
+                    .filter(opt => opt.id !== 11) // Exclude "Tôi chưa từng sử dụng bất kỳ chất nào"
+                    .map(opt => opt.text);
+                
+                if (selectedSubstances.length > 0) {
+                    const substanceText = selectedSubstances.join(' hoặc ');
+                    questionText = questionText.replace(/\[chất\]/g, substanceText);
+                } else {
+                    // If no substances selected, use a generic term
+                    questionText = questionText.replace(/\[chất\]/g, 'chất gây nghiện');
+                }
+            } else {
+                // Fallback if no first question answer
+                questionText = questionText.replace(/\[chất\]/g, 'chất gây nghiện');
+            }
+        }
+        
+        return questionText;
     };
 
     const handleNextQuestion = () => {
@@ -74,10 +109,35 @@ const ExamPage = () => {
             return;
         }
 
+        // For ASSIST, check if user selected "never used" option
+        if (type.toLowerCase() === 'assist' && currentQuestionIndex === 0) {
+            const hasNeverUsed = selectedOptions.some(opt => opt.id === 11);
+            const hasSubstances = selectedOptions.some(opt => opt.id !== 11);
+            
+            // If they selected "never used" and no substances, skip to end
+            if (hasNeverUsed && !hasSubstances) {
+                navigate('/result', {
+                    state: {
+                        result: { ...result, score: 0, riskLevel: 'Thấp' },
+                        type,
+                        userAnswers: {
+                            0: {
+                                question: quizData.questions[0].question,
+                                selectedOptions: selectedOptions
+                            }
+                        }
+                    }
+                });
+                return;
+            }
+        }
+
         // Calculate score differently for CRAFFT vs ASSIST
         const scoreToAdd = type.toLowerCase() === 'crafft' 
             ? (currentQuestionIndex >= 3 ? (selectedOption?.score || 0) : 0) // Only Part B (questions 4-9) count for CRAFFT score
-            : (selectedOption?.score || 0); // All questions count for ASSIST
+            : (currentQuestionIndex === 0 && type.toLowerCase() === 'assist' 
+                ? selectedOptions.reduce((sum, opt) => sum + (opt.score || 0), 0) // Sum scores for multiple choice
+                : (selectedOption?.score || 0)); // Single choice score
 
         const newScore = result.score + scoreToAdd;
 
@@ -85,8 +145,14 @@ const ExamPage = () => {
         const updatedAnswers = {
             ...savedAnswers,
             [currentQuestionIndex]: currentQuestionIndex === 0 && type.toLowerCase() === 'assist' 
-                ? selectedOptions 
-                : selectedOption
+                ? {
+                    question: quizData.questions[currentQuestionIndex].question,
+                    selectedOptions: selectedOptions
+                }
+                : {
+                    question: getCurrentQuestionText(),
+                    selectedOption: selectedOption
+                }
         };
         setSavedAnswers(updatedAnswers);
 
@@ -102,10 +168,12 @@ const ExamPage = () => {
             // Khôi phục đáp án đã lưu cho câu hỏi tiếp theo
             const nextQuestionAnswer = savedAnswers[currentQuestionIndex + 1];
             if (nextQuestionAnswer) {
-                if (Array.isArray(nextQuestionAnswer)) {
-                    setSelectedOptions(nextQuestionAnswer);
-                } else {
-                    setSelectedOption(nextQuestionAnswer);
+                if (nextQuestionAnswer.selectedOptions) {
+                    setSelectedOptions(nextQuestionAnswer.selectedOptions);
+                    setSelectedOption(null);
+                } else if (nextQuestionAnswer.selectedOption) {
+                    setSelectedOption(nextQuestionAnswer.selectedOption);
+                    setSelectedOptions([]);
                 }
             } else {
                 setSelectedOption(null);
@@ -133,10 +201,12 @@ const ExamPage = () => {
             // Khôi phục đáp án đã lưu cho câu hỏi trước đó
             const prevQuestionAnswer = savedAnswers[currentQuestionIndex - 1];
             if (prevQuestionAnswer) {
-                if (Array.isArray(prevQuestionAnswer)) {
-                    setSelectedOptions(prevQuestionAnswer);
-                } else {
-                    setSelectedOption(prevQuestionAnswer);
+                if (prevQuestionAnswer.selectedOptions) {
+                    setSelectedOptions(prevQuestionAnswer.selectedOptions);
+                    setSelectedOption(null);
+                } else if (prevQuestionAnswer.selectedOption) {
+                    setSelectedOption(prevQuestionAnswer.selectedOption);
+                    setSelectedOptions([]);
                 }
             } else {
                 setSelectedOption(null);
@@ -220,7 +290,7 @@ const ExamPage = () => {
                             transition={{ duration: 0.3 }}
                         >
                             <h4 className="question-text">
-                                {currentQuestion.question}
+                                {getCurrentQuestionText()}
                             </h4>
                             {currentQuestion.note && (
                                 <p className="question-note text-muted">
@@ -232,7 +302,6 @@ const ExamPage = () => {
                                 {currentQuestion.options.map((option, index) => (
                                     <motion.div
                                         className="form-check"
-                                        style={{paddingLeft: "1.2rem"}}
                                         key={option.id}
                                         initial={{ x: -20, opacity: 0 }}
                                         animate={{ x: 0, opacity: 1 }}
@@ -243,6 +312,7 @@ const ExamPage = () => {
                                             className="form-check-input"
                                             type={currentQuestionIndex === 0 && type.toLowerCase() === 'assist' ? "checkbox" : "radio"}
                                             name="option"
+                                            style={{marginLeft: "0.5rem"}}
                                             id={`option-${option.id}`}
                                             checked={currentQuestionIndex === 0 && type.toLowerCase() === 'assist'
                                                 ? selectedOptions.some(opt => opt.id === option.id)

@@ -48,23 +48,45 @@ const ResultPage = () => {
             }
 
             // Chuyển đổi userAnswers thành định dạng API mong muốn
-            const answersData = userAnswers ? Object.entries(userAnswers).map(([questionIndex, answer]) => {
+            const answersData = userAnswers ? Object.entries(userAnswers).map(([questionIndex, answerData]) => {
                 const questionId = parseInt(questionIndex) + 1;
+                
+                // Handle ASSIST dynamic question text
+                let questionText = answerData.question;
+                if (type.toLowerCase() === 'assist' && questionIndex > 0) {
+                    // For ASSIST questions after the first, ensure substance replacement is preserved
+                    const firstQuestionAnswer = userAnswers[0];
+                    if (firstQuestionAnswer && firstQuestionAnswer.selectedOptions) {
+                        const selectedSubstances = firstQuestionAnswer.selectedOptions
+                            .filter(opt => opt.id !== 11)
+                            .map(opt => opt.text);
+                        
+                        if (selectedSubstances.length > 0) {
+                            const substanceText = selectedSubstances.join(' hoặc ');
+                            questionText = questionText.replace(/\[chất\]/g, substanceText);
+                        } else {
+                            questionText = questionText.replace(/\[chất\]/g, 'chất gây nghiện');
+                        }
+                    }
+                }
+                
                 // Xử lý cả trường hợp answer là mảng (cho câu hỏi nhiều lựa chọn)
-                const selectedOption = Array.isArray(answer)
-                    ? answer.map(a => a.id).join(',')
-                    : answer?.id || '';
+                const selectedOption = answerData.selectedOptions
+                    ? answerData.selectedOptions.map(a => a.text).join(', ')
+                    : answerData.selectedOption?.text || '';
 
                 return {
                     questionId: questionId.toString(),
-                    selectedOption: selectedOption.toString(),
-                    score: Array.isArray(answer)
-                        ? answer.reduce((sum, a) => sum + a.score, 0)
-                        : answer?.score || 0
+                    question: questionText || `Câu hỏi ${questionId}`, // Include question text with fallback
+                    selectedOption: selectedOption,
+                    score: answerData.selectedOptions
+                        ? answerData.selectedOptions.reduce((sum, a) => sum + a.score, 0)
+                        : answerData.selectedOption?.score || 0
                 }
             }) : [{
                 questionId: "1",
-                selectedOption: "A1",
+                question: "Câu hỏi 1", // Fallback question text
+                selectedOption: "Không có câu trả lời",
                 score: result.score
             }];
 
@@ -337,20 +359,28 @@ const ResultPage = () => {
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    {Object.entries(userAnswers).map(([questionIndex, answer]) => {
+                                                    {Object.entries(userAnswers).map(([questionIndex, answerData]) => {
                                                         const questionNumber = parseInt(questionIndex) + 1;
                                                         return (
                                                             <tr key={questionIndex}>
-                                                                <td>Câu {questionNumber}</td>
                                                                 <td>
-                                                                    {Array.isArray(answer)
-                                                                        ? answer.map(a => a.text).join(', ')
-                                                                        : answer?.text || 'Không có câu trả lời'}
+                                                                    <div className="question-text">
+                                                                        <strong>Câu {questionNumber}:</strong>
+                                                                        <br />
+                                                                        <small className="text-muted">
+                                                                            {answerData.question}
+                                                                        </small>
+                                                                    </div>
                                                                 </td>
                                                                 <td>
-                                                                    {Array.isArray(answer)
-                                                                        ? answer.reduce((sum, a) => sum + a.score, 0)
-                                                                        : answer?.score || 0}
+                                                                    {answerData.selectedOptions
+                                                                        ? answerData.selectedOptions.map(a => a.text).join(', ')
+                                                                        : answerData.selectedOption?.text || 'Không có câu trả lời'}
+                                                                </td>
+                                                                <td>
+                                                                    {answerData.selectedOptions
+                                                                        ? answerData.selectedOptions.reduce((sum, a) => sum + a.score, 0)
+                                                                        : answerData.selectedOption?.score || 0}
                                                                 </td>
                                                             </tr>
                                                         );
