@@ -10,12 +10,17 @@ const ContentViewPage = () => {
     const [contentFile, setContentFile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    
+
     // New state for enrollment and completion tracking
     const [enrollmentData, setEnrollmentData] = useState(null);
     const [isCompleted, setIsCompleted] = useState(false);
     const [checkingCompletion, setCheckingCompletion] = useState(true);
     const [updatingCompletion, setUpdatingCompletion] = useState(false);
+
+    // New state for navigation between contents
+    const [programContents, setProgramContents] = useState([]);
+    const [currentContentIndex, setCurrentContentIndex] = useState(-1);
+    const [loadingNavigation, setLoadingNavigation] = useState(false);
 
     useEffect(() => {
         const fetchContent = async () => {
@@ -27,7 +32,7 @@ const ContentViewPage = () => {
 
             setLoading(true);
             console.log('📚 Fetching content data for ID:', contentId);
-            
+
             try {
                 // Get content details
                 const contentUrl = `${API_URL}/content/${contentId}`;
@@ -54,12 +59,12 @@ const ContentViewPage = () => {
                 if (fileRes.ok) {
                     const fileData = await fileRes.json();
                     console.log('✅ Content file data received:', fileData);
-                    
+
                     // Handle both new direct content format and legacy file-based format
                     if (fileData.success && fileData.data) {
                         setContentFile(fileData.data);
                         console.log('📄 Content type detected:', fileData.data.type);
-                        
+
                         // Log specific handling for markdown content
                         if (fileData.data.type === 'markdown') {
                             console.log('📝 Markdown content length:', fileData.data.content?.length || 0, 'characters');
@@ -75,6 +80,8 @@ const ContentViewPage = () => {
                 // Check enrollment status for this content's program
                 if (contentData.data && contentData.data.program_id) {
                     await checkEnrollmentAndCompletion(contentData.data.program_id, parseInt(contentId), token);
+                    // Fetch all contents in the same program for navigation
+                    await fetchProgramContents(contentData.data.program_id);
                 }
             } catch (err) {
                 console.error('💥 Error fetching content:', err);
@@ -87,10 +94,97 @@ const ContentViewPage = () => {
         fetchContent();
     }, [contentId, navigate]);
 
+    const fetchProgramContents = async (programId) => {
+        setLoadingNavigation(true);
+        console.log('📚 Fetching all contents for program:', programId);
+
+        try {
+            const contentsUrl = `${API_URL}/content/program/${programId}`;
+            console.log('📡 GET program contents from:', contentsUrl);
+            const contentsRes = await fetch(contentsUrl, {
+                headers: getAuthHeaders()
+            });
+
+            if (contentsRes.ok) {
+                const contentsData = await contentsRes.json();
+                console.log('✅ Program contents received:', contentsData);
+
+                if (contentsData.success && contentsData.data) {
+                    const contents = contentsData.data;
+                    setProgramContents(contents);
+
+                    // Find current content index
+                    const currentIndex = contents.findIndex(c => c.content_id === parseInt(contentId));
+                    setCurrentContentIndex(currentIndex);
+                    console.log('📍 Current content index:', currentIndex, 'of', contents.length);
+                }
+            } else {
+                console.warn('⚠️ Failed to fetch program contents, status:', contentsRes.status);
+            }
+        } catch (err) {
+            console.error('💥 Error fetching program contents:', err);
+        } finally {
+            setLoadingNavigation(false);
+        }
+    };
+
+    const navigateToContent = (direction) => {
+        if (currentContentIndex === -1 || programContents.length === 0) {
+            console.log('❌ Cannot navigate - no program contents loaded');
+            return;
+        }
+
+        let targetIndex;
+        if (direction === 'next') {
+            targetIndex = currentContentIndex + 1;
+            if (targetIndex >= programContents.length) {
+                console.log('❌ Already at last content');
+                return;
+            }
+        } else if (direction === 'prev') {
+            targetIndex = currentContentIndex - 1;
+            if (targetIndex < 0) {
+                console.log('❌ Already at first content');
+                return;
+            }
+        } else {
+            console.log('❌ Invalid direction:', direction);
+            return;
+        }
+
+        const targetContent = programContents[targetIndex];
+        console.log(`🔄 Navigating ${direction} to content:`, targetContent.content_id);
+        navigate(`/content/${targetContent.content_id}`);
+    };
+
+    const canNavigateNext = () => {
+        // Chỉ cho phép chuyển tiếp khi content hiện tại đã hoàn thành
+        return currentContentIndex >= 0 &&
+            currentContentIndex < programContents.length - 1 &&
+            isCompleted;
+    };
+
+    const canNavigatePrev = () => {
+        // Luôn cho phép quay lại content trước đó
+        return currentContentIndex > 0;
+    };
+
+    const getNextContentTitle = () => {
+        if (!canNavigateNext()) return null;
+        const nextContent = programContents[currentContentIndex + 1];
+        return nextContent.title;
+    };
+
+    const getPrevContentTitle = () => {
+        if (!canNavigatePrev()) return null;
+        const prevContent = programContents[currentContentIndex - 1];
+        return prevContent.title;
+    };
+
     const checkEnrollmentAndCompletion = async (programId, contentIdNum, token) => {
         setCheckingCompletion(true);
         console.log('🔍 Checking enrollment for program:', programId, 'content:', contentIdNum);
-        
+
         try {
             // Check if user is enrolled in this program
             const enrollmentUrl = `${API_URL}/enrollments/check/${programId}`;
@@ -102,12 +196,12 @@ const ContentViewPage = () => {
             if (enrollmentRes.ok) {
                 const enrollmentData = await enrollmentRes.json();
                 console.log('✅ Enrollment check response:', enrollmentData);
-                
+
                 if (enrollmentData.data && enrollmentData.data.length > 0) {
                     const enrollment = enrollmentData.data[0];
                     setEnrollmentData(enrollment);
                     console.log('📚 Enrollment found:', enrollment);
-                    
+
                     // Check if this specific content is completed
                     const progress = enrollment.progress || [];
                     const contentProgress = progress.find(p => p.content_id === contentIdNum);
@@ -160,14 +254,14 @@ const ContentViewPage = () => {
             if (res.ok) {
                 const data = await res.json();
                 console.log('Toggle successful! Response data:', data);
-                
+
                 // Update local state
                 setEnrollmentData(data.data);
                 const progress = data.data.progress || [];
                 const contentProgress = progress.find(p => p.content_id === parseInt(contentId));
                 const newCompletionStatus = contentProgress ? contentProgress.complete : false;
                 setIsCompleted(newCompletionStatus);
-                
+
                 console.log('🎉 Content completion updated to:', newCompletionStatus);
                 alert(`Nội dung đã được đánh dấu ${newCompletionStatus ? 'hoàn thành' : 'chưa hoàn thành'}!`);
             } else {
@@ -193,7 +287,7 @@ const ContentViewPage = () => {
                         <div className="markdown-content" dangerouslySetInnerHTML={{ __html: formatMarkdown(contentFile.content) }} />
                         {contentFile.metadata && (
                             <div className="content-metadata">
-                                                                <h3>Thông tin bổ sung</h3>
+                                <h3>Thông tin bổ sung</h3>
                                 <div className="metadata-grid">
                                     {contentFile.metadata.author && (
                                         <div className="metadata-card">
@@ -429,7 +523,7 @@ const ContentViewPage = () => {
         // Wrap consecutive <li> elements in appropriate lists
         html = html.replace(/(<li class="ordered">.*?<\/li>(?:\s*<br\/>\s*<li class="ordered">.*?<\/li>)*)/gims, '<ol>$1</ol>');
         html = html.replace(/(<li class="unordered">.*?<\/li>(?:\s*<br\/>\s*<li class="unordered">.*?<\/li>)*)/gims, '<ul>$1</ul>');
-        
+
         // Clean up extra br tags around lists and headers
         html = html.replace(/<br\/>\s*(<[ou]l>)/gim, '$1');
         html = html.replace(/(<\/[ou]l>)\s*<br\/>/gim, '$1');
@@ -519,8 +613,8 @@ const ContentViewPage = () => {
                     </div>
                     <div className="header-right">
                         {enrollmentData && !checkingCompletion && (
-                            <button 
-                                onClick={handleToggleCompletion} 
+                            <button
+                                onClick={handleToggleCompletion}
                                 className={`completion-toggle ${isCompleted ? 'completed' : 'incomplete'}`}
                                 disabled={updatingCompletion}
                             >
@@ -581,7 +675,7 @@ const ContentViewPage = () => {
                                         isUrl: directContent?.startsWith('http'),
                                         length: directContent?.length
                                     });
-                                    
+
                                     // Check if content_file_link contains direct markdown
                                     if (directContent && (directContent.startsWith('#') || directContent.includes('\n'))) {
                                         console.log('✅ Detected direct markdown in content_file_link, rendering inline');
@@ -594,7 +688,7 @@ const ContentViewPage = () => {
                                                 <div className="markdown-content" dangerouslySetInnerHTML={{ __html: formatMarkdown(directContent) }} />
                                             </div>
                                         );
-                                    } 
+                                    }
                                     // If it's a URL, show external link
                                     else if (directContent && directContent.startsWith('http')) {
                                         console.log('🔗 Detected URL in content_file_link');
@@ -646,6 +740,52 @@ const ContentViewPage = () => {
                             )}
                         </div>
                     </section>
+
+                    {/* Navigation Section */}
+                    {programContents.length > 0 && (
+                        <section className="content-navigation-section">
+                            <div className="navigation-container">
+                                <div className="navigation-info">
+                                    <span className="navigation-counter">
+                                        Bài {currentContentIndex + 1} của {programContents.length}
+                                    </span>
+                                </div>
+                                <div className="navigation-buttons">
+                                    <button
+                                        onClick={() => navigateToContent('prev')}
+                                        className={`nav-button prev-button ${!canNavigatePrev() ? 'disabled' : ''}`}
+                                        disabled={!canNavigatePrev() || loadingNavigation}
+                                    >
+                                        <i className="bi bi-chevron-left"></i>
+                                        <div className="nav-button-content">
+                                            <span className="nav-button-label">Bài trước</span>
+                                            {getPrevContentTitle() && (
+                                                <span className="nav-button-title">{getPrevContentTitle()}</span>
+                                            )}
+                                        </div>
+                                    </button>
+
+                                    <button
+                                        onClick={() => navigateToContent('next')}
+                                        className={`nav-button next-button ${!canNavigateNext() ? 'disabled' : ''} ${isCompleted ? 'completed' : 'incomplete'}`}
+                                        disabled={!canNavigateNext() || loadingNavigation}
+                                        title={!isCompleted ? 'Hãy hoàn thành bài học này trước khi chuyển sang bài tiếp theo' : ''}
+                                    >
+                                        <div className="nav-button-content">
+                                            <span className="nav-button-label">Bài tiếp theo</span>
+                                            {getNextContentTitle() && (
+                                                <span className="nav-button-title">{getNextContentTitle()}</span>
+                                            )}
+                                            {!isCompleted && (
+                                                <span className="nav-button-hint">(Cần hoàn thành bài này)</span>
+                                            )}
+                                        </div>
+                                        <i className="bi bi-chevron-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </section>
+                    )}
                 </div>
             </main>
         </div>
