@@ -45,6 +45,25 @@ const ManageBookingPage = () => {
   userRole()
   const statusOptions = ['Hoàn thành', 'Lên lịch', 'Đã hủy', 'Đang chờ xác nhận', 'Xác nhận thành công'];
 
+  // Function to get available status options based on booking date
+  const getAvailableStatusOptions = (bookingDate) => {
+    if (!bookingDate) return statusOptions;
+    
+    const now = new Date();
+    const booking = new Date(bookingDate);
+    
+    // Set booking date to end of day for comparison
+    booking.setHours(23, 59, 59, 999);
+    
+    // If booking date has passed, only allow "Đã hủy" status
+    if (now > booking) {
+      return ['Đã hủy'];
+    }
+    
+    // If booking date hasn't passed, allow all status options
+    return statusOptions;
+  };
+
   // Helper function to calculate risk level from assessment data
   const calculateRiskLevel = (assessment) => {
     try {
@@ -411,10 +430,22 @@ const ManageBookingPage = () => {
     const booking = bookingSessions.find(b => b.booking_id === bookingId);
     if (booking) {
       setSelectedBooking(booking);
+      
+      // Check if booking date has passed
+      const now = new Date();
+      const bookingDate = new Date(booking.booking_date);
+      bookingDate.setHours(23, 59, 59, 999); // Set to end of day
+      
+      // If booking date has passed and current status is not "Đã hủy", suggest cancellation
+      let defaultStatus = booking.status || '';
+      if (now > bookingDate && booking.status !== 'Đã hủy') {
+        defaultStatus = 'Đã hủy';
+      }
+      
       setEditFormData({
         consultant_id: booking.consultant_id || '',
         slot_id: booking.slot_id || '',
-        status: booking.status || '',
+        status: defaultStatus,
         notes: booking.notes || '',
         google_meet_link: booking.google_meet_link || '',
         booking_date: booking.booking_date ? new Date(booking.booking_date).toISOString().split('T')[0] : ''
@@ -625,52 +656,102 @@ const ManageBookingPage = () => {
 
       {showViewPopup && selectedBooking && (
         <div className="popup">
-          <div className="popup-content">
+          <div className="popup-content" style={{
+            width: '50%',
+            maxWidth: '50vw',
+            minWidth: '600px'
+          }}>
             <span className="close" onClick={handleCloseViewPopup}>
               <MdCancel />
             </span>
             <h4>Chi tiết lịch hẹn</h4>
-            <div className="member-detail-row">
-              <span className="member-detail-label">ID lịch hẹn:</span>
-              <span className="member-detail-value">{selectedBooking.booking_id}</span>
+            
+            {/* Row 1: Basic Info */}
+            <div className="row mb-3">
+              <div className="col-md-6">
+                <div className="member-detail-row">
+                  <span className="member-detail-label">ID lịch hẹn:</span>
+                  <span className="member-detail-value">{selectedBooking.booking_id}</span>
+                </div>
+              </div>
+              <div className="col-md-6">
+                <div className="member-detail-row">
+                  <span className="member-detail-label">Tên thành viên:</span>
+                  <span className="member-detail-value">{selectedBooking.member_name}</span>
+                </div>
+              </div>
             </div>
-            <div className="member-detail-row">
-              <span className="member-detail-label">Tên thành viên:</span>
-              <span className="member-detail-value">{selectedBooking.member_name}</span>
+
+            {/* Row 2: Contact Info */}
+            <div className="row mb-3">
+              <div className="col-md-6">
+                <div className="member-detail-row">
+                  <span className="member-detail-label">Email thành viên:</span>
+                  <span className="member-detail-value">{selectedBooking.member_email}</span>
+                </div>
+              </div>
+              <div className="col-md-6">
+                <div className="member-detail-row">
+                  <span className="member-detail-label">Số điện thoại:</span>
+                  <span className="member-detail-value">{selectedBooking.member_phone || 'Chưa cập nhật'}</span>
+                </div>
+              </div>
             </div>
-            <div className="member-detail-row">
-              <span className="member-detail-label">Email thành viên:</span>
-              <span className="member-detail-value">{selectedBooking.member_email}</span>
+
+            {/* Row 3: Booking Details */}
+            <div className="row mb-3">
+              <div className="col-md-6">
+                <div className="member-detail-row">
+                  <span className="member-detail-label">Ngày đặt lịch:</span>
+                  <span className="member-detail-value">{new Date(selectedBooking.booking_date).toLocaleDateString('vi-VN')}</span>
+                </div>
+              </div>
+              <div className="col-md-6">
+                <div className="member-detail-row">
+                  <span className="member-detail-label">Thời gian:</span>
+                  <span className="member-detail-value">{`${selectedBooking.start_time} - ${selectedBooking.end_time}`}</span>
+                </div>
+              </div>
             </div>
-            <div className="member-detail-row">
-              <span className="member-detail-label">Số điện thoại:</span>
-              <span className="member-detail-value">{selectedBooking.member_phone || 'Chưa cập nhật'}</span>
+
+            {/* Row 4: Status */}
+            <div className="row mb-3">
+              <div className="col-md-6">
+                <div className="member-detail-row">
+                  <span className="member-detail-label">Trạng thái:</span>
+                  <span className="member-detail-value">
+                    <span className={`status-badge ${selectedBooking.status?.toLowerCase().replace(/\s+/g, '-')}`}>
+                      {selectedBooking.status}
+                    </span>
+                  </span>
+                </div>
+              </div>
             </div>
-            <div className="member-detail-row">
-              <span className="member-detail-label">Ngày đặt lịch:</span>
-              <span className="member-detail-value">{new Date(selectedBooking.booking_date).toLocaleDateString('vi-VN')}</span>
+
+            {/* Full Width Sections */}
+            <div className="row mb-3">
+              <div className="col-12">
+                <div className="member-detail-row">
+                  <span className="member-detail-label">Ghi chú:</span>
+                  <span className="member-detail-value">{selectedBooking.notes || 'Không có'}</span>
+                </div>
+              </div>
             </div>
-            <div className="member-detail-row">
-              <span className="member-detail-label">Thời gian:</span>
-              <span className="member-detail-value">{`${selectedBooking.start_time} - ${selectedBooking.end_time}`}</span>
-            </div>
-            <div className="member-detail-row">
-              <span className="member-detail-label">Trạng thái:</span>
-              <span className="member-detail-value">{selectedBooking.status}</span>
-            </div>
-            <div className="member-detail-row">
-              <span className="member-detail-label">Ghi chú:</span>
-              <span className="member-detail-value">{selectedBooking.notes || 'Không có'}</span>
-            </div>
-            <div className="member-detail-row">
-              <span className="member-detail-label">Google Meet Link:</span>
-              <span className="member-detail-value">
-                {selectedBooking.google_meet_link ? (
-                  <a href={selectedBooking.google_meet_link} target="_blank" rel="noopener noreferrer">
-                    {selectedBooking.google_meet_link}
-                  </a>
-                ) : 'Chưa có'}
-              </span>
+
+            <div className="row mb-3">
+              <div className="col-12">
+                <div className="member-detail-row">
+                  <span className="member-detail-label">Google Meet Link:</span>
+                  <span className="member-detail-value">
+                    {selectedBooking.google_meet_link ? (
+                      <a href={selectedBooking.google_meet_link} target="_blank" rel="noopener noreferrer" 
+                         style={{ color: '#007bff', textDecoration: 'underline' }}>
+                        {selectedBooking.google_meet_link}
+                      </a>
+                    ) : 'Chưa có'}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -678,64 +759,88 @@ const ManageBookingPage = () => {
 
       {showEditPopup && selectedBooking && (
         <div className="popup">
-          <div className="popup-content">
+          <div className="popup-content" style={{
+            width: '50%',
+            maxWidth: '50vw',
+            minWidth: '600px'
+          }}>
             <span className="close" onClick={handleCloseEditPopup}>
               <MdCancel />
             </span>
             <h4>Chỉnh sửa lịch hẹn</h4>
 
-            <div className="form-group mb-3">
-              <label className="form-label">Chuyên gia:</label>
-              <input
-                type="text"
-                value={consultants.find(c => c.id_consultant == editFormData.consultant_id)?.name ||
-                  consultants.find(c => c.id_consultant == editFormData.consultant_id)?.email ||
-                  'Không xác định'}
-                className="form-control"
-                readOnly
-                style={{ backgroundColor: '#f8f9fa', cursor: 'not-allowed' }}
-              />
+            {/* Row 1 */}
+            <div className="row mb-3">
+              <div className="col-md-6">
+                <div className="form-group">
+                  <label className="form-label">Chuyên gia:</label>
+                  <input
+                    type="text"
+                    value={consultants.find(c => c.id_consultant == editFormData.consultant_id)?.name ||
+                      consultants.find(c => c.id_consultant == editFormData.consultant_id)?.email ||
+                      'Không xác định'}
+                    className="form-control"
+                    readOnly
+                    style={{ backgroundColor: '#f8f9fa', cursor: 'not-allowed' }}
+                  />
+                </div>
+              </div>
+              <div className="col-md-6">
+                <div className="form-group">
+                  <label className="form-label">Khung giờ:</label>
+                  <input
+                    type="text"
+                    value={slots.find(s => s.slot_id == editFormData.slot_id) ?
+                      `${slots.find(s => s.slot_id == editFormData.slot_id).start_time} - ${slots.find(s => s.slot_id == editFormData.slot_id).end_time}` :
+                      'Không xác định'}
+                    className="form-control"
+                    readOnly
+                    style={{ backgroundColor: '#f8f9fa', cursor: 'not-allowed' }}
+                  />
+                </div>
+              </div>
             </div>
 
-            <div className="form-group mb-3">
-              <label className="form-label">Khung giờ:</label>
-              <input
-                type="text"
-                value={slots.find(s => s.slot_id == editFormData.slot_id) ?
-                  `${slots.find(s => s.slot_id == editFormData.slot_id).start_time} - ${slots.find(s => s.slot_id == editFormData.slot_id).end_time}` :
-                  'Không xác định'}
-                className="form-control"
-                readOnly
-                style={{ backgroundColor: '#f8f9fa', cursor: 'not-allowed' }}
-              />
+            {/* Row 2 */}
+            <div className="row mb-3">
+              <div className="col-md-6">
+                <div className="form-group">
+                  <label className="form-label">Trạng thái:</label>
+                  <select
+                    name="status"
+                    value={editFormData.status}
+                    onChange={handleEditFormChange}
+                    className="form-control"
+                  >
+                    <option value="">Chọn trạng thái</option>
+                    {getAvailableStatusOptions(editFormData.booking_date).map(status => (
+                      <option key={status} value={status}>{status}</option>
+                    ))}
+                  </select>
+                  {getAvailableStatusOptions(editFormData.booking_date).length === 1 && 
+                   getAvailableStatusOptions(editFormData.booking_date)[0] === 'Đã hủy' && (
+                    <small className="form-text text-warning">
+                      <i className="bi bi-exclamation-triangle me-1"></i>
+                      Lịch hẹn đã quá hạn, chỉ có thể chuyển sang trạng thái "Đã hủy"
+                    </small>
+                  )}
+                </div>
+              </div>
+              <div className="col-md-6">
+                <div className="form-group">
+                  <label className="form-label">Ngày đặt lịch:</label>
+                  <input
+                    type="text"
+                    value={editFormData.booking_date ? new Date(editFormData.booking_date).toLocaleDateString('vi-VN') : 'Không xác định'}
+                    className="form-control"
+                    readOnly
+                    style={{ backgroundColor: '#f8f9fa', cursor: 'not-allowed' }}
+                  />
+                </div>
+              </div>
             </div>
 
-            <div className="form-group mb-3">
-              <label className="form-label">Trạng thái:</label>
-              <select
-                name="status"
-                value={editFormData.status}
-                onChange={handleEditFormChange}
-                className="form-control"
-              >
-                <option value="">Chọn trạng thái</option>
-                {statusOptions.map(status => (
-                  <option key={status} value={status}>{status}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="form-group mb-3">
-              <label className="form-label">Ngày đặt lịch:</label>
-              <input
-                type="text"
-                value={editFormData.booking_date ? new Date(editFormData.booking_date).toLocaleDateString('vi-VN') : 'Không xác định'}
-                className="form-control"
-                readOnly
-                style={{ backgroundColor: '#f8f9fa', cursor: 'not-allowed' }}
-              />
-            </div>
-
+            {/* Full width fields */}
             <div className="form-group mb-3">
               <label className="form-label">Ghi chú:</label>
               <textarea

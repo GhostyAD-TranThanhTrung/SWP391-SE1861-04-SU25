@@ -128,9 +128,8 @@ const BlogPage = () => {
             const data = await response.json();
             console.log('📊 Blogs data received:', data);
 
-            // Filter out hidden blogs for public view
-            const visibleBlogs = data.data.filter(blog => blog.status !== 'hidden');
-            setPosts(visibleBlogs);
+            // The backend now filters for published blogs, so we can use the data directly
+            setPosts(data.data);
             setError(null);
         } catch (err) {
             console.error('Lỗi khi tải dữ liệu blog:', err);
@@ -309,7 +308,7 @@ const BlogPage = () => {
         }
 
         // Validate status
-        const validStatuses = ['draft', 'pending', 'published'];
+        const validStatuses = ['draft', 'pending', 'published', 'Đã xuất bản'];
         if (!validStatuses.includes(newBlog.status)) {
             console.error('❌ Invalid status:', newBlog.status);
             alert('Trạng thái không hợp lệ. Vui lòng chọn lại.');
@@ -637,112 +636,228 @@ const BlogPage = () => {
 
     return (
         <div className="blog-page">
-            {/* Hero Section */}
-            <section className="blog-hero">
-                <div className="container">
-                    <div className="row align-items-center">
-                        <div className="col-lg-12 text-center">
-                            <h1 className="hero-title">
-                                Chia sẻ câu chuyện của bạn
-                            </h1>
-                            <p className="hero-subtitle">
-                                Chia sẻ hành trình phục hồi, trải nghiệm sử dụng website và câu chuyện cá nhân của bạn.
-                                Cùng nhau xây dựng một cộng đồng hỗ trợ và truyền cảm hứng cho những người khác.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <div className="container" style={{ paddingTop: '3rem', paddingBottom: '5rem' }}>
-                {/* Tab Navigation */}
-                {isLoggedIn && (
-                    <div className="blog-tabs mb-4">
-                        <ul className="nav nav-tabs" role="tablist">
-                            <li className="nav-item" role="presentation">
-                                <button
-                                    className={`nav-link ${activeTab === 'view' ? 'active' : ''}`}
-                                    onClick={() => handleTabChange('view')}
-                                    type="button"
-                                >
-                                    <i className="bi bi-eye me-2"></i>
-                                    Xem tất cả blog
-                                </button>
-                            </li>
-                            <li className="nav-item" role="presentation">
-                                <button
-                                    className={`nav-link ${activeTab === 'my-blogs' ? 'active' : ''}`}
-                                    onClick={() => handleTabChange('my-blogs')}
-                                    type="button"
-                                >
-                                    <i className="bi bi-person-lines-fill me-2"></i>
-                                    Blog của tôi
-                                </button>
-                            </li>
-                            <li className="nav-item" role="presentation">
-                                <button
-                                    className={`nav-link ${activeTab === 'create' ? 'active' : ''}`}
-                                    onClick={() => handleTabChange('create')}
-                                    type="button"
-                                >
-                                    <i className="bi bi-plus-circle me-2"></i>
-                                    Tạo blog mới
-                                </button>
-                            </li>
-                        </ul>
-                    </div>
-                )}
-
-                {/* Tab Content */}
-                <div className="tab-content">
-                    {/* View All Blogs Tab */}
-                    {activeTab === 'view' && (
-                        <div className="tab-pane active">
-                            {posts.length === 0 ? (
-                                <div className="text-center">
-                                    <div className="alert alert-info" role="alert">
-                                        <i className="bi bi-info-circle me-2"></i>
-                                        Hiện tại chưa có bài viết nào.
+            <div className="container-fluid" style={{ paddingTop: '6rem', paddingBottom: '5rem' }}>
+                <div className="row">
+                    {/* Main Content */}
+                    <div className="col-lg-9">
+                        {/* Featured Blog Section */}
+                        {activeTab === 'view' && posts.length > 0 && (
+                            <div className="featured-blog-section mb-5">
+                                <h2 className="section-title mb-3">Newest blog</h2>
+                                <div className="featured-blog-card">
+                                    <div className="row">
+                                        <div className="col-md-4">
+                                            <div className="featured-image">
+                                                <img
+                                                    src={getImageUrl(posts[0].img_link)}
+                                                    alt={posts[0].title}
+                                                    className="img-fluid rounded"
+                                                    onError={handleImageError}
+                                                    style={{ width: '100%', height: '200px', objectFit: 'cover' }}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-8">
+                                            <div className="featured-content">
+                                                <h3 className="featured-title mb-2">{posts[0].title}</h3>
+                                                <div className="featured-body mb-3">
+                                                    <div dangerouslySetInnerHTML={createMarkup(truncateText(posts[0].body, 200))} className="blog-content-display"></div>
+                                                </div>
+                                                <div className="featured-meta d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <small className="text-muted">
+                                                            <i className="bi bi-calendar me-1"></i>
+                                                            {formatDate(posts[0].created_at)}
+                                                        </small>
+                                                        <span className="mx-2">|</span>
+                                                        <small className="text-muted">
+                                                            Post by: {posts[0].author || 'Anonymous'}
+                                                        </small>
+                                                    </div>
+                                                    {getStatusBadge(posts[0].status)}
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            ) : (
-                                <>
-                                    {/* Featured Story Section */}
-                                    <section className="featured-section mb-5">
-                                        <div className="section-header text-center mb-5">
-                                            <h2 className="section-title">Câu chuyện nổi bật</h2>
-                                            <p className="section-subtitle">Những chia sẻ truyền cảm hứng và ý nghĩa nhất từ cộng đồng</p>
-                                        </div>
+                            </div>
+                        )}
 
-                                        {posts.length > 0 && (
-                                            <div className="featured-post">
-                                                <div className="row align-items-center">
-                                                    <div className="col-lg-4">
-                                                        <div className="featured-image">
+                        {/* Blog List Section */}
+                        <div className="blog-list-section">
+                            {activeTab === 'view' && (
+                                <>
+                                    <h2 className="section-title mb-4">Blog list</h2>
+                                    {posts.length === 0 ? (
+                                        <div className="text-center">
+                                            <div className="alert alert-info" role="alert">
+                                                <i className="bi bi-info-circle me-2"></i>
+                                                Hiện tại chưa có bài viết nào.
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="row">
+                                            {posts.slice(1).map((post) => (
+                                                <div key={post.blog_id} className="col-lg-4 col-md-6 mb-4">
+                                                    <div className="blog-card h-100">
+                                                        <div className="blog-image">
                                                             <img
-                                                                src={getImageUrl(posts[0].img_link)}
-                                                                alt={posts[0].title}
-                                                                className="img-fluid rounded-3"
+                                                                src={getImageUrl(post.img_link)}
+                                                                alt={post.title}
+                                                                className="img-fluid"
                                                                 onError={handleImageError}
+                                                                style={{ width: '100%', height: '150px', objectFit: 'cover' }}
                                                             />
                                                         </div>
+                                                        <div className="blog-content p-3">
+                                                            <h5 className="blog-title mb-2">{post.title}</h5>
+                                                            <div className="blog-excerpt mb-3">
+                                                                <div dangerouslySetInnerHTML={createMarkup(truncateText(post.body, 100))} className="blog-content-display small"></div>
+                                                            </div>
+                                                            <div className="blog-meta d-flex justify-content-between align-items-center">
+                                                                <div>
+                                                                    <small className="text-muted">
+                                                                        <i className="bi bi-calendar me-1"></i>
+                                                                        {formatDate(post.created_at)}
+                                                                    </small>
+                                                                    <br />
+                                                                    <small className="text-muted">
+                                                                        Post by: {post.author || 'Anonymous'}
+                                                                    </small>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                    <div className="col-lg-8">
-                                                        <div className="featured-content">
-                                                            <h3 className="featured-title">{posts[0].title}</h3>
-                                                            <p className="featured-meta">
-                                                                <i className="bi bi-calendar me-2"></i>
-                                                                {formatDate(posts[0].created_at)}
-                                                                <span className="mx-2">|</span>
-                                                                {getStatusBadge(posts[0].status)}
-                                                            </p>
-                                                            <div className="featured-excerpt">
-                                                                {expandedBlogs.has(posts[0].blog_id) ? (
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </>
+                            )}
+
+                            {/* My Blogs Tab Content */}
+                            {activeTab === 'my-blogs' && isLoggedIn && (
+                                <div className="my-blogs-section">
+                                    <h2 className="section-title mb-4">Câu chuyện của tôi</h2>
+                                    {userBlogsLoading ? (
+                                        <div className="text-center">
+                                            <div className="spinner-border text-primary" role="status">
+                                                <span className="visually-hidden">Đang tải...</span>
+                                            </div>
+                                            <p className="mt-3">Đang tải blog của bạn...</p>
+                                        </div>
+                                    ) : userBlogs.length === 0 ? (
+                                        <div className="text-center">
+                                            <div className="alert alert-info" role="alert">
+                                                <i className="bi bi-heart me-2"></i>
+                                                Bạn chưa chia sẻ câu chuyện nào.
+                                                <button
+                                                    className="btn btn-link p-0 ms-1"
+                                                    onClick={() => setActiveTab('create')}
+                                                >
+                                                    Chia sẻ câu chuyện đầu tiên của bạn!
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="user-blogs-list">
+                                            {userBlogs.map((blog) => (
+                                                <div key={blog.blog_id} className="user-blog-card mb-4">
+                                                    <div className="card">
+                                                        <div className="card-body">
+                                                            <div className="d-flex justify-content-between align-items-start mb-3">
+                                                                <div>
+                                                                    <h5 className="card-title">{blog.title}</h5>
+                                                                    <p className="card-text text-muted">
+                                                                        <i className="bi bi-calendar me-2"></i>
+                                                                        {formatDate(blog.created_at)}
+                                                                        <span className="mx-2">|</span>
+                                                                        {getStatusBadge(blog.status)}
+                                                                    </p>
+                                                                </div>
+                                                                <div className="dropdown">
+                                                                    <button className="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                                        <i className="bi bi-three-dots"></i>
+                                                                    </button>
+                                                                    <ul className="dropdown-menu">
+                                                                        {blog.status === 'draft' && (
+                                                                            <li>
+                                                                                <button
+                                                                                    className="dropdown-item"
+                                                                                    onClick={() => handleUpdateBlogStatus(blog.blog_id, 'pending')}
+                                                                                >
+                                                                                    <i className="bi bi-send me-2"></i>
+                                                                                    Gửi để duyệt
+                                                                                </button>
+                                                                            </li>
+                                                                        )}
+                                                                        {blog.status === 'pending' && (
+                                                                            <li>
+                                                                                <button
+                                                                                    className="dropdown-item"
+                                                                                    onClick={() => handleUpdateBlogStatus(blog.blog_id, 'draft')}
+                                                                                >
+                                                                                    <i className="bi bi-arrow-left me-2"></i>
+                                                                                    Chuyển về bản nháp
+                                                                                </button>
+                                                                            </li>
+                                                                        )}
+                                                                        {blog.status === 'published' && (
+                                                                            <li>
+                                                                                <button
+                                                                                    className="dropdown-item"
+                                                                                    onClick={() => handleUpdateBlogStatus(blog.blog_id, 'hidden')}
+                                                                                >
+                                                                                    <i className="bi bi-eye-slash me-2"></i>
+                                                                                    Ẩn câu chuyện
+                                                                                </button>
+                                                                            </li>
+                                                                        )}
+                                                                        {blog.status === 'hidden' && (
+                                                                            <li>
+                                                                                <button
+                                                                                    className="dropdown-item"
+                                                                                    onClick={() => handleUpdateBlogStatus(blog.blog_id, 'draft')}
+                                                                                >
+                                                                                    <i className="bi bi-arrow-left me-2"></i>
+                                                                                    Chuyển về bản nháp
+                                                                                </button>
+                                                                            </li>
+                                                                        )}
+                                                                        <li><hr className="dropdown-divider" /></li>
+                                                                        <li>
+                                                                            <button
+                                                                                className="dropdown-item"
+                                                                                onClick={() => handleEditBlog(blog.blog_id)}
+                                                                                disabled={blog.status === 'pending'}
+                                                                            >
+                                                                                <i className="bi bi-pencil me-2"></i>
+                                                                                Chỉnh sửa
+                                                                                {blog.status === 'pending' && <small className="text-muted ms-1">(Không thể chỉnh sửa khi đang chờ duyệt)</small>}
+                                                                            </button>
+                                                                        </li>
+                                                                        <li>
+                                                                            <button
+                                                                                className="dropdown-item text-danger"
+                                                                                onClick={() => handleDeleteBlog(blog.blog_id)}
+                                                                                disabled={blog.status === 'pending'}
+                                                                            >
+                                                                                <i className="bi bi-trash me-2"></i>
+                                                                                Xóa
+                                                                                {blog.status === 'pending' && <small className="text-muted ms-1">(Không thể xóa khi đang chờ duyệt)</small>}
+                                                                            </button>
+                                                                        </li>
+                                                                    </ul>
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="blog-content">
+                                                                {expandedBlogs.has(blog.blog_id) ? (
                                                                     <div>
-                                                                        <div dangerouslySetInnerHTML={createMarkup(posts[0].body)} className="blog-content-display"></div>
+                                                                        <div dangerouslySetInnerHTML={createMarkup(blog.body)} className="blog-content-display"></div>
                                                                         <button
                                                                             className="btn btn-link p-0 text-decoration-none"
-                                                                            onClick={() => toggleExpandBlog(posts[0].blog_id)}
+                                                                            onClick={() => toggleExpandBlog(blog.blog_id)}
                                                                         >
                                                                             <i className="bi bi-chevron-up me-1"></i>
                                                                             Thu gọn
@@ -750,11 +865,11 @@ const BlogPage = () => {
                                                                     </div>
                                                                 ) : (
                                                                     <div>
-                                                                        <div dangerouslySetInnerHTML={createMarkup(truncateText(posts[0].body))} className="blog-content-display"></div>
-                                                                        {posts[0].body && posts[0].body.length > 300 && (
+                                                                        <div dangerouslySetInnerHTML={createMarkup(truncateText(blog.body))} className="blog-content-display"></div>
+                                                                        {blog.body && blog.body.length > 300 && (
                                                                             <button
                                                                                 className="btn btn-link p-0 text-decoration-none"
-                                                                                onClick={() => toggleExpandBlog(posts[0].blog_id)}
+                                                                                onClick={() => toggleExpandBlog(blog.blog_id)}
                                                                             >
                                                                                 <i className="bi bi-chevron-down me-1"></i>
                                                                                 Xem thêm
@@ -763,269 +878,21 @@ const BlogPage = () => {
                                                                     </div>
                                                                 )}
                                                             </div>
-                                                            <Link to={`/blog/${posts[0].blog_id}`} className="btn btn-primary mt-3">
-                                                                <i className="bi bi-arrow-right me-2"></i>
-                                                                Đọc thêm
-                                                            </Link>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        )}
-                                    </section>
-
-                                    {/* Latest Stories Section */}
-                                    {posts.length > 1 && (
-                                        <section className="articles-section mb-5">
-                                            <div className="section-header text-center mb-5">
-                                                <h2 className="section-title">Câu chuyện mới nhất</h2>
-                                                <p className="section-subtitle">Những chia sẻ và trải nghiệm mới nhất từ cộng đồng của chúng ta</p>
-                                            </div>
-
-                                            <div className="row">
-                                                {posts.slice(1).map((post) => (
-                                                    <div key={post.blog_id} className="col-lg-4 col-md-6 mb-4">
-                                                        <div className="article-card">
-                                                            <div className="article-image">
-                                                                <img
-                                                                    src={getImageUrl(post.img_link)}
-                                                                    alt={post.title}
-                                                                    className="img-fluid"
-                                                                    onError={handleImageError}
-                                                                />
-                                                            </div>
-                                                            <div className="article-content">
-                                                                <h4 className="article-title">{post.title}</h4>
-                                                                <p className="article-meta">
-                                                                    <i className="bi bi-calendar me-2"></i>
-                                                                    {formatDate(post.created_at)}
-                                                                    <span className="mx-2">|</span>
-                                                                    {getStatusBadge(post.status)}
-                                                                </p>
-                                                                <div className="article-excerpt">
-                                                                    {expandedBlogs.has(post.blog_id) ? (
-                                                                        <div>
-                                                                            <div dangerouslySetInnerHTML={createMarkup(post.body)} className="blog-content-display"></div>
-                                                                            <button
-                                                                                className="btn btn-link p-0 text-decoration-none small"
-                                                                                onClick={() => toggleExpandBlog(post.blog_id)}
-                                                                            >
-                                                                                <i className="bi bi-chevron-up me-1"></i>
-                                                                                Thu gọn
-                                                                            </button>
-                                                                        </div>
-                                                                    ) : (
-                                                                        <div>
-                                                                            <div dangerouslySetInnerHTML={createMarkup(truncateText(post.body))} className="blog-content-display"></div>
-                                                                            {post.body && post.body.length > 300 && (
-                                                                                <button
-                                                                                    className="btn btn-link p-0 text-decoration-none small"
-                                                                                    onClick={() => toggleExpandBlog(post.blog_id)}
-                                                                                >
-                                                                                    <i className="bi bi-chevron-down me-1"></i>
-                                                                                    Xem thêm
-                                                                                </button>
-                                                                            )}
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                                <Link to={`/blog/${post.blog_id}`} className="btn btn-outline-primary mt-2">
-                                                                    Đọc bài viết
-                                                                </Link>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </section>
-                                    )}
-                                </>
-                            )}
-                        </div>
-                    )}
-
-                    {/* My Blogs Tab */}
-                    {activeTab === 'my-blogs' && isLoggedIn && (
-                        <div className="tab-pane active">
-                            <div className="section-header text-center mb-5">
-                                <h2 className="section-title">Câu chuyện của tôi</h2>
-                                <p className="section-subtitle">Quản lý và xem các câu chuyện bạn đã chia sẻ</p>
-                            </div>
-
-                            {userBlogsLoading ? (
-                                <div className="text-center">
-                                    <div className="spinner-border text-primary" role="status">
-                                        <span className="visually-hidden">Đang tải...</span>
-                                    </div>
-                                    <p className="mt-3">Đang tải blog của bạn...</p>
-                                </div>
-                            ) : userBlogs.length === 0 ? (
-                                <div className="text-center">
-                                    <div className="alert alert-info" role="alert">
-                                        <i className="bi bi-heart me-2"></i>
-                                        Bạn chưa chia sẻ câu chuyện nào.
-                                        <button
-                                            className="btn btn-link p-0 ms-1"
-                                            onClick={() => setActiveTab('create')}
-                                        >
-                                            Chia sẻ câu chuyện đầu tiên của bạn!
-                                        </button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="user-blogs-list">
-                                    {userBlogs.map((blog) => (
-                                        <div key={blog.blog_id} className="user-blog-card mb-4">
-                                            <div className="card">
-                                                <div className="card-body">
-                                                    <div className="d-flex justify-content-between align-items-start mb-3">
-                                                        <div>
-                                                            <h5 className="card-title">{blog.title}</h5>
-                                                            <p className="card-text text-muted">
-                                                                <i className="bi bi-calendar me-2"></i>
-                                                                {formatDate(blog.created_at)}
-                                                                <span className="mx-2">|</span>
-                                                                {getStatusBadge(blog.status)}
-                                                            </p>
-                                                        </div>
-                                                        <div className="dropdown">
-                                                            <button className="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                                <i className="bi bi-three-dots"></i>
-                                                            </button>
-                                                            <ul className="dropdown-menu">
-                                                                {blog.status === 'draft' && (
-                                                                    <>
-                                                                        <li>
-                                                                            <button
-                                                                                className="dropdown-item"
-                                                                                onClick={() => handleUpdateBlogStatus(blog.blog_id, 'pending')}
-                                                                            >
-                                                                                <i className="bi bi-send me-2"></i>
-                                                                                Gửi để duyệt
-                                                                            </button>
-                                                                        </li>
-                                                                        <li>
-                                                                            <button
-                                                                                className="dropdown-item"
-                                                                                onClick={() => handleUpdateBlogStatus(blog.blog_id, 'published')}
-                                                                            >
-                                                                                <i className="bi bi-share me-2"></i>
-                                                                                Chia sẻ công khai
-                                                                            </button>
-                                                                        </li>
-                                                                    </>
-                                                                )}
-                                                                {blog.status === 'pending' && (
-                                                                    <li>
-                                                                        <button
-                                                                            className="dropdown-item"
-                                                                            onClick={() => handleUpdateBlogStatus(blog.blog_id, 'draft')}
-                                                                        >
-                                                                            <i className="bi bi-arrow-left me-2"></i>
-                                                                            Chuyển về bản nháp
-                                                                        </button>
-                                                                    </li>
-                                                                )}
-                                                                {blog.status === 'published' && (
-                                                                    <li>
-                                                                        <button
-                                                                            className="dropdown-item"
-                                                                            onClick={() => handleUpdateBlogStatus(blog.blog_id, 'hidden')}
-                                                                        >
-                                                                            <i className="bi bi-eye-slash me-2"></i>
-                                                                            Ẩn câu chuyện
-                                                                        </button>
-                                                                    </li>
-                                                                )}
-                                                                {blog.status === 'hidden' && (
-                                                                    <li>
-                                                                        <button
-                                                                            className="dropdown-item"
-                                                                            onClick={() => handleUpdateBlogStatus(blog.blog_id, 'published')}
-                                                                        >
-                                                                            <i className="bi bi-share me-2"></i>
-                                                                            Chia sẻ lại
-                                                                        </button>
-                                                                    </li>
-                                                                )}
-                                                                <li><hr className="dropdown-divider" /></li>
-                                                                <li>
-                                                                    <button
-                                                                        className="dropdown-item"
-                                                                        onClick={() => handleEditBlog(blog.blog_id)}
-                                                                        disabled={blog.status === 'pending'}
-                                                                    >
-                                                                        <i className="bi bi-pencil me-2"></i>
-                                                                        Chỉnh sửa
-                                                                        {blog.status === 'pending' && <small className="text-muted ms-1">(Không thể chỉnh sửa khi đang chờ duyệt)</small>}
-                                                                    </button>
-                                                                </li>
-                                                                <li>
-                                                                    <button
-                                                                        className="dropdown-item text-danger"
-                                                                        onClick={() => handleDeleteBlog(blog.blog_id)}
-                                                                        disabled={blog.status === 'pending'}
-                                                                    >
-                                                                        <i className="bi bi-trash me-2"></i>
-                                                                        Xóa
-                                                                        {blog.status === 'pending' && <small className="text-muted ms-1">(Không thể xóa khi đang chờ duyệt)</small>}
-                                                                    </button>
-                                                                </li>
-                                                            </ul>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="blog-content">
-                                                        {expandedBlogs.has(blog.blog_id) ? (
-                                                            <div>
-                                                                <div dangerouslySetInnerHTML={createMarkup(blog.body)} className="blog-content-display"></div>
-                                                                <button
-                                                                    className="btn btn-link p-0 text-decoration-none"
-                                                                    onClick={() => toggleExpandBlog(blog.blog_id)}
-                                                                >
-                                                                    <i className="bi bi-chevron-up me-1"></i>
-                                                                    Thu gọn
-                                                                </button>
-                                                            </div>
-                                                        ) : (
-                                                            <div>
-                                                                <div dangerouslySetInnerHTML={createMarkup(truncateText(blog.body))} className="blog-content-display"></div>
-                                                                {blog.body && blog.body.length > 300 && (
-                                                                    <button
-                                                                        className="btn btn-link p-0 text-decoration-none"
-                                                                        onClick={() => toggleExpandBlog(blog.blog_id)}
-                                                                    >
-                                                                        <i className="bi bi-chevron-down me-1"></i>
-                                                                        Xem thêm
-                                                                    </button>
-                                                                )}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            ))}
                                         </div>
-                                    ))}
+                                    )}
                                 </div>
                             )}
-                        </div>
-                    )}
 
-                    {/* Create Blog Tab */}
-                    {activeTab === 'create' && isLoggedIn && (
-                        <div className="tab-pane active">
-                            <div className="section-header text-center mb-5">
-                                <h2 className="section-title">{editingBlog ? 'Chỉnh sửa câu chuyện' : 'Chia sẻ câu chuyện'}</h2>
-                                <p className="section-subtitle">
-                                    {editingBlog
-                                        ? 'Cập nhật nội dung câu chuyện của bạn'
-                                        : 'Kể về hành trình, trải nghiệm và cảm hứng của bạn với cộng đồng'}
-                                </p>
-                            </div>
-
-                            <div className="create-blog-form">
-                                <div className="row justify-content-center">
-                                    <div className="col-lg-8">
+                            {/* Create Blog Tab Content */}
+                            {activeTab === 'create' && isLoggedIn && (
+                                <div className="create-blog-section">
+                                    <h2 className="section-title mb-4">{editingBlog ? 'Chỉnh sửa câu chuyện' : 'Chia sẻ câu chuyện'}</h2>
+                                    
+                                    <div className="create-blog-form">
                                         {/* Submission Progress Overlay */}
                                         {isSubmitting && selectedImage && (
                                             <div className="submission-overlay">
@@ -1247,32 +1114,113 @@ const BlogPage = () => {
                                         </form>
                                     </div>
                                 </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Right Sidebar */}
+                    <div className="col-lg-3">
+                        <div className="blog-sidebar">
+                            {/* Navigation Buttons */}
+                            <div className="sidebar-section mb-4">
+                                <div className="d-grid gap-2">
+                                    {isLoggedIn ? (
+                                        <>
+                                            <button
+                                                className={`btn ${activeTab === 'my-blogs' ? 'btn-primary' : 'btn-outline-primary'}`}
+                                                onClick={() => handleTabChange('my-blogs')}
+                                            >
+                                                <i className="bi bi-person-lines-fill me-2"></i>
+                                                Your blog post
+                                            </button>
+                                            <button
+                                                className={`btn ${activeTab === 'create' ? 'btn-success' : 'btn-outline-success'}`}
+                                                onClick={() => handleTabChange('create')}
+                                            >
+                                                <i className="bi bi-plus-circle me-2"></i>
+                                                Create
+                                            </button>
+                                            <button
+                                                className={`btn ${activeTab === 'view' ? 'btn-info' : 'btn-outline-info'}`}
+                                                onClick={() => handleTabChange('view')}
+                                            >
+                                                <i className="bi bi-eye me-2"></i>
+                                                All blog
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <div className="alert alert-warning">
+                                            <i className="bi bi-info-circle me-2"></i>
+                                            Đăng nhập để tạo và quản lý blog của bạn
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Filter Section */}
+                            <div className="sidebar-section">
+                                <div className="card">
+                                    <div className="card-header">
+                                        <h6 className="mb-0">
+                                            <i className="bi bi-funnel me-2"></i>
+                                            Filter by date
+                                        </h6>
+                                    </div>
+                                    <div className="card-body">
+                                        <div className="filter-options">
+                                            <div className="form-check">
+                                                <input className="form-check-input" type="radio" name="dateFilter" id="last30" defaultChecked />
+                                                <label className="form-check-label" htmlFor="last30">
+                                                    Last 30 days
+                                                </label>
+                                            </div>
+                                            <div className="form-check">
+                                                <input className="form-check-input" type="radio" name="dateFilter" id="last7" />
+                                                <label className="form-check-label" htmlFor="last7">
+                                                    Last 7 days
+                                                </label>
+                                            </div>
+                                            <div className="form-check">
+                                                <input className="form-check-input" type="radio" name="dateFilter" id="all" />
+                                                <label className="form-check-label" htmlFor="all">
+                                                    All time
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <button className="btn btn-sm btn-outline-primary mt-3 w-100">
+                                            <i className="bi bi-search me-1"></i>
+                                            Apply Filter
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    )}
+                    </div>
                 </div>
+            </div>
 
-                {/* Newsletter Subscription - Only show on view tab */}
-                {activeTab === 'view' && (
-                    <section className="newsletter-section py-5 mt-5">
+            {/* Newsletter Section - Only show on view tab */}
+            {activeTab === 'view' && (
+                <section className="newsletter-section py-4 bg-light">
+                    <div className="container">
                         <div className="row align-items-center">
                             <div className="col-lg-8">
-                                <h3 className="newsletter-title">Luôn cập nhật</h3>
-                                <p className="newsletter-description">
+                                <h4 className="newsletter-title mb-2">Luôn cập nhật</h4>
+                                <p className="newsletter-description mb-0">
                                     Đăng ký nhận bản tin của chúng tôi để nhận các bài viết mới nhất và cập nhật
                                     trực tiếp vào hộp thư của bạn.
                                 </p>
                             </div>
                             <div className="col-lg-4 text-lg-end">
-                                <Link to="/newsletter" className="btn btn-cta btn-lg">
+                                <Link to="/newsletter" className="btn btn-primary">
                                     <i className="bi bi-envelope me-2"></i>
                                     Đăng ký ngay
                                 </Link>
                             </div>
                         </div>
-                    </section>
-                )}
-            </div>
+                    </div>
+                </section>
+            )}
         </div>
     );
 };

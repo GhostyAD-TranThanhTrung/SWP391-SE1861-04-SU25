@@ -21,12 +21,14 @@ const StaffListPage = () => {
   });
   const [editingStaffId, setEditingStaffId] = useState(null);
   const [editStaffData, setEditStaffData] = useState(null);
+  const [viewingStaffId, setViewingStaffId] = useState(null);
+  const [viewStaffData, setViewStaffData] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [staffIdToDelete, setStaffIdToDelete] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const token = sessionStorage.getItem("token");
-  const isAdminEditing = editingStaffId && editStaffData?.role === 'admin';
+  const isAdminEditing = editingStaffId && editStaffData?.role === 'admin' && !isAdmin;
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterRole, setFilterRole] = useState('all');
   const [showInactive, setShowInactive] = useState(false);
@@ -46,8 +48,8 @@ const StaffListPage = () => {
       const res = await axios.get('http://localhost:3000/api/user/role/',
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      if (res.data.role === 'admin') setIsAdmin(true);
-      if (!(res.data.role && (res.data.role === 'admin' || res.data.role === 'manager'))) navigate('/admin/login')
+      if (res.data.role === 'admin' || res.data.role === 'manager' || res.data.role === 'staff') setIsAdmin(true);
+      if (!(res.data.role && (res.data.role === 'admin' || res.data.role === 'manager' || res.data.role === 'staff'))) navigate('/admin/login')
     } catch {
       navigate('/admin/login')
     }
@@ -82,6 +84,8 @@ const StaffListPage = () => {
     setShowPassword(false);
     setEditingStaffId(null);
     setEditStaffData(null);
+    setViewingStaffId(null);
+    setViewStaffData(null);
     setNewStaff({
       email: "",
       role: "",
@@ -159,6 +163,32 @@ const StaffListPage = () => {
       };
       setEditStaffData(flatData);
       setEditingStaffId(staffId);
+      setViewingStaffId(null);
+      setViewStaffData(null);
+      setNewPassword("");
+      setShowPassword(false);
+      setShowPopup(true);
+    }
+  };
+
+  const handleView = (staffId) => {
+    const staff = staffs.find((s) => s.user_id === staffId);
+    if (staff) {
+      const flatData = {
+        email: staff.email,
+        role: staff.role,
+        status: staff.status,
+        name: staff.profile?.name || "",
+        bio: staff.profile?.bio_json?.bio || "",
+        education: staff.profile?.bio_json?.education || "",
+        date_of_birth: staff.profile?.date_of_birth?.slice(0, 10) || "",
+        job: staff.profile?.job || "",
+        password: staff.password || "", // Include actual password from API
+      };
+      setViewStaffData(flatData);
+      setViewingStaffId(staffId);
+      setEditingStaffId(null);
+      setEditStaffData(null);
       setNewPassword("");
       setShowPassword(false);
       setShowPopup(true);
@@ -170,9 +200,16 @@ const StaffListPage = () => {
     if (editingStaffId) {
       // When editing existing staff
       if (showPassword) {
-        return newPassword || ""; // Show new password being typed
+        return newPassword || editStaffData?.password || ""; // Show new password being typed or current password
       } else {
         return "*********"; // Hide password by default when editing
+      }
+    } else if (viewingStaffId) {
+      // When viewing staff details
+      if (showPassword) {
+        return viewStaffData?.password || ""; // Show actual password
+      } else {
+        return "*********"; // Hide password by default when viewing
       }
     } else {
       // When creating new staff
@@ -493,7 +530,7 @@ const StaffListPage = () => {
         <div className="card-body">
           <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div className="d-flex gap-2 flex-wrap">
-              <button disabled={!isAdmin} className="btn btn-primary shadow-sm" onClick={handleOpenPopup}>
+              <button className="btn btn-primary shadow-sm" onClick={handleOpenPopup}>
                 <FaPlus className="me-1" /> Tạo nhân viên mới
               </button>
               <button
@@ -597,11 +634,14 @@ const StaffListPage = () => {
                 <td>{staff.status}</td>
                 <td>{new Date(staff.date_create).toLocaleDateString()}</td>
                 <td className="action-buttons">
-                  <button disabled={!isAdmin} className="btn btn-light me-2" onClick={() => handleEdit(staff.user_id)}>
+                  <button className="btn btn-light me-2" onClick={() => handleView(staff.user_id)} title="Xem chi tiết">
+                    <FaEye color="blue" />
+                  </button>
+                  <button className="btn btn-light me-2" onClick={() => handleEdit(staff.user_id)} title="Chỉnh sửa">
                     <FaEdit color="yellow" />
                   </button>
                   {staff.role !== 'admin' && (
-                    <button disabled={!isAdmin} className="btn btn-light" onClick={() => handleOpenDeleteDialog(staff.user_id)}>
+                    <button className="btn btn-light" onClick={() => handleOpenDeleteDialog(staff.user_id)} title="Xóa">
                       <FaTrash color="red" />
                     </button>
                   )}
@@ -627,7 +667,10 @@ const StaffListPage = () => {
           <div className="popup-content">
             <span className="close" onClick={handleClosePopup}><MdCancel /></span>
             <div className="form">
-              <h2>{editingStaffId ? "Chỉnh sửa nhân viên" : "Tạo nhân viên mới"}</h2>
+              <h2>
+                {viewingStaffId ? "Xem chi tiết nhân viên" : 
+                 editingStaffId ? "Chỉnh sửa nhân viên" : "Tạo nhân viên mới"}
+              </h2>
               <form className="form-grid" onSubmit={editingStaffId ? handleUpdateSubmit : handleSubmit}>
 
                 {/* User Information Section */}
@@ -640,37 +683,46 @@ const StaffListPage = () => {
                   <input
                     type="email"
                     name="email"
-                    value={editingStaffId ? editStaffData?.email || "" : newStaff.email}
+                    value={viewingStaffId ? viewStaffData?.email || "" : 
+                           editingStaffId ? editStaffData?.email || "" : newStaff.email}
                     onChange={editingStaffId ? handleEditChange : handleChange}
                     required
-                    disabled={isAdminEditing}
+                    disabled={isAdminEditing || viewingStaffId}
                     className="form-input"
-                    style={{ color: '#000', backgroundColor: '#fff' }}
+                    style={{ 
+                      color: '#000', 
+                      backgroundColor: viewingStaffId ? '#f8f9fa' : '#fff',
+                      cursor: viewingStaffId ? 'not-allowed' : 'text'
+                    }}
                   />
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Mật khẩu {!editingStaffId && '*'}</label>
+                  <label className="form-label">Mật khẩu {!editingStaffId && !viewingStaffId && '*'}</label>
                   <div className="d-flex align-items-center">
                     <input
-                      type={editingStaffId && showPassword ? "text" : "password"}
+                      type={showPassword ? "text" : "password"}
                       name="password"
                       value={getPasswordDisplayValue()}
                       onChange={(e) => {
                         if (editingStaffId) {
                           // When editing staff, always update newPassword for changes
                           setNewPassword(e.target.value);
-                        } else {
+                        } else if (!viewingStaffId) {
                           // When creating new staff
                           setNewPassword(e.target.value);
                         }
                       }}
-                      required={!editingStaffId}
-                      disabled={isAdminEditing}
+                      required={!editingStaffId && !viewingStaffId}
+                      disabled={isAdminEditing || viewingStaffId}
                       className="form-input"
-                      style={{ color: '#000', backgroundColor: '#fff' }}
+                      style={{ 
+                        color: '#000', 
+                        backgroundColor: viewingStaffId ? '#f8f9fa' : '#fff',
+                        cursor: viewingStaffId ? 'not-allowed' : 'text'
+                      }}
                     />
-                    {editingStaffId && isAdmin && (
+                    {(editingStaffId || viewingStaffId) && (
                       <button
                         type="button"
                         className="btn btn-outline-secondary ms-2"
@@ -686,38 +738,52 @@ const StaffListPage = () => {
                       {showPassword ? "Để trống nếu không muốn thay đổi mật khẩu" : "Nhấn nút mắt để xem/chỉnh sửa mật khẩu"}
                     </small>
                   )}
+                  {viewingStaffId && (
+                    <small className="text-muted mt-1">
+                      {showPassword ? "Mật khẩu hiện tại của nhân viên" : "Nhấn nút mắt để xem mật khẩu"}
+                    </small>
+                  )}
                 </div>
 
                 <div className="form-group">
                   <label className="form-label">Vai trò *</label>
                   <select
                     name="role"
-                    value={editingStaffId ? editStaffData?.role || "" : newStaff.role}
+                    value={viewingStaffId ? viewStaffData?.role || "" : 
+                           editingStaffId ? editStaffData?.role || "" : newStaff.role}
                     onChange={editingStaffId ? handleEditChange : handleChange}
                     required
-                    disabled={isAdminEditing}
+                    disabled={isAdminEditing || viewingStaffId}
                     className="form-select"
-                    style={{ color: '#000', backgroundColor: '#fff' }}
+                    style={{ 
+                      color: '#000', 
+                      backgroundColor: viewingStaffId ? '#f8f9fa' : '#fff',
+                      cursor: viewingStaffId ? 'not-allowed' : 'text'
+                    }}
                   >
                     <option value="">Chọn vai trò</option>
-                    {editingStaffId && editStaffData?.role === 'admin' && <option value="admin">Admin</option>}
-                    {editingStaffId && <option value="admin">Admin</option>}
+                    {(editingStaffId || viewingStaffId) && (editStaffData?.role === 'admin' || viewStaffData?.role === 'admin') && <option value="admin">Admin</option>}
+                    {(editingStaffId || viewingStaffId) && <option value="admin">Admin</option>}
                     <option value="staff">Staff</option>
                     <option value="manager">Manager</option>
                   </select>
                 </div>
 
-                {editingStaffId && (
+                {(editingStaffId || viewingStaffId) && (
                   <div className="form-group">
                     <label className="form-label">Trạng thái *</label>
                     <select
                       name="status"
-                      value={editStaffData?.status || ""}
-                      onChange={handleEditChange}
+                      value={viewingStaffId ? viewStaffData?.status || "" : editStaffData?.status || ""}
+                      onChange={editingStaffId ? handleEditChange : undefined}
                       required
-                      disabled={isAdminEditing}
+                      disabled={isAdminEditing || viewingStaffId}
                       className="form-select"
-                      style={{ color: '#000', backgroundColor: '#fff' }}
+                      style={{ 
+                        color: '#000', 
+                        backgroundColor: viewingStaffId ? '#f8f9fa' : '#fff',
+                        cursor: viewingStaffId ? 'not-allowed' : 'text'
+                      }}
                     >
                       <option value="">Chọn trạng thái</option>
                       <option value="active">Active</option>
@@ -737,12 +803,17 @@ const StaffListPage = () => {
                   <input
                     type="text"
                     name="name"
-                    value={editingStaffId ? editStaffData?.name || "" : newStaff.name}
+                    value={viewingStaffId ? viewStaffData?.name || "" : 
+                           editingStaffId ? editStaffData?.name || "" : newStaff.name}
                     onChange={editingStaffId ? handleEditChange : handleChange}
                     required
-                    disabled={isAdminEditing}
+                    disabled={isAdminEditing || viewingStaffId}
                     className="form-input"
-                    style={{ color: '#000', backgroundColor: '#fff' }}
+                    style={{ 
+                      color: '#000', 
+                      backgroundColor: viewingStaffId ? '#f8f9fa' : '#fff',
+                      cursor: viewingStaffId ? 'not-allowed' : 'text'
+                    }}
                   />
                 </div>
 
@@ -751,11 +822,16 @@ const StaffListPage = () => {
                   <input
                     type="date"
                     name="date_of_birth"
-                    value={editingStaffId ? editStaffData?.date_of_birth || "" : newStaff.date_of_birth}
+                    value={viewingStaffId ? viewStaffData?.date_of_birth || "" : 
+                           editingStaffId ? editStaffData?.date_of_birth || "" : newStaff.date_of_birth}
                     onChange={editingStaffId ? handleEditChange : handleChange}
-                    disabled={isAdminEditing}
+                    disabled={isAdminEditing || viewingStaffId}
                     className="form-input"
-                    style={{ color: '#000', backgroundColor: '#fff' }}
+                    style={{ 
+                      color: '#000', 
+                      backgroundColor: viewingStaffId ? '#f8f9fa' : '#fff',
+                      cursor: viewingStaffId ? 'not-allowed' : 'text'
+                    }}
                   />
                 </div>
 
@@ -764,11 +840,16 @@ const StaffListPage = () => {
                   <input
                     type="text"
                     name="job"
-                    value={editingStaffId ? editStaffData?.job || "" : newStaff.job}
+                    value={viewingStaffId ? viewStaffData?.job || "" : 
+                           editingStaffId ? editStaffData?.job || "" : newStaff.job}
                     onChange={editingStaffId ? handleEditChange : handleChange}
-                    disabled={isAdminEditing}
+                    disabled={isAdminEditing || viewingStaffId}
                     className="form-input"
-                    style={{ color: '#000', backgroundColor: '#fff' }}
+                    style={{ 
+                      color: '#000', 
+                      backgroundColor: viewingStaffId ? '#f8f9fa' : '#fff',
+                      cursor: viewingStaffId ? 'not-allowed' : 'text'
+                    }}
                   />
                 </div>
 
@@ -776,11 +857,16 @@ const StaffListPage = () => {
                   <label className="form-label">Học vấn</label>
                   <select
                     name="education"
-                    value={editingStaffId ? editStaffData?.education || "" : newStaff.education}
+                    value={viewingStaffId ? viewStaffData?.education || "" : 
+                           editingStaffId ? editStaffData?.education || "" : newStaff.education}
                     onChange={editingStaffId ? handleEditChange : handleChange}
-                    disabled={isAdminEditing}
+                    disabled={isAdminEditing || viewingStaffId}
                     className="form-select"
-                    style={{ color: '#000', backgroundColor: '#fff' }}
+                    style={{ 
+                      color: '#000', 
+                      backgroundColor: viewingStaffId ? '#f8f9fa' : '#fff',
+                      cursor: viewingStaffId ? 'not-allowed' : 'text'
+                    }}
                   >
                     <option value="">Chọn trình độ học vấn</option>
                     <option value="Cao đẳng">Cao đẳng</option>
@@ -795,19 +881,32 @@ const StaffListPage = () => {
                   <label className="form-label">Tiểu sử</label>
                   <textarea
                     name="bio"
-                    value={editingStaffId ? editStaffData?.bio || "" : newStaff.bio}
+                    value={viewingStaffId ? viewStaffData?.bio || "" : 
+                           editingStaffId ? editStaffData?.bio || "" : newStaff.bio}
                     onChange={editingStaffId ? handleEditChange : handleChange}
-                    disabled={isAdminEditing}
+                    disabled={isAdminEditing || viewingStaffId}
                     className="form-textarea"
                     rows="4"
                     placeholder="Nhập tiểu sử chi tiết của nhân viên..."
-                    style={{ color: '#000', backgroundColor: '#fff', resize: 'vertical' }}
+                    style={{ 
+                      color: '#000', 
+                      backgroundColor: viewingStaffId ? '#f8f9fa' : '#fff', 
+                      resize: viewingStaffId ? 'none' : 'vertical',
+                      cursor: viewingStaffId ? 'not-allowed' : 'text'
+                    }}
                   />
                 </div>
 
-                <button type="submit" className="form-button form-grid-col-span-2" disabled={isAdminEditing}>
-                  {editingStaffId ? "Cập nhật" : "Tạo"}
-                </button>
+                {!viewingStaffId && (
+                  <button type="submit" className="form-button form-grid-col-span-2" disabled={isAdminEditing}>
+                    {editingStaffId ? "Cập nhật" : "Tạo"}
+                  </button>
+                )}
+                {viewingStaffId && (
+                  <button type="button" className="form-button form-grid-col-span-2" onClick={handleClosePopup}>
+                    Đóng
+                  </button>
+                )}
               </form>
             </div>
           </div>

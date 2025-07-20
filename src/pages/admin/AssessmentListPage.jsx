@@ -29,6 +29,10 @@ const AssessmentListPage = () => {
   const [sortField, setSortField] = useState('');
   const [sortDirection, setSortDirection] = useState('asc'); // 'asc' or 'desc'
 
+  // View detail state
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedAssessment, setSelectedAssessment] = useState(null);
+
   const token = sessionStorage.getItem("token");
   const navigate = useNavigate()
 
@@ -38,7 +42,7 @@ const AssessmentListPage = () => {
       const res = await axios.get('http://localhost:3000/api/user/role/',
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      if (!(res.data.role && res.data.role === 'manager')) navigate('/admin/login')
+      if (!(res.data.role && (res.data.role === 'admin' || res.data.role === 'manager' || res.data.role === 'staff'))) navigate('/admin/login')
     } catch{
       navigate('/admin/login')
     }
@@ -143,7 +147,9 @@ const AssessmentListPage = () => {
   const typeStats = {};
   assessments.forEach(assessment => {
     if (assessment.type) {
-      typeStats[assessment.type] = (typeStats[assessment.type] || 0) + 1;
+      // Normalize the type to handle case variations
+      const normalizedType = assessment.type.toUpperCase();
+      typeStats[normalizedType] = (typeStats[normalizedType] || 0) + 1;
     }
   });
 
@@ -336,6 +342,18 @@ const AssessmentListPage = () => {
     }
   };
 
+  // Handle view assessment detail
+  const handleViewDetail = (assessment) => {
+    setSelectedAssessment(assessment);
+    setShowDetailModal(true);
+  };
+
+  // Handle close detail modal
+  const handleCloseDetailModal = () => {
+    setShowDetailModal(false);
+    setSelectedAssessment(null);
+  };
+
 
   return (
     <div className="staff-container">
@@ -400,7 +418,7 @@ const AssessmentListPage = () => {
       </div>
 
       {/* Filters */}
-      <div className="card mb-4" style={{ background: '#fff', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
+      <div className="card border-0 shadow-sm mb-4" style={{ background: '#e9ecef' }}>
         <div className="card-body">
           <div className="row g-3">
             <div className="col-md-6">
@@ -505,7 +523,11 @@ const AssessmentListPage = () => {
                   <td>{assessment.action_id || 'N/A'}</td>
                   <td>{assessment.create_at ? new Date(assessment.create_at).toLocaleDateString('vi-VN') : 'N/A'}</td>
                   <td className="action-buttons">
-                    <button className="btn btn-light me-2" title="Xem chi tiết">
+                    <button 
+                      className="btn btn-light me-2" 
+                      title="Xem chi tiết"
+                      onClick={() => handleViewDetail(assessment)}
+                    >
                       <FaEye color="#0ea5e9" />
                     </button>
                   </td>
@@ -618,6 +640,191 @@ const AssessmentListPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Assessment Detail Modal */}
+      {showDetailModal && selectedAssessment && (
+        <div className="modal fade show" style={{ display: 'block', background: 'rgba(0,0,0,0.5)' }} tabIndex="-1">
+          <div className="modal-dialog modal-lg modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">
+                  Chi tiết bài đánh giá #{selectedAssessment.assessment_id}
+                </h5>
+                <button 
+                  type="button" 
+                  className="btn-close" 
+                  onClick={handleCloseDetailModal}
+                  aria-label="Close"
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div className="row">
+                  <div className="col-md-6">
+                    <h6>Thông tin cơ bản</h6>
+                    <table className="table table-sm">
+                      <tbody>
+                        <tr>
+                          <td><strong>ID Bài đánh giá:</strong></td>
+                          <td>{selectedAssessment.assessment_id}</td>
+                        </tr>
+                        <tr>
+                          <td><strong>ID Người dùng:</strong></td>
+                          <td>{selectedAssessment.user_id}</td>
+                        </tr>
+                        <tr>
+                          <td><strong>Loại:</strong></td>
+                          <td>
+                            <span className={`badge ${selectedAssessment.type === 'CRAFFT' ? 'bg-primary' : 'bg-success'}`}>
+                              {selectedAssessment.type}
+                            </span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td><strong>Action ID:</strong></td>
+                          <td>{selectedAssessment.action_id || 'N/A'}</td>
+                        </tr>
+                        <tr>
+                          <td><strong>Ngày tạo:</strong></td>
+                          <td>{selectedAssessment.create_at ? new Date(selectedAssessment.create_at).toLocaleString('vi-VN') : 'N/A'}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="col-md-6">
+                    <h6>Kết quả đánh giá</h6>
+                    {(() => {
+                      const { riskLevel, score } = calculateRiskLevel(selectedAssessment);
+                      return (
+                        <div className="card">
+                          <div className="card-body">
+                            <div className="row text-center">
+                              <div className="col-6">
+                                <h4 className="text-primary">{score}</h4>
+                                <small className="text-muted">Điểm số</small>
+                              </div>
+                              <div className="col-6">
+                                <span className={`badge fs-6 ${getRiskLevelClass(riskLevel)}`}>
+                                  {riskLevel}
+                                </span>
+                                <br />
+                                <small className="text-muted">Mức độ rủi ro</small>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </div>
+
+                <div className="row mt-3">
+                  <div className="col-12">
+                    <h6>Chi tiết kết quả</h6>
+                    <div className="card">
+                      <div className="card-body">
+                        {(() => {
+                          try {
+                            const resultData = typeof selectedAssessment.result_json === 'string'
+                              ? JSON.parse(selectedAssessment.result_json)
+                              : selectedAssessment.result_json;
+                            
+                            if (resultData && resultData.result && Array.isArray(resultData.result)) {
+                              return (
+                                <div className="table-responsive" style={{ maxHeight: '400px', overflow: 'auto' }}>
+                                  <table className="table table-sm table-hover">
+                                    <thead className="table-light sticky-top">
+                                      <tr>
+                                        <th style={{ width: '10%' }}>#</th>
+                                        <th style={{ width: '60%' }}>Câu hỏi</th>
+                                        <th style={{ width: '15%' }}>Đáp án</th>
+                                        <th style={{ width: '15%' }}>Điểm</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {resultData.result.map((item, index) => (
+                                        <tr key={index}>
+                                          <td className="fw-bold text-primary">{index + 1}</td>
+                                          <td>
+                                            <div className="question-text">
+                                              {item.question || `Câu hỏi ${index + 1}`}
+                                            </div>
+                                          </td>
+                                          <td>
+                                            <span className={`badge ${item.score > 0 ? 'bg-success' : 'bg-secondary'}`}>
+                                              {item.selectedOption || 'N/A'}
+                                            </span>
+                                          </td>
+                                          <td>
+                                            <span className={`fw-bold ${item.score > 0 ? 'text-success' : 'text-muted'}`}>
+                                              {item.score || 0}
+                                            </span>
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              );
+                            } else if (resultData && typeof resultData === 'object') {
+                              // Fallback for other JSON structures
+                              return (
+                                <div className="table-responsive" style={{ maxHeight: '400px', overflow: 'auto' }}>
+                                  <table className="table table-sm table-hover">
+                                    <thead className="table-light sticky-top">
+                                      <tr>
+                                        <th style={{ width: '30%' }}>Thuộc tính</th>
+                                        <th style={{ width: '70%' }}>Giá trị</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {Object.entries(resultData).map(([key, value], index) => (
+                                        <tr key={index}>
+                                          <td className="fw-bold text-primary">{key}</td>
+                                          <td>
+                                            {typeof value === 'object' ? (
+                                              <pre className="mb-0" style={{ fontSize: '0.75rem' }}>
+                                                {JSON.stringify(value, null, 2)}
+                                              </pre>
+                                            ) : (
+                                              String(value)
+                                            )}
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              );
+                            } else {
+                              return (
+                                <div className="text-center text-muted py-4">
+                                  <p>Không có dữ liệu kết quả chi tiết</p>
+                                </div>
+                              );
+                            }
+                          } catch (error) {
+                            return (
+                              <div className="text-center text-muted py-4">
+                                <p>Lỗi khi hiển thị dữ liệu kết quả</p>
+                                <small>{error.message}</small>
+                              </div>
+                            );
+                          }
+                        })()}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={handleCloseDetailModal}>
+                  Đóng
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

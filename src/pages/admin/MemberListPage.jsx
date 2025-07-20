@@ -110,8 +110,8 @@ const MemberListPage = () => {
       const res = await axios.get('http://localhost:3000/api/user/role/',
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      if (res.data.role === 'admin') setIsAdmin(true);
-      if (!(res.data.role && (res.data.role === 'admin' || res.data.role === 'manager'))) navigate('/admin/login')
+      if (res.data.role === 'admin' || res.data.role === 'manager' || res.data.role === 'staff') setIsAdmin(true);
+      if (!(res.data.role && (res.data.role === 'admin' || res.data.role === 'manager' || res.data.role === 'staff'))) navigate('/admin/login')
     } catch {
       navigate('/admin/login')
     }
@@ -599,10 +599,10 @@ const MemberListPage = () => {
                   <button className="btn btn-light me-2" onClick={() => handleView(member.user_id)}>
                     <FaEye />
                   </button>
-                  <button disabled={!isAdmin} className="btn btn-light me-2" onClick={() => handleEdit(member.user_id)}>
+                  <button className="btn btn-light me-2" onClick={() => handleEdit(member.user_id)}>
                     <FaEdit color="yellow" />
                   </button>
-                  <button disabled={!isAdmin} className="btn btn-light me-2" onClick={() => handleOpenDeleteDialog(member.user_id)}>
+                  <button className="btn btn-light me-2" onClick={() => handleOpenDeleteDialog(member.user_id)}>
                     <FaTrash color="red" />
                   </button>
                 </td>

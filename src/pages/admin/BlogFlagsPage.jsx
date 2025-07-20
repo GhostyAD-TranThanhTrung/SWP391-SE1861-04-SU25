@@ -19,7 +19,7 @@ const BlogFlagsPage = () => {
       const res = await axios.get('http://localhost:3000/api/user/role/',
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      if (!(res.data.role && (res.data.role === 'staff' || res.data.role === 'manager'))) navigate('/admin/login')
+      if (!(res.data.role && (res.data.role === 'admin' || res.data.role === 'manager' || res.data.role === 'staff'))) navigate('/admin/login')
     } catch {
       navigate('/admin/login')
     }

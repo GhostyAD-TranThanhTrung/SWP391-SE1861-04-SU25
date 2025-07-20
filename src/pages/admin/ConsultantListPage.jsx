@@ -62,8 +62,8 @@ const ConsultantListPage = () => {
       const res = await axios.get('http://localhost:3000/api/user/role/',
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      if (res.data.role === 'admin') setIsAdmin(true);
-      if (!(res.data.role && (res.data.role === 'admin' || res.data.role === 'manager'))) navigate('/admin/login')
+      if (res.data.role === 'admin' || res.data.role === 'manager' || res.data.role === 'staff') setIsAdmin(true);
+      if (!(res.data.role && (res.data.role === 'admin' || res.data.role === 'manager' || res.data.role === 'staff'))) navigate('/admin/login')
     } catch (err) {
       navigate('/admin/login')
     }
@@ -748,9 +748,9 @@ const ConsultantListPage = () => {
         <div className="card-body">
           <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div className="d-flex gap-2 flex-wrap">
-              <button onClick={() => { handleEdit(null) }} disabled={!isAdmin} className="btn btn-primary shadow-sm" title="Tạo tư vấn viên tạm thời">
-                <FaPlus className="me-1" /> Tạo tư vấn viên mới
-              </button>
+                              <button onClick={() => { handleEdit(null) }} className="btn btn-primary shadow-sm" title="Tạo tư vấn viên tạm thời">
+                  <FaPlus className="me-1" /> Tạo tư vấn viên mới
+                </button>
               <button
                 onClick={() => setShowInactive(!showInactive)}
                 className={`btn shadow-sm ${showInactive ? 'btn-warning' : 'btn-outline-warning'}`}
@@ -841,13 +841,13 @@ const ConsultantListPage = () => {
                 <td>{consultant.status}</td>
                 <td>{new Date(consultant.date_create).toLocaleDateString()}</td>
                 <td className="action-buttons">
-                  <button disabled={!isAdmin} className="btn btn-outline-warning btn-sm me-2" onClick={() => handleEdit(consultant.id_consultant)}>
+                  <button className="btn btn-outline-warning btn-sm me-2" onClick={() => handleEdit(consultant.id_consultant)}>
                     <FaEdit />
                   </button>
-                  <button disabled={!isAdmin} className="btn btn-outline-info btn-sm me-2" onClick={() => handleOpenSlotModal(consultant)} title="Quản lý lịch làm việc">
+                  <button className="btn btn-outline-info btn-sm me-2" onClick={() => handleOpenSlotModal(consultant)} title="Quản lý lịch làm việc">
                     <FaClock />
                   </button>
-                  <button disabled={!isAdmin} className="btn btn-outline-danger btn-sm" onClick={() => handleOpenDeleteDialog(consultant.id_consultant)}>
+                  <button className="btn btn-outline-danger btn-sm" onClick={() => handleOpenDeleteDialog(consultant.id_consultant)}>
                     <FaTrash />
                   </button>
                 </td>
