@@ -51,7 +51,10 @@ class BlogController {
     try {
       const blogRepository = AppDataSource.getRepository(Blog);
       const blogs = await blogRepository.find({
-        where: { status: "Đã xuất bản" },
+        where: [
+          { status: "Đã xuất bản" },
+          { status: "published" }
+        ],
         order: {
           created_at: "DESC",
         },
@@ -424,10 +427,10 @@ class BlogController {
       }
 
       // Validate status if provided
-      if (status !== undefined && !["draft", "Đã xuất bản", "archived", "hidden", "pending"].includes(status)) {
+      if (status !== undefined && !["draft", "Đã xuất bản", "published", "archived", "hidden", "pending"].includes(status)) {
         return res.status(400).json({
           success: false,
-          message: "Invalid status. Must be one of: draft, Đã xuất bản, archived, hidden, pending",
+          message: "Invalid status. Must be one of: draft, published, Đã xuất bản, archived, hidden, pending",
         });
       }
 
@@ -536,7 +539,10 @@ class BlogController {
       const blogRepository = AppDataSource.getRepository(Blog);
 
       const blogs = await blogRepository.find({
-        where: { status: "Đã xuất bản" },
+        where: [
+          { status: "Đã xuất bản" },
+          { status: "published" }
+        ],
         order: {
           created_at: "DESC",
         },
@@ -576,10 +582,10 @@ class BlogController {
         });
       }
 
-      if (!status || !["draft", "Đã xuất bản", "archived", "hidden", "pending"].includes(status)) {
+      if (!status || !["draft", "Đã xuất bản", "published", "archived", "hidden", "pending"].includes(status)) {
         return res.status(400).json({
           success: false,
-          message: "Valid status is required (draft, Đã xuất bản, archived, hidden, pending)",
+          message: "Valid status is required (draft, published, Đã xuất bản, archived, hidden, pending)",
         });
       }
 
