@@ -142,16 +142,8 @@ const BookingPage = () => {
     const getSpecializationFromSpeciality = (speciality) => {
         if (!speciality || speciality === 'N/A') return 'Tư vấn tổng quát';
         
-        // Map English specializations to Vietnamese
-        const specializationMapping = {
-            'Prevention Specialist': 'Chuyên gia phòng ngừa',
-            'Counseling & Therapy': 'Tư vấn & Trị liệu',
-            'Community Outreach': 'Tiếp cận cộng đồng',
-            'Clinical Psychology': 'Tâm lý học lâm sàng',
-            'Rehabilitation': 'Phục hồi chức năng'
-        };
-        
-        return specializationMapping[speciality] || speciality;
+        // Return Vietnamese specialization as is (since database now stores Vietnamese values)
+        return speciality;
     };
 
     const handleViewProfile = (consultantId) => {
@@ -203,11 +195,11 @@ const BookingPage = () => {
     // Filter options
     const specializations = [
         { value: 'all', label: 'Tất cả chuyên môn' },
-        { value: 'Prevention Specialist', label: 'Chuyên gia phòng ngừa' },
-        { value: 'Counseling & Therapy', label: 'Tư vấn & Trị liệu' },
-        { value: 'Community Outreach', label: 'Tiếp cận cộng đồng' },
-        { value: 'Clinical Psychology', label: 'Tâm lý học lâm sàng' },
-        { value: 'Rehabilitation', label: 'Phục hồi chức năng' }
+        { value: 'Chuyên gia phòng ngừa', label: 'Chuyên gia phòng ngừa' },
+        { value: 'Tư vấn & Trị liệu', label: 'Tư vấn & Trị liệu' },
+        { value: 'Tiếp cận cộng đồng', label: 'Tiếp cận cộng đồng' },
+        { value: 'Tâm lý học lâm sàng', label: 'Tâm lý học lâm sàng' },
+        { value: 'Phục hồi chức năng', label: 'Phục hồi chức năng' }
     ];
 
     const daysOfWeek = [
@@ -247,7 +239,7 @@ const BookingPage = () => {
     };
 
     const filteredConsultants = consultants.filter(consultant => {
-        // Compare directly with the original English speciality value
+        // Compare directly with the Vietnamese speciality value from database
         const matchesSpecialization = selectedSpecialization === 'all' || consultant.speciality === selectedSpecialization;
         
         let matchesDayOfWeek = selectedDayOfWeek === 'all';

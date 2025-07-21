@@ -1075,11 +1075,11 @@ const ConsultantListPage = () => {
                     style={{ color: '#000', backgroundColor: '#fff' }}
                   >
                     <option value="">Chọn chuyên môn</option>
-                    <option value="Prevention Specialist">Chuyên gia phòng ngừa</option>
-                    <option value="Counseling & Therapy">Tư vấn & Trị liệu</option>
-                    <option value="Community Outreach">Tiếp cận cộng đồng</option>
-                    <option value="Clinical Psychology">Tâm lý học lâm sàng</option>
-                    <option value="Rehabilitation">Phục hồi chức năng</option>
+                    <option value="Chuyên gia phòng ngừa">Chuyên gia phòng ngừa</option>
+                    <option value="Tư vấn & Trị liệu">Tư vấn & Trị liệu</option>
+                    <option value="Tiếp cận cộng đồng">Tiếp cận cộng đồng</option>
+                    <option value="Tâm lý học lâm sàng">Tâm lý học lâm sàng</option>
+                    <option value="Phục hồi chức năng">Phục hồi chức năng</option>
                   </select>
                 </div>
 

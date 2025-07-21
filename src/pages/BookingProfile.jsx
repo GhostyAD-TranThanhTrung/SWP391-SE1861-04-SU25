@@ -88,10 +88,10 @@ const BookingProfile = () => {
 
 
 
-    // Format specialization - handle comma-separated values from sample data
+    // Format specialization - now handles Vietnamese values from database
     const formatSpecialization = (speciality) => {
         if (!speciality || speciality === 'N/A') return 'Tư vấn chung';
-        return speciality;
+        return speciality; // Return Vietnamese specialization as is
     };
 
     // Format Google Meet link display

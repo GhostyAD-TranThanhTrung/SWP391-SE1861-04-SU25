@@ -63,46 +63,59 @@ const AssessmentResultPage = () => {
     };
 
     return (
-        <Container className="assessment-result-page mt-4">
-            <h2 className="mb-4">Kết quả kiểm tra của bạn</h2>
+        <div className="setting-assessment-page">
+            <div className="assessment-header">
+                <h2>Lịch sử đánh giá</h2>
+                <p>Xem lại các kết quả kiểm tra và đánh giá của bạn</p>
+            </div>
 
             {loading ? (
-                <div className="text-center">
+                <div className="setting-loading">
                     <Spinner animation="border" variant="primary" />
+                    <p>Đang tải dữ liệu...</p>
                 </div>
             ) : error ? (
-                <Alert variant="danger">{error}</Alert>
+                <div className="setting-error">
+                    <i className="bi bi-exclamation-triangle"></i>
+                    <p>{error}</p>
+                </div>
             ) : results.length === 0 ? (
-                <Alert variant="info">Bạn chưa có bài kiểm tra nào.</Alert>
+                <div className="empty-state">
+                    <i className="bi bi-clipboard-data"></i>
+                    <h3>Chưa có kết quả đánh giá</h3>
+                    <p>Bạn chưa thực hiện bài kiểm tra nào. Hãy thử làm một bài kiểm tra để xem kết quả ở đây.</p>
+                </div>
             ) : (
-                <Table striped bordered hover responsive className="result-table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Loại đánh giá</th>
-                            <th>Điểm số</th>
-                            <th>Ngày làm</th>
-                            <th>Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {results.map((item, index) => (
-                            <tr key={item.assessment_id || index}>
-                                <td>{index + 1}</td>
-                                <td>{item.type}</td>
-                                <td>{getScore(item)}</td>
-                                <td>{formatDate(item.create_at)}</td>
-                                <td>
-                                    <Button variant="info" size="sm" onClick={() => handleViewDetails(item.assessment_id)}>
-                                        Xem chi tiết
-                                    </Button>
-                                </td>
+                <div className="results-container">
+                    <Table striped bordered hover responsive className="setting-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Loại đánh giá</th>
+                                <th>Điểm số</th>
+                                <th>Ngày làm</th>
+                                <th>Thao tác</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </Table>
+                        </thead>
+                        <tbody>
+                            {results.map((item, index) => (
+                                <tr key={item.assessment_id || index}>
+                                    <td>{index + 1}</td>
+                                    <td>{item.type}</td>
+                                    <td>{getScore(item)}</td>
+                                    <td>{formatDate(item.create_at)}</td>
+                                    <td>
+                                        <Button variant="info" size="sm" onClick={() => handleViewDetails(item.assessment_id)}>
+                                            Xem chi tiết
+                                        </Button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </Table>
+                </div>
             )}
-        </Container>
+        </div>
     );
 };
 

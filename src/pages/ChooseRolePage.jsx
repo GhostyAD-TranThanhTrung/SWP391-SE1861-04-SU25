@@ -88,10 +88,10 @@ const ChooseRolePage = () => {
                         onChange={(e) => setJob(e.target.value)}
                     >
                         <option value="">Chọn nghề nghiệp</option>
-                        <option value="Student">Học sinh</option>
-                        <option value="College Student">Sinh viên</option>
-                        <option value="Parent">Phụ huynh</option>
-                        <option value="Teacher">Giáo viên</option>
+                        <option value="Học sinh">Học sinh</option>
+                        <option value="Sinh viên">Sinh viên</option>
+                        <option value="Phụ huynh">Phụ huynh</option>
+                        <option value="Giáo viên">Giáo viên</option>
                     </select>
 
                     <button

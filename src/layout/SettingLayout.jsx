@@ -22,21 +22,23 @@ const SettingLayout = () => {
     };
 
     return (
-        <div className="profile-container d-flex setting-layout-container">
+        <div className="setting-layout-container">
             <SettingSidebar isOpen={isSidebarOpen} />
-            <div className="profile-content flex-grow-1 p-4">
-                <div className="d-flex justify-content-between mb-4 page-header">
+            <div className={`setting-main-content ${isSidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
+                <div className="setting-header-section">
                     <button
-                        className="btn btn-light sidebar-toggle"
+                        className="setting-sidebar-toggle"
                         onClick={toggleSidebar}
                         aria-label="Toggle sidebar"
                     >
                         <FaBars />
                     </button>
-                    <h2 className="page-title">Cài đặt tài khoản</h2>
-                    <div></div> {/* Để giữ cân đối cho layout */}
+                    <div className="setting-header-title">
+                        <h1>Cài đặt tài khoản</h1>
+                        <p>Quản lý thông tin cá nhân và tùy chọn tài khoản của bạn</p>
+                    </div>
                 </div>
-                <div className="content-wrapper">
+                <div className="setting-content-area">
                     <Outlet />
                 </div>
             </div>

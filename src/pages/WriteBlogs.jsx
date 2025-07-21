@@ -43,50 +43,74 @@ const WriteBlogs = () => {
     };
 
     return (
-        <div className="write-blogs container mt-4">
-            <h2 className="mb-4">Blog của bạn</h2>
+        <div className="setting-blogs-page">
+            <div className="blogs-header">
+                <h2>Blog đã viết</h2>
+                <p>Quản lý và xem lại các bài viết blog của bạn</p>
+            </div>
 
             {loading && (
-                <div className="text-center my-5">
+                <div className="setting-loading">
                     <Spinner animation="border" variant="primary" />
+                    <p>Đang tải blog của bạn...</p>
                 </div>
             )}
 
-            {error && <p className="text-danger">{error}</p>}
-
-            {!loading && blogs.length === 0 && (
-                <p>Bạn chưa viết blog nào.</p>
+            {error && (
+                <div className="setting-error">
+                    <i className="bi bi-exclamation-triangle"></i>
+                    <p>{error}</p>
+                </div>
             )}
 
-            <div className="row">
-                {blogs.map((blog) => {
-                    // Lấy text thuần từ content nếu có, nếu không thì lấy body
-                    const previewText = blog.content
-                        ? stripHtml(blog.content)
-                        : (blog.body || '');
-                    return (
-                        <div className="col-md-6 mb-4" key={blog.blog_id}>
-                            <Card className="blog-card">
-                                <Card.Body>
-                                    <Card.Title>{blog.title}</Card.Title>
-                                    <Card.Text>
-                                        {previewText.length > 150
-                                            ? previewText.slice(0, 150) + '...'
-                                            : previewText}
-                                    </Card.Text>
-                                    <div className="text-muted small">
-                                        Ngày đăng: {blog.created_at ? new Date(blog.created_at).toLocaleDateString() : 'Không rõ'}
-                                    </div>
-                                    <div className="mt-3 d-flex justify-content-end">
-                                        <Link to={`/blog/${blog.blog_id}`} className="btn btn-outline-primary btn-sm me-2">Xem chi tiết</Link>
-                                        <Link to="/blog" className="btn btn-primary btn-sm">Chỉnh sửa</Link>
-                                    </div>
-                                </Card.Body>
-                            </Card>
-                        </div>
-                    );
-                })}
-            </div>
+            {!loading && blogs.length === 0 && (
+                <div className="empty-state">
+                    <i className="bi bi-journal-text"></i>
+                    <h3>Chưa có blog nào</h3>
+                    <p>Bạn chưa viết blog nào. Hãy bắt đầu tạo blog đầu tiên của bạn!</p>
+                </div>
+            )}
+
+            {blogs.length > 0 && (
+                <div className="setting-blogs-grid">
+                    {blogs.map((blog) => {
+                        // Lấy text thuần từ content nếu có, nếu không thì lấy body
+                        const previewText = blog.content
+                            ? stripHtml(blog.content)
+                            : (blog.body || '');
+                        return (
+                            <div className="setting-blog-card" key={blog.blog_id}>
+                                <Card className="h-100">
+                                    <Card.Body>
+                                        <Card.Title className="setting-blog-title">{blog.title}</Card.Title>
+                                        <Card.Text className="setting-blog-preview">
+                                            {previewText.length > 150
+                                                ? previewText.slice(0, 150) + '...'
+                                                : previewText}
+                                        </Card.Text>
+                                        <div className="setting-blog-meta">
+                                            <span className="setting-blog-date">
+                                                <i className="bi bi-calendar3"></i>
+                                                {blog.created_at ? new Date(blog.created_at).toLocaleDateString('vi-VN') : 'Không rõ'}
+                                            </span>
+                                        </div>
+                                        <div className="setting-blog-actions">
+                                            <Link to={`/blog/${blog.blog_id}`} className="btn btn-outline-primary btn-sm">
+                                                <i className="bi bi-eye"></i>
+                                                Xem chi tiết
+                                            </Link>
+                                            <Link to="/blog" className="btn btn-primary btn-sm">
+                                                <i className="bi bi-pencil"></i>
+                                                Chỉnh sửa
+                                            </Link>
+                                        </div>
+                                    </Card.Body>
+                                </Card>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
         </div>
     );
 };
