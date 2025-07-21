@@ -612,25 +612,6 @@ const ContentViewPage = () => {
                         </div>
                     </div>
                     <div className="header-right">
-                        {enrollmentData && !checkingCompletion && (
-                            <button
-                                onClick={handleToggleCompletion}
-                                className={`completion-toggle ${isCompleted ? 'completed' : 'incomplete'}`}
-                                disabled={updatingCompletion}
-                            >
-                                {updatingCompletion ? (
-                                    <>
-                                        <div className="mini-spinner"></div>
-                                        <span>Đang cập nhật...</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <i className={`bi ${isCompleted ? 'bi-check-circle-fill' : 'bi-circle'}`}></i>
-                                        <span>{isCompleted ? 'Đã hoàn thành' : 'Đánh dấu hoàn thành'}</span>
-                                    </>
-                                )}
-                            </button>
-                        )}
                     </div>
                 </div>
             </header>
@@ -740,6 +721,35 @@ const ContentViewPage = () => {
                             )}
                         </div>
                     </section>
+
+                    {/* Completion Section */}
+                    {enrollmentData && !checkingCompletion && (
+                        <section className="content-completion-section">
+                            <div className="completion-container">
+                                <div className="completion-info">
+                                    <h3>Hoàn thành bài học</h3>
+                                    <p>Đánh dấu bài học này là đã hoàn thành để tiếp tục với bài học tiếp theo.</p>
+                                </div>
+                                <button
+                                    onClick={handleToggleCompletion}
+                                    className={`completion-toggle ${isCompleted ? 'completed' : 'incomplete'}`}
+                                    disabled={updatingCompletion}
+                                >
+                                    {updatingCompletion ? (
+                                        <>
+                                            <div className="mini-spinner"></div>
+                                            <span>Đang cập nhật...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <i className={`bi ${isCompleted ? 'bi-check-circle-fill' : 'bi-circle'}`}></i>
+                                            <span>{isCompleted ? 'Đã hoàn thành' : 'Đánh dấu hoàn thành'}</span>
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </section>
+                    )}
 
                     {/* Navigation Section */}
                     {programContents.length > 0 && (
