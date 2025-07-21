@@ -33,7 +33,7 @@ const CoursePage = () => {
                 });
 
                 if (!response.ok) {
-                    throw new Error('Failed to fetch categories');
+                    throw new Error('Không thể tải danh mục');
                 }
 
                 const res = await response.json();
@@ -75,7 +75,7 @@ const CoursePage = () => {
                 });
 
                 if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                    throw new Error('Phản hồi mạng không thành công');
                 }
 
                 const res = await response.json();
@@ -114,7 +114,7 @@ const CoursePage = () => {
                 });
 
                 if (!response.ok) {
-                    throw new Error('Failed to fetch enrolled programs');
+                    throw new Error('Không thể tải chương trình đã đăng ký');
                 }
 
                 const res = await response.json();
@@ -151,7 +151,7 @@ const CoursePage = () => {
                 });
 
                 if (!response.ok) {
-                    throw new Error('Failed to fetch community events');
+                    throw new Error('Không thể tải sự kiện cộng đồng');
                 }
 
                 const res = await response.json();
@@ -543,14 +543,14 @@ const CoursePage = () => {
                         backgroundColor: '#ffffff'
                     }}>
                         <div className="d-flex justify-content-between align-items-center mb-4">
-                            <h4 className="fw-bold mb-0">Latest event community</h4>
+                            <h4 className="fw-bold mb-0">Sự kiện cộng đồng mới nhất</h4>
                             {communityEvents.length > 1 && (
                                 <button
                                     className="btn btn-outline-secondary"
                                     onClick={() => setShowAllEvents(!showAllEvents)}
                                     style={{ borderRadius: '8px' }}
                                 >
-                                    {showAllEvents ? 'Hide old events' : 'Show old event (button)'}
+                                    {showAllEvents ? 'Ẩn sự kiện cũ' : 'Hiển thị sự kiện cũ'}
                                 </button>
                             )}
                     </div>
@@ -573,7 +573,7 @@ const CoursePage = () => {
                                 
                                 {showAllEvents && communityEvents.length > 1 && (
                                     <div className="mt-3">
-                                        <small className="text-muted d-block mb-3">extend bit here</small>
+                                        <small className="text-muted d-block mb-3">Mở rộng thêm tại đây</small>
                                         <div className="row g-3">
                                             {communityEvents.slice(1).map((event, index) => (
                                                 <div className="col-md-4" key={event.program_id}>
@@ -598,7 +598,7 @@ const CoursePage = () => {
                     }}>
                                                 {/* Filter Section */}
                         <div className="mb-4">
-                            <h5 className="fw-bold text-center mb-3">Filter (by category/age group)</h5>
+                            <h5 className="fw-bold text-center mb-3">Bộ lọc (theo danh mục/nhóm tuổi)</h5>
                             
                             {/* Category Filters */}
                             <div className="mb-4">

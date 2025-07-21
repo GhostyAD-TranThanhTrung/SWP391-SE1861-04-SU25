@@ -28,8 +28,11 @@ const CompleteCourse = () => {
             });
     }, []);
 
-    // Lọc chỉ các khóa học đã hoàn thành
+    // Lọc các khóa học đã hoàn thành và chưa hoàn thành
     const completedCourses = courses.filter(course => course.enrollment_status?.has_complete);
+    const incompleteCourses = courses.filter(course => 
+        course.enrollment_status?.is_enrolled && !course.enrollment_status?.has_complete
+    );
 
     if (loading) {
         return (
@@ -43,7 +46,136 @@ const CompleteCourse = () => {
     return (
         <div className="setting-courses-page">
             <div className="courses-header">
-                <h2>Khóa học đã hoàn thành</h2>
+                <h2>Tiến Độ Học Tập Của Tôi</h2>
+                <p>Danh sách các khóa học bạn đã đăng ký và tiến độ học tập</p>
+            </div>
+            
+            {/* Incomplete Courses Section */}
+            {incompleteCourses.length > 0 && (
+                <div className="mb-5">
+                    <div className="courses-section-header">
+                        <h3>Khóa học đang học</h3>
+                        <p>Các khóa học bạn đang tham gia và chưa hoàn thành</p>
+                    </div>
+                    
+                    {/* Course Header */}
+                    <div className="row mb-3">
+                        <div className="col-md-3">
+                            <div className="fw-bold text-muted text-center p-2" style={{ backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
+                                Tên khóa học
+                            </div>
+                        </div>
+                        <div className="col-md-3">
+                            <div className="fw-bold text-muted text-center p-2" style={{ backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
+                                Thông tin khóa học
+                            </div>
+                        </div>
+                        <div className="col-md-3">
+                            <div className="fw-bold text-muted text-center p-2" style={{ backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
+                                Tiến độ khóa học
+                            </div>
+                        </div>
+                        <div className="col-md-3">
+                            <div className="fw-bold text-muted text-center p-2" style={{ backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
+                                Vào khóa học
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Incomplete Courses List */}
+                    <div className="row g-3 mb-5">
+                        {incompleteCourses.map(course => (
+                            <div className="col-12 mb-3" key={`incomplete-${course.program_id || course.id}`}>
+                                <div className="enrolled-course-card" style={{
+                                    background: '#fff',
+                                    border: '1px solid #dee2e6',
+                                    borderRadius: '8px',
+                                    padding: '1rem',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                }}>
+                                    <div className="row align-items-center">
+                                        {/* Tên khóa học */}
+                                        <div className="col-md-3">
+                                            <div className="text-center">
+                                                <h6 className="fw-bold mb-1" style={{ fontSize: '0.95rem' }}>
+                                                    {course.title || course.program_title}
+                                                </h6>
+                                                <small className="badge bg-primary">
+                                                    Đang học
+                                                </small>
+                                            </div>
+                                        </div>
+
+                                        {/* Thông tin khóa học */}
+                                        <div className="col-md-3">
+                                            <div className="text-center">
+                                                <p className="mb-1 small text-muted" style={{
+                                                    display: '-webkit-box',
+                                                    WebkitLineClamp: 2,
+                                                    WebkitBoxOrient: 'vertical',
+                                                    overflow: 'hidden',
+                                                    fontSize: '0.85rem'
+                                                }}>
+                                                    {course.description || course.program_description}
+                                                </p>
+                                                <div className="d-flex flex-column align-items-center gap-1">
+                                                    <small className="text-muted">
+                                                        <i className="bi bi-person me-1"></i>
+                                                        <strong>Tác giả:</strong> {course.creator?.name || course.creator?.email || 'Không xác định'}
+                                                    </small>
+                                                    <small className="text-muted">
+                                                        <i className="bi bi-tag me-1"></i>
+                                                        <strong>Nhóm tuổi:</strong> {course.age_group || 'Mọi lứa tuổi'}
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Tiến độ khóa học */}
+                                        <div className="col-md-3">
+                                            <div className="text-center">
+                                                <div className="progress mb-2" style={{ height: '8px' }}>
+                                                    <div 
+                                                        className="progress-bar bg-primary" 
+                                                        style={{
+                                                            width: `${course.enrollment_status?.progress_percentage || 0}%`
+                                                        }}
+                                                    ></div>
+                                                </div>
+                                                <small className="fw-bold text-primary">
+                                                    {course.enrollment_status?.progress_percentage || 0}% Hoàn thành
+                                                </small>
+                                                <br/>
+                                                <small className="text-muted">
+                                                    {course.enrollment_status?.completed_content || 0} / {course.enrollment_status?.total_content || 0} bài học
+                                                </small>
+                                            </div>
+                                        </div>
+
+                                        {/* Vào khóa học */}
+                                        <div className="col-md-3">
+                                            <div className="text-center">
+                                                <Link 
+                                                    to={`/program/${course.program_id || course.id}`} 
+                                                    className="btn btn-sm btn-primary"
+                                                    style={{ borderRadius: '20px', padding: '0.5rem 1.5rem' }}
+                                                >
+                                                    <i className="bi bi-play-circle me-1"></i>
+                                                    Tiếp tục
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+            
+            {/* Completed Courses Section */}
+            <div className="courses-section-header">
+                <h3>Khóa học đã hoàn thành</h3>
                 <p>Danh sách các khóa học bạn đã hoàn thành thành công</p>
             </div>
             
@@ -56,7 +188,7 @@ const CompleteCourse = () => {
             ) : (
                 <div className="setting-courses-grid">
                     {completedCourses.map(course => (
-                        <div key={course.program_id || course.id} className="setting-course-card">
+                        <div key={`completed-${course.program_id || course.id}`} className="setting-course-card">
                             <Link to={`/program/${course.program_id || course.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                                 <Card className="h-100">
                                     <Card.Img variant="top" src={course.img_link ? course.img_link : Image} />
@@ -91,6 +223,19 @@ const CompleteCourse = () => {
                             </Link>
                         </div>
                     ))}
+                </div>
+            )}
+
+            {/* Show message if no courses at all */}
+            {completedCourses.length === 0 && incompleteCourses.length === 0 && (
+                <div className="empty-state">
+                    <i className="bi bi-book"></i>
+                    <h3>Chưa có khóa học nào</h3>
+                    <p>Bạn chưa đăng ký khóa học nào. Hãy khám phá các khóa học và bắt đầu học tập!</p>
+                    <Link to="/courses" className="btn btn-primary">
+                        <i className="bi bi-search me-1"></i>
+                        Khám phá khóa học
+                    </Link>
                 </div>
             )}
         </div>
