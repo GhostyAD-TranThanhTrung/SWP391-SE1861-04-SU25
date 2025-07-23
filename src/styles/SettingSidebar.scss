@@ -1,6 +1,6 @@
 .sidebar-setting {
     width: 280px;
-    height: calc(100vh - 80px);
+    height: auto;
     background: linear-gradient(to bottom, #a8e5f7, #8fd3e8);
     padding: 25px;
     padding-top: 40px;
@@ -9,11 +9,11 @@
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
     border-radius: 0 15px 15px 0;
-    position: fixed;
-    top: 80px;
-    left: 0;
-    overflow-y: auto;
-    z-index: 99;
+    position: static; // Sidebar sẽ cuộn theo trang
+    /* top: 80px; */
+    /* left: 0; */
+    /* z-index: 99; */
+    /* overflow-y: auto; */
 
     .sidebar-header {
         padding: 10px 0;
