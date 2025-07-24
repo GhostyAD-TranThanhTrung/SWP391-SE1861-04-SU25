@@ -44,23 +44,23 @@ const ManageBookingPage = () => {
 
   }
   userRole()
-  const statusOptions = ['Hoàn thành', 'Lên lịch', 'Đã hủy', 'Đang chờ xác nhận', 'Xác nhận thành công'];
+  const statusOptions = ['Hoàn thành', 'Đã hủy', 'Đang chờ xác nhận', 'Xác nhận thành công'];
 
   // Function to get available status options based on booking date
   const getAvailableStatusOptions = (bookingDate) => {
     if (!bookingDate) return statusOptions;
-    
+
     const now = new Date();
     const booking = new Date(bookingDate);
-    
+
     // Set booking date to end of day for comparison
     booking.setHours(23, 59, 59, 999);
-    
+
     // If booking date has passed, only allow "Đã hủy" status
     if (now > booking) {
       return ['Đã hủy'];
     }
-    
+
     // If booking date hasn't passed, allow all status options
     return statusOptions;
   };
@@ -85,10 +85,10 @@ const ManageBookingPage = () => {
         const hasSubstanceUse = resultData.result && resultData.result.some((answer, index) => {
           return index < 3 && answer.score > 0; // First 3 questions are Part A
         });
-        
+
         // Check CAR question (question 4, index 3)
         const hasCarRisk = resultData.result && resultData.result[3]?.score === 1;
-        
+
         // Create userAnswers object for CRAFFT assessment
         const userAnswers = {};
         if (resultData.result) {
@@ -96,14 +96,14 @@ const ManageBookingPage = () => {
             userAnswers[index] = answer;
           });
         }
-        
+
         riskLevel = assessCrafftRisk(score, userAnswers);
       } else if (assessmentType === 'assist') {
         // For ASSIST, check if it's cannabis or other substances
-        const isCannabis = resultData.result && resultData.result[0] && 
-          resultData.result[0].selectedOption && 
+        const isCannabis = resultData.result && resultData.result[0] &&
+          resultData.result[0].selectedOption &&
           resultData.result[0].selectedOption.includes('Cần sa');
-        
+
         riskLevel = assessAssistRisk(score, isCannabis);
       }
 
@@ -146,17 +146,17 @@ const ManageBookingPage = () => {
 
     bookings.forEach(booking => {
       // Skip if already completed, cancelled, confirmed, or confirmed successfully
-      if (booking.status === 'Hoàn thành' || 
-          booking.status === 'Đã hủy' || 
-          booking.status === 'Đã xác nhận' || 
-          booking.status === 'Xác nhận thành công') {
+      if (booking.status === 'Hoàn thành' ||
+        booking.status === 'Đã hủy' ||
+        booking.status === 'Đã xác nhận' ||
+        booking.status === 'Xác nhận thành công') {
         return;
       }
 
       try {
         // Create a Date object from booking_date and end_time
         const bookingDate = new Date(booking.booking_date);
-        
+
         // Validate booking date
         if (isNaN(bookingDate.getTime())) {
           console.warn(`Invalid booking date for booking ${booking.booking_id}:`, booking.booking_date);
@@ -170,13 +170,13 @@ const ManageBookingPage = () => {
         }
 
         const [endHour, endMinute] = booking.end_time.split(':').map(Number);
-        
+
         // Validate time values
         if (isNaN(endHour) || isNaN(endMinute) || endHour < 0 || endHour > 23 || endMinute < 0 || endMinute > 59) {
           console.warn(`Invalid time values for booking ${booking.booking_id}:`, booking.end_time);
           return;
         }
-        
+
         // Set the end time on the booking date
         const bookingEndTime = new Date(bookingDate);
         bookingEndTime.setHours(endHour, endMinute, 0, 0);
@@ -202,9 +202,9 @@ const ManageBookingPage = () => {
     // Auto-cancel expired bookings
     if (expiredBookings.length > 0) {
       console.log(`Found ${expiredBookings.length} expired bookings to cancel:`, expiredBookings);
-      
+
       let successfulCancellations = 0;
-      
+
       for (const expiredBooking of expiredBookings) {
         try {
           const updateData = {
@@ -212,8 +212,8 @@ const ManageBookingPage = () => {
             slot_id: expiredBooking.slot_id,
             booking_date: expiredBooking.booking_date,
             status: 'Đã hủy',
-            notes: expiredBooking.notes ? 
-              `${expiredBooking.notes} | Tự động hủy do quá thời gian` : 
+            notes: expiredBooking.notes ?
+              `${expiredBooking.notes} | Tự động hủy do quá thời gian` :
               'Tự động hủy do quá thời gian',
             google_meet_link: expiredBooking.google_meet_link || ''
           };
@@ -272,12 +272,12 @@ const ManageBookingPage = () => {
 
       const consultantId = consultantResponse.data.data.consultant_id;
       console.log(consultantId);
-      
+
       // Get booking sessions for this consultant
       const res = await axios.get(`http://localhost:3000/api/booking-sessions/consultant/${consultantId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       if (res.data.success) {
         console.log('Raw booking data:', res.data.data);
 
@@ -291,14 +291,14 @@ const ManageBookingPage = () => {
 
         // Check and auto-cancel expired bookings
         const hadCancellations = await checkAndCancelExpiredBookings(uniqueBookings);
-        
+
         // If we had cancellations, fetch the updated data
         if (hadCancellations) {
           console.log('Refetching booking data after auto-cancellations...');
           const updatedRes = await axios.get(`http://localhost:3000/api/booking-sessions/consultant/${consultantId}`, {
             headers: { Authorization: `Bearer ${token}` }
           });
-          
+
           if (updatedRes.data.success) {
             const updatedUniqueBookings = updatedRes.data.data.filter((booking, index, self) =>
               index === self.findIndex(b => b.booking_id === booking.booking_id)
@@ -430,10 +430,10 @@ const ManageBookingPage = () => {
   useEffect(() => {
     // Use a flag to prevent multiple simultaneous checks
     let isChecking = false;
-    
+
     const checkExpiredBookings = async () => {
       if (isChecking || originalBookingSessions.length === 0) return;
-      
+
       isChecking = true;
       try {
         const hadCancellations = await checkAndCancelExpiredBookings(originalBookingSessions);
@@ -499,18 +499,18 @@ const ManageBookingPage = () => {
     const booking = bookingSessions.find(b => b.booking_id === bookingId);
     if (booking) {
       setSelectedBooking(booking);
-      
+
       // Check if booking date has passed
       const now = new Date();
       const bookingDate = new Date(booking.booking_date);
       bookingDate.setHours(23, 59, 59, 999); // Set to end of day
-      
+
       // If booking date has passed and current status is not "Đã hủy", suggest cancellation
       let defaultStatus = booking.status || '';
       if (now > bookingDate && booking.status !== 'Đã hủy') {
         defaultStatus = 'Đã hủy';
       }
-      
+
       setEditFormData({
         consultant_id: booking.consultant_id || '',
         slot_id: booking.slot_id || '',
@@ -566,17 +566,17 @@ const ManageBookingPage = () => {
 
   // Function to check if a booking is close to expiring or has expired
   const getBookingTimeStatus = (booking) => {
-    if (booking.status === 'Hoàn thành' || 
-        booking.status === 'Đã hủy' || 
-        booking.status === 'Đã xác nhận' || 
-        booking.status === 'Xác nhận thành công') {
+    if (booking.status === 'Hoàn thành' ||
+      booking.status === 'Đã hủy' ||
+      booking.status === 'Đã xác nhận' ||
+      booking.status === 'Xác nhận thành công') {
       return 'completed';
     }
 
     try {
       const now = new Date();
       const bookingDate = new Date(booking.booking_date);
-      
+
       // Validate booking date
       if (isNaN(bookingDate.getTime())) {
         console.warn(`Invalid booking date for booking ${booking.booking_id}:`, booking.booking_date);
@@ -584,28 +584,28 @@ const ManageBookingPage = () => {
       }
 
       // Validate time formats
-      if (!booking.end_time || !booking.start_time || 
-          !booking.end_time.includes(':') || !booking.start_time.includes(':')) {
-        console.warn(`Invalid time format for booking ${booking.booking_id}:`, 
+      if (!booking.end_time || !booking.start_time ||
+        !booking.end_time.includes(':') || !booking.start_time.includes(':')) {
+        console.warn(`Invalid time format for booking ${booking.booking_id}:`,
           { start_time: booking.start_time, end_time: booking.end_time });
         return 'error';
       }
 
       const [endHour, endMinute] = booking.end_time.split(':').map(Number);
       const [startHour, startMinute] = booking.start_time.split(':').map(Number);
-      
+
       // Validate time values
       if (isNaN(endHour) || isNaN(endMinute) || isNaN(startHour) || isNaN(startMinute) ||
-          endHour < 0 || endHour > 23 || endMinute < 0 || endMinute > 59 ||
-          startHour < 0 || startHour > 23 || startMinute < 0 || startMinute > 59) {
-        console.warn(`Invalid time values for booking ${booking.booking_id}:`, 
+        endHour < 0 || endHour > 23 || endMinute < 0 || endMinute > 59 ||
+        startHour < 0 || startHour > 23 || startMinute < 0 || startMinute > 59) {
+        console.warn(`Invalid time values for booking ${booking.booking_id}:`,
           { start_time: booking.start_time, end_time: booking.end_time });
         return 'error';
       }
-      
+
       const bookingEndTime = new Date(bookingDate);
       bookingEndTime.setHours(endHour, endMinute, 0, 0);
-      
+
       const bookingStartTime = new Date(bookingDate);
       bookingStartTime.setHours(startHour, startMinute, 0, 0);
 
@@ -613,12 +613,12 @@ const ManageBookingPage = () => {
       if (now > bookingEndTime) {
         return 'expired';
       }
-      
+
       // Check if booking is currently in progress
       if (now >= bookingStartTime && now <= bookingEndTime) {
         return 'in-progress';
       }
-      
+
       // Check if booking is within 30 minutes of starting
       const thirtyMinutesFromNow = new Date(now.getTime() + (30 * 60 * 1000));
       if (thirtyMinutesFromNow >= bookingStartTime) {
@@ -635,13 +635,13 @@ const ManageBookingPage = () => {
   // Manual check for expired bookings
   const handleManualExpiredCheck = async () => {
     if (isCheckingExpired) return; // Prevent multiple simultaneous checks
-    
+
     try {
       console.log('Manual check for expired bookings triggered...');
       setIsCheckingExpired(true);
 
       const hadCancellations = await checkAndCancelExpiredBookings(originalBookingSessions);
-      
+
       if (hadCancellations) {
         alert('Đã tìm thấy và hủy các buổi hẹn đã quá thời gian. Danh sách sẽ được cập nhật.');
         await fetchBookingSessions();
@@ -659,7 +659,7 @@ const ManageBookingPage = () => {
   return (
     <div className="member-list-container">
       <div className="top-bar d-flex justify-content-between align-items-center mb-3">
-        <button 
+        <button
           className="btn btn-warning btn-sm"
           onClick={handleManualExpiredCheck}
           disabled={isCheckingExpired}
@@ -717,16 +717,16 @@ const ManageBookingPage = () => {
             {bookingSessions.map((booking, index) => {
               const timeStatus = getBookingTimeStatus(booking);
               return (
-                <tr 
+                <tr
                   key={`booking-${booking.booking_id}-${index}`}
                   className={`booking-row ${timeStatus}`}
                   style={{
-                    backgroundColor: 
+                    backgroundColor:
                       timeStatus === 'expired' ? '#ffebee' :
-                      timeStatus === 'in-progress' ? '#e8f5e8' :
-                      timeStatus === 'starting-soon' ? '#fff3e0' :
-                      timeStatus === 'error' ? '#fce4ec' :
-                      'transparent'
+                        timeStatus === 'in-progress' ? '#e8f5e8' :
+                          timeStatus === 'starting-soon' ? '#fff3e0' :
+                            timeStatus === 'error' ? '#fce4ec' :
+                              'transparent'
                   }}
                 >
                   <td>{index + 1}</td>
@@ -800,7 +800,7 @@ const ManageBookingPage = () => {
               <MdCancel />
             </span>
             <h4>Chi tiết lịch hẹn</h4>
-            
+
             {/* Row 1: Basic Info */}
             <div className="row mb-3">
               <div className="col-md-6">
@@ -879,8 +879,8 @@ const ManageBookingPage = () => {
                   <span className="member-detail-label">Google Meet Link:</span>
                   <span className="member-detail-value">
                     {selectedBooking.google_meet_link ? (
-                      <a href={selectedBooking.google_meet_link} target="_blank" rel="noopener noreferrer" 
-                         style={{ color: '#007bff', textDecoration: 'underline' }}>
+                      <a href={selectedBooking.google_meet_link} target="_blank" rel="noopener noreferrer"
+                        style={{ color: '#007bff', textDecoration: 'underline' }}>
                         {selectedBooking.google_meet_link}
                       </a>
                     ) : 'Chưa có'}
@@ -952,13 +952,13 @@ const ManageBookingPage = () => {
                       <option key={status} value={status}>{status}</option>
                     ))}
                   </select>
-                  {getAvailableStatusOptions(editFormData.booking_date).length === 1 && 
-                   getAvailableStatusOptions(editFormData.booking_date)[0] === 'Đã hủy' && (
-                    <small className="form-text text-warning">
-                      <i className="bi bi-exclamation-triangle me-1"></i>
-                      Lịch hẹn đã quá hạn, chỉ có thể chuyển sang trạng thái "Đã hủy"
-                    </small>
-                  )}
+                  {getAvailableStatusOptions(editFormData.booking_date).length === 1 &&
+                    getAvailableStatusOptions(editFormData.booking_date)[0] === 'Đã hủy' && (
+                      <small className="form-text text-warning">
+                        <i className="bi bi-exclamation-triangle me-1"></i>
+                        Lịch hẹn đã quá hạn, chỉ có thể chuyển sang trạng thái "Đã hủy"
+                      </small>
+                    )}
                 </div>
               </div>
               <div className="col-md-6">

@@ -43,7 +43,7 @@ const SettingSidebar = ({ isOpen }) => {
                     <Link to="/setting/completed-courses">
                         <div className="menu-item">
                             <FaGraduationCap className='icon' />
-                            <span>Chương trình khác</span>
+                            <span>Khóa học đã hoàn thành</span>
                         </div>
                     </Link>
                 </li>

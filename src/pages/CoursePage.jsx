@@ -19,6 +19,7 @@ const CoursePage = () => {
     const [showAllEvents, setShowAllEvents] = useState(false);
     const [selectedAgeGroup, setSelectedAgeGroup] = useState(null);
     const itemsPerPage = 4;
+    const [enrolledTab, setEnrolledTab] = useState('in_progress'); // 'in_progress' | 'completed'
 
     // Fetch categories from API
     useEffect(() => {
@@ -79,12 +80,12 @@ const CoursePage = () => {
                 }
 
                 const res = await response.json();
-                
+
                 // Filter out community events from regular programs display
                 const filteredPrograms = (res.data || []).filter(program => {
                     return !program.category || program.category.name !== 'Community Event';
                 });
-                
+
                 setPrograms(filteredPrograms);
             } catch (err) {
                 console.error('Error fetching programs:', err);
@@ -121,8 +122,8 @@ const CoursePage = () => {
 
                 if (res.success && res.data) {
                     // Filter only enrolled programs and exclude community events
-                    const enrolledOnly = res.data.filter(program => 
-                        program.enrollment_status.is_enrolled && 
+                    const enrolledOnly = res.data.filter(program =>
+                        program.enrollment_status.is_enrolled &&
                         (!program.category || program.category.name !== 'Community Event')
                     );
                     setEnrolledPrograms(enrolledOnly);
@@ -248,17 +249,27 @@ const CoursePage = () => {
     // Filter programs based on selected filters
     const getFilteredPrograms = () => {
         let filteredPrograms = [...programs];
-        
+
         if (selectedAgeGroup) {
-            filteredPrograms = filteredPrograms.filter(program => 
+            filteredPrograms = filteredPrograms.filter(program =>
                 program.age_group === selectedAgeGroup
             );
         }
-        
+
         return filteredPrograms;
     };
 
-        const renderEnrolledProgramCard = (program) => (
+    // Thêm hàm lọc enrolledPrograms theo tab
+    const getFilteredEnrolledPrograms = () => {
+        if (enrolledTab === 'in_progress') {
+            return enrolledPrograms.filter(program => !program.enrollment_status.has_complete);
+        } else if (enrolledTab === 'completed') {
+            return enrolledPrograms.filter(program => program.enrollment_status.has_complete);
+        }
+        return enrolledPrograms;
+    };
+
+    const renderEnrolledProgramCard = (program) => (
         <div className="col-12 mb-3" key={program.program_id}>
             <div className="enrolled-course-card" style={{
                 background: '#fff',
@@ -278,15 +289,15 @@ const CoursePage = () => {
                                 {program.enrollment_status.has_complete ? 'Đã hoàn thành' : 'Đang học'}
                             </small>
                         </div>
-                            </div>
+                    </div>
 
                     {/* Thông tin khóa học */}
                     <div className="col-md-3">
                         <div className="text-center">
                             <p className="mb-1 small text-muted" style={{
-                                            display: '-webkit-box',
+                                display: '-webkit-box',
                                 WebkitLineClamp: 2,
-                                            WebkitBoxOrient: 'vertical',
+                                WebkitBoxOrient: 'vertical',
                                 overflow: 'hidden',
                                 fontSize: '0.85rem'
                             }}>
@@ -297,43 +308,44 @@ const CoursePage = () => {
                                     <i className="bi bi-person me-1"></i>
                                     <strong>Tác giả:</strong> {program.creator?.name || program.creator?.email || 'Không xác định'}
                                 </small>
-                                <small className="text-muted">
+                                {/* Hiển thị nhóm tuổi trong card */}
+                                <small className="text-muted d-block">
                                     <i className="bi bi-tag me-1"></i>
-                                    <strong>Nhóm tuổi:</strong> {program.age_group || 'Mọi lứa tuổi'}
+                                    <strong>Nhóm tuổi:</strong> {translateAgeGroup(program.age_group) || 'Tất cả độ tuổi'}
                                 </small>
                             </div>
                         </div>
-                                    </div>
+                    </div>
 
                     {/* Tiến độ khóa học */}
                     <div className="col-md-3">
                         <div className="text-center">
                             <div className="progress mb-2" style={{ height: '8px' }}>
-                                <div 
-                                    className="progress-bar" 
+                                <div
+                                    className="progress-bar"
                                     style={{
                                         width: `${program.enrollment_status.progress_percentage}%`,
                                         backgroundColor: program.enrollment_status.has_complete ? '#28a745' : '#007bff'
                                     }}
                                 ></div>
-                                        </div>
+                            </div>
                             <small className="fw-bold" style={{
                                 color: program.enrollment_status.has_complete ? '#28a745' : '#007bff'
                             }}>
                                 {program.enrollment_status.progress_percentage}% Hoàn thành
                             </small>
-                            <br/>
+                            <br />
                             <small className="text-muted">
                                 {program.enrollment_status.completed_content} / {program.enrollment_status.total_content} bài học
                             </small>
-                                    </div>
-                                </div>
+                        </div>
+                    </div>
 
                     {/* Vào khóa học */}
                     <div className="col-md-3">
                         <div className="text-center">
-                            <Link 
-                                to={`/program/${program.program_id}`} 
+                            <Link
+                                to={`/program/${program.program_id}`}
                                 className={`btn btn-sm ${program.enrollment_status.has_complete ? 'btn-success' : 'btn-primary'}`}
                                 style={{ borderRadius: '20px', padding: '0.5rem 1.5rem' }}
                             >
@@ -346,14 +358,14 @@ const CoursePage = () => {
                                         <i className="bi bi-calendar-check me-1"></i>
                                         Hoàn thành: {new Date(program.enrollment_status.completion_date).toLocaleDateString('vi-VN')}
                                     </small>
-                                    </div>
-                            )}
                                 </div>
-                            </div>
+                            )}
                         </div>
-            </div>
+                    </div>
                 </div>
-            );
+            </div>
+        </div>
+    );
 
     const renderCommunityEventCard = (event, index) => (
         <div className="col-12 mb-3" key={event.program_id}>
@@ -362,7 +374,7 @@ const CoursePage = () => {
                     background: index === 0 ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '#f8f9fa',
                     color: index === 0 ? 'white' : '#333',
                     borderRadius: '12px',
-                            padding: '1.5rem',
+                    padding: '1.5rem',
                     border: index === 0 ? 'none' : '1px solid #dee2e6',
                     transition: 'all 0.3s ease',
                     position: 'relative'
@@ -373,36 +385,36 @@ const CoursePage = () => {
                                 <i className="bi bi-star-fill me-1"></i>
                                 MỚI NHẤT
                             </span>
-                            </div>
+                        </div>
                     )}
                     <div className="row align-items-center">
                         <div className="col-md-8">
                             <h5 className="fw-bold mb-2">{event.title}</h5>
                             <p className="mb-2" style={{
-                                    display: '-webkit-box',
-                                    WebkitLineClamp: 2,
-                                    WebkitBoxOrient: 'vertical',
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'vertical',
                                 overflow: 'hidden',
                                 opacity: index === 0 ? 0.9 : 0.7
-                                }}>
-                                    {event.description}
-                                </p>
+                            }}>
+                                {event.description}
+                            </p>
                             <small style={{ opacity: index === 0 ? 0.8 : 0.6 }}>
                                 <i className="bi bi-calendar-event me-1"></i>
-                                        {event.create_at ? new Date(event.create_at).toLocaleDateString('vi-VN') : ''}
+                                {event.create_at ? new Date(event.create_at).toLocaleDateString('vi-VN') : ''}
                             </small>
-                                    </div>
+                        </div>
                         <div className="col-md-4 text-end">
-                            <i className={`bi bi-calendar-heart`} style={{ 
+                            <i className={`bi bi-calendar-heart`} style={{
                                 fontSize: '2.5rem',
                                 opacity: index === 0 ? 0.8 : 0.5
                             }}></i>
-                                </div>
-                            </div>
                         </div>
-                    </Link>
+                    </div>
                 </div>
-            );
+            </Link>
+        </div>
+    );
 
     const renderProgramCard = (program) => (
         <div className="col-md-3" key={program.program_id}>
@@ -414,11 +426,11 @@ const CoursePage = () => {
                     border: '1px solid #dee2e6',
                     transition: 'all 0.3s ease',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                    }}>
-                    <div className="program-image" style={{ 
-                        height: '160px', 
+                }}>
+                    <div className="program-image" style={{
+                        height: '160px',
                         background: '#f8f9fa',
-                    display: 'flex',
+                        display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         overflow: 'hidden'
@@ -426,10 +438,10 @@ const CoursePage = () => {
                         <img
                             src={program.img_link || Image}
                             alt={program.title}
-                            style={{ 
-                                width: '100%', 
-                                height: '100%', 
-                                objectFit: 'cover' 
+                            style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover'
                             }}
                             onError={e => { e.target.onerror = null; e.target.src = Image; }}
                         />
@@ -443,7 +455,7 @@ const CoursePage = () => {
                         }}>
                             {program.title}
                         </h6>
-                                                <p className="text-muted small mb-2" style={{
+                        <p className="text-muted small mb-2" style={{
                             display: '-webkit-box',
                             WebkitLineClamp: 2,
                             WebkitBoxOrient: 'vertical',
@@ -456,11 +468,12 @@ const CoursePage = () => {
                                 <i className="bi bi-person me-1"></i>
                                 <strong>Tác giả:</strong> {program.creator?.name || program.creator?.email || 'Không xác định'}
                             </small>
+                            {/* Hiển thị nhóm tuổi trong card */}
                             <small className="text-muted d-block">
                                 <i className="bi bi-tag me-1"></i>
-                                <strong>Nhóm tuổi:</strong> {program.age_group || 'Mọi lứa tuổi'}
+                                <strong>Nhóm tuổi:</strong> {translateAgeGroup(program.age_group) || 'Mọi lứa tuổi'}
                             </small>
-                            </div>
+                        </div>
                         <div className="d-flex justify-content-center">
                             <small className="text-primary">
                                 <i className="bi bi-calendar-event me-1"></i>
@@ -473,11 +486,22 @@ const CoursePage = () => {
         </div>
     );
 
+    // Hàm dịch nhóm tuổi sang tiếng Việt
+    const translateAgeGroup = (ageGroup) => {
+        if (!ageGroup || ageGroup.toLowerCase() === 'all') return 'Mọi lứa tuổi';
+        // Thêm các trường hợp khác nếu có nhiều nhóm tuổi
+        if (ageGroup.toLowerCase() === 'adult') return 'Người lớn';
+        if (ageGroup.toLowerCase() === 'youth') return 'Thanh thiếu niên';
+        if (ageGroup.toLowerCase() === 'senior') return 'Người già';
+        // Nếu không khớp, trả về nguyên bản
+        return ageGroup;
+    };
+
     return (
         <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', paddingTop: '80px' }}>
             <div className="container" style={{ maxWidth: '1400px', padding: '2rem 1rem' }}>
-                
-                                {/* Section 1: My Learning Progress */}
+
+                {/* Section 1: My Learning Progress */}
                 {(localStorage.getItem('token') || sessionStorage.getItem('token')) && enrolledPrograms.length > 0 && (
                     <section className="mb-5">
                         <div style={{
@@ -489,14 +513,32 @@ const CoursePage = () => {
                             <h4 className="mb-4 fw-bold text-center">
                                 Tiến Độ Học Tập Của Tôi
                             </h4>
-                            
+                            {/* Filter Tabs */}
+                            <div className="d-flex justify-content-center mb-4 gap-2">
+                                <button
+                                    className={`btn ${enrolledTab === 'in_progress' ? 'btn-primary' : 'btn-outline-primary'}`}
+                                    style={{ borderRadius: '20px', minWidth: '150px' }}
+                                    onClick={() => setEnrolledTab('in_progress')}
+                                >
+                                    <i className="bi bi-hourglass-split me-1"></i>
+                                    Đang trong quá trình
+                                </button>
+                                <button
+                                    className={`btn ${enrolledTab === 'completed' ? 'btn-success' : 'btn-outline-success'}`}
+                                    style={{ borderRadius: '20px', minWidth: '150px' }}
+                                    onClick={() => setEnrolledTab('completed')}
+                                >
+                                    <i className="bi bi-check-circle me-1"></i>
+                                    Đã hoàn thành
+                                </button>
+                            </div>
                             {/* Course Header */}
                             <div className="row mb-3">
                                 <div className="col-md-3">
                                     <div className="fw-bold text-muted text-center p-2" style={{ backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
                                         Tên khóa học
                                     </div>
-                                    </div>
+                                </div>
                                 <div className="col-md-3">
                                     <div className="fw-bold text-muted text-center p-2" style={{ backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
                                         Thông tin khóa học
@@ -505,32 +547,32 @@ const CoursePage = () => {
                                 <div className="col-md-3">
                                     <div className="fw-bold text-muted text-center p-2" style={{ backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
                                         Tiến độ khóa học
-                        </div>
-                </div>
+                                    </div>
+                                </div>
                                 <div className="col-md-3">
                                     <div className="fw-bold text-muted text-center p-2" style={{ backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
                                         Vào khóa học
-            </div>
-                        </div>
-                    </div>
+                                    </div>
+                                </div>
+                            </div>
 
                             {/* Course Content */}
                             <div className="row g-3">
-                        {enrollmentLoading ? (
+                                {enrollmentLoading ? (
                                     <div className="col-12 text-center py-4">
-                                <div className="spinner-border text-primary" role="status">
-                                    <span className="visually-hidden">Đang tải...</span>
-                                </div>
-                            </div>
-                        ) : enrolledPrograms.length === 0 ? (
-                                    <div className="col-12 text-center py-4 text-muted">
-                                        Không có khóa học nào
-                            </div>
-                        ) : (
-                                    enrolledPrograms.map(program => renderEnrolledProgramCard(program))
-                                )}
+                                        <div className="spinner-border text-primary" role="status">
+                                            <span className="visually-hidden">Đang tải...</span>
                                         </div>
                                     </div>
+                                ) : getFilteredEnrolledPrograms().length === 0 ? (
+                                    <div className="col-12 text-center py-4 text-muted">
+                                        {enrolledTab === 'in_progress' ? 'Không có khóa học đang trong quá trình' : 'Không có khóa học đã hoàn thành'}
+                                    </div>
+                                ) : (
+                                    getFilteredEnrolledPrograms().map(program => renderEnrolledProgramCard(program))
+                                )}
+                            </div>
+                        </div>
                     </section>
                 )}
 
@@ -553,24 +595,24 @@ const CoursePage = () => {
                                     {showAllEvents ? 'Ẩn sự kiện cũ' : 'Hiển thị sự kiện cũ'}
                                 </button>
                             )}
-                    </div>
-
-                    {eventsLoading ? (
-                        <div className="text-center py-4">
-                            <div className="spinner-border text-primary" role="status">
-                                <span className="visually-hidden">Đang tải...</span>
-                            </div>
                         </div>
-                    ) : eventsError ? (
+
+                        {eventsLoading ? (
+                            <div className="text-center py-4">
+                                <div className="spinner-border text-primary" role="status">
+                                    <span className="visually-hidden">Đang tải...</span>
+                                </div>
+                            </div>
+                        ) : eventsError ? (
                             <div className="text-center py-4 text-danger">{eventsError}</div>
-                    ) : communityEvents.length === 0 ? (
+                        ) : communityEvents.length === 0 ? (
                             <div className="text-center py-4 text-muted">
                                 Chưa có sự kiện cộng đồng nào
-                        </div>
-                    ) : (
-                        <>
+                            </div>
+                        ) : (
+                            <>
                                 {getVisibleEvents().map((event, index) => renderCommunityEventCard(event, index))}
-                                
+
                                 {showAllEvents && communityEvents.length > 1 && (
                                     <div className="mt-3">
                                         <small className="text-muted d-block mb-3">Mở rộng thêm tại đây</small>
@@ -578,13 +620,13 @@ const CoursePage = () => {
                                             {communityEvents.slice(1).map((event, index) => (
                                                 <div className="col-md-4" key={event.program_id}>
                                                     {renderCommunityEventCard(event, index + 1)}
-                                        </div>
+                                                </div>
                                             ))}
                                         </div>
-                                </div>
-                            )}
-                        </>
-                    )}
+                                    </div>
+                                )}
+                            </>
+                        )}
                     </div>
                 </section>
 
@@ -596,10 +638,10 @@ const CoursePage = () => {
                         padding: '2rem',
                         backgroundColor: '#ffffff'
                     }}>
-                                                {/* Filter Section */}
+                        {/* Filter Section */}
                         <div className="mb-4">
                             <h5 className="fw-bold text-center mb-3">Bộ lọc (theo danh mục/nhóm tuổi)</h5>
-                            
+
                             {/* Category Filters */}
                             <div className="mb-4">
                                 <h6 className="fw-bold text-muted mb-2">
@@ -607,17 +649,17 @@ const CoursePage = () => {
                                     Danh mục
                                 </h6>
                                 <div className="d-flex justify-content-center flex-wrap gap-2">
-                    {categoriesLoading ? (
-                        <div className="text-center">Đang tải danh mục...</div>
-                    ) : (
+                                    {categoriesLoading ? (
+                                        <div className="text-center">Đang tải danh mục...</div>
+                                    ) : (
                                         getVisibleCategories().map((cat) => (
-                                        <button
-                                            key={cat.category_id}
+                                            <button
+                                                key={cat.category_id}
                                                 className={`btn px-3 py-2 ${selectedCategory && selectedCategory.category_id === cat.category_id ? 'btn-primary' : 'btn-outline-primary'}`}
-                                            onClick={() => handleCategoryChange(cat)}
+                                                onClick={() => handleCategoryChange(cat)}
                                                 style={{ borderRadius: '20px', fontSize: '0.9rem' }}
-                                        >
-                                            <i className={getCategoryIcon(getCategoryShortName(cat))}></i>
+                                            >
+                                                <i className={getCategoryIcon(getCategoryShortName(cat))}></i>
                                                 {getCategoryShortName(cat)}
                                             </button>
                                         ))
@@ -659,7 +701,7 @@ const CoursePage = () => {
                                         style={{ borderRadius: '20px', fontSize: '0.9rem' }}
                                     >
                                         <i className="bi bi-star me-1"></i>
-                                        Tất cả
+                                        {translateAgeGroup('all')}
                                     </button>
                                     {getUniqueAgeGroups().map((ageGroup) => (
                                         <button
@@ -669,34 +711,34 @@ const CoursePage = () => {
                                             style={{ borderRadius: '20px', fontSize: '0.9rem' }}
                                         >
                                             <i className="bi bi-person me-1"></i>
-                                            {ageGroup}
+                                            {translateAgeGroup(ageGroup)}
                                         </button>
                                     ))}
                                 </div>
-                                </div>
+                            </div>
 
                             {/* Clear Filters */}
                             {(selectedAgeGroup) && (
-                                    <div className="text-center">
-                                        <button
+                                <div className="text-center">
+                                    <button
                                         className="btn btn-outline-secondary btn-sm"
                                         onClick={() => handleAgeGroupChange(null)}
                                         style={{ borderRadius: '15px' }}
                                     >
                                         <i className="bi bi-x-circle me-1"></i>
                                         Xóa bộ lọc nhóm tuổi
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
+                                    </button>
+                                </div>
+                            )}
+                        </div>
 
-                                                {/* Programs Grid */}
+                        {/* Programs Grid */}
                         <div className="row g-4">
                             {loading ? (
                                 <div className="col-12 text-center py-4">
                                     <div className="spinner-border text-primary" role="status">
                                         <span className="visually-hidden">Đang tải...</span>
-                </div>
+                                    </div>
                                 </div>
                             ) : error ? (
                                 <div className="col-12 text-center py-4 text-danger">{error}</div>
@@ -706,11 +748,11 @@ const CoursePage = () => {
                                 </div>
                             ) : getFilteredPrograms().length === 0 ? (
                                 <div className="col-12 text-center py-4 text-muted">
-                                    {selectedAgeGroup ? 
+                                    {selectedAgeGroup ?
                                         `Không có chương trình nào cho nhóm tuổi "${selectedAgeGroup}" trong danh mục này` :
                                         'Không có chương trình nào trong danh mục này'
                                     }
-                    </div>
+                                </div>
                             ) : (
                                 getFilteredPrograms().slice(pageIndex, pageIndex + itemsPerPage).map(program => renderProgramCard(program))
                             )}
@@ -736,7 +778,7 @@ const CoursePage = () => {
                                 >
                                     <i className="bi bi-chevron-right"></i>
                                 </button>
-                        </div>
+                            </div>
                         )}
                     </div>
                 </section>
