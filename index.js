@@ -726,6 +726,7 @@ app.delete('/api/assessments/:id', authController.verifyToken, AssessmentControl
  * 
  * GET    /api/programs                           - Get all programs
  * GET    /api/programs/my-enrollment-status      - Get programs with user enrollment status (requires auth)
+ * GET    /api/programs/user/:userId/enrollment-status - Get programs with specific user enrollment status (admin only)
  * GET    /api/programs/community-events          - Get Community Event programs only
  * GET    /api/programs/:id                       - Get program by ID
  * GET    /api/programs/category/:categoryId      - Get programs by category
@@ -737,6 +738,7 @@ app.get("/api/programs", ProgramController.getAllPrograms);
 app.get("/api/programs/category-details", ProgramController.getAllProgramsWithCategoryDetails);
 app.get("/api/programs/community-events", ProgramController.getCommunityEventPrograms); // MUST be before :id route
 app.get("/api/programs/my-enrollment-status", authController.verifyToken, ProgramController.getUserProgramsWithEnrollmentStatus);
+app.get("/api/programs/user/:userId/enrollment-status", authController.verifyToken, ProgramController.getUserProgramsWithEnrollmentStatusByAdmin);
 app.get("/api/programs/recommendations", authController.verifyToken, ProgramController.getProgramRecommendationsByAge);
 app.get("/api/programs/category/:categoryId", ProgramController.getProgramsByCategory);
 app.get("/api/programs/:programId/survey-analytics", ProgramController.getProgramSurveyAnalytics);
