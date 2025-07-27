@@ -1,0 +1,202 @@
+.detail-member-page {
+  max-width: 1200px;
+  margin: 32px auto;
+  padding: 32px 24px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  font-family: 'Segoe UI', Arial, sans-serif;
+
+  h2 {
+    font-size: 2rem;
+    margin-bottom: 24px;
+    color: #2d3a4b;
+    font-weight: 700;
+  }
+
+  .btn {
+    margin-bottom: 24px;
+  }
+
+  .member-content {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+  }
+
+  .enrolled-courses, .written-blogs {
+    width: 100%;
+    min-width: 0;
+    margin-bottom: 0;
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 24px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+
+  h3 {
+    font-size: 1.25rem;
+    margin-bottom: 16px;
+    color: #1a2233;
+    font-weight: 600;
+  }
+
+  .card-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    justify-content: flex-start;
+  }
+
+  .card-item {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    width: 270px;
+    min-height: 370px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid #e6eaf0;
+    cursor: pointer;
+    &:hover {
+      transform: translateY(-6px) scale(1.03);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.13);
+      border-color: #b3c6e0;
+    }
+  }
+
+  .card-img {
+    width: 100%;
+    height: 150px;
+    background: #f7f7f7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-top-left-radius: 14px;
+      border-top-right-radius: 14px;
+      display: block;
+    }
+  }
+
+  .card-body {
+    padding: 18px 16px 12px 16px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  .card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #2563eb;
+    margin-bottom: 6px;
+    min-height: 28px;
+    line-height: 1.2;
+  }
+
+  .card-desc {
+    font-size: 0.98rem;
+    color: #444;
+    margin-bottom: 8px;
+    min-height: 36px;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  .card-meta {
+    font-size: 0.97rem;
+    color: #222;
+    margin-top: 8px;
+    div {
+      margin-bottom: 2px;
+      color: #222;
+      font-size: 0.97rem;
+      b {
+        color: #1a2233;
+      }
+    }
+  }
+
+  .empty {
+    color: #b0b8c1;
+    font-style: italic;
+    padding: 12px 0;
+  }
+
+  .loading {
+    color: #4e7cff;
+    font-weight: 500;
+    padding: 16px 0;
+  }
+
+  .error {
+    color: #e74c3c;
+    font-weight: 500;
+    padding: 16px 0;
+  }
+
+  @media (max-width: 1100px) {
+    .member-content {
+      flex-direction: column;
+      gap: 24px;
+    }
+    .enrolled-courses, .written-blogs {
+      min-width: 0;
+      width: 100%;
+    }
+    .card-list {
+      justify-content: center;
+    }
+  }
+  @media (max-width: 600px) {
+    .card-item {
+      width: 100%;
+      min-width: 0;
+    }
+    .card-list {
+      flex-direction: column;
+      gap: 16px;
+    }
+    .detail-member-page {
+      padding: 12px 2px;
+    }
+  }
+}
+
+.survey-responses {
+  margin-top: 32px;
+  h3 {
+    color: #0e7490;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+  .card-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    justify-content: flex-start;
+  }
+  .survey-item {
+    border-left: 5px solid #0ea5e9;
+    background: #f0f9ff;
+    .card-title {
+      color: #0e7490;
+    }
+    .card-meta {
+      color: #155e75;
+    }
+  }
+}

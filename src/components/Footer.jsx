@@ -35,7 +35,7 @@ const Footer = () => {
                             </div>
                         </div>
 
-                        <div className="col-lg-2 col-md-4">
+                        <div className="col-lg-4 col-md-4">
                             <h5 className="footer-title">Khóa học</h5>
                             <ul className="footer-links">
                                 <li><Link to="/courses">Tất cả khóa học</Link></li>
@@ -54,7 +54,7 @@ const Footer = () => {
                             </ul>
                         </div>
 
-                        <div className="col-lg-2 col-md-4">
+                        <div className="col-lg-4 col-md-4">
                             <h5 className="footer-title">Hỗ trợ</h5>
                             <ul className="footer-links">
                                 <li><Link to="/about">Về chúng tôi</Link></li>
@@ -62,17 +62,6 @@ const Footer = () => {
                                 <li><Link to="/about">FAQ</Link></li>
                                 <li><Link to="/about">Chính sách</Link></li>
                             </ul>
-                        </div>
-
-                        <div className="col-lg-4 col-md-4">
-                            <h5 className="footer-title">Đăng ký nhận tin</h5>
-                            <p className="mt-3">
-                                Đăng ký để nhận thông tin mới nhất về khóa học và sự kiện
-                            </p>
-                            <div className="footer-newsletter mt-3">
-                                <input type="email" placeholder="Email của bạn" className="form-control" />
-                                <button className="btn btn-primary mt-2">Đăng ký</button>
-                            </div>
                         </div>
                     </div>
                 </div>

@@ -962,6 +962,17 @@ const MemberListPage = () => {
                   </p>
                 </div>
               )}
+              <div style={{ textAlign: 'center', marginTop: '20px' }}>
+                <button
+                  className="btn-detail-more"
+                  onClick={() => {
+                          navigate(`/member-list/detail/${selectedMember.user?.user_id || selectedMember.profile?.user_id}`);
+                          sessionStorage.setItem("userId", selectedMember.user?.user_id || selectedMember.profile?.user_id);
+                  }}
+                >
+                    Xem chi tiết hơn
+                </button>
+            </div>
             </div>
           </div>
         </div>

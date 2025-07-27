@@ -30,14 +30,8 @@ const AdminLoginPage = () => {
             localStorage.setItem("email2", email);
             sessionStorage.setItem("token", response.data.token);
 
-            if (response.data.user.role === 'manager') {
+            if (response.data.user.role === 'manager' || response.data.user.role === 'admin' || response.data.user.role === 'staff') {
                 navigate('/dashboard');
-            }
-            else if (response.data.user.role === 'admin') {
-                navigate('/member-list');
-            }
-            else if (response.data.user.role === 'staff') {
-                navigate('/blog-list');
             }
             else if (response.data.user.role === 'consultant') {
                 navigate('/manage-booking');

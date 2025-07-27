@@ -39,6 +39,8 @@ import SettingLayout from "./layout/SettingLayout";
 import AssessmentResultPage from "./pages/AssessmentResultPage";
 import WriteBlogs from "./pages/WriteBlogs";
 import CompleteCourse from "./pages/CompleteCourse";
+import DetailMemberPage from "./pages/admin/DetailMemberPage";
+
 //Import layout
 import AdminLayout from "./layout/AdminLayout";
 import ConsultantLayout from "./layout/ConsultantLayout";
@@ -49,7 +51,7 @@ const AppLayout = () => {
   const hideNavbarAndFooter = ["/login", "/signup", "/forget", "/choose-role", "/admin/login",
     "/dashboard", "/staff-list", "/member-list", "/consultant-list", '/assessment-list',
     '/course-list', '/blog-list', '/manage-booking', '/certificate'].includes(location.pathname) ||
-    location.pathname.startsWith('/admin/flags/');
+    location.pathname.startsWith('/admin/flags/') || location.pathname.startsWith('/member-list/detail');
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
@@ -146,6 +148,14 @@ const AppLayout = () => {
             element={
               <AdminLayout>
                 <BlogFlagsPage />
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/member-list/detail/:memberId"
+            element={
+              <AdminLayout>
+                <DetailMemberPage />
               </AdminLayout>
             }
           />

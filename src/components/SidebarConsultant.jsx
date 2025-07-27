@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import "../styles/SidebarAdmin.scss";
+import "../styles/SidebarConsultant.scss";
 import { FaGauge, FaRightFromBracket } from "react-icons/fa6";
 import { ManageAccountsOutlined } from "@mui/icons-material";
 

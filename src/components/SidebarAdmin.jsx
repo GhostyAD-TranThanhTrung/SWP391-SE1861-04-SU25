@@ -7,9 +7,11 @@ const SidebarAdmin = ({ isOpen }) => {
     const currentPath = location.pathname;
     const navigate = useNavigate();
     const [userRole, setUserRole] = useState(null);
+    const email = sessionStorage.getItem("email2");
+
     const handleLogout = (e) => {
         e.preventDefault();
-        localStorage.removeItem("email2");
+        sessionStorage.removeItem("email2");
         sessionStorage.removeItem("token");
         navigate("/admin/login");
     };
@@ -69,7 +71,7 @@ const SidebarAdmin = ({ isOpen }) => {
             <div className="sidebar-footer">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/2048px-No_image_available.svg.png" alt="Ảnh đại diện Admin" />
                 <div>
-                    <strong>Quản trị viên</strong>
+                    <strong>{email}</strong>
                 </div>
             </div>
         </div>
