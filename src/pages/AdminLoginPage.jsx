@@ -27,7 +27,7 @@ const AdminLoginPage = () => {
             console.log('Đăng nhập thành công, email:', email);
             emailRef.current.value = '';
             passwordRef.current.value = '';
-            localStorage.setItem("email2", email);
+            sessionStorage.setItem("email2", email);
             sessionStorage.setItem("token", response.data.token);
 
             if (response.data.user.role === 'manager' || response.data.user.role === 'admin' || response.data.user.role === 'staff') {
