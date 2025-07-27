@@ -1,75 +1,347 @@
 import { useEffect, useState } from "react";
 import { FaArrowLeft } from "react-icons/fa";
 import "../../styles/DetailMemberPage.scss";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import axios from "axios";
 import Image from '../../images/Images.jpg';
+import { assessRiskLevel as assessCrafftRisk } from "../../QuizData/Crafft-Data";
+import { assessRiskLevel as assessAssistRisk } from "../../QuizData/Assist_Data";
 
 const DetailMemberPage = () => {
   const navigate = useNavigate();
   const [enrolledCourses, setEnrolledCourses] = useState([]);
   const [writtenBlogs, setWrittenBlogs] = useState([]);
-  const [surveyResponses, setSurveyResponses] = useState([]);
+  const [memberDetails, setMemberDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showAssessments, setShowAssessments] = useState(true);
+  const [showCourses, setShowCourses] = useState(true);
+  const [showBlogs, setShowBlogs] = useState(true);
+  const [assessmentSortOrder, setAssessmentSortOrder] = useState('desc'); // 'asc', 'desc' for time
+  const [assessmentTypeFilter, setAssessmentTypeFilter] = useState('all'); // 'all', 'crafft', 'assist'
   const token = sessionStorage.getItem('token');
-  const {userId} = useParams();
+  const { memberId } = useParams();
+  
+  // Use memberId as userId for consistency with the backend
+  const userId = memberId;
+
+  // Debug logging
+  console.log('DetailMemberPage - memberId from params:', memberId);
+  console.log('DetailMemberPage - userId (derived):', userId);
 
   const userRole = async () => {
     try {
-      if (!token) navigate('/admin/login')
-      const res = await axios.get('http://localhost:3000/api/user/role/',
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      if (!(res.data.role && (res.data.role === 'admin' || res.data.role === 'manager' || res.data.role === 'staff'))) navigate('/admin/login')
+      if (!token) {
+        navigate('/admin/login');
+        return;
+      }
+      const res = await axios.get('http://localhost:3000/api/user/role/', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!(res.data.role && (res.data.role === 'admin' || res.data.role === 'manager' || res.data.role === 'staff'))) {
+        navigate('/admin/login');
+      }
     } catch {
-      navigate('/admin/login')
+      navigate('/admin/login');
     }
+  };
 
-  }
-  userRole()
+  // Call userRole on component mount
+  useEffect(() => {
+    userRole();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       setError(null);
+      
+      // Check if userId is available
+      if (!userId) {
+        setError("ID thành viên không hợp lệ");
+        setLoading(false);
+        return;
+      }
+
       try {
+        console.log(`Fetching member details from: http://localhost:3000/api/members/detailed/${userId}`);
+        
+        // Fetch member details first
+        const memberRes = await axios.get(`http://localhost:3000/api/members/detailed/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        console.log('Member details response:', memberRes.data);
+        
+        // The API returns nested structure: { data: { user: {...}, profile: {...} } }
+        const responseData = memberRes.data.data;
+        if (responseData) {
+          // Flatten the structure to match our component expectations
+          const flattenedData = {
+            ...responseData.user,
+            profile: responseData.profile,
+            assessments: responseData.assessments
+          };
+          console.log('Flattened member data:', flattenedData);
+          console.log('Assessment data specifically:', flattenedData.assessments);
+          setMemberDetails(flattenedData);
+        } else {
+          setMemberDetails(null);
+        }
        
-        // Fetch enrolled courses first
-        const coursesRes = await axios.get("http://localhost:3000/api/programs/my-enrollment-status", {
-          userId: userId,
+        // Fetch enrolled courses for the specific user using the new admin endpoint
+        const coursesRes = await axios.get(`http://localhost:3000/api/programs/user/${userId}/enrollment-status`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        // Lọc chỉ lấy các khóa học đã enroll
-        const allCourses = coursesRes.data.data || [];
-        const enrolledOnly = allCourses.filter(course => course.is_enrolled === 'true');
-        setEnrolledCourses(enrolledOnly);
-        // Then fetch written blogs
-        const blogsRes = await axios.get("http://localhost:3000/api/blogs/my", {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setWrittenBlogs(blogsRes.data.data || []);
-        // Fetch survey responses by userId
-        if (userId) {
-          const surveyRes = await axios.get(`http://localhost:3000/api/survey-responses/user/${userId}`, {
+        setEnrolledCourses(coursesRes.data.data || []);
+        
+        // Fetch written blogs for the specific user  
+        // Note: This might need to be adjusted based on available blog endpoints
+        try {
+          const blogsRes = await axios.get(`http://localhost:3000/api/blogs/user/${userId}`, {
             headers: { Authorization: `Bearer ${token}` }
           });
-          setSurveyResponses(surveyRes.data.data || []);
+          setWrittenBlogs(blogsRes.data.data || []);
+        } catch (blogError) {
+          console.warn('Could not fetch user blogs:', blogError);
+          // If user-specific blog endpoint doesn't exist, try generic endpoint
+          try {
+            const blogsRes = await axios.get("http://localhost:3000/api/blogs/my", {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            setWrittenBlogs(blogsRes.data.data || []);
+          } catch (fallbackError) {
+            console.warn('Could not fetch blogs with fallback:', fallbackError);
+            setWrittenBlogs([]);
+          }
         }
+        
       } catch (err) {
-        setError(err.message || "Đã xảy ra lỗi khi tải dữ liệu.");
+        console.error('Error fetching data:', err);
+        setError(err.response?.data?.message || err.message || "Đã xảy ra lỗi khi tải dữ liệu.");
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
-  }, []);
+
+    if (token && userId) {
+      fetchData();
+    } else if (!token) {
+      navigate('/admin/login');
+    }
+  }, [userId, token, navigate]);
+
+  // Helper to translate status from Vietnamese to English
+  const translateStatus = (status) => {
+    if (!status) return 'Không xác định';
+    
+    const statusTranslations = {
+      'Hoạt động': 'Hoạt động',
+      'Không hoạt động': 'Không hoạt động', 
+      'Bị cấm': 'Bị cấm',
+      'active': 'Hoạt động',
+      'inactive': 'Không hoạt động',
+      'banned': 'Bị cấm'
+    };
+    
+    return statusTranslations[status] || status;
+  };
 
   // Helper to format date
   const formatDate = (dateStr) => {
     if (!dateStr) return "N/A";
     const d = new Date(dateStr);
     return d.toLocaleDateString('vi-VN');
+  };
+
+  // Helper function to calculate risk level from assessment data
+  const calculateRiskLevel = (assessment) => {
+    try {
+      const resultData = typeof assessment.result_json === 'string'
+        ? JSON.parse(assessment.result_json)
+        : assessment.result_json;
+
+      if (!resultData || resultData.score === undefined) {
+        return { riskLevel: 'Không xác định', score: 0 };
+      }
+
+      const score = resultData.score;
+      let riskLevel = 'Không xác định';
+      const assessmentType = assessment.type?.toLowerCase();
+
+      if (assessmentType === 'crafft') {
+        // For CRAFFT, we need to check substance use from Part A
+        const hasSubstanceUse = resultData.result && resultData.result.some((answer, index) => {
+          return index < 3 && answer.score > 0; // First 3 questions are Part A
+        });
+        
+        // Check CAR question (question 4, index 3)
+        const hasCarRisk = resultData.result && resultData.result[3]?.score === 1;
+        
+        // Create userAnswers object for CRAFFT assessment
+        const userAnswers = {};
+        if (resultData.result) {
+          resultData.result.forEach((answer, index) => {
+            userAnswers[index] = answer;
+          });
+        }
+        
+        riskLevel = assessCrafftRisk(score, userAnswers);
+      } else if (assessmentType === 'assist') {
+        // For ASSIST, check if it's cannabis or other substances
+        const isCannabis = resultData.result && resultData.result[0] && 
+          resultData.result[0].selectedOption && 
+          resultData.result[0].selectedOption.includes('Cần sa');
+        
+        riskLevel = assessAssistRisk(score, isCannabis);
+      }
+
+      return { riskLevel, score };
+    } catch (error) {
+      console.error('Error calculating risk level:', error);
+      return { riskLevel: 'Lỗi', score: 0 };
+    }
+  };
+
+  // Get risk level color class
+  const getRiskLevelClass = (riskLevel) => {
+    switch (riskLevel.toLowerCase()) {
+      case 'thấp':
+        return 'bg-success';
+      case 'trung bình':
+        return 'bg-warning';
+      case 'cao':
+        return 'bg-danger';
+      default:
+        return 'bg-secondary';
+    }
+  };
+
+  // Helper to translate age group
+  const translateAgeGroup = (ageGroup) => {
+    const translations = {
+      'children': 'Trẻ em',
+      'teenager': 'Thiếu niên', 
+      'adult': 'Người lớn',
+      'elderly': 'Người cao tuổi',
+      'all': 'Tất cả độ tuổi'
+    };
+    return translations[ageGroup] || ageGroup;
+  };
+
+  // Sort and filter assessments function
+  const sortAndFilterAssessments = (assessments) => {
+    if (!assessments || assessments.length === 0) return [];
+    
+    // First filter by type
+    let filtered = [...assessments];
+    if (assessmentTypeFilter !== 'all') {
+      filtered = filtered.filter(assessment => 
+        assessment.type?.toLowerCase() === assessmentTypeFilter.toLowerCase()
+      );
+    }
+    
+    // Then sort by time
+    return filtered.sort((a, b) => {
+      const dateA = new Date(a.create_at);
+      const dateB = new Date(b.create_at);
+      const comparison = dateA - dateB;
+      return assessmentSortOrder === 'asc' ? comparison : -comparison;
+    });
+  };
+
+  // Render enrolled course card (adapted for program data structure)
+  const renderEnrolledCourseCard = (program) => {
+    // Filter out programs that are not enrolled
+    if (!program.enrollment_status?.is_enrolled) {
+      return null;
+    }
+
+    return (
+      <div className="col-12 mb-3" key={program.program_id}>
+        <div className="enrolled-course-card" style={{
+          background: '#fff',
+          border: '1px solid #dee2e6',
+          borderRadius: '8px',
+          padding: '1rem',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+        }}>
+          <div className="row align-items-center">
+            {/* Tên khóa học */}
+            <div className="col-md-4">
+              <div className="text-center">
+                <h6 className="fw-bold mb-1" style={{ fontSize: '0.95rem' }}>
+                  {program.title || program.program_title || 'Không có tiêu đề'}
+                </h6>
+                <small className={`badge ${program.enrollment_status?.has_complete ? 'bg-success' : 'bg-primary'}`}>
+                  {program.enrollment_status?.has_complete ? 'Đã hoàn thành' : 'Đang học'}
+                </small>
+              </div>
+            </div>
+
+            {/* Thông tin khóa học */}
+            <div className="col-md-4">
+              <div className="text-center">
+                <p className="mb-1 small text-muted" style={{
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                  fontSize: '0.85rem'
+                }}>
+                  {program.description || program.program_description || 'Không có mô tả'}
+                </p>
+                <div className="d-flex flex-column align-items-center gap-1">
+                  <small className="text-muted">
+                    <i className="bi bi-person me-1"></i>
+                    <strong>Tác giả:</strong> {program.creator?.name || program.creator?.email || program.create_by || 'Không xác định'}
+                  </small>
+                  <small className="text-muted d-block">
+                    <i className="bi bi-tag me-1"></i>
+                    <strong>Nhóm tuổi:</strong> {translateAgeGroup(program.age_group) || 'Tất cả độ tuổi'}
+                  </small>
+                </div>
+              </div>
+            </div>
+
+            {/* Tiến độ khóa học */}
+            <div className="col-md-4">
+              <div className="text-center">
+                <div className="progress mb-2" style={{ height: '8px' }}>
+                  <div
+                    className="progress-bar"
+                    style={{
+                      width: `${program.enrollment_status?.progress_percentage || 0}%`,
+                      backgroundColor: program.enrollment_status?.has_complete ? '#28a745' : '#007bff'
+                    }}
+                  ></div>
+                </div>
+                <small className="fw-bold" style={{
+                  color: program.enrollment_status?.has_complete ? '#28a745' : '#007bff'
+                }}>
+                  {program.enrollment_status?.progress_percentage || 0}% Hoàn thành
+                </small>
+                <br />
+                <small className="text-muted">
+                  {program.enrollment_status?.completed_content || 0} / {program.enrollment_status?.total_content || 0} bài học
+                </small>
+                <div className="mt-2">
+                  <small className="text-muted d-block">
+                    <i className="bi bi-calendar-plus me-1"></i>
+                    Đăng ký: {formatDate(program.enrollment_status?.enrollment_date)}
+                  </small>
+                  {program.enrollment_status?.completion_date && (
+                    <small className="text-success d-block">
+                      <i className="bi bi-calendar-check me-1"></i>
+                      Hoàn thành: {formatDate(program.enrollment_status.completion_date)}
+                    </small>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return(
@@ -88,114 +360,372 @@ const DetailMemberPage = () => {
         <div className="error">{error}</div>
       ) : (
         <div className="member-content">
-          <div className="enrolled-courses">
-            <h3>Khóa học đã đăng ký</h3>
-            {enrolledCourses.length === 0 ? (
-              <div className="empty">Chưa đăng ký khóa học nào.</div>
-            ) : (
-              <div className="card-list">
-                {enrolledCourses.map((course) => (
-                  <div key={course.id || course.program_id} className="card-item">
-                    <div className="card-img">
-                      <img
-                        src={course.img_link || Image}
-                        alt={course.title || course.name}
-                        onError={e => { e.target.onerror = null; e.target.src = Image; }}
-                      />
+          {/* Member Basic Information */}
+          {memberDetails && (
+            <div className="member-basic-info mb-4">
+              <h3>Thông tin cơ bản</h3>
+              <div className="card">
+                <div className="card-body">
+                  <div className="row">
+                    <div className="col-md-6">
+                      <div className="info-item mb-2">
+                        <strong>ID thành viên:</strong> {memberDetails.user_id}
+                      </div>
+                      <div className="info-item mb-2">
+                        <strong>Họ và tên:</strong> {memberDetails.profile?.name || 'Chưa cập nhật'}
+                      </div>
+                      <div className="info-item mb-2">
+                        <strong>Email:</strong> {memberDetails.email || 'Chưa cập nhật'}
+                      </div>
+                      <div className="info-item mb-2">
+                        <strong>Nghề nghiệp:</strong> {memberDetails.profile?.job || 'Chưa cập nhật'}
+                      </div>
                     </div>
-                    <div className="card-body">
-                      <div className="card-title">{
-                        course.title
-                      }</div>
-                      <div className="card-meta">
-                        <div><span role="img" aria-label="author">👤</span> <b>Tác giả:</b> {
-                          course.create_by
-                        }</div>
-                        <div><span role="img" aria-label="age">🏷️</span> <b>Nhóm tuổi:</b> {
-                          course.age_group
-                        }</div>
-                        <div><span role="img" aria-label="date">📅</span> {formatDate(course.created_at)}</div>
+                    <div className="col-md-6">
+                      <div className="info-item mb-2">
+                        <strong>Ngày sinh:</strong> {memberDetails.profile?.date_of_birth ? formatDate(memberDetails.profile.date_of_birth) : 'Chưa cập nhật'}
+                      </div>
+                      <div className="info-item mb-2">
+                        <strong>Vai trò:</strong> {memberDetails.role || 'Member'}
+                      </div>
+                      <div className="info-item mb-2">
+                        <strong>Trạng thái:</strong> {translateStatus(memberDetails.status)}
+                      </div>
+                      <div className="info-item mb-2">
+                        <strong>Ngày bắt đầu:</strong> {formatDate(memberDetails.start_at || memberDetails.date_create)}
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-          <div className="written-blogs">
-            <h3>Bài blog đã viết</h3>
-            {writtenBlogs.length === 0 ? (
-              <div className="empty">Chưa viết blog nào.</div>
-            ) : (
-              <div className="card-list">
-                {writtenBlogs.map((blog) => (
-                  <div key={blog.id || blog.blog_id} className="card-item">
-                    <div className="card-img">
-                      <img
-                        src={blog.img_link || Image}
-                        alt={blog.title}
-                        onError={e => { e.target.onerror = null; e.target.src = Image; }}
-                      />
-                    </div>
-                    <div className="card-body">
-                      <div className="card-title">{
-                        typeof blog.title === 'string' ? blog.title : blog.title ? JSON.stringify(blog.title) : ''
-                      }</div>
-                      <div className="card-desc">{
-                        typeof blog.description === 'string' ? blog.description : blog.description ? JSON.stringify(blog.description) : "N/A"
-                      }</div>
-                      <div className="card-meta">
-                        <div><span role="img" aria-label="author">👤</span> <b>Tác giả:</b> {
-                          typeof blog.author === 'string' ? blog.author : blog.author ? JSON.stringify(blog.author) :
-                          (typeof blog.creator_email === 'string' ? blog.creator_email : blog.creator_email ? JSON.stringify(blog.creator_email) : "N/A")
-                        }</div>
-                        <div><span role="img" aria-label="date">📅</span> {formatDate(blog.created_at || blog.createdAt)}</div>
+                  {memberDetails.profile?.bio_json && (
+                    <div className="info-item mt-3">
+                      <strong>Tiểu sử:</strong>
+                      <div className="mt-2 p-2 bg-light rounded">
+                        {(() => {
+                          try {
+                            const bioData = typeof memberDetails.profile.bio_json === 'string' 
+                              ? JSON.parse(memberDetails.profile.bio_json) 
+                              : memberDetails.profile.bio_json;
+                            return bioData?.bio || bioData?.biography || 'Chưa cập nhật tiểu sử';
+                          } catch (error) {
+                            // If it's not valid JSON, treat as plain text
+                            return memberDetails.profile.bio_json;
+                          }
+                        })()}
                       </div>
                     </div>
-                  </div>
-                ))}
+                  )}
+                </div>
               </div>
-            )}
-          </div>
-          <div className="survey-responses">
-            <h3>Kết quả khảo sát</h3>
-            {surveyResponses.length === 0 ? (
-              <div className="empty">Chưa có kết quả khảo sát nào.</div>
-            ) : (
-              <div className="card-list">
-                {surveyResponses.map((resp, idx) => {
-                  let answers = [];
-                  try {
-                    const parsed = typeof resp.answer_json === 'string' ? JSON.parse(resp.answer_json) : resp.answer_json;
-                    answers = parsed.responses || [];
-                  } catch {
-                    answers = [];
-                  }
-                  return (
-                    <div key={resp.response_id || idx} className="card-item survey-item">
-                      <div className="card-body">
-                        <div className="card-title">Survey #{resp.survey_id}</div>
-                        <div className="card-desc">
-                          {answers.length === 0 ? (
-                            <div className="empty">Không có câu trả lời.</div>
-                          ) : (
-                            <ul className="survey-qa-list">
-                              {answers.map((qa, i) => (
-                                <li key={qa.id || i} className="survey-qa-item">
-                                  <div className="survey-question"><b>Câu hỏi:</b> {qa.question}</div>
-                                  <div className="survey-answer"><b>Trả lời:</b> {qa.answer}</div>
-                                </li>
-                              ))}
-                            </ul>
+            </div>
+          )}
+
+          {/* Assessment Section */}
+          {memberDetails && (
+            <div className="assessment-section mb-4">
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <h3 className="mb-0">Đánh giá rủi ro</h3>
+                <div className="d-flex gap-2">
+                  {showAssessments && memberDetails.assessments && memberDetails.assessments.length > 0 && (
+                    <>
+                      <select 
+                        className="form-select form-select-sm"
+                        style={{ width: 'auto' }}
+                        value={assessmentTypeFilter}
+                        onChange={(e) => setAssessmentTypeFilter(e.target.value)}
+                      >
+                        <option value="all">Tất cả loại đánh giá</option>
+                        <option value="crafft">CRAFFT</option>
+                        <option value="assist">ASSIST</option>
+                      </select>
+                      <select 
+                        className="form-select form-select-sm"
+                        style={{ width: 'auto' }}
+                        value={assessmentSortOrder}
+                        onChange={(e) => setAssessmentSortOrder(e.target.value)}
+                      >
+                        <option value="desc">Mới nhất trước</option>
+                        <option value="asc">Cũ nhất trước</option>
+                      </select>
+                    </>
+                  )}
+                  <button 
+                    className="btn btn-outline-secondary btn-sm"
+                    onClick={() => setShowAssessments(!showAssessments)}
+                  >
+                    {showAssessments ? 'Ẩn' : 'Hiện'} đánh giá
+                  </button>
+                </div>
+              </div>
+
+              {showAssessments && (
+                <div className="card">
+                  <div className="card-body">
+                    {/* Assessment Summary */}
+                    <div className="row mb-3">
+                      <div className="col-md-6">
+                        <div className="info-item">
+                          <strong>Số lần đánh giá:</strong> {
+                            assessmentTypeFilter === 'all' 
+                              ? (memberDetails.assessments?.length || 0) 
+                              : (sortAndFilterAssessments(memberDetails.assessments).length || 0)
+                          } lần
+                          {assessmentTypeFilter !== 'all' && (
+                            <small className="text-muted ms-2">
+                              (Đã lọc theo {assessmentTypeFilter.toUpperCase()})
+                            </small>
                           )}
                         </div>
-                        <div className="card-meta">
-                          <div><span role="img" aria-label="date">📅</span> {formatDate(resp.submitted_at)}</div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="info-item">
+                          <strong>Đánh giá gần nhất:</strong> {
+                            (() => {
+                              const filteredAssessments = sortAndFilterAssessments(memberDetails.assessments);
+                              return filteredAssessments && filteredAssessments.length > 0
+                                ? formatDate(filteredAssessments[0].create_at)
+                                : 'Chưa có đánh giá';
+                            })()
+                          }
                         </div>
                       </div>
                     </div>
-                  );
-                })}
+
+                    {/* Assessment Details */}
+                    {memberDetails.assessments && memberDetails.assessments.length > 0 ? (
+                      <div className="assessment-details">
+                        <h5 className="mb-3">Lịch sử đánh giá chi tiết</h5>
+                        {(() => {
+                          const filteredAndSortedAssessments = sortAndFilterAssessments(memberDetails.assessments);
+                          
+                          if (filteredAndSortedAssessments.length === 0) {
+                            return (
+                              <div className="text-center text-muted p-4">
+                                <p>Không có đánh giá nào phù hợp với bộ lọc đã chọn.</p>
+                              </div>
+                            );
+                          }
+                          
+                          return filteredAndSortedAssessments.map((assessment, index) => {
+                          // Parse result_json to extract meaningful data
+                          let parsedResult = null;
+                          let totalScore = 0;
+                          let questionCount = 0;
+
+                          console.log(`Assessment ${index + 1}:`, assessment);
+                          console.log(`Assessment type: ${assessment.type}`);
+                          console.log(`Assessment result_json:`, assessment.result_json);
+
+                          try {
+                            if (assessment.result_json) {
+                              parsedResult = JSON.parse(assessment.result_json);
+                              console.log(`Parsed result for assessment ${index + 1}:`, parsedResult);
+                              
+                              if (parsedResult.result && Array.isArray(parsedResult.result)) {
+                                questionCount = parsedResult.result.length;
+                                totalScore = parsedResult.score || 0;
+                                console.log(`Question count: ${questionCount}, Total score: ${totalScore}`);
+                                console.log('Individual questions:', parsedResult.result);
+                              }
+                            }
+                          } catch (e) {
+                            console.error(`Error parsing assessment ${index + 1} result:`, e);
+                            console.error('Raw result_json:', assessment.result_json);
+                          }
+
+                          const { riskLevel, score } = calculateRiskLevel(assessment);
+                          const riskLevelClass = getRiskLevelClass(riskLevel);
+
+                          console.log(`Assessment ${index + 1} risk calculation:`, {
+                            riskLevel,
+                            score,
+                            riskLevelClass,
+                            assessmentType: assessment.type
+                          });
+
+                          return (
+                            <div key={index} className="assessment-item mb-4 p-3 border rounded">
+                              <div className="row">
+                                <div className="col-md-6">
+                                  <div className="info-item mb-2">
+                                    <strong>Loại đánh giá:</strong> 
+                                    <span className={`ms-2 badge ${
+                                      assessment.type === 'assist' ? 'bg-success' :
+                                      assessment.type === 'crafft' ? 'bg-primary' : 'bg-secondary'
+                                    }`}>
+                                      {assessment.type?.toUpperCase() || 'Chưa xác định'}
+                                    </span>
+                                  </div>
+                                  <div className="info-item mb-2">
+                                    <strong>Ngày thực hiện:</strong> {formatDate(assessment.create_at)}
+                                  </div>
+                                </div>
+                                <div className="col-md-6">
+                                  <div className="info-item mb-2">
+                                    <strong>Tổng điểm:</strong> 
+                                    <span className={`ms-2 fw-bold ${
+                                      score >= 15 ? 'text-danger' :
+                                      score >= 10 ? 'text-warning' :
+                                      score >= 5 ? 'text-info' : 'text-success'
+                                    }`}>
+                                      {score}
+                                    </span>
+                                  </div>
+                                  <div className="info-item mb-2">
+                                    <strong>Mức độ rủi ro:</strong> 
+                                    <span className={`ms-2 badge ${riskLevelClass}`}>
+                                      {riskLevel}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {parsedResult && parsedResult.result && (
+                                <div className="question-details mt-3">
+                                  <h6 className="mb-2">Chi tiết câu trả lời:</h6>
+                                  <div className="bg-light p-2 rounded" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                                    {parsedResult.result.map((question, qIndex) => (
+                                      <div key={qIndex} className={`p-2 mb-1 rounded small ${
+                                        question.score > 2 ? 'bg-danger bg-opacity-10 border-start border-danger border-3' : 
+                                        'bg-success bg-opacity-10 border-start border-success border-3'
+                                      }`}>
+                                        <div className="mb-1">
+                                          <strong>Q{question.questionId}:</strong>
+                                          {(question.questionText || question.question) && (
+                                            <div className="text-muted small mt-1" style={{ fontStyle: 'italic' }}>
+                                              "{question.questionText || question.question}"
+                                            </div>
+                                          )}
+                                        </div>
+                                        <div>
+                                          <strong>Trả lời:</strong> {question.selectedOption}
+                                          <span className={`ms-2 fw-bold ${question.score > 2 ? 'text-danger' : 'text-success'}`}>
+                                            ({question.score} điểm)
+                                          </span>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        });
+                        })()}
+                      </div>
+                    ) : (
+                      <div className="text-center text-muted p-4">
+                        <p>Thành viên chưa thực hiện đánh giá rủi ro nào.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Courses Section */}
+          <div className="enrolled-courses mb-4">
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <h3 className="mb-0">Khóa học đã đăng ký</h3>
+              <button 
+                className="btn btn-outline-secondary btn-sm"
+                onClick={() => setShowCourses(!showCourses)}
+              >
+                {showCourses ? 'Ẩn' : 'Hiện'} khóa học
+              </button>
+            </div>
+
+            {showCourses && (
+              <div className="card">
+                <div className="card-body">
+                  {enrolledCourses.filter(program => program.enrollment_status?.is_enrolled).length === 0 ? (
+                    <div className="text-center text-muted p-4">
+                      <p>Chưa đăng ký khóa học nào.</p>
+                    </div>
+                  ) : (
+                    <div className="enrolled-courses-section">
+                      {/* Course Header */}
+                      <div className="row mb-3">
+                        <div className="col-md-4">
+                          <div className="fw-bold text-muted text-center p-2" style={{ backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
+                            Tên khóa học
+                          </div>
+                        </div>
+                        <div className="col-md-4">
+                          <div className="fw-bold text-muted text-center p-2" style={{ backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
+                            Thông tin khóa học
+                          </div>
+                        </div>
+                        <div className="col-md-4">
+                          <div className="fw-bold text-muted text-center p-2" style={{ backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
+                            Tiến độ khóa học
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Enrolled Courses List */}
+                      <div className="row g-3">
+                        {enrolledCourses
+                          .filter(program => program.enrollment_status?.is_enrolled)
+                          .map(program => renderEnrolledCourseCard(program))
+                        }
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+          {/* Blogs Section */}
+          <div className="written-blogs mb-4">
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <h3 className="mb-0">Bài blog đã viết</h3>
+              <button 
+                className="btn btn-outline-secondary btn-sm"
+                onClick={() => setShowBlogs(!showBlogs)}
+              >
+                {showBlogs ? 'Ẩn' : 'Hiện'} blog
+              </button>
+            </div>
+
+            {showBlogs && (
+              <div className="card">
+                <div className="card-body">
+                  {writtenBlogs.length === 0 ? (
+                    <div className="text-center text-muted p-4">
+                      <p>Chưa viết blog nào.</p>
+                    </div>
+                  ) : (
+                    <div className="card-list">
+                      {writtenBlogs.map((blog) => (
+                        <div key={blog.id || blog.blog_id} className="card-item">
+                          <div className="card-img">
+                            <img
+                              src={blog.img_link || Image}
+                              alt={blog.title}
+                              onError={e => { e.target.onerror = null; e.target.src = Image; }}
+                            />
+                          </div>
+                          <div className="card-body">
+                            <div className="card-title">{
+                              typeof blog.title === 'string' ? blog.title : blog.title ? JSON.stringify(blog.title) : ''
+                            }</div>
+                            <div className="card-desc">{
+                              typeof blog.description === 'string' ? blog.description : blog.description ? JSON.stringify(blog.description) : "N/A"
+                            }</div>
+                            <div className="card-meta">
+                              <div><b>Tác giả:</b> {
+                                typeof blog.author === 'string' ? blog.author : blog.author ? JSON.stringify(blog.author) :
+                                (typeof blog.creator_email === 'string' ? blog.creator_email : blog.creator_email ? JSON.stringify(blog.creator_email) : "N/A")
+                              }</div>
+                              <div>{formatDate(blog.created_at || blog.createdAt)}</div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>

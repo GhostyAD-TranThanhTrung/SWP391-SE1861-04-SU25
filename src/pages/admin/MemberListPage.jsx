@@ -23,6 +23,7 @@ const MemberListPage = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [showInactive, setShowInactive] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [loadingStatistics, setLoadingStatistics] = useState(false);
   const token = sessionStorage.getItem("token");
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
@@ -288,6 +289,7 @@ const MemberListPage = () => {
       console.log('API URL:', `http://localhost:3000/api/members/detailed/${memberId}`);
       console.log('Token exists:', !!token);
 
+      setLoadingStatistics(true);
       const res = await axios.get(`http://localhost:3000/api/members/detailed/${memberId}`, { 
         headers: { Authorization: `Bearer ${token}` } 
       });
@@ -297,9 +299,51 @@ const MemberListPage = () => {
 
       if (res.data.success) {
         console.log('Member detail data received:', res.data.data);
-        setSelectedMember(res.data.data);
+        let memberData = res.data.data;
+        
+        // Show popup first with basic data
+        setSelectedMember(memberData);
         setShowPopup(true);
-        console.log('Member detail popup opened successfully');
+        
+        // Try to fetch additional statistics if not already included
+        try {
+          // Fetch course enrollment status
+          const coursesRes = await axios.get(`http://localhost:3000/api/programs/user/${memberId}/enrollment-status`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          const enrolledCourses = coursesRes.data.data || [];
+          const completedCourses = enrolledCourses.filter(course => course.enrollment_status?.has_complete);
+          memberData.completed_courses_count = completedCourses.length;
+          memberData.total_courses_count = enrolledCourses.length;
+          
+          console.log('Course statistics:', {
+            total: enrolledCourses.length,
+            completed: completedCourses.length
+          });
+        } catch (courseError) {
+          console.warn('Could not fetch course statistics:', courseError);
+          memberData.completed_courses_count = 0;
+          memberData.total_courses_count = 0;
+        }
+
+        // Try to fetch blog post count
+        try {
+          const blogsRes = await axios.get(`http://localhost:3000/api/blogs/user/${memberId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          memberData.blog_posts_count = blogsRes.data.data?.length || 0;
+          
+          console.log('Blog statistics:', {
+            count: memberData.blog_posts_count
+          });
+        } catch (blogError) {
+          console.warn('Could not fetch blog statistics:', blogError);
+          memberData.blog_posts_count = 0;
+        }
+        
+        // Update with complete statistics
+        setSelectedMember({...memberData});
+        console.log('Member detail popup opened successfully with statistics');
       } else {
         console.error("Failed to fetch member details:", res.data.message);
         console.log('API returned success: false');
@@ -313,6 +357,8 @@ const MemberListPage = () => {
       console.error("Error status:", err.response?.status);
       console.error("Error message:", err.message);
       alert("Có lỗi xảy ra khi tải thông tin thành viên");
+    } finally {
+      setLoadingStatistics(false);
     }
   };
 
@@ -742,237 +788,170 @@ const MemberListPage = () => {
                 )}
               </div>
 
-              {/* Assessment Summary Section */}
-              <div className="info-section" style={{
-                backgroundColor: '#e3f2fd',
-                padding: '15px',
-                borderRadius: '8px',
-                marginBottom: '20px',
-                border: '1px solid #bbdefb'
-              }}>
-                <h5 style={{
-                  color: '#1565c0',
-                  marginBottom: '15px',
-                  fontSize: '1.1rem',
-                  borderBottom: '1px solid #90caf9',
-                  paddingBottom: '8px'
-                }}>📊 Tổng quan đánh giá</h5>
-
-              <div className="member-detail-row">
-                  <span className="member-detail-label">Số lượng đánh giá:</span>
-                  <span className="member-detail-value">
-                    <span style={{
-                      backgroundColor: '#1976d2',
-                      color: 'white',
-                      padding: '4px 12px',
-                      borderRadius: '15px',
-                      fontSize: '0.9em',
-                      fontWeight: 'bold'
-                    }}>
-                      {selectedMember.assessment_count || 0} lần
-                    </span>
-                  </span>
+              {/* Activity Overview Section */}
+              <div className="row mb-4">
+                <div className="col-md-4">
+                  <div className="card h-100 border-0 shadow-sm">
+                    <div className="card-body text-center" style={{ backgroundColor: '#e3f2fd' }}>
+                      <div className="display-6 mb-2" style={{ color: '#1976d2' }}>📊</div>
+                      <h6 className="card-title text-muted">Đánh giá rủi ro</h6>
+                      <div className="h4 mb-0" style={{ color: '#1976d2', fontWeight: 'bold' }}>
+                        {selectedMember.assessments?.length || 0}
+                      </div>
+                      <small className="text-muted">lần thực hiện</small>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="col-md-4">
+                  <div className="card h-100 border-0 shadow-sm">
+                    <div className="card-body text-center" style={{ backgroundColor: '#e8f5e8' }}>
+                      <div className="display-6 mb-2" style={{ color: '#28a745' }}>🎓</div>
+                      <h6 className="card-title text-muted">Khóa học</h6>
+                      {loadingStatistics ? (
+                        <div className="spinner-border spinner-border-sm" role="status">
+                          <span className="visually-hidden">Loading...</span>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="h4 mb-0" style={{ color: '#28a745', fontWeight: 'bold' }}>
+                            {selectedMember.completed_courses_count || 0}
+                          </div>
+                          <small className="text-muted">hoàn thành</small>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="col-md-4">
+                  <div className="card h-100 border-0 shadow-sm">
+                    <div className="card-body text-center" style={{ backgroundColor: '#fff3e0' }}>
+                      <div className="display-6 mb-2" style={{ color: '#fd7e14' }}>✍️</div>
+                      <h6 className="card-title text-muted">Bài blog</h6>
+                      {loadingStatistics ? (
+                        <div className="spinner-border spinner-border-sm" role="status">
+                          <span className="visually-hidden">Loading...</span>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="h4 mb-0" style={{ color: '#fd7e14', fontWeight: 'bold' }}>
+                            {selectedMember.blog_posts_count || 0}
+                          </div>
+                          <small className="text-muted">đã viết</small>
+                        </>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Assessment Details */}
-              {selectedMember.assessments && selectedMember.assessments.length > 0 && (
-                <div className="info-section" style={{
-                  backgroundColor: '#fff3e0',
-                  padding: '15px',
-                  borderRadius: '8px',
-                  marginBottom: '20px',
-                  border: '1px solid #ffcc02'
-                }}>
-                  <h5 style={{
-                    color: '#e65100',
-                    marginBottom: '15px',
-                    fontSize: '1.1rem',
-                    borderBottom: '1px solid #ffb74d',
-                    paddingBottom: '8px'
-                  }}>📋 Lịch sử đánh giá chi tiết</h5>
-                  {selectedMember.assessments.map((assessment, index) => {
-                    // Parse result_json to extract meaningful data
-                    let parsedResult = null;
-                    let totalScore = 0;
-                    let questionCount = 0;
-
-                    try {
-                      if (assessment.result_json) {
-                        parsedResult = JSON.parse(assessment.result_json);
-                        if (parsedResult.result && Array.isArray(parsedResult.result)) {
-                          questionCount = parsedResult.result.length;
-                          totalScore = parsedResult.score || 0;
-                        }
-                      }
-                    } catch (e) {
-                      console.error('Error parsing assessment result:', e);
-                    }
-
-                    const { riskLevel, score } = calculateRiskLevel(assessment);
-                    const riskLevelClass = getRiskLevelClass(riskLevel);
-
-                    return (
-                      <div key={index} className="assessment-item" style={{
-                        backgroundColor: '#ffffff',
-                        padding: '20px',
-                        margin: '15px 0',
-                        borderRadius: '10px',
-                        border: '2px solid #e9ecef',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                        transition: 'all 0.3s ease'
-                      }}>
-                        <div className="member-detail-row">
-                          <span className="member-detail-label">Loại đánh giá:</span>
-                          <span className="member-detail-value">
-                            <strong style={{
-                              color: assessment.type === 'assist' ? '#28a745' :
-                                assessment.type === 'crafft' ? '#007bff' : '#6c757d',
-                              textTransform: 'uppercase'
+              {/* Assessment History */}
+              {selectedMember.assessments && selectedMember.assessments.length > 0 ? (
+                <div className="card border-0 shadow-sm mb-4">
+                  <div className="card-header bg-light">
+                    <h5 className="mb-0 d-flex align-items-center">
+                      <span className="me-2">📋</span>
+                      Lịch sử đánh giá rủi ro
+                      <span className="badge bg-primary ms-2">{selectedMember.assessments.length}</span>
+                    </h5>
+                  </div>
+                  <div className="card-body">
+                    <div className="row g-3">
+                      {selectedMember.assessments.slice(0, 3).map((assessment, index) => {
+                        const { riskLevel, score } = calculateRiskLevel(assessment);
+                        const riskLevelClass = getRiskLevelClass(riskLevel);
+                        
+                        return (
+                          <div key={index} className="col-md-4">
+                            <div className="card h-100 border-0" style={{ 
+                              backgroundColor: assessment.type === 'assist' ? '#f8fff8' : '#f0f8ff',
+                              border: `2px solid ${assessment.type === 'assist' ? '#28a745' : '#007bff'}20`
                             }}>
-                              {assessment.type || 'Chưa xác định'}
-                            </strong>
-                          </span>
-                        </div>
-                        <div className="member-detail-row">
-                          <span className="member-detail-label">Mô tả:</span>
-                          <span className="member-detail-value">{assessment.description || 'Không có mô tả'}</span>
-                        </div>
-                        <div className="member-detail-row">
-                          <span className="member-detail-label">Ngày thực hiện:</span>
-                          <span className="member-detail-value">
-                            {assessment.created_at ?
-                              new Date(assessment.created_at).toLocaleDateString('vi-VN', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              }) :
-                              'Chưa cập nhật'}
-                          </span>
-                        </div>
-
-                        {parsedResult && (
-                          <div className="assessment-results" style={{ marginTop: '15px' }}>
-                            <div className="result-summary" style={{
-                              backgroundColor: '#fff',
-                              padding: '10px',
-                              borderRadius: '5px',
-                              border: '1px solid #dee2e6',
-                              marginBottom: '10px'
-                            }}>
-                              <div className="member-detail-row">
-                                <span className="member-detail-label">Tổng điểm:</span>
-                                <span className="member-detail-value">
-                                  <strong style={{
-                                    color: score >= 15 ? '#dc3545' :
-                                      score >= 10 ? '#fd7e14' :
-                                        score >= 5 ? '#ffc107' : '#28a745',
-                                    fontSize: '1.1em'
-                                  }}>
-                                    {score}
-                                  </strong>
-                                </span>
-                              </div>
-                              <div className="member-detail-row">
-                                <span className="member-detail-label">Số câu hỏi:</span>
-                                <span className="member-detail-value">{questionCount} câu</span>
-                              </div>
-                              <div className="member-detail-row">
-                                <span className="member-detail-label">Mức độ rủi ro:</span>
-                                <span className="member-detail-value">
-                                  <span className={`badge ${riskLevelClass}`} style={{ fontSize: '0.9em' }}>
+                              <div className="card-body">
+                                <div className="d-flex justify-content-between align-items-start mb-2">
+                                  <span className={`badge ${assessment.type === 'assist' ? 'bg-success' : 'bg-primary'}`}>
+                                    {assessment.type?.toUpperCase() || 'N/A'}
+                                  </span>
+                                  <span className={`badge ${riskLevelClass}`}>
                                     {riskLevel}
                                   </span>
-                                </span>
+                                </div>
+                                
+                                <div className="mb-2">
+                                  <div className="d-flex justify-content-between">
+                                    <small className="text-muted">Điểm số:</small>
+                                    <strong style={{
+                                      color: score >= 15 ? '#dc3545' :
+                                        score >= 10 ? '#fd7e14' :
+                                        score >= 5 ? '#ffc107' : '#28a745'
+                                    }}>
+                                      {score}
+                                    </strong>
+                                  </div>
+                                </div>
+                                
+                                <small className="text-muted d-block">
+                                  {assessment.create_at ? 
+                                    new Date(assessment.create_at).toLocaleDateString('vi-VN') : 
+                                    'Chưa cập nhật'
+                                  }
+                                </small>
                               </div>
                             </div>
-
-                            {parsedResult.result && (
-                              <div className="question-details">
-                                <h6 style={{
-                                  margin: '15px 0 10px 0',
-                                  color: '#495057',
-                                  fontSize: '1rem',
-                                  fontWeight: 'bold'
-                                }}>💭 Chi tiết câu trả lời:</h6>
-                                <div style={{
-                                  maxHeight: '250px',
-                                  overflowY: 'auto',
-                                  backgroundColor: '#f8f9fa',
-                                  padding: '10px',
-                                  borderRadius: '8px',
-                                  border: '1px solid #e9ecef'
-                                }}>
-                                  {parsedResult.result.map((question, qIndex) => (
-                                    <div key={qIndex} style={{
-                                      padding: '8px 12px',
-                                      margin: '4px 0',
-                                      backgroundColor: question.score > 2 ? '#ffebee' : '#f1f8e9',
-                                      borderRadius: '6px',
-                                      fontSize: '0.9em',
-                                      borderLeft: `4px solid ${question.score > 2 ? '#f44336' : '#4caf50'}`,
-                                      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                                    }}>
-                                      <strong>Q{question.questionId}:</strong>
-                                      <span style={{ marginLeft: '5px' }}>
-                                        Lựa chọn {question.selectedOption}
-                                        <span style={{
-                                          color: question.score > 2 ? '#d32f2f' : '#388e3c',
-                                          fontWeight: 'bold',
-                                          marginLeft: '5px'
-                                        }}>
-                                          ({question.score} điểm)
-                                        </span>
-                                      </span>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
                           </div>
-                        )}
-
-                        {!parsedResult && assessment.result_json && (
-                          <div className="member-detail-row">
-                            <span className="member-detail-label">Kết quả:</span>
-                            <span className="member-detail-value" style={{ fontSize: '0.9em', color: '#666' }}>
-                              Dữ liệu đánh giá không thể hiển thị
-                </span>
-              </div>
-                        )}
+                        );
+                      })}
+                    </div>
+                    
+                    {selectedMember.assessments.length > 3 && (
+                      <div className="text-center mt-3">
+                        <small className="text-muted">
+                          và {selectedMember.assessments.length - 3} đánh giá khác...
+                        </small>
                       </div>
-                    );
-                  })}
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="card border-0 shadow-sm mb-4">
+                  <div className="card-body text-center py-5">
+                    <div className="display-6 text-muted mb-3">📋</div>
+                    <h6 className="text-muted">Chưa có đánh giá rủi ro</h6>
+                    <p className="text-muted mb-0">Thành viên này chưa thực hiện bài đánh giá nào</p>
+                  </div>
                 </div>
               )}
-
-              {/* No assessments message */}
-              {(!selectedMember.assessments || selectedMember.assessments.length === 0) && (
-                <div className="info-section" style={{
-                  backgroundColor: '#f8f9fa',
-                  padding: '20px',
-                  borderRadius: '8px',
-                  textAlign: 'center',
-                  border: '1px solid #e9ecef'
-                }}>
-                  <p style={{ color: '#6c757d', margin: 0, fontSize: '1rem' }}>
-                    🔍 Thành viên này chưa thực hiện đánh giá nào
-                  </p>
-                </div>
-              )}
-              <div style={{ textAlign: 'center', marginTop: '20px' }}>
+              {/* Action Buttons */}
+              <div className="text-center pt-4 border-top">
                 <button
-                  className="btn-detail-more"
+                  className="btn btn-outline-primary btn-lg px-4"
                   onClick={() => {
-                          navigate(`/member-list/detail/${selectedMember.user?.user_id || selectedMember.profile?.user_id}`);
-                          sessionStorage.setItem("userId", selectedMember.user?.user_id || selectedMember.profile?.user_id);
+                    setShowPopup(false);
+                    navigate(`/member-list/detail/${selectedMember.user_id || selectedMember.user?.user_id}`);
+                  }}
+                  style={{
+                    borderRadius: '25px',
+                    fontWeight: '600',
+                    fontSize: '1rem',
+                    minWidth: '200px',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.transform = 'translateY(-2px)';
+                    e.target.style.boxShadow = '0 4px 12px rgba(0,123,255,0.3)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = 'translateY(0)';
+                    e.target.style.boxShadow = 'none';
                   }}
                 >
-                    Xem chi tiết hơn
+                  Xem chi tiết đầy đủ
                 </button>
-            </div>
+                <div className="mt-2">
+                  <small className="text-muted">Xem thông tin chi tiết về khóa học, đánh giá và hoạt động</small>
+                </div>
+              </div>
             </div>
           </div>
         </div>

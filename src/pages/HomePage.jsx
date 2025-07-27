@@ -536,31 +536,34 @@ const HomePage = () => {
                 </section>
 
 
-                {/* Recommendation Programs Section*/}
-                <section className="section mb-5">
-                    <div className="section-header-wrapper text-center mb-5">
-                        <h2 className="section-header">
-                            {userInfo ? `Chương trình đề xuất cho bạn` : 'Chương trình đề xuất cho bạn'}
-                        </h2>
-                        <p className="section-subtitle">
-                            {userInfo ?
-                                `Các chương trình phù hợp với nhóm tuổi ${userInfo.age_group_label} (${userInfo.age} tuổi) dựa trên hồ sơ của bạn` :
-                                'Các chương trình phù hợp nhất dựa trên hồ sơ của bạn'
-                            }
-                        </p>
-                    </div>
-                    {renderRecommendedPrograms()}
-                </section>
+                {/* Recommendation Programs Section - Only show if user is logged in */}
+                {token && (
+                    <section className="section mb-5">
+                        <div className="section-header-wrapper text-center mb-5">
+                            <h2 className="section-header">
+                                {userInfo ? `Chương trình đề xuất cho bạn` : 'Chương trình đề xuất cho bạn'}
+                            </h2>
+                            <p className="section-subtitle">
+                                {userInfo ?
+                                    `Các chương trình phù hợp với nhóm tuổi ${userInfo.age_group_label} (${userInfo.age} tuổi) dựa trên hồ sơ của bạn` :
+                                    'Các chương trình phù hợp nhất dựa trên hồ sơ của bạn'
+                                }
+                            </p>
+                        </div>
+                        {renderRecommendedPrograms()}
+                    </section>
+                )}
 
-
-                {/* Blog Recommendations Section */}
-                <section className="section mb-5">
-                    <div className="section-header-wrapper text-center mb-5">
-                        <h2 className="section-header">Bài viết đề xuất</h2>
-                        <p className="section-subtitle">Khám phá những bài viết hữu ích về phục hồi, phòng ngừa và sức khỏe tâm thần</p>
-                    </div>
-                    {renderRecommendedBlogs()}
-                </section>
+                {/* Blog Recommendations Section - Only show if user is logged in */}
+                {token && (
+                    <section className="section mb-5">
+                        <div className="section-header-wrapper text-center mb-5">
+                            <h2 className="section-header">Bài viết đề xuất</h2>
+                            <p className="section-subtitle">Khám phá những bài viết hữu ích về phục hồi, phòng ngừa và sức khỏe tâm thần</p>
+                        </div>
+                        {renderRecommendedBlogs()}
+                    </section>
+                )}
 
 
                 {/* Community Events Section */}
