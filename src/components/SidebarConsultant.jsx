@@ -6,11 +6,11 @@ import { ManageAccountsOutlined } from "@mui/icons-material";
 const SidebarConsultant = ({ isOpen }) => {
   const location = useLocation();
   const currentPath = location.pathname;
-  const email = localStorage.getItem('email2')
+  const email = sessionStorage.getItem('email2')
   const navigate = useNavigate();
   const handleLogout = (e) => {
     e.preventDefault();
-    localStorage.removeItem("email2");
+    sessionStorage.removeItem("email2");
     sessionStorage.removeItem("token");
     navigate("/admin/login");
   };
