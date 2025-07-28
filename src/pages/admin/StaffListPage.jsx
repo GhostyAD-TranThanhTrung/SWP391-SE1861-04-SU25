@@ -171,27 +171,68 @@ const StaffListPage = () => {
     }
   };
 
-  const handleView = (staffId) => {
-    const staff = staffs.find((s) => s.user_id === staffId);
-    if (staff) {
-      const flatData = {
-        email: staff.email,
-        role: staff.role,
-        status: staff.status,
-        name: staff.profile?.name || "",
-        bio: staff.profile?.bio_json?.bio || "",
-        education: staff.profile?.bio_json?.education || "",
-        date_of_birth: staff.profile?.date_of_birth?.slice(0, 10) || "",
-        job: staff.profile?.job || "",
-        password: staff.password || "", // Include actual password from API
-      };
-      setViewStaffData(flatData);
-      setViewingStaffId(staffId);
-      setEditingStaffId(null);
-      setEditStaffData(null);
-      setNewPassword("");
-      setShowPassword(false);
-      setShowPopup(true);
+  const handleView = async (staffId) => {
+    try {
+      // Fetch detailed staff information including blogs and programs
+      const res = await axios.get(
+        `http://localhost:3000/api/staff/details/${staffId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      if (res.data.success) {
+        const { staff_info, blogs, programs, statistics } = res.data.data;
+        
+        const flatData = {
+          email: staff_info.email,
+          role: staff_info.role,
+          status: staff_info.status,
+          name: staff_info.profile?.name || "",
+          bio: staff_info.profile?.bio_json?.bio || "",
+          education: staff_info.profile?.bio_json?.education || "",
+          date_of_birth: staff_info.profile?.date_of_birth?.slice(0, 10) || "",
+          job: staff_info.profile?.job || "",
+          password: staff_info.password || "",
+          // Add new fields for blogs and programs
+          blogs: blogs || [],
+          programs: programs || [],
+          statistics: statistics || {}
+        };
+        
+        setViewStaffData(flatData);
+        setViewingStaffId(staffId);
+        setEditingStaffId(null);
+        setEditStaffData(null);
+        setNewPassword("");
+        setShowPassword(false);
+        setShowPopup(true);
+      }
+    } catch (err) {
+      console.error("Lỗi khi lấy thông tin chi tiết nhân viên:", err);
+      // Fallback to basic staff info if detailed fetch fails
+      const staff = staffs.find((s) => s.user_id === staffId);
+      if (staff) {
+        const flatData = {
+          email: staff.email,
+          role: staff.role,
+          status: staff.status,
+          name: staff.profile?.name || "",
+          bio: staff.profile?.bio_json?.bio || "",
+          education: staff.profile?.bio_json?.education || "",
+          date_of_birth: staff.profile?.date_of_birth?.slice(0, 10) || "",
+          job: staff.profile?.job || "",
+          password: staff.password || "",
+          blogs: [],
+          programs: [],
+          statistics: {}
+        };
+        setViewStaffData(flatData);
+        setViewingStaffId(staffId);
+        setEditingStaffId(null);
+        setEditStaffData(null);
+        setNewPassword("");
+        setShowPassword(false);
+        setShowPopup(true);
+      }
     }
   };
 
@@ -896,6 +937,177 @@ const StaffListPage = () => {
                     }}
                   />
                 </div>
+
+                {/* Blog and Program sections - only show when viewing staff details */}
+                {viewingStaffId && viewStaffData && (
+                  <>
+                    {/* Statistics Section */}
+                    <div className="form-grid-col-span-2" style={{ marginTop: '20px' }}>
+                      <h4 style={{ color: '#333', marginBottom: '15px', borderBottom: '2px solid #007bff', paddingBottom: '5px' }}>
+                        Thống kê hoạt động
+                      </h4>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px', marginBottom: '20px' }}>
+                        <div style={{ background: '#e3f2fd', padding: '10px', borderRadius: '8px', textAlign: 'center' }}>
+                          <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1976d2' }}>
+                            {viewStaffData.statistics?.total_blogs || 0}
+                          </div>
+                          <div style={{ fontSize: '12px', color: '#666' }}>Tổng số bài viết</div>
+                        </div>
+                        <div style={{ background: '#f3e5f5', padding: '10px', borderRadius: '8px', textAlign: 'center' }}>
+                          <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#7b1fa2' }}>
+                            {viewStaffData.statistics?.total_programs || 0}
+                          </div>
+                          <div style={{ fontSize: '12px', color: '#666' }}>Tổng số chương trình</div>
+                        </div>
+                        <div style={{ background: '#e8f5e8', padding: '10px', borderRadius: '8px', textAlign: 'center' }}>
+                          <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#388e3c' }}>
+                            {viewStaffData.statistics?.active_blogs || 0}
+                          </div>
+                          <div style={{ fontSize: '12px', color: '#666' }}>Bài viết đang hoạt động</div>
+                        </div>
+                        <div style={{ background: '#fff3e0', padding: '10px', borderRadius: '8px', textAlign: 'center' }}>
+                          <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#f57c00' }}>
+                            {viewStaffData.statistics?.active_programs || 0}
+                          </div>
+                          <div style={{ fontSize: '12px', color: '#666' }}>Chương trình đang hoạt động</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Blogs Section */}
+                    <div className="form-grid-col-span-2" style={{ marginTop: '20px' }}>
+                      <h4 style={{ color: '#333', marginBottom: '15px', borderBottom: '2px solid #28a745', paddingBottom: '5px' }}>
+                        Bài viết đã đăng ({viewStaffData.blogs?.length || 0})
+                      </h4>
+                      {viewStaffData.blogs && viewStaffData.blogs.length > 0 ? (
+                        <div className="staff-detail-scroll" style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid #dee2e6', borderRadius: '8px' }}>
+                          {viewStaffData.blogs.map((blog, index) => (
+                            <div key={blog.blog_id || index} style={{ 
+                              padding: '12px', 
+                              borderBottom: index < viewStaffData.blogs.length - 1 ? '1px solid #eee' : 'none',
+                              background: index % 2 === 0 ? '#f8f9fa' : '#fff'
+                            }}>
+                              <div style={{ fontWeight: 'bold', color: '#333', marginBottom: '5px' }}>
+                                <a 
+                                  href={`/blog/${blog.blog_id}`} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="blog-item-link"
+                                  title="Nhấp để xem chi tiết bài viết"
+                                >
+                                  📝 {blog.title || 'Không có tiêu đề'}
+                                  <span className="external-link-icon">↗</span>
+                                </a>
+                              </div>
+                              <div style={{ fontSize: '12px', color: '#666', marginBottom: '5px' }}>
+                                Ngày đăng: {blog.created_at ? new Date(blog.created_at).toLocaleDateString('vi-VN') : 'N/A'}
+                              </div>
+                              <div style={{ fontSize: '12px' }}>
+                                <span style={{ 
+                                  padding: '2px 8px', 
+                                  borderRadius: '12px', 
+                                  background: blog.status === 'active' ? '#d4edda' : '#f8d7da',
+                                  color: blog.status === 'active' ? '#155724' : '#721c24'
+                                }}>
+                                  {blog.status === 'active' ? 'Đang hoạt động' : 'Không hoạt động'}
+                                </span>
+                              </div>
+                              {blog.body && (
+                                <div style={{ fontSize: '13px', color: '#555', marginTop: '8px', 
+                                           maxHeight: '60px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                  {blog.body.length > 100 ? blog.body.substring(0, 100) + '...' : blog.body}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div style={{ 
+                          padding: '20px', 
+                          textAlign: 'center', 
+                          color: '#666', 
+                          background: '#f8f9fa', 
+                          borderRadius: '8px',
+                          border: '1px dashed #dee2e6'
+                        }}>
+                          Nhân viên này chưa đăng bài viết nào
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Programs Section */}
+                    <div className="form-grid-col-span-2" style={{ marginTop: '20px' }}>
+                      <h4 style={{ color: '#333', marginBottom: '15px', borderBottom: '2px solid #dc3545', paddingBottom: '5px' }}>
+                        Chương trình đã tạo ({viewStaffData.programs?.length || 0})
+                      </h4>
+                      {viewStaffData.programs && viewStaffData.programs.length > 0 ? (
+                        <div className="staff-detail-scroll" style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid #dee2e6', borderRadius: '8px' }}>
+                          {viewStaffData.programs.map((program, index) => (
+                            <div key={program.program_id || index} style={{ 
+                              padding: '12px', 
+                              borderBottom: index < viewStaffData.programs.length - 1 ? '1px solid #eee' : 'none',
+                              background: index % 2 === 0 ? '#f8f9fa' : '#fff'
+                            }}>
+                              <div style={{ fontWeight: 'bold', color: '#333', marginBottom: '5px' }}>
+                                <a 
+                                  href={`/program/${program.program_id}`} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="program-item-link"
+                                  title="Nhấp để xem chi tiết chương trình"
+                                >
+                                  🎯 {program.title || 'Không có tiêu đề'}
+                                  <span className="external-link-icon">↗</span>
+                                </a>
+                              </div>
+                              <div style={{ fontSize: '12px', color: '#666', marginBottom: '5px' }}>
+                                Ngày tạo: {program.create_at ? new Date(program.create_at).toLocaleDateString('vi-VN') : 'N/A'}
+                              </div>
+                              <div style={{ fontSize: '12px', marginBottom: '5px' }}>
+                                <span style={{ 
+                                  padding: '2px 8px', 
+                                  borderRadius: '12px', 
+                                  background: program.status === 'active' ? '#d4edda' : '#f8d7da',
+                                  color: program.status === 'active' ? '#155724' : '#721c24'
+                                }}>
+                                  {program.status === 'active' ? 'Đang hoạt động' : 'Không hoạt động'}
+                                </span>
+                                {program.category && (
+                                  <span style={{ 
+                                    marginLeft: '8px',
+                                    padding: '2px 8px', 
+                                    borderRadius: '12px', 
+                                    background: '#e2e3e5',
+                                    color: '#383d41'
+                                  }}>
+                                    {program.category.name || 'Không phân loại'}
+                                  </span>
+                                )}
+                              </div>
+                              {program.description && (
+                                <div style={{ fontSize: '13px', color: '#555', marginTop: '8px',
+                                           maxHeight: '60px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                  {program.description.length > 100 ? program.description.substring(0, 100) + '...' : program.description}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div style={{ 
+                          padding: '20px', 
+                          textAlign: 'center', 
+                          color: '#666', 
+                          background: '#f8f9fa', 
+                          borderRadius: '8px',
+                          border: '1px dashed #dee2e6'
+                        }}>
+                          Nhân viên này chưa tạo chương trình nào
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
 
                 {!viewingStaffId && (
                   <button type="submit" className="form-button form-grid-col-span-2" disabled={isAdminEditing}>

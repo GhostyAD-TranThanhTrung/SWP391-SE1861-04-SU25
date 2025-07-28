@@ -366,3 +366,71 @@
     margin-top: 0;
   }
 }
+
+// Custom scrollbar styles for staff detail sections
+.staff-detail-scroll {
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 10px;
+    transition: background 0.3s ease;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }
+
+  // Firefox scrollbar
+  scrollbar-width: thin;
+  scrollbar-color: #c1c1c1 #f1f1f1;
+}
+
+// Blog section specific styling
+.blog-item-link {
+  color: #007bff !important;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    text-decoration: underline !important;
+    color: #0056b3 !important;
+  }
+
+  .external-link-icon {
+    font-size: 10px;
+    color: #666;
+    opacity: 0.7;
+  }
+}
+
+// Program section specific styling  
+.program-item-link {
+  color: #dc3545 !important;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    text-decoration: underline !important;
+    color: #c82333 !important;
+  }
+
+  .external-link-icon {
+    font-size: 10px;
+    color: #666;
+    opacity: 0.7;
+  }
+}

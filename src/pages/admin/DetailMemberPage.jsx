@@ -17,6 +17,11 @@ const DetailMemberPage = () => {
   const [showAssessments, setShowAssessments] = useState(true);
   const [showCourses, setShowCourses] = useState(true);
   const [showBlogs, setShowBlogs] = useState(true);
+  const [showBookings, setShowBookings] = useState(true);
+  const [bookingSessions, setBookingSessions] = useState([]);
+  const [loadingBookings, setLoadingBookings] = useState(false);
+  const [bookingStatusFilter, setBookingStatusFilter] = useState('all');
+  const [bookingSortOrder, setBookingSortOrder] = useState('desc');
   const [assessmentSortOrder, setAssessmentSortOrder] = useState('desc'); // 'asc', 'desc' for time
   const [assessmentTypeFilter, setAssessmentTypeFilter] = useState('all'); // 'all', 'crafft', 'assist'
   const token = sessionStorage.getItem('token');
@@ -113,6 +118,21 @@ const DetailMemberPage = () => {
             console.warn('Could not fetch blogs with fallback:', fallbackError);
             setWrittenBlogs([]);
           }
+        }
+        
+        // Fetch booking sessions for the specific member
+        try {
+          setLoadingBookings(true);
+          const bookingsRes = await axios.get(`http://localhost:3000/api/booking-sessions/member/${userId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          console.log('Booking sessions response:', bookingsRes.data);
+          setBookingSessions(bookingsRes.data.data || []);
+        } catch (bookingError) {
+          console.warn('Could not fetch member booking sessions:', bookingError);
+          setBookingSessions([]);
+        } finally {
+          setLoadingBookings(false);
         }
         
       } catch (err) {
@@ -246,6 +266,104 @@ const DetailMemberPage = () => {
       const dateB = new Date(b.create_at);
       const comparison = dateA - dateB;
       return assessmentSortOrder === 'asc' ? comparison : -comparison;
+    });
+  };
+
+  // Booking helper functions (similar to BookingPage)
+  const formatTime = (timeString) => {
+    if (!timeString) return '';
+    
+    // Handle different time formats
+    if (timeString.includes('T')) {
+      // ISO format: "1900-01-01T09:00:00.000Z"
+      const date = new Date(timeString);
+      return date.toTimeString().substring(0, 5); // Returns "09:00"
+    } else if (timeString.includes(':')) {
+      // Direct time format: "09:00:00"
+      return timeString.substring(0, 5); // Returns "09:00"
+    }
+    
+    return timeString;
+  };
+
+  // Format booking date with day of week and dd/mm/yyyy
+  const formatBookingDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    
+    const date = new Date(dateString);
+    const dayNames = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+    const dayOfWeek = dayNames[date.getDay()];
+    const formattedDate = date.toLocaleDateString('vi-VN');
+    
+    return `${dayOfWeek}, ${formattedDate}`;
+  };
+
+  // Get status info for booking
+  const getStatusInfo = (status) => {
+    switch (status) {
+      case 'Đang chờ xác nhận':
+        return { className: 'bg-warning text-dark', text: 'Đang chờ xác nhận' };
+      case 'Đã xác nhận':
+        return { className: 'bg-success text-white', text: 'Đã xác nhận' };
+      case 'Đã hoàn thành':
+        return { className: 'bg-info text-white', text: 'Đã hoàn thành' };
+      case 'Đã hủy':
+        return { className: 'bg-danger text-white', text: 'Đã hủy' };
+      case 'Bỏ lỡ':
+        return { className: 'bg-secondary text-white', text: 'Bỏ lỡ' };
+      default:
+        return { className: 'bg-light text-dark', text: status || 'Không xác định' };
+    }
+  };
+
+  // Check if booking is today
+  const isBookingToday = (booking) => {
+    if (!booking.booking_date) return false;
+    
+    const today = new Date();
+    const bookingDate = new Date(booking.booking_date);
+    
+    return today.toDateString() === bookingDate.toDateString();
+  };
+
+  // Get row styling based on booking status and date
+  const getBookingRowStyle = (booking) => {
+    const today = new Date();
+    const bookingDate = new Date(booking.booking_date);
+    
+    if (booking.status === 'Đã hủy' || booking.status === 'Bỏ lỡ') {
+      return { backgroundColor: '#f8f9fa', opacity: '0.7' };
+    }
+    
+    if (bookingDate < today && booking.status !== 'Đã hoàn thành') {
+      return { backgroundColor: '#fff3cd' }; // Light yellow for overdue
+    }
+    
+    if (isBookingToday(booking)) {
+      return { backgroundColor: '#d4edda' }; // Light green for today
+    }
+    
+    return {};
+  };
+
+  // Sort and filter booking sessions function
+  const sortAndFilterBookings = (bookings) => {
+    if (!bookings || bookings.length === 0) return [];
+    
+    // First filter by status
+    let filtered = [...bookings];
+    if (bookingStatusFilter !== 'all') {
+      filtered = filtered.filter(booking => 
+        booking.status === bookingStatusFilter
+      );
+    }
+    
+    // Then sort by date
+    return filtered.sort((a, b) => {
+      const dateA = new Date(a.booking_date);
+      const dateB = new Date(b.booking_date);
+      const comparison = dateA - dateB;
+      return bookingSortOrder === 'asc' ? comparison : -comparison;
     });
   };
 
@@ -723,6 +841,228 @@ const DetailMemberPage = () => {
                           </div>
                         </div>
                       ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Booking Sessions Section */}
+          <div className="booking-sessions mb-4">
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <h3 className="mb-0">Lịch hẹn tư vấn</h3>
+              <div className="d-flex gap-2">
+                {showBookings && bookingSessions && bookingSessions.length > 0 && (
+                  <>
+                    <select 
+                      className="form-select form-select-sm"
+                      style={{ width: 'auto' }}
+                      value={bookingStatusFilter}
+                      onChange={(e) => setBookingStatusFilter(e.target.value)}
+                    >
+                      <option value="all">Tất cả trạng thái</option>
+                      <option value="Đang chờ xác nhận">Đang chờ xác nhận</option>
+                      <option value="Đã xác nhận">Đã xác nhận</option>
+                      <option value="Đã hoàn thành">Đã hoàn thành</option>
+                      <option value="Đã hủy">Đã hủy</option>
+                      <option value="Bỏ lỡ">Bỏ lỡ</option>
+                    </select>
+                    <select 
+                      className="form-select form-select-sm"
+                      style={{ width: 'auto' }}
+                      value={bookingSortOrder}
+                      onChange={(e) => setBookingSortOrder(e.target.value)}
+                    >
+                      <option value="desc">Mới nhất trước</option>
+                      <option value="asc">Cũ nhất trước</option>
+                    </select>
+                  </>
+                )}
+                <button 
+                  className="btn btn-outline-secondary btn-sm"
+                  onClick={() => setShowBookings(!showBookings)}
+                >
+                  {showBookings ? 'Ẩn' : 'Hiện'} lịch hẹn
+                </button>
+              </div>
+            </div>
+
+            {showBookings && (
+              <div className="card">
+                <div className="card-body">
+                  {loadingBookings ? (
+                    <div className="text-center text-muted p-4">
+                      <div className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
+                      Đang tải lịch hẹn...
+                    </div>
+                  ) : bookingSessions.length === 0 ? (
+                    <div className="text-center text-muted p-4">
+                      <p>Chưa có lịch hẹn nào.</p>
+                    </div>
+                  ) : (
+                    <div className="table-responsive">
+                      {/* Filter Summary */}
+                      <div className="row mb-3">
+                        <div className="col-md-6">
+                          <div className="info-item">
+                            <strong>Số lịch hẹn hiển thị:</strong> {
+                              bookingStatusFilter === 'all' 
+                                ? bookingSessions.length
+                                : sortAndFilterBookings(bookingSessions).length
+                            } / {bookingSessions.length} lịch hẹn
+                            {bookingStatusFilter !== 'all' && (
+                              <small className="text-muted ms-2">
+                                (Đã lọc theo trạng thái: {bookingStatusFilter})
+                              </small>
+                            )}
+                          </div>
+                        </div>
+                        <div className="col-md-6">
+                          <div className="info-item">
+                            <strong>Lịch hẹn gần nhất:</strong> {
+                              (() => {
+                                const filteredBookings = sortAndFilterBookings(bookingSessions);
+                                return filteredBookings && filteredBookings.length > 0
+                                  ? formatBookingDate(filteredBookings[0].booking_date)
+                                  : 'Không có lịch hẹn';
+                              })()
+                            }
+                          </div>
+                        </div>
+                      </div>
+
+                      <table className="table table-striped table-hover">
+                        <thead className="table-primary">
+                          <tr>
+                            <th scope="col">Ngày hẹn</th>
+                            <th scope="col">Thời gian</th>
+                            <th scope="col">Chuyên gia tư vấn</th>
+                            <th scope="col">Trạng thái</th>
+                            <th scope="col">Ghi chú</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(() => {
+                            const filteredAndSortedBookings = sortAndFilterBookings(bookingSessions);
+                            
+                            if (filteredAndSortedBookings.length === 0) {
+                              return (
+                                <tr>
+                                  <td colSpan="5" className="text-center text-muted p-4">
+                                    <p>Không có lịch hẹn nào phù hợp với bộ lọc đã chọn.</p>
+                                  </td>
+                                </tr>
+                              );
+                            }
+                            
+                            return filteredAndSortedBookings.map((booking, index) => {
+                              const statusInfo = getStatusInfo(booking.status);
+                              const rowStyle = getBookingRowStyle(booking);
+                              
+                              return (
+                                <tr key={booking.booking_id || index} style={rowStyle}>
+                                  <td>
+                                    <div>
+                                      <strong>{formatBookingDate(booking.booking_date)}</strong>
+                                      {isBookingToday(booking) && (
+                                        <div>
+                                          <small className="badge bg-success ms-2">Hôm nay</small>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </td>
+                                  <td>
+                                    <span className="fw-bold">
+                                      {formatTime(booking.start_time)} - {formatTime(booking.end_time)}
+                                    </span>
+                                  </td>
+                                  <td>
+                                    <div>
+                                      <strong>{booking.consultant_name || 'Chưa xác định'}</strong>
+                                    </div>
+                                  </td>
+                                  <td>
+                                    <span className={`badge ${statusInfo.className}`}>
+                                      {statusInfo.text}
+                                    </span>
+                                  </td>
+                                  <td>
+                                    <div style={{ maxWidth: '200px' }}>
+                                      {booking.notes ? (
+                                        <small className="text-muted">
+                                          {booking.notes.length > 50 
+                                            ? `${booking.notes.substring(0, 50)}...` 
+                                            : booking.notes}
+                                        </small>
+                                      ) : (
+                                        <small className="text-muted">Không có ghi chú</small>
+                                      )}
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            });
+                          })()}
+                        </tbody>
+                      </table>
+                      
+                      {/* Summary Statistics */}
+                      <div className="mt-3 p-3 bg-light rounded">
+                        <div className="row text-center">
+                          <div className="col-md-3">
+                            <div className="fw-bold text-primary">
+                              {bookingStatusFilter === 'all' ? bookingSessions.length : sortAndFilterBookings(bookingSessions).length}
+                            </div>
+                            <small className="text-muted">
+                              {bookingStatusFilter === 'all' ? 'Tổng số lịch hẹn' : 'Lịch hẹn đã lọc'}
+                            </small>
+                          </div>
+                          <div className="col-md-3">
+                            <div className="fw-bold text-success">
+                              {bookingStatusFilter === 'all' 
+                                ? bookingSessions.filter(b => b.status === 'Đã hoàn thành').length
+                                : sortAndFilterBookings(bookingSessions).filter(b => b.status === 'Đã hoàn thành').length
+                              }
+                            </div>
+                            <small className="text-muted">Đã hoàn thành</small>
+                          </div>
+                          <div className="col-md-3">
+                            <div className="fw-bold text-warning">
+                              {bookingStatusFilter === 'all'
+                                ? bookingSessions.filter(b => b.status === 'Đang chờ xác nhận' || b.status === 'Đã xác nhận').length
+                                : sortAndFilterBookings(bookingSessions).filter(b => b.status === 'Đang chờ xác nhận' || b.status === 'Đã xác nhận').length
+                              }
+                            </div>
+                            <small className="text-muted">Đang chờ/Đã xác nhận</small>
+                          </div>
+                          <div className="col-md-3">
+                            <div className="fw-bold text-danger">
+                              {bookingStatusFilter === 'all'
+                                ? bookingSessions.filter(b => b.status === 'Đã hủy' || b.status === 'Bỏ lỡ').length
+                                : sortAndFilterBookings(bookingSessions).filter(b => b.status === 'Đã hủy' || b.status === 'Bỏ lỡ').length
+                              }
+                            </div>
+                            <small className="text-muted">Đã hủy/Bỏ lỡ</small>
+                          </div>
+                        </div>
+                        
+                        {/* Additional Filter Info */}
+                        {bookingStatusFilter !== 'all' && (
+                          <div className="mt-3 text-center">
+                            <small className="text-muted">
+                              <i className="bi bi-funnel me-1"></i>
+                              Hiển thị {sortAndFilterBookings(bookingSessions).length} trong tổng số {bookingSessions.length} lịch hẹn
+                            </small>
+                            <button 
+                              className="btn btn-sm btn-outline-secondary ms-2"
+                              onClick={() => setBookingStatusFilter('all')}
+                            >
+                              Xóa bộ lọc
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
