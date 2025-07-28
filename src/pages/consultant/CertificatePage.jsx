@@ -16,11 +16,11 @@ const CertificatePage = () => {
         navigate('/admin/login');
         return;
       }
-      
+
       const res = await axios.get('http://localhost:3000/api/user/role/', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       if (!(res.data.role && res.data.role === 'consultant')) {
         navigate('/admin/login');
       }
@@ -98,7 +98,7 @@ const CertificatePage = () => {
   // Get consultant ID by email from token
   const getConsultantIdByEmail = async () => {
     try {
-      const userEmail = localStorage.getItem('email2');
+      const userEmail = sessionStorage.getItem('email2');
 
       if (!userEmail) {
         console.error("User email not found in session or token");
@@ -128,10 +128,10 @@ const CertificatePage = () => {
       const response = await axios.get("http://localhost:3000/api/user/profile-combined", {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       console.log("User data response:", response.data);
       const user = response.data.data; // Note: API returns data in .data property
-      
+
       setUserData({
         user_id: user.user_id || null,
         email: user.email || "",
@@ -139,7 +139,7 @@ const CertificatePage = () => {
         created_at: user.created_at || "",
         updated_at: user.updated_at || "",
       });
-      
+
       return user;
     } catch (error) {
       console.error("Error fetching user data:", error);
@@ -155,7 +155,7 @@ const CertificatePage = () => {
   const fetchProfileData = async (consultantId) => {
     try {
       console.log("Fetching profile data for consultant ID:", consultantId);
-      
+
       const res = await axios.get(`http://localhost:3000/api/consultants/${consultantId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -191,7 +191,7 @@ const CertificatePage = () => {
   const fetchConsultantData = async (consultantId) => {
     try {
       console.log("Fetching consultant data for ID:", consultantId);
-      
+
       const res = await axios.get(`http://localhost:3000/api/consultants/${consultantId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -225,17 +225,17 @@ const CertificatePage = () => {
   const fetchScheduleData = async (consultantId) => {
     try {
       console.log("Fetching schedule data for consultant ID:", consultantId);
-      
+
       const res = await axios.get(`http://localhost:3000/api/consultant-slots/${consultantId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       console.log("Schedule data response:", res.data);
-      
+
       if (res.data.success && res.data.data) {
         const slots = res.data.data;
         console.log("Raw slots data:", slots);
-        
+
         // Process slots - API already returns the correct structure
         const processedSlots = slots.map(slot => ({
           slot_id: slot.slot_id,
@@ -280,9 +280,9 @@ const CertificatePage = () => {
       }
     } catch (err) {
       console.error("Error fetching schedule data:", err);
-      setMessage({ 
-        text: "Không thể tải khung giờ làm việc. Vui lòng thử lại.", 
-        type: "error" 
+      setMessage({
+        text: "Không thể tải khung giờ làm việc. Vui lòng thử lại.",
+        type: "error"
       });
       return [];
     }
@@ -327,7 +327,7 @@ const CertificatePage = () => {
   // Refresh only schedule data
   const refreshSchedule = async () => {
     if (!consultantData.consultant_id) return;
-    
+
     try {
       setLoading(true);
       console.log("Refreshing schedule data...");
@@ -557,7 +557,7 @@ const CertificatePage = () => {
             <FaClock className="me-2" />
             Lịch làm việc
           </h5>
-          <button 
+          <button
             className="btn btn-sm btn-outline-primary"
             onClick={refreshSchedule}
             disabled={loading}
@@ -601,7 +601,7 @@ const CertificatePage = () => {
                   const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
                   const dayLabels = {
                     'Monday': 'Thứ 2',
-                    'Tuesday': 'Thứ 3', 
+                    'Tuesday': 'Thứ 3',
                     'Wednesday': 'Thứ 4',
                     'Thursday': 'Thứ 5',
                     'Friday': 'Thứ 6',
@@ -611,7 +611,7 @@ const CertificatePage = () => {
 
                   return dayOrder.map(day => {
                     const daySlots = scheduleData.consultant_slots.filter(slot => slot.day_of_week === day);
-                    
+
                     return daySlots.length > 0 ? (
                       <div key={day} className="day-schedule mb-3 p-3 border rounded">
                         <div className="d-flex align-items-center mb-2">
@@ -665,7 +665,7 @@ const CertificatePage = () => {
           <small className="text-muted">Quản lý thông tin cá nhân và chuyên môn</small>
         </div>
         <button className="btn btn-primary" onClick={handleOpenEditModal}>
-          <FaEdit style={{ marginRight: "5px" }} /> 
+          <FaEdit style={{ marginRight: "5px" }} />
           Chỉnh sửa thông tin
         </button>
       </div>
@@ -691,7 +691,7 @@ const CertificatePage = () => {
         <div className="profile-tabs mb-4">
           <ul className="nav nav-tabs">
             <li className="nav-item">
-              <button 
+              <button
                 className={`nav-link ${activeTab === 'profile' ? 'active' : ''}`}
                 onClick={() => setActiveTab('profile')}
               >
@@ -700,7 +700,7 @@ const CertificatePage = () => {
               </button>
             </li>
             <li className="nav-item">
-              <button 
+              <button
                 className={`nav-link ${activeTab === 'consultant' ? 'active' : ''}`}
                 onClick={() => setActiveTab('consultant')}
               >
@@ -709,7 +709,7 @@ const CertificatePage = () => {
               </button>
             </li>
             <li className="nav-item">
-              <button 
+              <button
                 className={`nav-link ${activeTab === 'schedule' ? 'active' : ''}`}
                 onClick={() => setActiveTab('schedule')}
               >

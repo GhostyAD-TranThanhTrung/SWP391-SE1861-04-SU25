@@ -255,7 +255,7 @@ const ManageBookingPage = () => {
   const fetchBookingSessions = async () => {
     try {
       // Get consultant ID from email
-      const email = localStorage.getItem('email2');
+      const email = sessionStorage.getItem('email2');
       if (!email) {
         console.error("No email found in localStorage");
         return;
