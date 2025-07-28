@@ -162,6 +162,100 @@ const BookingPage = () => {
         setShowNoteModal(true);
     };
 
+    // Check if the booking time (with 15-minute margin) has arrived and status is confirmed
+    const isMeetingTimeAvailable = (booking) => {
+        if (!booking.booking_date || !booking.slot_id) return false;
+        
+        // Check booking status - disable if pending confirmation or cancelled
+        const disabledStatuses = ['Đang chờ xác nhận', 'Đã hủy', 'pending', 'cancelled'];
+        if (disabledStatuses.includes(booking.status)) {
+            return false;
+        }
+        
+        try {
+            // Get the slot information
+            const slot = databaseSlots.find(s => s.slot_id === booking.slot_id);
+            if (!slot) return false;
+            
+            // Create the booking datetime
+            const bookingDate = new Date(booking.booking_date);
+            const [hours, minutes] = slot.start_time.split(':').map(Number);
+            
+            // Set the booking time
+            bookingDate.setHours(hours, minutes, 0, 0);
+            
+            // Subtract 15 minutes (15 * 60 * 1000 milliseconds)
+            const availableTime = new Date(bookingDate.getTime() - (15 * 60 * 1000));
+            
+            // Check if current time has passed the available time
+            const now = new Date();
+            return now >= availableTime;
+        } catch (error) {
+            console.error('Error checking meeting time availability:', error);
+            return false;
+        }
+    };
+
+    // Get time remaining until meeting becomes available
+    const getTimeUntilAvailable = (booking) => {
+        if (!booking.booking_date || !booking.slot_id) return '';
+        
+        try {
+            const slot = databaseSlots.find(s => s.slot_id === booking.slot_id);
+            if (!slot) return '';
+            
+            const bookingDate = new Date(booking.booking_date);
+            const [hours, minutes] = slot.start_time.split(':').map(Number);
+            bookingDate.setHours(hours, minutes, 0, 0);
+            
+            const availableTime = new Date(bookingDate.getTime() - (15 * 60 * 1000));
+            const now = new Date();
+            
+            if (now >= availableTime) return '';
+            
+            const diffMs = availableTime.getTime() - now.getTime();
+            const diffMins = Math.ceil(diffMs / (1000 * 60));
+            const diffHours = Math.floor(diffMins / 60);
+            const remainingMins = diffMins % 60;
+            
+            if (diffHours > 0) {
+                return `Khả dụng sau ${diffHours}h${remainingMins > 0 ? ` ${remainingMins}p` : ''}`;
+            } else {
+                return `Khả dụng sau ${diffMins} phút`;
+            }
+        } catch (error) {
+            return '';
+        }
+    };
+
+    // Get disabled button info based on booking status and time
+    const getDisabledButtonInfo = (booking) => {
+        const disabledStatuses = ['Đang chờ xác nhận', 'Đã hủy', 'pending', 'cancelled'];
+        
+        if (disabledStatuses.includes(booking.status)) {
+            if (booking.status === 'Đang chờ xác nhận' || booking.status === 'pending') {
+                return {
+                    text: 'Chờ xác nhận',
+                    tooltip: 'Cuộc hẹn đang chờ tư vấn viên xác nhận',
+                    className: 'btn btn-sm btn-warning'
+                };
+            } else if (booking.status === 'Đã hủy' || booking.status === 'cancelled') {
+                return {
+                    text: 'Đã hủy',
+                    tooltip: 'Cuộc hẹn đã bị hủy',
+                    className: 'btn btn-sm btn-danger'
+                };
+            }
+        }
+        
+        // Default case for time-based restriction
+        return {
+            text: 'Chưa đến giờ',
+            tooltip: `Link sẽ khả dụng trước 15 phút khi bắt đầu. ${getTimeUntilAvailable(booking)}`,
+            className: 'btn btn-sm btn-secondary'
+        };
+    };
+
     // Load data
     useEffect(() => {
         const loadData = async () => {
@@ -442,17 +536,39 @@ const BookingPage = () => {
                                                         </td>
                                                         <td style={{ padding: '1rem', borderBottom: '1px solid #f0f0f0' }}>
                                                             {booking.google_meet_link ? (
-                                                    <a
-                                                        href={booking.google_meet_link}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                                    className="btn btn-sm btn-success"
-                                                                    style={{ borderRadius: '6px', padding: '0.5rem 1rem' }}
-                                                    >
-                                                                    <i className="bi bi-camera-video me-1"></i>
-                                                                    Tham gia
-                                                    </a>
-                                                ) : (
+                                                                isMeetingTimeAvailable(booking) ? (
+                                                                    <a
+                                                                        href={booking.google_meet_link}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="btn btn-sm btn-success"
+                                                                        style={{ borderRadius: '6px', padding: '0.5rem 1rem' }}
+                                                                    >
+                                                                        <i className="bi bi-camera-video me-1"></i>
+                                                                        Tham gia
+                                                                    </a>
+                                                                ) : (
+                                                                    (() => {
+                                                                        const buttonInfo = getDisabledButtonInfo(booking);
+                                                                        return (
+                                                                            <button
+                                                                                className={buttonInfo.className}
+                                                                                disabled
+                                                                                style={{ 
+                                                                                    borderRadius: '6px', 
+                                                                                    padding: '0.5rem 1rem',
+                                                                                    cursor: 'not-allowed',
+                                                                                    opacity: 0.6
+                                                                                }}
+                                                                                title={buttonInfo.tooltip}
+                                                                            >
+                                                                                <i className="bi bi-camera-video me-1"></i>
+                                                                                {buttonInfo.text}
+                                                                            </button>
+                                                                        );
+                                                                    })()
+                                                                )
+                                                            ) : (
                                                                 <span className="text-muted" style={{ fontSize: '0.9rem' }}>Chưa có link</span>
                                                             )}
                                                         </td>
