@@ -10,6 +10,7 @@ const AppDataSource = require('../src/data-source');
 const User = require('../src/entities/User');
 const Profile = require('../src/entities/Profile');
 const Program = require('../src/entities/Program');
+const Blog = require('../src/entities/Blog');
 const Flag = require('../src/entities/Flag');
 const bcrypt = require('bcryptjs');
 
@@ -670,6 +671,122 @@ class StaffController {
             res.status(500).json({
                 success: false,
                 message: 'Failed to retrieve staff statistics',
+                error: error.message
+            });
+        }
+    }
+
+    /**
+     * GET /api/staff/details/:staffId - Get detailed staff information
+     * Returns staff information including blogs they've posted and programs they've created
+     */
+    static async getStaffDetails(req, res) {
+        try {
+            const { staffId } = req.params;
+            const userRepository = AppDataSource.getRepository(User);
+            const profileRepository = AppDataSource.getRepository(Profile);
+            const blogRepository = AppDataSource.getRepository(Blog);
+            const programRepository = AppDataSource.getRepository(Program);
+
+            if (!staffId) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Staff ID is required'
+                });
+            }
+
+            // Get staff user information
+            const staffUser = await userRepository.findOne({
+                where: { 
+                    user_id: parseInt(staffId),
+                    role: ['admin', 'staff', 'manager'].includes(req.query.role) ? req.query.role : undefined
+                }
+            });
+
+            if (!staffUser) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Staff member not found'
+                });
+            }
+
+            // Verify this is actually a staff member
+            if (!['admin', 'staff', 'manager'].includes(staffUser.role)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'User is not a staff member'
+                });
+            }
+
+            // Get profile information
+            const profile = await profileRepository.findOne({
+                where: { user_id: parseInt(staffId) }
+            });
+
+            // Parse bio_json if it exists
+            if (profile && profile.bio_json) {
+                try {
+                    profile.bio_json = JSON.parse(profile.bio_json);
+                } catch (error) {
+                    console.warn(`Failed to parse bio_json for user ${staffId}:`, error);
+                }
+            }
+
+            // Get blogs posted by this staff member
+            const blogs = await blogRepository.find({
+                where: { author_id: parseInt(staffId) },
+                order: { created_at: 'DESC' }
+            });
+
+            // Get programs created by this staff member
+            const programs = await programRepository.find({
+                where: { create_by: parseInt(staffId) },
+                relations: ['category'],
+                order: { create_at: 'DESC' }
+            });
+
+            // Check if the requesting user is an admin (from verified token)
+            const isAdmin = req.user && req.user.role && req.user.role.toLowerCase() === 'admin';
+
+            // Prepare staff data
+            const staffData = {
+                ...staffUser,
+                profile: profile || null
+            };
+
+            // Include password only if the requesting user is an admin
+            if (!isAdmin) {
+                delete staffData.password;
+            }
+
+            // Calculate statistics
+            const statistics = {
+                total_blogs: blogs.length,
+                total_programs: programs.length,
+                active_blogs: blogs.filter(blog => blog.status === 'active').length,
+                active_programs: programs.filter(program => program.status === 'active').length,
+                recent_activity: {
+                    recent_blogs: blogs.slice(0, 3), // Last 3 blogs
+                    recent_programs: programs.slice(0, 3) // Last 3 programs
+                }
+            };
+
+            res.status(200).json({
+                success: true,
+                data: {
+                    staff_info: staffData,
+                    blogs: blogs,
+                    programs: programs,
+                    statistics: statistics
+                },
+                message: 'Staff details retrieved successfully'
+            });
+
+        } catch (error) {
+            console.error('Error getting staff details:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to retrieve staff details',
                 error: error.message
             });
         }
