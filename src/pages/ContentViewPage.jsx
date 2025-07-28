@@ -94,6 +94,164 @@ const ContentViewPage = () => {
         fetchContent();
     }, [contentId, navigate]);
 
+    // Handle image errors after content loads
+    useEffect(() => {
+        const handleImageErrors = () => {
+            const imageContainers = document.querySelectorAll('.image-container');
+            const directImages = document.querySelectorAll('.content-image:not(.image-container .content-image)');
+
+            console.log('🔍 Image error detection running:', {
+                imageContainers: imageContainers.length,
+                directImages: directImages.length
+            });
+
+            // Handle markdown images in containers
+            imageContainers.forEach(container => {
+                const img = container.querySelector('.content-image');
+                const fallback = container.querySelector('.image-error-fallback');
+                const isBackend = container.getAttribute('data-is-backend') === 'true';
+                const isExternal = container.getAttribute('data-is-external') === 'true';
+                
+                if (img && fallback) {
+                    const showFallback = () => {
+                        console.log(`❌ Image failed to load: ${img.src} (Backend: ${isBackend}, External: ${isExternal})`);
+                        img.style.display = 'none';
+                        fallback.style.display = 'block';
+                    };
+
+                    // More aggressive error detection
+                    const checkImageFailed = () => {
+                        return (img.complete && img.naturalHeight === 0) || 
+                               (img.complete && img.naturalWidth === 0) ||
+                               img.src === '' || 
+                               img.src === window.location.href;
+                    };
+
+                    // Check if image already failed to load
+                    if (checkImageFailed()) {
+                        console.log('🚨 Image already failed, showing fallback immediately');
+                        showFallback();
+                    } else {
+                        // Set up error handlers
+                        img.onerror = showFallback;
+                        
+                        // Set a timeout to check for CORS/network errors that don't trigger onerror
+                        const timeoutId = setTimeout(() => {
+                            if (checkImageFailed()) {
+                                console.log('⏰ Image timeout detected, showing fallback');
+                                showFallback();
+                            }
+                        }, 5000); // 5 second timeout
+                        
+                        // For backend images, also check if they load successfully
+                        if (isBackend) {
+                            img.onload = () => {
+                                console.log(`✅ Backend image loaded successfully: ${img.src}`);
+                                clearTimeout(timeoutId);
+                                fallback.style.display = 'none';
+                                img.style.display = 'block';
+                            };
+                        } else if (isExternal) {
+                            // For external images, be more aggressive about showing fallbacks
+                            img.onload = () => {
+                                console.log(`✅ External image loaded successfully: ${img.src}`);
+                                clearTimeout(timeoutId);
+                                fallback.style.display = 'none';
+                                img.style.display = 'block';
+                            };
+                        }
+                    }
+                }
+            });
+
+            // Handle direct images (create enhanced fallback dynamically)
+            directImages.forEach(img => {
+                const isBackend = img.src.includes('localhost:3000') || img.src.includes('/api/images/');
+                const isExternal = !isBackend && (img.src.startsWith('http://') || img.src.startsWith('https://'));
+                
+                const checkImageFailed = () => {
+                    return (img.complete && img.naturalHeight === 0) || 
+                           (img.complete && img.naturalWidth === 0) ||
+                           img.src === '' || 
+                           img.src === window.location.href;
+                };
+                
+                if (checkImageFailed()) {
+                    createDirectImageFallback(img, isBackend, isExternal);
+                } else {
+                    img.onerror = function() {
+                        createDirectImageFallback(this, isBackend, isExternal);
+                    };
+                    
+                    // Set timeout for external images
+                    if (isExternal) {
+                        setTimeout(() => {
+                            if (checkImageFailed()) {
+                                console.log('⏰ Direct image timeout detected');
+                                createDirectImageFallback(img, isBackend, isExternal);
+                            }
+                        }, 5000);
+                    }
+                }
+            });
+        };
+
+        const createDirectImageFallback = (img, isBackend, isExternal) => {
+            const src = img.src;
+            let errorMessage, linkText;
+            
+            if (isBackend) {
+                errorMessage = "Không thể tải hình ảnh từ server";
+                linkText = "Thử tải lại hình ảnh";
+            } else if (isExternal) {
+                errorMessage = "Không thể tải hình ảnh từ nguồn bên ngoài";
+                linkText = "Mở liên kết gốc";
+            } else {
+                errorMessage = "Không thể tải hình ảnh";
+                linkText = "Xem liên kết";
+            }
+            
+            const fallbackHtml = `
+                <div class="image-error-fallback" style="padding: 15px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; margin: 10px 0;">
+                    <div class="error-message" style="color: #dc3545; font-weight: 500; margin-bottom: 10px;">
+                        <i class="bi bi-exclamation-triangle" style="margin-right: 5px;"></i>
+                        ${errorMessage}
+                    </div>
+                    <div class="error-actions" style="margin-bottom: 10px;">
+                        <a href="${src}" target="_blank" rel="noopener noreferrer" class="image-link" style="display: inline-flex; align-items: center; color: #0066cc; text-decoration: none; font-size: 14px;">
+                            <i class="bi bi-box-arrow-up-right" style="margin-right: 5px;"></i>
+                            <span class="link-text">${linkText}</span>
+                        </a>
+                        ${isBackend ? `
+                        <button onclick="this.previousElementSibling.style.display='none'; this.parentElement.parentElement.style.display='none'; this.parentElement.parentElement.previousElementSibling.src='${src}?t=' + Date.now(); this.parentElement.parentElement.previousElementSibling.style.display='block';" 
+                            style="margin-left: 10px; padding: 4px 8px; background: #0066cc; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;">
+                            <i class="bi bi-arrow-clockwise" style="margin-right: 3px;"></i>
+                            Thử lại
+                        </button>` : ''}
+                    </div>
+                    <div class="url-preview" style="margin-top: 8px; padding: 8px; background: #fff; border: 1px solid #e9ecef; border-radius: 4px;">
+                        <div style="font-size: 12px; color: #6c757d; margin-bottom: 4px;">Đường dẫn hình ảnh:</div>
+                        <div style="font-size: 11px; color: #495057; word-break: break-all; font-family: monospace;">${src}</div>
+                    </div>
+                </div>
+            `;
+            
+            console.log(`❌ Image failed to load: ${src} (Backend: ${isBackend}, External: ${isExternal})`);
+            img.style.display = 'none';
+            img.insertAdjacentHTML('afterend', fallbackHtml);
+        };
+
+        // Run immediately and then with delays to catch different types of failures
+        if (!loading) {
+            // Immediate check
+            setTimeout(handleImageErrors, 10);
+            // Secondary check for slower loading/CORS issues
+            setTimeout(handleImageErrors, 500);
+            // Final check for timeout issues
+            setTimeout(handleImageErrors, 2000);
+        }
+    }, [loading, content, contentFile]);
+
     const fetchProgramContents = async (programId) => {
         setLoadingNavigation(true);
         console.log('📚 Fetching all contents for program:', programId);
@@ -130,7 +288,6 @@ const ContentViewPage = () => {
 
     const navigateToContent = (direction) => {
         if (currentContentIndex === -1 || programContents.length === 0) {
-            console.log('❌ Cannot navigate - no program contents loaded');
             return;
         }
 
@@ -138,7 +295,6 @@ const ContentViewPage = () => {
         if (direction === 'next') {
             targetIndex = currentContentIndex + 1;
             if (targetIndex >= programContents.length) {
-                console.log('❌ Already at last content');
                 return;
             }
         } else if (direction === 'prev') {
@@ -148,12 +304,10 @@ const ContentViewPage = () => {
                 return;
             }
         } else {
-            console.log('❌ Invalid direction:', direction);
             return;
         }
 
         const targetContent = programContents[targetIndex];
-        console.log(`🔄 Navigating ${direction} to content:`, targetContent.content_id);
         navigate(`/content/${targetContent.content_id}`);
     };
 
@@ -183,19 +337,16 @@ const ContentViewPage = () => {
 
     const checkEnrollmentAndCompletion = async (programId, contentIdNum, token) => {
         setCheckingCompletion(true);
-        console.log('🔍 Checking enrollment for program:', programId, 'content:', contentIdNum);
 
         try {
             // Check if user is enrolled in this program
             const enrollmentUrl = `${API_URL}/enrollments/check/${programId}`;
-            console.log('📡 GET enrollment check from:', enrollmentUrl);
             const enrollmentRes = await fetch(enrollmentUrl, {
                 headers: getAuthHeaders()
             });
 
             if (enrollmentRes.ok) {
                 const enrollmentData = await enrollmentRes.json();
-                console.log('✅ Enrollment check response:', enrollmentData);
 
                 if (enrollmentData.data && enrollmentData.data.length > 0) {
                     const enrollment = enrollmentData.data[0];
@@ -223,26 +374,21 @@ const ContentViewPage = () => {
 
     const handleToggleCompletion = async () => {
         if (!enrollmentData || !content) {
-            console.log('❌ Cannot toggle - no enrollment or content data');
             return;
         }
 
         const token = localStorage.getItem('token') || sessionStorage.getItem('token');
         if (!token) {
-            console.log('❌ No token available');
             return;
         }
 
         setUpdatingCompletion(true);
-        console.log('🔄 Toggling completion for content:', contentId);
 
         try {
             // Create composite enroll_id in format "userId_programId"
             const enrollId = `${enrollmentData.user_id}_${enrollmentData.program_id}`;
-            console.log('🆔 Using enroll ID:', enrollId);
 
             const url = `${API_URL}/enrollments/${enrollId}/content/${contentId}/toggle`;
-            console.log('📡 PATCH to:', url);
 
             const res = await fetch(url, {
                 method: 'PATCH',
@@ -488,12 +634,117 @@ const ContentViewPage = () => {
 
         // Enhanced markdown to HTML conversion with image support using new API endpoint
         let html = markdown
-            // Images - now using the new API endpoint via CONTENT_URLS
-            .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, src) => {
-                console.log('🔍 Found image in markdown:', { alt, src, match });
-                const convertedSrc = CONTENT_URLS.CONVERT_IMAGE_PATH(src);
-                console.log('🎯 Final converted image src (via API):', convertedSrc);
-                return `<img src="${convertedSrc}" alt="${alt}" class="content-image" onerror="console.error('❌ Image failed to load via API:', '${convertedSrc}'); this.style.display='none';" onload="console.log('✅ Image loaded successfully via API:', '${convertedSrc}');" />`;
+            // Images - enhanced to handle base64, URLs, and API paths (process with gs flag for multiline base64)
+            .replace(/!\[([^\]]*)\]\(([^)]+)\)/gs, (match, alt, src) => {
+                console.log('🔍 Found image in markdown:', { 
+                    alt, 
+                    srcLength: src.length,
+                    srcStart: src.substring(0, 50),
+                    isBase64: src.startsWith('data:image/')
+                });
+                
+                let finalSrc = src.trim(); // Remove any whitespace and newlines
+                let isBackendImage = false;
+                let isExternalUrl = false;
+                
+                // Handle base64 images
+                if (finalSrc.startsWith('data:image/')) {
+                    console.log('✅ Base64 image detected:', {
+                        mimeType: finalSrc.split(',')[0],
+                        dataLength: finalSrc.length
+                    });
+                    // Use base64 directly, no modifications needed
+                }
+                // Handle full external URLs (http/https) - but check if it's our backend
+                else if (finalSrc.startsWith('http://') || finalSrc.startsWith('https://')) {
+                    if (finalSrc.includes('localhost:3000') || finalSrc.includes('/api/images/')) {
+                        console.log('� Detected backend API image URL');
+                        isBackendImage = true;
+                    } else {
+                        console.log('�🌐 Detected external online image URL');
+                        isExternalUrl = true;
+                    }
+                }
+                // Handle relative paths - convert through backend API
+                else {
+                    console.log('📁 Detected relative path, converting via backend API');
+                    isBackendImage = true;
+                    
+                    // Convert relative paths starting with ../image/ to absolute API URLs
+                    if (finalSrc.startsWith('../image/')) {
+                        const filename = finalSrc.replace('../image/', '');
+                        finalSrc = `http://localhost:3000/api/images/${filename}`;
+                        console.log('Converted ../image/ path:', finalSrc);
+                    } else if (finalSrc.startsWith('./image/')) {
+                        const filename = finalSrc.replace('./image/', '');
+                        finalSrc = `http://localhost:3000/api/images/${filename}`;
+                        console.log('Converted ./image/ path:', finalSrc);
+                    } else if (finalSrc.startsWith('/image/')) {
+                        const filename = finalSrc.replace('/image/', '');
+                        finalSrc = `http://localhost:3000/api/images/${filename}`;
+                        console.log('Converted /image/ path:', finalSrc);
+                    } else if (finalSrc.includes('/image/')) {
+                        // Handle any path containing /image/
+                        const filename = finalSrc.substring(finalSrc.lastIndexOf('/image/') + 7);
+                        finalSrc = `http://localhost:3000/api/images/${filename}`;
+                        console.log('Converted generic /image/ path:', finalSrc);
+                    } else if (CONTENT_URLS && CONTENT_URLS.CONVERT_IMAGE_PATH) {
+                        finalSrc = CONTENT_URLS.CONVERT_IMAGE_PATH(finalSrc);
+                    } else {
+                        // Assume it's a filename that should be served by backend
+                        finalSrc = `http://localhost:3000/api/images/${finalSrc}`;
+                        console.log('Converted filename to backend API path:', finalSrc);
+                    }
+                }
+                
+                // Create appropriate error message based on image source type
+                let errorMessage, linkText;
+                if (isBackendImage) {
+                    errorMessage = "Không thể tải hình ảnh từ server";
+                    linkText = "Thử tải lại hình ảnh";
+                } else if (isExternalUrl) {
+                    errorMessage = "Không thể tải hình ảnh từ nguồn bên ngoài";
+                    linkText = "Mở liên kết gốc";
+                } else {
+                    errorMessage = "Không thể tải hình ảnh";
+                    linkText = "Xem liên kết";
+                }
+                
+                console.log('🎯 Final image src:', finalSrc.startsWith('data:image/') ? `base64 image (${finalSrc.length} chars)` : finalSrc);
+                
+                return `<div style="text-align: center !important; margin: 20px auto !important; display: flex !important; justify-content: center !important; align-items: center !important; flex-direction: column !important; width: 100% !important;" class="image-container" data-src="${finalSrc}" data-is-backend="${isBackendImage}" data-is-external="${isExternalUrl}">
+                    <img src="${finalSrc}" alt="${alt}" class="content-image img-fluid" style="max-width: 100% !important; height: auto !important; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: block !important; margin: 0 auto !important;" />
+                    <div class="image-error-fallback" style="display: none; padding: 15px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; margin: 10px auto; max-width: 100%; text-align: center;">
+                        <div class="error-icon" style="text-align: center; margin-bottom: 15px;">
+                            <div style="width: 200px; height: 150px; background: #e9ecef; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 0 auto; border: 2px dashed #dee2e6;">
+                                <div style="text-align: center; color: #6c757d;">
+                                    <i class="bi bi-image" style="font-size: 2rem; margin-bottom: 8px; display: block;"></i>
+                                    <span style="font-size: 12px;">Image failed to load</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="error-message" style="color: #dc3545; font-weight: 500; margin-bottom: 10px;">
+                            <i class="bi bi-exclamation-triangle" style="margin-right: 5px;"></i>
+                            ${errorMessage}
+                        </div>
+                        <div class="error-actions" style="margin-bottom: 10px;">
+                            <a href="${finalSrc}" target="_blank" rel="noopener noreferrer" class="image-link" style="display: inline-flex; align-items: center; color: #0066cc; text-decoration: none; font-size: 14px;">
+                                <i class="bi bi-box-arrow-up-right" style="margin-right: 5px;"></i>
+                                <span class="link-text">${linkText}</span>
+                            </a>
+                            ${isBackendImage ? `
+                            <button onclick="this.closest('.image-container').querySelector('.content-image').src='${finalSrc}?t=' + Date.now(); this.closest('.image-error-fallback').style.display='none'; this.closest('.image-container').querySelector('.content-image').style.display='block';" 
+                                style="margin-left: 10px; padding: 4px 8px; background: #0066cc; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;">
+                                <i class="bi bi-arrow-clockwise" style="margin-right: 3px;"></i>
+                                Thử lại
+                            </button>` : ''}
+                        </div>
+                        <div class="url-preview" style="margin-top: 8px; padding: 8px; background: #fff; border: 1px solid #e9ecef; border-radius: 4px;">
+                            <div style="font-size: 12px; color: #6c757d; margin-bottom: 4px;">Đường dẫn hình ảnh:</div>
+                            <div style="font-size: 11px; color: #495057; word-break: break-all; font-family: monospace;">${finalSrc.startsWith('data:image/') ? 'Base64 encoded image data (' + Math.round(finalSrc.length/1000) + 'KB)' : finalSrc}</div>
+                        </div>
+                    </div>
+                </div>`;
             })
             // Headers (process in order from most specific to least specific)
             .replace(/^#### (.*$)/gim, '<h4>$1</h4>')
@@ -524,11 +775,52 @@ const ContentViewPage = () => {
         html = html.replace(/(<li class="ordered">.*?<\/li>(?:\s*<br\/>\s*<li class="ordered">.*?<\/li>)*)/gims, '<ol>$1</ol>');
         html = html.replace(/(<li class="unordered">.*?<\/li>(?:\s*<br\/>\s*<li class="unordered">.*?<\/li>)*)/gims, '<ul>$1</ul>');
 
-        // Clean up extra br tags around lists and headers
+        // Handle tables
+        const tableRegex = /(\|.*\|.*<br\/>)+/gm;
+        html = html.replace(tableRegex, (match) => {
+            const rows = match.trim().split('<br/>').filter(row => row.trim());
+            if (rows.length < 2) return match;
+            
+            let tableHtml = '<table class="table table-bordered table-striped table-responsive">';
+            
+            // Header row
+            const headerCells = rows[0].split('|').map(cell => cell.trim()).filter(cell => cell);
+            if (headerCells.length > 0) {
+                tableHtml += '<thead><tr>';
+                headerCells.forEach(cell => {
+                    tableHtml += `<th>${cell}</th>`;
+                });
+                tableHtml += '</tr></thead>';
+            }
+            
+            // Skip separator row (usually contains dashes)
+            const dataRows = rows.slice(2);
+            if (dataRows.length > 0) {
+                tableHtml += '<tbody>';
+                dataRows.forEach(row => {
+                    const cells = row.split('|').map(cell => cell.trim()).filter(cell => cell);
+                    if (cells.length > 0) {
+                        tableHtml += '<tr>';
+                        cells.forEach(cell => {
+                            tableHtml += `<td>${cell}</td>`;
+                        });
+                        tableHtml += '</tr>';
+                    }
+                });
+                tableHtml += '</tbody>';
+            }
+            
+            tableHtml += '</table>';
+            return tableHtml;
+        });
+
+        // Clean up extra br tags around lists, headers, and tables
         html = html.replace(/<br\/>\s*(<[ou]l>)/gim, '$1');
         html = html.replace(/(<\/[ou]l>)\s*<br\/>/gim, '$1');
         html = html.replace(/<br\/>\s*(<h[1-6]>)/gim, '$1');
         html = html.replace(/(<\/h[1-6]>)\s*<br\/>/gim, '$1');
+        html = html.replace(/<br\/>\s*(<table)/gim, '$1');
+        html = html.replace(/(<\/table>)\s*<br\/>/gim, '$1');
 
         console.log('📝 Markdown processing complete:', {
             originalLength: markdown.length,
@@ -598,6 +890,25 @@ const ContentViewPage = () => {
 
     return (
         <div className="content-view-page">
+            <style>
+                {`
+                    .content-view-page .markdown-content .image-container {
+                        text-align: center !important;
+                        margin: 20px auto !important;
+                        display: flex !important;
+                        justify-content: center !important;
+                        align-items: center !important;
+                        flex-direction: column !important;
+                        width: 100% !important;
+                    }
+                    .content-view-page .markdown-content .content-image {
+                        display: block !important;
+                        margin: 0 auto !important;
+                        max-width: 100% !important;
+                        height: auto !important;
+                    }
+                `}
+            </style>
             {/* Header Navigation */}
             <header className="content-header">
                 <div className="header-container">
@@ -658,15 +969,107 @@ const ContentViewPage = () => {
                                     });
 
                                     // Check if content_file_link contains direct markdown
-                                    if (directContent && (directContent.startsWith('#') || directContent.includes('\n'))) {
-                                        console.log('✅ Detected direct markdown in content_file_link, rendering inline');
+                                    if (directContent && (directContent.startsWith('#') || directContent.includes('\n') || directContent.includes('![') || directContent.includes('data:image/'))) {
+                                        console.log('✅ Detected direct markdown/content in content_file_link, rendering inline');
+                                        
+                                        // Special handling for base64 images that might be stored directly
+                                        let processedContent = directContent;
+                                        
+                                        // If content contains base64 image data, wrap it in markdown format if not already
+                                        if (directContent.includes('data:image/') && !directContent.includes('![')) {
+                                            const base64Match = directContent.match(/(data:image\/[^;]+;base64,[A-Za-z0-9+\/=]+)/);
+                                            if (base64Match) {
+                                                console.log('📸 Found standalone base64 image, wrapping in markdown');
+                                                processedContent = `![Image](${base64Match[1]})`;
+                                            }
+                                        }
+                                        
                                         return (
                                             <div className="content-display markdown-display">
                                                 <div className="fallback-notice">
                                                     <i className="bi bi-info-circle"></i>
                                                     <span>Hiển thị nội dung trực tiếp</span>
                                                 </div>
-                                                <div className="markdown-content" dangerouslySetInnerHTML={{ __html: formatMarkdown(directContent) }} />
+                                                <div className="markdown-content" dangerouslySetInnerHTML={{ __html: formatMarkdown(processedContent) }} />
+                                            </div>
+                                        );
+                                    }
+                                    // Check if content_file_link is a direct image URL or base64
+                                    else if (directContent && (
+                                        directContent.startsWith('data:image/') ||
+                                        directContent.match(/\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i) ||
+                                        (directContent.startsWith('http') && directContent.includes('image'))
+                                    )) {
+                                        console.log('🖼️ Detected direct image content in content_file_link');
+                                        const isBackend = directContent.includes('localhost:3000') || directContent.includes('/api/images/');
+                                        const isExternal = !isBackend && (directContent.startsWith('http://') || directContent.startsWith('https://'));
+                                        
+                                        let errorMessage, linkText;
+                                        if (isBackend) {
+                                            errorMessage = "Không thể tải hình ảnh từ server";
+                                            linkText = "Thử tải lại hình ảnh";
+                                        } else if (isExternal) {
+                                            errorMessage = "Không thể tải hình ảnh từ nguồn bên ngoài";
+                                            linkText = "Mở liên kết gốc";
+                                        } else {
+                                            errorMessage = "Không thể tải hình ảnh";
+                                            linkText = "Xem liên kết";
+                                        }
+                                        
+                                        return (
+                                            <div className="content-display image-display">
+                                                <div className="image-wrapper" style={{display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', textAlign: 'center'}}>
+                                                    <div className="image-container" data-src={directContent} data-is-backend={isBackend} data-is-external={isExternal}>
+                                                        <img 
+                                                            src={directContent} 
+                                                            alt={content.title || 'Content Image'} 
+                                                            className="content-image direct-image"
+                                                            style={{
+                                                                maxHeight: '60vw',
+                                                                width: 'auto',
+                                                                display: 'block',
+                                                                margin: '20px auto',
+                                                                borderRadius: '8px',
+                                                                boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                                                                objectFit: 'contain'
+                                                            }}
+                                                        />
+                                                        <div className="image-error-fallback" style={{display: 'none', padding: '15px', background: '#f8f9fa', border: '1px solid #dee2e6', borderRadius: '8px', marginTop: '10px'}}>
+                                                            <div className="error-message" style={{color: '#dc3545', fontWeight: '500', marginBottom: '10px'}}>
+                                                                <i className="bi bi-exclamation-triangle" style={{marginRight: '5px'}}></i>
+                                                                {errorMessage}
+                                                            </div>
+                                                            <div className="error-actions">
+                                                                <a href={directContent} target="_blank" rel="noopener noreferrer" className="image-link" style={{display: 'inline-flex', alignItems: 'center', color: '#0066cc', textDecoration: 'none', fontSize: '14px'}}>
+                                                                    <i className="bi bi-box-arrow-up-right" style={{marginRight: '5px'}}></i>
+                                                                    <span className="link-text">{linkText}</span>
+                                                                </a>
+                                                                {isBackend && (
+                                                                    <button 
+                                                                        onClick={(e) => {
+                                                                            const container = e.target.closest('.image-container');
+                                                                            const img = container.querySelector('.content-image');
+                                                                            const fallback = container.querySelector('.image-error-fallback');
+                                                                            img.src = directContent + '?t=' + Date.now();
+                                                                            fallback.style.display = 'none';
+                                                                            img.style.display = 'block';
+                                                                        }}
+                                                                        style={{marginLeft: '10px', padding: '4px 8px', background: '#0066cc', color: 'white', border: 'none', borderRadius: '4px', fontSize: '12px', cursor: 'pointer'}}
+                                                                    >
+                                                                        <i className="bi bi-arrow-clockwise" style={{marginRight: '3px'}}></i>
+                                                                        Thử lại
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                            <div className="url-preview" style={{marginTop: '8px', padding: '8px', background: '#fff', border: '1px solid #e9ecef', borderRadius: '4px'}}>
+                                                                <div style={{fontSize: '12px', color: '#6c757d', marginBottom: '4px'}}>Đường dẫn hình ảnh:</div>
+                                                                <div style={{fontSize: '11px', color: '#495057', wordBreak: 'break-all', fontFamily: 'monospace'}}>
+                                                                    {directContent.startsWith('data:image/') ? `Base64 encoded image data (${Math.round(directContent.length/1000)}KB)` : directContent}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         );
                                     }
