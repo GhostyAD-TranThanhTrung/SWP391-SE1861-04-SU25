@@ -162,6 +162,109 @@ const BookingPage = () => {
         setShowNoteModal(true);
     };
 
+    // Auto-cancel missed bookings that are still pending confirmation
+    const autoCorectMissedBookings = async (bookings) => {
+        if (!bookings || bookings.length === 0) return [];
+
+        const now = new Date();
+        const updatedBookings = [...bookings];
+        let hasUpdates = false;
+        let cancelledCount = 0;
+
+        for (let i = 0; i < updatedBookings.length; i++) {
+            const booking = updatedBookings[i];
+            
+            // Only process bookings with "Đang chờ xác nhận" status
+            if (booking.status !== 'Đang chờ xác nhận') continue;
+
+            try {
+                // Get the slot information
+                const slot = databaseSlots.find(s => s.slot_id === booking.slot_id);
+                if (!slot) continue;
+
+                // Create the booking end datetime
+                const bookingDate = new Date(booking.booking_date);
+                const [hours, minutes] = slot.end_time.split(':').map(Number);
+                bookingDate.setHours(hours, minutes, 0, 0);
+
+                // If current time has passed the booking end time, auto-cancel
+                if (now > bookingDate) {
+                    console.log(`Auto-cancelling missed booking ${booking.booking_id} - scheduled for ${bookingDate.toLocaleString()}`);
+                    
+                    try {
+                        const token = sessionStorage.getItem('token');
+                        const response = await fetch(`http://localhost:3000/api/booking-sessions/${booking.booking_id}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({
+                                status: 'Đã hủy',
+                                notes: booking.notes ? `${booking.notes} | Tự động hủy: Quá thời gian xác nhận` : 'Tự động hủy: Quá thời gian xác nhận'
+                            })
+                        });
+
+                        if (response.ok) {
+                            updatedBookings[i] = {
+                                ...booking,
+                                status: 'Đã hủy',
+                                notes: booking.notes ? `${booking.notes} | Tự động hủy: Quá thời gian xác nhận` : 'Tự động hủy: Quá thời gian xác nhận'
+                            };
+                            hasUpdates = true;
+                            cancelledCount++;
+                            console.log(`Successfully auto-cancelled booking ${booking.booking_id}`);
+                        } else {
+                            console.error(`Failed to auto-cancel booking ${booking.booking_id}:`, await response.text());
+                        }
+                    } catch (error) {
+                        console.error(`Error auto-cancelling booking ${booking.booking_id}:`, error);
+                    }
+                }
+            } catch (error) {
+                console.error(`Error processing booking ${booking.booking_id}:`, error);
+            }
+        }
+
+        // Show notification if any bookings were cancelled
+        if (cancelledCount > 0) {
+            console.log(`🔄 Đã tự động hủy ${cancelledCount} lịch hẹn quá hạn xác nhận`);
+        }
+
+        return hasUpdates ? updatedBookings : bookings;
+    };
+
+    // Check if booking is today
+    const isBookingToday = (booking) => {
+        if (!booking.booking_date) return false;
+        
+        try {
+            const bookingDate = new Date(booking.booking_date);
+            const today = new Date();
+            
+            return bookingDate.toDateString() === today.toDateString();
+        } catch (error) {
+            return false;
+        }
+    };
+
+    // Get row styling based on booking status and date
+    const getBookingRowStyle = (booking) => {
+        const baseStyle = { backgroundColor: '#ffffff' };
+        
+        if (isBookingToday(booking)) {
+            // Highlight today's bookings with a subtle blue background
+            return {
+                ...baseStyle,
+                backgroundColor: '#e3f2fd',
+                borderLeft: '4px solid #2196f3',
+                boxShadow: '0 1px 3px rgba(33, 150, 243, 0.1)'
+            };
+        }
+        
+        return baseStyle;
+    };
+
     // Check if the booking time (with 15-minute margin) has arrived and status is confirmed
     const isMeetingTimeAvailable = (booking) => {
         if (!booking.booking_date || !booking.slot_id) return false;
@@ -271,8 +374,11 @@ const BookingPage = () => {
                 const transformedConsultants = transformConsultantsArray(apiConsultants);
                 setConsultants(transformedConsultants);
                 
-                const activeBookings = filterActiveBookings(bookings);
-                setAllBookings(bookings || []);
+                // Auto-cancel missed bookings before setting state
+                const updatedBookings = await autoCorectMissedBookings(bookings || []);
+                
+                const activeBookings = filterActiveBookings(updatedBookings);
+                setAllBookings(updatedBookings);
                 setScheduledBookings(activeBookings);
             } catch (error) {
                 console.error('Lỗi khi load dữ liệu:', error);
@@ -285,6 +391,38 @@ const BookingPage = () => {
         };
         loadData();
     }, []);
+
+    // Periodic check for missed bookings (every 5 minutes)
+    useEffect(() => {
+        const checkMissedBookings = async () => {
+            try {
+                if (allBookings.length > 0) {
+                    console.log('Checking for missed bookings...');
+                    const updatedBookings = await autoCorectMissedBookings(allBookings);
+                    
+                    if (updatedBookings !== allBookings) {
+                        console.log('Found missed bookings, updating state...');
+                        const activeBookings = filterActiveBookings(updatedBookings);
+                        setAllBookings(updatedBookings);
+                        setScheduledBookings(activeBookings);
+                    }
+                }
+            } catch (error) {
+                console.error('Error in periodic missed booking check:', error);
+            }
+        };
+
+        // Run immediately when component mounts
+        if (allBookings.length > 0) {
+            checkMissedBookings();
+        }
+
+        // Set up interval to check every 5 minutes (300000 ms)
+        const interval = setInterval(checkMissedBookings, 300000);
+
+        // Cleanup interval on component unmount
+        return () => clearInterval(interval);
+    }, [allBookings]);
 
     // Filter options
     const specializations = [
@@ -441,7 +579,26 @@ const BookingPage = () => {
                 <section className="booking-sessions-section mb-4">
                     <div className="card" style={{ border: '0.5px solid #e0e0e0', borderRadius: '8px' }}>
                         <div className="card-header bg-white d-flex justify-content-between align-items-center" style={{ padding: '1rem 1.5rem', borderBottom: '1px solid #e0e0e0' }}>
-                            <h4 className="mb-0" style={{ fontWeight: '600', color: '#333' }}>Lịch tư vấn của bạn</h4>
+                            <div>
+                                <h4 className="mb-2" style={{ fontWeight: '600', color: '#333' }}>Lịch tư vấn của bạn</h4>
+                                <div className="d-flex align-items-center" style={{ fontSize: '0.85rem', color: '#666' }}>
+                                    <div className="d-flex align-items-center me-3">
+                                        <div style={{ 
+                                            width: '12px', 
+                                            height: '12px', 
+                                            backgroundColor: '#e3f2fd', 
+                                            border: '2px solid #2196f3', 
+                                            borderRadius: '3px',
+                                            marginRight: '6px'
+                                        }}></div>
+                                        <span>Hôm nay</span>
+                                    </div>
+                                    <small className="text-muted">
+                                        <i className="bi bi-info-circle me-1"></i>
+                                        Hệ thống tự động hủy lịch hẹn chưa xác nhận sau giờ kết thúc
+                                    </small>
+                                </div>
+                            </div>
                             <div className="booking-toggle-buttons">
                                 <button
                                     className={`btn btn-sm ${showAllBookings ? 'btn-outline-primary' : 'btn-primary'} me-2`}
@@ -486,7 +643,7 @@ const BookingPage = () => {
                                 const statusInfo = getStatusInfo(booking.status);
 
                                 return (
-                                                    <tr key={booking.id || booking.booking_id} style={{ backgroundColor: '#ffffff' }}>
+                                                    <tr key={booking.id || booking.booking_id} style={getBookingRowStyle(booking)}>
                                                         <td style={{ padding: '1rem', borderBottom: '1px solid #f0f0f0' }}>
                                                             <span 
                                                                 className={`badge ${statusInfo.class}`} 
