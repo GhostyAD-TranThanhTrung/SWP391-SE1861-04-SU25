@@ -453,7 +453,6 @@ const CourseListPage = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data.success) {
-        alert("Content updated successfully!");
         // Refresh content list
         const contentRes = await axios.get(`http://localhost:3000/api/content/program/${selectedProgram.program_id}`, {
           headers: { Authorization: `Bearer ${token}` }
@@ -1246,49 +1245,65 @@ const CourseListPage = () => {
                 ></button>
               </div>
               <div className="modal-body">
-                <div className="row">
-                  <div className="col-md-12">
+                {/* Program Info Section */}
+                <div className="row mb-4">
+                  <div className="col-md-4">
                     {selectedProgram.img_link && (
-                      <div className="program-img-wrapper mb-3 text-center">
+                      <div className="text-center mb-3">
                         <img
                           src={selectedProgram.img_link}
                           alt={selectedProgram.title + ' image'}
+                          className="img-fluid rounded"
                           style={{
-                            maxWidth: '100%',
-                            maxHeight: '180px',
-                            borderRadius: '10px',
+                            maxHeight: '200px',
                             objectFit: 'cover',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+                            width: '100%'
                           }}
                         />
                       </div>
                     )}
+                  </div>
+                  <div className="col-md-8">
                     <div className="program-info">
                       <h6>Program Information</h6>
                       <p><strong>Description:</strong> {selectedProgram.description}</p>
                       <p><strong>Age Group:</strong> {selectedProgram.age_group}</p>
                       <p><strong>Category:</strong> {selectedProgram.category?.name}</p>
-                      <p><strong>Status:</strong> {selectedProgram.status}</p>
+                      <p><strong>Status:</strong> 
+                        <span className={`badge ms-2 ${
+                          selectedProgram.status === 'active' ? 'bg-success' : 
+                          selectedProgram.status === 'draft' ? 'bg-warning' : 'bg-secondary'
+                        }`}>
+                          {selectedProgram.status?.toUpperCase()}
+                        </span>
+                      </p>
                       <p><strong>Enrollments:</strong> {selectedProgram.statistics?.total_enrollments || 0}</p>
                       <p><strong>Contents:</strong> {selectedProgram.statistics?.total_contents || 0}</p>
                       <p><strong>Surveys:</strong> {selectedProgram.statistics?.total_surveys || 0}</p>
                     </div>
                   </div>
+                </div>
+
+                {/* Management Actions */}
+                <div className="d-flex justify-content-between mb-3">
+                  <h6>Management Actions</h6>
+                </div>
+                <div className="row g-3 mb-4">
                   <div className="col-md-6">
-                    <div className="action-buttons-detail">
-                      <button
-                        className="btn btn-info me-2 mb-2"
-                        onClick={openContentCreator}
-                      >
-                        <FaFile className="me-1" /> Manage Content
-                      </button>
-                      <button
-                        className="btn btn-success me-2 mb-2"
-                        onClick={openSurveyModal}
-                      >
-                        <FaQuestion className="me-1" /> Manage Surveys
-                      </button>
-                    </div>
+                    <button
+                      className="btn btn-info w-100"
+                      onClick={openContentCreator}
+                    >
+                      <FaFile className="me-1" /> Manage Content
+                    </button>
+                  </div>
+                  <div className="col-md-6">
+                    <button
+                      className="btn btn-success w-100"
+                      onClick={openSurveyModal}
+                    >
+                      <FaQuestion className="me-1" /> Manage Surveys
+                    </button>
                   </div>
                 </div>
 

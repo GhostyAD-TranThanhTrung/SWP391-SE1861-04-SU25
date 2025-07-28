@@ -132,12 +132,13 @@ const ContentCreator = ({
       .replace(/`([^`]+)`/gim, '<code>$1</code>')
       // Links
       .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
-      // Images - convert relative paths to absolute URLs
+      // Images - convert relative paths to absolute URLs for live preview
       .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, src) => {
         console.log('Image found in markdown:', { match, alt, src });
         
         let finalSrc = src;
-        // Convert relative paths starting with ../image/ to absolute API URLs
+        
+        // Handle different path formats and convert to API endpoint
         if (src.startsWith('../image/')) {
           const filename = src.replace('../image/', '');
           finalSrc = `http://localhost:3000/api/images/${filename}`;
@@ -155,9 +156,15 @@ const ContentCreator = ({
           const filename = src.substring(src.lastIndexOf('/image/') + 7);
           finalSrc = `http://localhost:3000/api/images/${filename}`;
           console.log('Converted generic /image/ path:', finalSrc);
+        } else if (!src.startsWith('http') && !src.startsWith('data:')) {
+          // If it's not an external URL or data URL, treat it as a filename
+          const filename = src.replace(/^[.\/]*/, ''); // Remove leading ./ or /
+          finalSrc = `http://localhost:3000/api/images/${filename}`;
+          console.log('Converted plain filename to API path:', finalSrc);
         }
+        // If it's already a valid HTTP URL or data URL, keep it as is
         
-        const imgTag = `<img src="${finalSrc}" alt="${alt}" style="max-width: 100%; height: auto; border-radius: 8px; margin: 10px 0;" onError="console.error('Image failed to load:', '${finalSrc}')" />`;
+        const imgTag = `<img src="${finalSrc}" alt="${alt}" style="max-width: 100%; height: auto; border-radius: 8px; margin: 10px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" onError="console.error('Image failed to load:', '${finalSrc}'); this.style.border='2px dashed #dc3545'; this.style.padding='20px'; this.style.backgroundColor='#f8d7da'; this.style.color='#721c24'; this.innerHTML='❌ Image failed to load: ${alt || 'Unknown'}'; this.style.textAlign='center';" />`;
         console.log('Generated img tag:', imgTag);
         return imgTag;
       })
@@ -208,8 +215,31 @@ const ContentCreator = ({
     const formData = new FormData();
     formData.append('image', file);
     
+    // Get image dimensions before upload
+    const getImageDimensions = (file) => {
+      return new Promise((resolve) => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+          URL.revokeObjectURL(url);
+          resolve({ width: img.width, height: img.height });
+        };
+        img.onerror = () => {
+          URL.revokeObjectURL(url);
+          resolve({ width: 0, height: 0 });
+        };
+        img.src = url;
+      });
+    };
+    
     try {
       console.log("Uploading image:", file.name);
+      
+      // Get file size and dimensions
+      const fileSizeKB = Math.round(file.size / 1024);
+      const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+      const dimensions = await getImageDimensions(file);
+      
       const res = await fetch("http://localhost:3000/api/images/upload", {
         method: 'POST',
         body: formData,
@@ -225,19 +255,25 @@ const ContentCreator = ({
           const imageUrl = data.imageUrl || data.data.relativePath;
           const imageMarkdown = `![Image](${imageUrl})`;
           
-          // Add to uploaded images list instead of auto-inserting
+          // Create preview URL for the uploaded image using the correct API endpoint
+          const previewUrl = `http://localhost:3000/api/images/${data.data.filename}`;
+          
+          // Add to uploaded images list with enhanced data
           const newImage = {
             id: Date.now(),
             filename: data.data.filename,
             originalName: data.data.originalName,
             path: imageUrl,
             markdown: imageMarkdown,
-            uploadedAt: new Date().toLocaleString()
+            uploadedAt: new Date().toLocaleString(),
+            fileSize: fileSizeKB < 1024 ? `${fileSizeKB} KB` : `${fileSizeMB} MB`,
+            dimensions: dimensions,
+            previewUrl: previewUrl,
+            mimeType: file.type
           };
           
           setUploadedImages(prev => [...prev, newImage]);
           setShowImagePanel(true); // Auto-show the panel when image is uploaded
-          alert("Image uploaded successfully! Check the image panel to copy the markdown.");
         } else {
           alert("Failed to upload image: " + data.message);
         }
@@ -271,6 +307,18 @@ const ContentCreator = ({
       }
       document.body.removeChild(textArea);
     });
+  };
+
+  const testImageUrl = async (imageUrl) => {
+    try {
+      console.log('Testing image URL:', imageUrl);
+      const response = await fetch(imageUrl, { method: 'HEAD' });
+      console.log('Image URL test response:', response.status, response.statusText);
+      return response.ok;
+    } catch (error) {
+      console.error('Image URL test failed:', error);
+      return false;
+    }
   };
 
   const clearUploadedImages = () => {
@@ -397,6 +445,44 @@ const ContentCreator = ({
   const handleDeleteContent = (contentId, contentTitle) => {
     if (window.confirm(`Are you sure you want to delete "${contentTitle}"?`)) {
       onDelete(contentId);
+    }
+  };
+
+  const handleMoveContentUp = (content) => {
+    const sortedContents = [...contents].sort((a, b) => a.orders - b.orders);
+    const currentIndex = sortedContents.findIndex(c => c.content_id === content.content_id);
+    
+    if (currentIndex > 0) {
+      const currentContent = sortedContents[currentIndex];
+      const previousContent = sortedContents[currentIndex - 1];
+      
+      // Swap orders
+      const tempOrder = currentContent.orders;
+      currentContent.orders = previousContent.orders;
+      previousContent.orders = tempOrder;
+      
+      // Update both contents
+      onUpdate(currentContent.content_id, currentContent);
+      onUpdate(previousContent.content_id, previousContent);
+    }
+  };
+
+  const handleMoveContentDown = (content) => {
+    const sortedContents = [...contents].sort((a, b) => a.orders - b.orders);
+    const currentIndex = sortedContents.findIndex(c => c.content_id === content.content_id);
+    
+    if (currentIndex < sortedContents.length - 1) {
+      const currentContent = sortedContents[currentIndex];
+      const nextContent = sortedContents[currentIndex + 1];
+      
+      // Swap orders
+      const tempOrder = currentContent.orders;
+      currentContent.orders = nextContent.orders;
+      nextContent.orders = tempOrder;
+      
+      // Update both contents
+      onUpdate(currentContent.content_id, currentContent);
+      onUpdate(nextContent.content_id, nextContent);
     }
   };
 
@@ -529,7 +615,7 @@ const ContentCreator = ({
   return (
     <div className="content-creator">
       <div className="creator-header">
-        <h5>Content Management: {program?.title}</h5>
+        <h5>{program?.title}</h5>
         <div className="header-actions">
           <button 
             className="btn btn-primary"
@@ -697,7 +783,66 @@ const ContentCreator = ({
                   ) : (
                     <div className="image-list">
                       {uploadedImages.map((image) => (
-                        <div key={image.id} className="image-item">
+                        <div key={image.id} className="image-item" style={{border: '1px solid #dee2e6', borderRadius: '8px', padding: '15px', marginBottom: '15px', backgroundColor: '#fff'}}>
+                          <div className="image-preview-section" style={{display: 'flex', gap: '15px', marginBottom: '10px'}}>
+                            <div className="image-preview">
+                              <img 
+                                src={image.previewUrl} 
+                                alt={image.originalName}
+                                style={{
+                                  maxWidth: '120px',
+                                  maxHeight: '80px',
+                                  objectFit: 'cover',
+                                  borderRadius: '4px',
+                                  border: '1px solid #dee2e6',
+                                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                }}
+                                onError={(e) => {
+                                  console.error('Image preview failed to load:', image.previewUrl);
+                                  e.target.style.display = 'none';
+                                  e.target.nextSibling.style.display = 'flex';
+                                }}
+                                onLoad={() => {
+                                  console.log('Image preview loaded successfully:', image.previewUrl);
+                                }}
+                              />
+                              <div 
+                                style={{
+                                  display: 'none',
+                                  width: '120px',
+                                  height: '80px',
+                                  backgroundColor: '#f8f9fa',
+                                  border: '1px solid #dee2e6',
+                                  borderRadius: '4px',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: '12px',
+                                  color: '#6c757d'
+                                }}
+                              >
+                                Preview failed
+                              </div>
+                            </div>
+                            <div className="image-meta" style={{flex: 1}}>
+                              <div className="image-dimensions" style={{marginBottom: '5px'}}>
+                                <span style={{color: '#0066cc', fontWeight: '600', fontSize: '14px'}}>
+                                  {image.dimensions.width} × {image.dimensions.height} px
+                                </span>
+                              </div>
+                              <div className="image-size" style={{marginBottom: '3px'}}>
+                                <small className="text-muted">
+                                  <i className="bi bi-file-earmark" style={{marginRight: '5px'}}></i>
+                                  {image.fileSize}
+                                </small>
+                              </div>
+                              <div className="image-type">
+                                <small className="text-muted">
+                                  <i className="bi bi-image" style={{marginRight: '5px'}}></i>
+                                  {image.mimeType}
+                                </small>
+                              </div>
+                            </div>
+                          </div>
                           <div className="image-info">
                             <div className="image-name">
                               <strong>{image.originalName}</strong>
@@ -723,6 +868,41 @@ const ContentCreator = ({
                                   title="Copy markdown"
                                 >
                                   Copy
+                                </button>
+                                <button
+                                  className="btn btn-sm btn-success ms-1"
+                                  onClick={() => {
+                                    const textarea = textareaRef.current;
+                                    if (textarea) {
+                                      const cursorPos = textarea.selectionStart;
+                                      const before = markdownContent.substring(0, cursorPos);
+                                      const after = markdownContent.substring(cursorPos);
+                                      setMarkdownContent(before + '\n' + image.markdown + '\n' + after);
+                                      // Focus and position cursor after the inserted image
+                                      setTimeout(() => {
+                                        textarea.focus();
+                                        const newPos = cursorPos + image.markdown.length + 2;
+                                        textarea.setSelectionRange(newPos, newPos);
+                                      }, 0);
+                                    }
+                                  }}
+                                  title="Insert into editor"
+                                >
+                                  Insert
+                                </button>
+                                <button
+                                  className="btn btn-sm btn-info ms-1"
+                                  onClick={async () => {
+                                    const apiUrl = `http://localhost:3000/api/images/${image.filename}`;
+                                    const isWorking = await testImageUrl(apiUrl);
+                                    alert(isWorking ? 
+                                      `✅ Image API is working!\nURL: ${apiUrl}` : 
+                                      `❌ Image API failed!\nURL: ${apiUrl}\nCheck browser console for details.`
+                                    );
+                                  }}
+                                  title="Test image API"
+                                >
+                                  Test API
                                 </button>
                               </div>
                             </div>
@@ -877,7 +1057,7 @@ You can use the toolbar above or keyboard shortcuts:
                     </tr>
                   </thead>
                   <tbody>
-                    {contents.map(content => (
+                    {contents.sort((a, b) => a.orders - b.orders).map((content, index) => (
                       <tr key={content.content_id}>
                         <td>{content.orders}</td>
                         <td>{content.title}</td>
@@ -889,20 +1069,38 @@ You can use the toolbar above or keyboard shortcuts:
                           </span>
                         </td>
                         <td>
-                          <button 
-                            className="btn btn-sm btn-warning me-1"
-                            onClick={() => handleEditContent(content)}
-                            title="Edit"
-                          >
-                            <FaCode />
-                          </button>
-                          <button 
-                            className="btn btn-sm btn-danger"
-                            onClick={() => handleDeleteContent(content.content_id, content.title)}
-                            title="Delete"
-                          >
-                            <FaTrash />
-                          </button>
+                          <div className="action-buttons d-flex align-items-center gap-1">
+                            <button 
+                              className="btn btn-sm btn-outline-secondary"
+                              onClick={() => handleMoveContentUp(content)}
+                              disabled={index === 0}
+                              title="Move Up"
+                            >
+                              ↑
+                            </button>
+                            <button 
+                              className="btn btn-sm btn-outline-secondary"
+                              onClick={() => handleMoveContentDown(content)}
+                              disabled={index === contents.length - 1}
+                              title="Move Down"
+                            >
+                              ↓
+                            </button>
+                            <button 
+                              className="btn btn-sm btn-warning"
+                              onClick={() => handleEditContent(content)}
+                              title="Edit"
+                            >
+                              <FaCode />
+                            </button>
+                            <button 
+                              className="btn btn-sm btn-danger"
+                              onClick={() => handleDeleteContent(content.content_id, content.title)}
+                              title="Delete"
+                            >
+                              <FaTrash />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}

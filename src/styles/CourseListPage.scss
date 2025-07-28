@@ -282,7 +282,7 @@
     }
   }
   
-  // Modal Styles
+  // Modal Styles - Simplified
   .modal {
     .modal-dialog {
       &.modal-xl {
@@ -319,7 +319,7 @@
     }
   }
   
-  // Program Detail Modal
+  // Program Detail Modal - Simplified
   .program-info {
     background: #f8f9fa;
     padding: 20px;
@@ -338,6 +338,18 @@
         color: #495057;
         min-width: 120px;
         display: inline-block;
+      }
+    }
+  }
+  
+  .action-buttons-detail {
+    .btn {
+      width: 100%;
+      margin-bottom: 8px;
+      text-align: left;
+      
+      .me-1 {
+        margin-right: 8px;
       }
     }
   }
