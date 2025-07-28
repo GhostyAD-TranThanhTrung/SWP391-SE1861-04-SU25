@@ -189,7 +189,7 @@ const BookingPage = () => {
 
                 // If current time has passed the booking end time, auto-cancel
                 if (now > bookingDate) {
-                    console.log(`Auto-cancelling missed booking ${booking.booking_id} - scheduled for ${bookingDate.toLocaleString()}`);
+                    console.log(`Đang tự động hủy lịch hẹn bị bỏ lỡ ${booking.booking_id} - đã lên lịch lúc ${bookingDate.toLocaleString()}`);
                     
                     try {
                         const token = sessionStorage.getItem('token');
@@ -213,16 +213,16 @@ const BookingPage = () => {
                             };
                             hasUpdates = true;
                             cancelledCount++;
-                            console.log(`Successfully auto-cancelled booking ${booking.booking_id}`);
+                            console.log(`Đã tự động hủy thành công lịch hẹn ${booking.booking_id}`);
                         } else {
-                            console.error(`Failed to auto-cancel booking ${booking.booking_id}:`, await response.text());
+                            console.error(`Lỗi khi tự động hủy lịch hẹn ${booking.booking_id}:`, await response.text());
                         }
                     } catch (error) {
-                        console.error(`Error auto-cancelling booking ${booking.booking_id}:`, error);
+                        console.error(`Lỗi trong quá trình tự động hủy lịch hẹn ${booking.booking_id}:`, error);
                     }
                 }
             } catch (error) {
-                console.error(`Error processing booking ${booking.booking_id}:`, error);
+                console.error(`Lỗi khi xử lý lịch hẹn ${booking.booking_id}:`, error);
             }
         }
 
@@ -294,7 +294,7 @@ const BookingPage = () => {
             const now = new Date();
             return now >= availableTime;
         } catch (error) {
-            console.error('Error checking meeting time availability:', error);
+            console.error('Lỗi khi kiểm tra thời gian khả dụng của cuộc họp:', error);
             return false;
         }
     };
@@ -397,18 +397,18 @@ const BookingPage = () => {
         const checkMissedBookings = async () => {
             try {
                 if (allBookings.length > 0) {
-                    console.log('Checking for missed bookings...');
+                    console.log('Đang kiểm tra các lịch hẹn bị bỏ lỡ...');
                     const updatedBookings = await autoCorectMissedBookings(allBookings);
                     
                     if (updatedBookings !== allBookings) {
-                        console.log('Found missed bookings, updating state...');
+                        console.log('Tìm thấy lịch hẹn bị bỏ lỡ, đang cập nhật trạng thái...');
                         const activeBookings = filterActiveBookings(updatedBookings);
                         setAllBookings(updatedBookings);
                         setScheduledBookings(activeBookings);
                     }
                 }
             } catch (error) {
-                console.error('Error in periodic missed booking check:', error);
+                console.error('Lỗi trong quá trình kiểm tra định kỳ lịch hẹn bị bỏ lỡ:', error);
             }
         };
 

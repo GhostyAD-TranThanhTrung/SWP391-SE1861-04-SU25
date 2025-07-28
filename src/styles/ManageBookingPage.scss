@@ -5,6 +5,38 @@
 
   // ===== Top Bar =====
   .top-bar {
+    .filters-section {
+      .filter-group {
+        display: flex;
+        flex-direction: column;
+        
+        .form-label {
+          color: #495057;
+          margin-bottom: 4px;
+          font-size: 0.9rem;
+          font-weight: 500;
+        }
+        
+        .form-select {
+          border: 1px solid #ced4da;
+          border-radius: 6px;
+          padding: 6px 12px;
+          font-size: 0.9rem;
+          background-color: white;
+          transition: border-color 0.3s ease;
+          
+          &:focus {
+            border-color: #66B0C6;
+            box-shadow: 0 0 0 0.2rem rgba(102, 176, 198, 0.25);
+          }
+          
+          &:hover {
+            border-color: #adb5bd;
+          }
+        }
+      }
+    }
+    
     .btn-primary {
       background-color: #66B0C6;
       border: none;
@@ -270,6 +302,79 @@
 
         &:hover {
           background-color: #5a9bb1;
+        }
+      }
+    }
+  }
+}
+
+// ===== Responsive Design =====
+@media (max-width: 768px) {
+  .member-list-container {
+    padding: 15px;
+    
+    .top-bar {
+      flex-direction: column;
+      gap: 15px;
+      align-items: stretch !important;
+      
+      .filters-section {
+        flex-direction: column;
+        gap: 15px;
+        
+        .filter-group {
+          .form-select {
+            min-width: 100% !important;
+          }
+        }
+      }
+      
+      .search-box {
+        width: 100% !important;
+        justify-content: stretch !important;
+        
+        input {
+          flex: 1;
+          min-width: 0 !important;
+        }
+      }
+    }
+    
+    .table-wrapper {
+      overflow-x: auto;
+      
+      .table {
+        min-width: 800px;
+        
+        th, td {
+          padding: 8px 6px;
+          font-size: 0.85rem;
+        }
+        
+        .action-buttons {
+          .btn {
+            padding: 4px 6px;
+            margin: 1px;
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .member-list-container {
+    padding: 10px;
+    
+    .filters-section {
+      .filter-group {
+        .form-label {
+          font-size: 0.8rem !important;
+        }
+        
+        .form-select {
+          font-size: 0.8rem !important;
+          padding: 4px 8px !important;
         }
       }
     }

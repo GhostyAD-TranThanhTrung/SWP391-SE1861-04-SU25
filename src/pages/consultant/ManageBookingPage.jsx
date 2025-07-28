@@ -20,7 +20,8 @@ const ManageBookingPage = () => {
   const [bookingIdToDelete, setBookingIdToDelete] = useState(null);
   const [consultants, setConsultants] = useState([]);
   const [slots, setSlots] = useState([]);
-  const [isCheckingExpired, setIsCheckingExpired] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('');
+  const [dateSort, setDateSort] = useState('newest');
   const [editFormData, setEditFormData] = useState({
     consultant_id: '',
     slot_id: '',
@@ -31,6 +32,18 @@ const ManageBookingPage = () => {
   });
   const token = sessionStorage.getItem("token");
   const navigate = useNavigate()
+  
+  // Database slots for consistent time checking
+  const databaseSlots = [
+    { slot_id: 1, start_time: '09:00:00', end_time: '10:00:00' },
+    { slot_id: 2, start_time: '10:00:00', end_time: '11:00:00' },
+    { slot_id: 3, start_time: '11:00:00', end_time: '12:00:00' },
+    { slot_id: 4, start_time: '12:00:00', end_time: '13:00:00' },
+    { slot_id: 5, start_time: '13:00:00', end_time: '14:00:00' },
+    { slot_id: 6, start_time: '14:00:00', end_time: '15:00:00' },
+    { slot_id: 7, start_time: '15:00:00', end_time: '16:00:00' },
+    { slot_id: 8, start_time: '16:00:00', end_time: '17:00:00' }
+  ];
   const userRole = async () => {
     try {
       if (!token) navigate('/admin/login')
@@ -131,17 +144,17 @@ const ManageBookingPage = () => {
   // Function to check and auto-cancel expired bookings
   const checkAndCancelExpiredBookings = async (bookings) => {
     if (!bookings || bookings.length === 0) {
-      console.log('No bookings to check');
+      console.log('Không có lịch hẹn nào để kiểm tra');
       return false;
     }
 
-    console.log(`Checking ${bookings.length} bookings for expiration:`);
+    console.log(`Đang kiểm tra ${bookings.length} lịch hẹn đã hết hạn:`);
     bookings.forEach((booking, index) => {
-      console.log(`  ${index + 1}. Booking ID: ${booking.booking_id}, Date: ${booking.booking_date}, Time: ${booking.start_time}-${booking.end_time}, Status: ${booking.status}`);
+      console.log(`  ${index + 1}. ID lịch hẹn: ${booking.booking_id}, Ngày: ${booking.booking_date}, Thời gian: ${booking.start_time}-${booking.end_time}, Trạng thái: ${booking.status}`);
     });
 
     const now = new Date();
-    console.log(`Current time: ${now.toLocaleString()}`);
+    console.log(`Thời gian hiện tại: ${now.toLocaleString()}`);
     const expiredBookings = [];
 
     bookings.forEach(booking => {
@@ -153,68 +166,72 @@ const ManageBookingPage = () => {
         return;
       }
 
-      try {
-        // Create a Date object from booking_date and end_time
-        const bookingDate = new Date(booking.booking_date);
+      // Only process bookings with "Đang chờ xác nhận" status
+      if (booking.status !== 'Đang chờ xác nhận') return;
 
+      try {
+        // Get the slot information from database slots
+        const slot = databaseSlots.find(s => s.slot_id === booking.slot_id);
+        if (!slot) {
+          console.warn(`Không tìm thấy slot cho lịch hẹn ${booking.booking_id}:`, booking.slot_id);
+          return;
+        }
+
+        // Create the booking end datetime
+        const bookingDate = new Date(booking.booking_date);
+        
         // Validate booking date
         if (isNaN(bookingDate.getTime())) {
-          console.warn(`Invalid booking date for booking ${booking.booking_id}:`, booking.booking_date);
+          console.warn(`Ngày lịch hẹn không hợp lệ cho booking ${booking.booking_id}:`, booking.booking_date);
           return;
         }
 
-        // Validate end_time format
-        if (!booking.end_time || !booking.end_time.includes(':')) {
-          console.warn(`Invalid end_time for booking ${booking.booking_id}:`, booking.end_time);
-          return;
-        }
-
-        const [endHour, endMinute] = booking.end_time.split(':').map(Number);
-
+        const [hours, minutes] = slot.end_time.split(':').map(Number);
+        
         // Validate time values
-        if (isNaN(endHour) || isNaN(endMinute) || endHour < 0 || endHour > 23 || endMinute < 0 || endMinute > 59) {
-          console.warn(`Invalid time values for booking ${booking.booking_id}:`, booking.end_time);
+        if (isNaN(hours) || isNaN(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+          console.warn(`Giá trị thời gian không hợp lệ cho lịch hẹn ${booking.booking_id}:`, slot.end_time);
           return;
         }
 
         // Set the end time on the booking date
-        const bookingEndTime = new Date(bookingDate);
-        bookingEndTime.setHours(endHour, endMinute, 0, 0);
+        bookingDate.setHours(hours, minutes, 0, 0);
 
         // Debug logging
-        console.log(`Checking booking ${booking.booking_id}:`);
-        console.log(`  - Booking date: ${bookingDate.toLocaleString()}`);
-        console.log(`  - Booking end time: ${bookingEndTime.toLocaleString()}`);
-        console.log(`  - Current time: ${now.toLocaleString()}`);
-        console.log(`  - Is expired: ${now > bookingEndTime}`);
-        console.log(`  - Status: ${booking.status}`);
+        console.log(`Đang kiểm tra lịch hẹn ${booking.booking_id}:`);
+        console.log(`  - Ngày lịch hẹn: ${bookingDate.toLocaleString()}`);
+        console.log(`  - Thời gian hiện tại: ${now.toLocaleString()}`);
+        console.log(`  - Đã hết hạn: ${now > bookingDate}`);
+        console.log(`  - Trạng thái: ${booking.status}`);
 
         // Check if the booking has passed its end time
-        if (now > bookingEndTime) {
-          console.log(`  - ADDING TO EXPIRED: Booking ${booking.booking_id} is expired`);
+        if (now > bookingDate) {
+          console.log(`  - THÊM VÀO DANH SÁCH HẾT HẠN: Lịch hẹn ${booking.booking_id} đã hết hạn`);
           expiredBookings.push(booking);
         }
       } catch (error) {
-        console.error(`Error processing booking ${booking.booking_id}:`, error);
+        console.error(`Lỗi khi xử lý lịch hẹn ${booking.booking_id}:`, error);
       }
     });
 
     // Auto-cancel expired bookings
     if (expiredBookings.length > 0) {
-      console.log(`Found ${expiredBookings.length} expired bookings to cancel:`, expiredBookings);
+      console.log(`Tìm thấy ${expiredBookings.length} lịch hẹn hết hạn cần hủy:`, expiredBookings);
 
       let successfulCancellations = 0;
 
       for (const expiredBooking of expiredBookings) {
         try {
+          console.log(`Đang tự động hủy lịch hẹn bị bỏ lỡ ${expiredBooking.booking_id} - đã lên lịch lúc ${new Date(expiredBooking.booking_date).toLocaleString()}`);
+          
           const updateData = {
             consultant_id: expiredBooking.consultant_id,
             slot_id: expiredBooking.slot_id,
             booking_date: expiredBooking.booking_date,
             status: 'Đã hủy',
             notes: expiredBooking.notes ?
-              `${expiredBooking.notes} | Tự động hủy do quá thời gian` :
-              'Tự động hủy do quá thời gian',
+              `${expiredBooking.notes} | Tự động hủy: Quá thời gian xác nhận` :
+              'Tự động hủy: Quá thời gian xác nhận',
             google_meet_link: expiredBooking.google_meet_link || ''
           };
 
@@ -226,19 +243,20 @@ const ManageBookingPage = () => {
 
           if (response.data.success) {
             successfulCancellations++;
-            console.log(`Auto-cancelled booking ${expiredBooking.booking_id}`);
+            console.log(`Đã tự động hủy thành công lịch hẹn ${expiredBooking.booking_id}`);
           } else {
-            console.error(`Failed to auto-cancel booking ${expiredBooking.booking_id}:`, response.data.message);
+            console.error(`Lỗi khi tự động hủy lịch hẹn ${expiredBooking.booking_id}:`, response.data.message);
           }
         } catch (err) {
-          console.error(`Failed to auto-cancel booking ${expiredBooking.booking_id}:`, err.response?.data?.message || err.message);
+          console.error(`Lỗi trong quá trình tự động hủy lịch hẹn ${expiredBooking.booking_id}:`, err.response?.data?.message || err.message);
         }
       }
 
-      console.log(`Successfully cancelled ${successfulCancellations} out of ${expiredBookings.length} expired bookings`);
+      console.log(`🔄 Đã tự động hủy thành công ${successfulCancellations} trong tổng số ${expiredBookings.length} lịch hẹn hết hạn`);
       return successfulCancellations > 0;
     }
 
+    console.log('Không tìm thấy lịch hẹn hết hạn nào cần hủy');
     return false; // No bookings were cancelled
   };
 
@@ -346,18 +364,47 @@ const ManageBookingPage = () => {
     setSearchTerm(e.target.value);
   };
 
-  const handleSearchClick = async () => {
-    if (searchTerm.trim() === '') {
-      // Reset to original data instead of making another API call
-      setBookingSessions(originalBookingSessions);
-      return;
+  const applyFiltersAndSort = () => {
+    let filtered = originalBookingSessions;
+
+    // Apply search filter
+    if (searchTerm.trim() !== '') {
+      filtered = filtered.filter(booking =>
+        booking.member_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        booking.status?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     }
-    // Filter bookings locally by member name or status
-    const filtered = originalBookingSessions.filter(booking =>
-      booking.member_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.status?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+
+    // Apply status filter
+    if (statusFilter && statusFilter !== '') {
+      filtered = filtered.filter(booking => booking.status === statusFilter);
+    }
+
+    // Apply date sorting
+    filtered.sort((a, b) => {
+      const dateA = new Date(a.booking_date);
+      const dateB = new Date(b.booking_date);
+      
+      if (dateSort === 'newest') {
+        return dateB - dateA; // Newest first
+      } else {
+        return dateA - dateB; // Oldest first
+      }
+    });
+
     setBookingSessions(filtered);
+  };
+
+  const handleSearchClick = async () => {
+    applyFiltersAndSort();
+  };
+
+  const handleStatusFilterChange = (e) => {
+    setStatusFilter(e.target.value);
+  };
+
+  const handleDateSortChange = (e) => {
+    setDateSort(e.target.value);
   };
 
   const fetchMemberDetail = async (memberId) => {
@@ -410,11 +457,11 @@ const ManageBookingPage = () => {
 
     // Set up periodic check for expired bookings every 5 minutes
     const intervalId = setInterval(async () => {
-      console.log('Running periodic check for expired bookings...');
+      console.log('Đang chạy kiểm tra định kỳ các lịch hẹn hết hạn...');
       if (originalBookingSessions.length > 0) {
         const hadCancellations = await checkAndCancelExpiredBookings(originalBookingSessions);
         if (hadCancellations) {
-          console.log('Found expired bookings, refreshing data...');
+          console.log('Tìm thấy lịch hẹn hết hạn, đang làm mới dữ liệu...');
           fetchBookingSessions();
         }
       }
@@ -444,7 +491,7 @@ const ManageBookingPage = () => {
           }, 1000);
         }
       } catch (error) {
-        console.error('Error checking expired bookings:', error);
+        console.error('Lỗi khi kiểm tra lịch hẹn hết hạn:', error);
       } finally {
         isChecking = false;
       }
@@ -454,6 +501,13 @@ const ManageBookingPage = () => {
       checkExpiredBookings();
     }
   }, [originalBookingSessions]); // Use the full array as dependency but with safety checks
+
+  // Apply filters and sorting whenever filter criteria change
+  useEffect(() => {
+    if (originalBookingSessions.length > 0) {
+      applyFiltersAndSort();
+    }
+  }, [searchTerm, statusFilter, dateSort, originalBookingSessions]);
 
 
   const handleOpenDeleteDialog = (bookingId) => {
@@ -632,64 +686,86 @@ const ManageBookingPage = () => {
     }
   };
 
-  // Manual check for expired bookings
-  const handleManualExpiredCheck = async () => {
-    if (isCheckingExpired) return; // Prevent multiple simultaneous checks
-
+  // Check if booking is today
+  const isBookingToday = (booking) => {
+    if (!booking.booking_date) return false;
+    
     try {
-      console.log('Manual check for expired bookings triggered...');
-      setIsCheckingExpired(true);
-
-      const hadCancellations = await checkAndCancelExpiredBookings(originalBookingSessions);
-
-      if (hadCancellations) {
-        alert('Đã tìm thấy và hủy các buổi hẹn đã quá thời gian. Danh sách sẽ được cập nhật.');
-        await fetchBookingSessions();
-      } else {
-        alert('Không có buổi hẹn nào quá thời gian cần hủy.');
-      }
+      const bookingDate = new Date(booking.booking_date);
+      const today = new Date();
+      
+      return bookingDate.toDateString() === today.toDateString();
     } catch (error) {
-      console.error('Error during manual expired check:', error);
-      alert('Có lỗi xảy ra khi kiểm tra buổi hẹn. Vui lòng thử lại.');
-    } finally {
-      setIsCheckingExpired(false);
+      return false;
     }
+  };
+
+  // Get row styling based on booking status and date
+  const getBookingRowStyle = (booking) => {
+    const baseStyle = {};
+    
+    if (isBookingToday(booking)) {
+      // Highlight today's bookings with a subtle blue background
+      return {
+        ...baseStyle,
+        backgroundColor: '#e3f2fd',
+        borderLeft: '4px solid #2196f3',
+        boxShadow: '0 1px 3px rgba(33, 150, 243, 0.1)'
+      };
+    }
+    
+    return baseStyle;
   };
 
   return (
     <div className="member-list-container">
       <div className="top-bar d-flex justify-content-between align-items-center mb-3">
-        <button
-          className="btn btn-warning btn-sm"
-          onClick={handleManualExpiredCheck}
-          disabled={isCheckingExpired}
-          title="Kiểm tra và hủy các buổi hẹn đã quá thời gian"
-        >
-          {isCheckingExpired ? (
-            <>
-              <span className="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-              Đang kiểm tra...
-            </>
-          ) : (
-            <>
-              <FaSearch className="me-1" />
-              Kiểm tra hẹn quá hạn
-            </>
-          )}
-        </button>
+        <div className="filters-section d-flex gap-3 align-items-center">
+          <div className="filter-group">
+            <label htmlFor="statusFilter" className="form-label mb-1" style={{ fontSize: '0.9rem', fontWeight: '500' }}>
+              Lọc theo trạng thái:
+            </label>
+            <select
+              id="statusFilter"
+              className="form-select form-select-sm"
+              value={statusFilter}
+              onChange={handleStatusFilterChange}
+              style={{ minWidth: '180px' }}
+            >
+              <option value="">Tất cả trạng thái</option>
+              {statusOptions.map(status => (
+                <option key={status} value={status}>{status}</option>
+              ))}
+            </select>
+          </div>
+          <div className="filter-group">
+            <label htmlFor="dateSort" className="form-label mb-1" style={{ fontSize: '0.9rem', fontWeight: '500' }}>
+              Sắp xếp theo ngày:
+            </label>
+            <select
+              id="dateSort"
+              className="form-select form-select-sm"
+              value={dateSort}
+              onChange={handleDateSortChange}
+              style={{ minWidth: '150px' }}
+            >
+              <option value="newest">Mới nhất</option>
+              <option value="oldest">Cũ nhất</option>
+            </select>
+          </div>
+        </div>
         <div
           className="search-box"
           style={{
             display: "flex",
             justifyContent: "flex-end",
-            margin: "0 auto",
-            width: "100%",
+            width: "auto",
           }}
         >
           <input
             type="text"
             placeholder="Tìm kiếm theo tên thành viên hoặc trạng thái..."
-            style={{ background: "white" }}
+            style={{ background: "white", minWidth: '300px' }}
             value={searchTerm}
             onChange={handleSearch}
           />
@@ -716,12 +792,14 @@ const ManageBookingPage = () => {
           <tbody>
             {bookingSessions.map((booking, index) => {
               const timeStatus = getBookingTimeStatus(booking);
+              const rowStyle = getBookingRowStyle(booking);
               return (
                 <tr
                   key={`booking-${booking.booking_id}-${index}`}
                   className={`booking-row ${timeStatus}`}
                   style={{
-                    backgroundColor:
+                    ...rowStyle,
+                    backgroundColor: isBookingToday(booking) ? '#e3f2fd' :
                       timeStatus === 'expired' ? '#ffebee' :
                         timeStatus === 'in-progress' ? '#e8f5e8' :
                           timeStatus === 'starting-soon' ? '#fff3e0' :
@@ -787,6 +865,42 @@ const ManageBookingPage = () => {
             })}
           </tbody>
         </table>
+      </div>
+
+      {/* Visual Legend */}
+      <div className="legend-section mt-3">
+        <div className="row">
+          <div className="col-12">
+            <div className="alert alert-info" style={{ padding: '10px 15px', fontSize: '0.9rem' }}>
+              <strong>📋 Chú thích màu sắc:</strong>
+              <div className="row mt-2">
+                <div className="col-md-6">
+                  <div className="d-flex align-items-center mb-1">
+                    <div style={{ width: '20px', height: '15px', backgroundColor: '#e3f2fd', border: '2px solid #2196f3', marginRight: '8px' }}></div>
+                    <span>Lịch hẹn hôm nay</span>
+                  </div>
+                  <div className="d-flex align-items-center mb-1">
+                    <div style={{ width: '20px', height: '15px', backgroundColor: '#ffebee', marginRight: '8px' }}></div>
+                    <span>Đã quá hạn</span>
+                  </div>
+                </div>
+                <div className="col-md-6">
+                  <div className="d-flex align-items-center mb-1">
+                    <div style={{ width: '20px', height: '15px', backgroundColor: '#e8f5e8', marginRight: '8px' }}></div>
+                    <span>Đang diễn ra</span>
+                  </div>
+                  <div className="d-flex align-items-center mb-1">
+                    <div style={{ width: '20px', height: '15px', backgroundColor: '#fff3e0', marginRight: '8px' }}></div>
+                    <span>Sắp bắt đầu</span>
+                  </div>
+                </div>
+              </div>
+              <small className="text-muted">
+                💡 Hệ thống tự động hủy các lịch hẹn "Đang chờ xác nhận" đã quá thời gian mỗi 5 phút.
+              </small>
+            </div>
+          </div>
+        </div>
       </div>
 
       {showViewPopup && selectedBooking && (
