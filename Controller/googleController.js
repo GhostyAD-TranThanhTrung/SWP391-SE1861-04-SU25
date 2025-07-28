@@ -51,7 +51,7 @@ exports.googleLogin = async (req, res) => {
         if (!credential) {
             console.log('❌ ERROR: No credential provided');
             console.log('='.repeat(60));
-            return res.status(400).json({ error: 'Google credential is required' });
+            return res.status(400).json({ error: 'Thông tin xác thực Google là bắt buộc' });
         }
 
         console.log('🔐 Verifying Google JWT token...');
@@ -93,7 +93,7 @@ exports.googleLogin = async (req, res) => {
             // Validate user object
             if (!user || !user.user_id) {
                 console.error('❌ ERROR: Invalid user data from database');
-                return res.status(500).json({ error: 'Invalid user data' });
+                return res.status(500).json({ error: 'Dữ liệu người dùng không hợp lệ' });
             }
 
             console.log('✅ USER FOUND - EXISTING GOOGLE USER');
@@ -102,6 +102,23 @@ exports.googleLogin = async (req, res) => {
             console.log(`👥 Role: ${user.role}`);
             console.log(`📅 Account created: ${user.date_create || 'N/A'}`);
             console.log(`✅ Status: ${user.status || 'N/A'}`);
+
+            // Check if user status is active
+            if (user.status !== 'active') {
+                console.log(`❌ GOOGLE LOGIN DENIED - User ${user.email} has status: ${user.status}`);
+                console.log('='.repeat(60));
+                let errorMessage = 'Tài khoản không hoạt động. Vui lòng liên hệ hỗ trợ.';
+                if (user.status === 'banned') {
+                    errorMessage = 'Tài khoản của bạn đã bị cấm. Vui lòng liên hệ hỗ trợ.';
+                } else if (user.status === 'inactive') {
+                    errorMessage = 'Tài khoản của bạn không hoạt động. Vui lòng liên hệ hỗ trợ.';
+                }
+                return res.status(403).json({
+                    error: errorMessage,
+                    status: user.status
+                });
+            }
+
             console.log('🔑 Generating JWT token for existing user...');
 
             // Generate JWT token for session
@@ -176,7 +193,7 @@ exports.googleLogin = async (req, res) => {
             return res.status(503).json({ error: 'Database authentication error' });
         }
 
-        return res.status(500).json({ error: 'Google authentication failed' });
+        return res.status(500).json({ error: 'Xác thực Google thất bại' });
     }
 }
 
@@ -191,7 +208,7 @@ async function googleRegisterInternal(req, res) {
         console.log(`🎫 Re-validating credential: ${credential ? 'Yes' : 'No'}`);
 
         if (!credential) {
-            return res.status(400).json({ error: 'Google credential is required' });
+            return res.status(400).json({ error: 'Thông tin xác thực Google là bắt buộc' });
         }
 
         console.log('🔐 Re-verifying Google JWT token for registration...');
@@ -207,7 +224,7 @@ async function googleRegisterInternal(req, res) {
         // Validate required fields
         if (!email || !name || !googleId) {
             console.error('❌ ERROR: Missing required fields from Google token');
-            return res.status(400).json({ error: 'Invalid Google token payload' });
+            return res.status(400).json({ error: 'Dữ liệu token Google không hợp lệ' });
         }
 
         console.log('✅ Google token re-verified successfully');
@@ -243,7 +260,7 @@ async function googleRegisterInternal(req, res) {
             // Validate registration result
             if (!savedUser || !savedUser.user_id) {
                 console.error('❌ ERROR: Failed to create user - no ID returned');
-                return res.status(500).json({ error: 'User registration failed' });
+                return res.status(500).json({ error: 'Đăng ký người dùng thất bại' });
             }
 
             const userId = savedUser.user_id;
@@ -352,7 +369,7 @@ async function googleRegisterInternal(req, res) {
             return res.status(409).json({ error: 'User already exists' });
         }
 
-        return res.status(500).json({ error: 'Failed to register Google user' });
+        return res.status(500).json({ error: 'Đăng ký người dùng Google thất bại' });
     }
 }
 
