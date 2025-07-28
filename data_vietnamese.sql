@@ -2,14 +2,6 @@
 GO
 /****** Object:  Database [SWP391-demo]    Script Date: 11/07/2025 19:55:04 ******/
 CREATE DATABASE [SWP391-demo]
- CONTAINMENT = NONE
- ON  PRIMARY 
-( NAME = N'SWP391-demo', FILENAME = N'C:\Program Files\Microsoft SQL Server\MSSQL16.MSSQLSERVER\MSSQL\DATA\SWP391-demo.mdf' , SIZE = 8192KB , MAXSIZE = UNLIMITED, FILEGROWTH = 65536KB )
- LOG ON 
-( NAME = N'SWP391-demo_log', FILENAME = N'C:\Program Files\Microsoft SQL Server\MSSQL16.MSSQLSERVER\MSSQL\DATA\SWP391-demo_log.ldf' , SIZE = 73728KB , MAXSIZE = 2048GB , FILEGROWTH = 65536KB )
- WITH CATALOG_COLLATION = DATABASE_DEFAULT, LEDGER = OFF
-GO
-ALTER DATABASE [SWP391-demo] SET COMPATIBILITY_LEVEL = 160
 GO
 IF (1 = FULLTEXTSERVICEPROPERTY('IsFullTextInstalled'))
 begin
@@ -179,8 +171,8 @@ SET QUOTED_IDENTIFIER ON
 GO
 CREATE TABLE [dbo].[Consultant](
 	[id_consultant] [int] IDENTITY(1,1) NOT NULL,
-	[user_id] [int] NOT NULL,
-	[cost] [decimal](10, 2) NULL,
+	[user_id] [int] NOT NULL UNIQUE,
+	[google_meet_link] [nvarchar](max) NULL,
 	[certification] [nvarchar](max) NULL,
 	[speciality] [nvarchar](max) NULL,
 PRIMARY KEY CLUSTERED 
@@ -763,6 +755,13 @@ INSERT [dbo].[Slot] ([slot_id], [start_time], [end_time]) VALUES (8, CAST(N'16:0
 INSERT [dbo].[Slot] ([slot_id], [start_time], [end_time]) VALUES (9, CAST(N'18:00:00' AS Time), CAST(N'19:00:00' AS Time))
 INSERT [dbo].[Slot] ([slot_id], [start_time], [end_time]) VALUES (10, CAST(N'19:00:00' AS Time), CAST(N'20:00:00' AS Time))
 SET IDENTITY_INSERT [dbo].[Slot] OFF
+GO
+SET IDENTITY_INSERT [dbo].[Consultant] ON 
+
+INSERT [dbo].[Consultant] ([id_consultant], [user_id], [google_meet_link], [certification], [speciality]) VALUES (1, 3, N'https://meet.google.com/abc-defg-hij', N'Chứng chỉ tư vấn nghiện chất cấp 1, Bằng cử nhân Tâm lý học', N'Tư vấn phòng chống ma túy cho thanh thiếu niên')
+INSERT [dbo].[Consultant] ([id_consultant], [user_id], [google_meet_link], [certification], [speciality]) VALUES (2, 4, N'https://meet.google.com/xyz-uvwx-mno', N'Thạc sĩ Tâm lý lâm sàng, Chứng chỉ điều trị nghiện chất', N'Tư vấn phục hồi và điều trị nghiện chất')
+INSERT [dbo].[Consultant] ([id_consultant], [user_id], [google_meet_link], [certification], [speciality]) VALUES (3, 5, N'https://meet.google.com/pqr-stuv-wxy', N'Bác sĩ chuyên khoa Tâm thần, Chứng chỉ tư vấn gia đình', N'Tư vấn hỗ trợ gia đình có người nghiện')
+SET IDENTITY_INSERT [dbo].[Consultant] OFF
 GO
 SET IDENTITY_INSERT [dbo].[Surveys] ON 
 

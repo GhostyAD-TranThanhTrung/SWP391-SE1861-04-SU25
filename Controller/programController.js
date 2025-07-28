@@ -362,6 +362,129 @@ class ProgramController {
     }
 
     /**
+     * Get all programs with specific user's enrollment and completion status (Admin only)
+     * Uses userId from URL parameter and checks if requester has admin role
+     */
+    static async getUserProgramsWithEnrollmentStatusByAdmin(req, res) {
+        try {
+            // Check if user has admin role
+            const userRole = req.user.role;
+            if (!userRole || !['admin', 'staff', 'manager'].includes(userRole)) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Access denied. Admin privileges required.'
+                });
+            }
+
+            const { userId } = req.params; // Get user_id from URL parameter
+            
+            if (!userId) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'User ID is required'
+                });
+            }
+
+            const programRepository = AppDataSource.getRepository(Program);
+            const enrollRepository = AppDataSource.getRepository(Enroll);
+
+            // Get all programs with basic relations
+            const programs = await programRepository.find({
+                relations: ['creator', 'category', 'contents'],
+                order: {
+                    create_at: 'DESC'
+                }
+            });
+
+            // Get all enrollments for the specified user
+            const userEnrollments = await enrollRepository.find({
+                where: { user_id: parseInt(userId) }
+            });
+
+            // Create a map of enrollments by program_id for quick lookup
+            const enrollmentMap = new Map();
+            userEnrollments.forEach(enrollment => {
+                enrollmentMap.set(enrollment.program_id, enrollment);
+            });
+
+            // Process each program to add enrollment and completion status
+            const programsWithStatus = programs.map(program => {
+                const enrollment = enrollmentMap.get(program.program_id);
+
+                let enrollmentStatus = {
+                    is_enrolled: false,
+                    has_complete: false,
+                    enrollment_date: null,
+                    completion_date: null,
+                    progress_percentage: 0,
+                    completed_content: 0,
+                    total_content: program.contents ? program.contents.length : 0
+                };
+
+                if (enrollment) {
+                    // Parse progress if it exists
+                    let progressArray = [];
+                    try {
+                        progressArray = enrollment.progress ? JSON.parse(enrollment.progress) : [];
+                    } catch (err) {
+                        console.error('Error parsing progress JSON:', err);
+                        progressArray = [];
+                    }
+
+                    const completedCount = progressArray.filter(item => item.complete).length;
+                    const totalCount = progressArray.length;
+                    const progressPercentage = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+
+                    enrollmentStatus = {
+                        is_enrolled: true,
+                        has_complete: !!enrollment.complete_at, // Check if complete_at is filled
+                        enrollment_date: enrollment.start_at,
+                        completion_date: enrollment.complete_at,
+                        progress_percentage: Math.round(progressPercentage),
+                        completed_content: completedCount,
+                        total_content: totalCount,
+                        enroll_id: `${userId}_${program.program_id}` // Composite ID for easy reference
+                    };
+                }
+
+                return {
+                    ...program,
+                    enrollment_status: enrollmentStatus
+                };
+            });
+
+            // Calculate summary statistics
+            const totalPrograms = programs.length;
+            const enrolledPrograms = programsWithStatus.filter(p => p.enrollment_status.is_enrolled).length;
+            const completedPrograms = programsWithStatus.filter(p => p.enrollment_status.has_complete).length;
+            const inProgressPrograms = programsWithStatus.filter(p =>
+                p.enrollment_status.is_enrolled && !p.enrollment_status.has_complete
+            ).length;
+
+            res.status(200).json({
+                success: true,
+                data: programsWithStatus,
+                summary: {
+                    user_id: parseInt(userId),
+                    total_programs: totalPrograms,
+                    enrolled_programs: enrolledPrograms,
+                    completed_programs: completedPrograms,
+                    in_progress_programs: inProgressPrograms,
+                    completion_rate: enrolledPrograms > 0 ? Math.round((completedPrograms / enrolledPrograms) * 100) : 0
+                },
+                message: `Programs with enrollment status for user ${userId} retrieved successfully`
+            });
+        } catch (error) {
+            console.error('Error getting user programs with enrollment status:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to retrieve user programs with enrollment status',
+                error: error.message
+            });
+        }
+    }
+
+    /**
      * Get Sự kiện cộng đồng programs only
      * Specifically designed to retrieve programs from the Sự kiện cộng đồng category (category_id: 18)
      */

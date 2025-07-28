@@ -289,7 +289,7 @@ class MemberController {
             // Create new user (ERD compliant)
             const newUser = userRepository.create({
                 email,
-                password: await bcrypt.hash(password, 10),
+                password: password,
                 role: 'member',
                 status
                 // date_create is handled by database default
@@ -386,7 +386,7 @@ class MemberController {
 
             // Update user fields if provided
             if (email !== undefined) user.email = email;
-            if (password !== undefined) user.password = await bcrypt.hash(password, 10);
+            if (password !== undefined) user.password = password;
             if (status !== undefined) {
                 if (!['active', 'inactive', 'banned'].includes(status)) {
                     return res.status(400).json({

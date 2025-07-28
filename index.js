@@ -408,7 +408,7 @@ app.get("/api/consultants/:consultantId", ConsultantController.getConsultantById
  * CONSULTANT CREATE: Add new consultant
  * Purpose: Create new consultant profile in the system
  * Method: POST /api/consultants
- * Input: { user_id: number, cost: number, certification: string, speciality: string }
+ * Input: { user_id: number, google_meet_link: string, certification: string, speciality: string }
  * Output: { success: boolean, data: object, message: string }
  * Authentication: Required (Admin)
  */
@@ -418,7 +418,7 @@ app.post("/api/consultants", authController.verifyToken, ConsultantController.cr
  * CONSULTANT UPDATE: Update consultant information
  * Purpose: Modify consultant profile details, rates, and specialties
  * Method: PUT /api/consultants/:consultantId
- * Input: Path params: { consultantId: number }, Body: { cost?: number, certification?: string, speciality?: string }
+ * Input: Path params: { consultantId: number }, Body: { google_meet_link?: string, certification?: string, speciality?: string }
  * Output: { success: boolean, data: object, message: string }
  * Authentication: Required (Admin/Consultant)
  */
@@ -479,7 +479,7 @@ app.get("/api/consultants-complete/:consultantId", ConsultantCompleteController.
  * CONSULTANT COMPLETE CREATE: Create new consultant with complete profile
  * Purpose: Create new consultant with all related data (user, profile, consultant, availability slots)
  * Method: POST /api/consultants-complete
- * Input: { role: string, password: string, email: string, cost?: number, certification?: string, speciality?: string, name?: string, bio_json?: object, date_of_birth?: string, job?: string, availability_slots?: Array<{day_of_week: string, start_time: string, end_time: string}> }
+ * Input: { role: string, password: string, email: string, google_meet_link?: string, certification?: string, speciality?: string, name?: string, bio_json?: object, date_of_birth?: string, job?: string, availability_slots?: Array<{day_of_week: string, start_time: string, end_time: string}> }
  * Output: { success: boolean, data: CompleteConsultantObject, message: string }
  * Authentication: Required (Admin)
  */
@@ -489,7 +489,7 @@ app.post("/api/consultants-complete", authController.verifyToken, ConsultantComp
  * CONSULTANT COMPLETE UPDATE: Update consultant with complete data
  * Purpose: Update consultant with all related data (user, profile, consultant, availability slots)
  * Method: PUT /api/consultants-complete/:id
- * Input: Path params: { id: number }, Body: { role?: string, email?: string, cost?: number, certification?: string, speciality?: string, name?: string, bio_json?: object, date_of_birth?: string, job?: string, availability_slots?: Array<{day_of_week: string, start_time: string, end_time: string}> }
+ * Input: Path params: { id: number }, Body: { role?: string, email?: string, google_meet_link?: string, certification?: string, speciality?: string, name?: string, bio_json?: object, date_of_birth?: string, job?: string, availability_slots?: Array<{day_of_week: string, start_time: string, end_time: string}> }
  * Output: { success: boolean, data: CompleteConsultantObject, message: string }
  * Authentication: Required (Admin/Consultant)
  */
@@ -726,6 +726,7 @@ app.delete('/api/assessments/:id', authController.verifyToken, AssessmentControl
  * 
  * GET    /api/programs                           - Get all programs
  * GET    /api/programs/my-enrollment-status      - Get programs with user enrollment status (requires auth)
+ * GET    /api/programs/user/:userId/enrollment-status - Get programs with specific user enrollment status (admin only)
  * GET    /api/programs/community-events          - Get Community Event programs only
  * GET    /api/programs/:id                       - Get program by ID
  * GET    /api/programs/category/:categoryId      - Get programs by category
@@ -737,6 +738,7 @@ app.get("/api/programs", ProgramController.getAllPrograms);
 app.get("/api/programs/category-details", ProgramController.getAllProgramsWithCategoryDetails);
 app.get("/api/programs/community-events", ProgramController.getCommunityEventPrograms); // MUST be before :id route
 app.get("/api/programs/my-enrollment-status", authController.verifyToken, ProgramController.getUserProgramsWithEnrollmentStatus);
+app.get("/api/programs/user/:userId/enrollment-status", authController.verifyToken, ProgramController.getUserProgramsWithEnrollmentStatusByAdmin);
 app.get("/api/programs/recommendations", authController.verifyToken, ProgramController.getProgramRecommendationsByAge);
 app.get("/api/programs/category/:categoryId", ProgramController.getProgramsByCategory);
 app.get("/api/programs/:programId/survey-analytics", ProgramController.getProgramSurveyAnalytics);

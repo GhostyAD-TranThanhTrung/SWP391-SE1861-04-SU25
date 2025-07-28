@@ -71,7 +71,7 @@ class ConsultantCompleteController {
         const consultantData = {
           // Consultant table fields
           id_consultant: consultant.id_consultant,
-          cost: consultant.cost,
+          google_meet_link: consultant.google_meet_link,
           certification: consultant.certification,
           speciality: consultant.speciality,
 
@@ -168,7 +168,7 @@ class ConsultantCompleteController {
       const completeConsultantDetail = {
         // Consultant table fields
         id_consultant: consultant.id_consultant,
-        cost: consultant.cost,
+                  google_meet_link: consultant.google_meet_link,
         certification: consultant.certification,
         speciality: consultant.speciality,
 
@@ -214,7 +214,7 @@ class ConsultantCompleteController {
         // User table fields
         role, password, status, email, img_link,
         // Consultant table fields
-        cost, certification, speciality,
+        google_meet_link, certification, speciality,
         // Profile table fields
         name, bio_json, date_of_birth, job,
         // Availability slots - array of {day_of_week, start_time, end_time}
@@ -282,14 +282,14 @@ class ConsultantCompleteController {
 
         // 2. Create consultant profile using raw SQL
         const createConsultantQuery = `
-          INSERT INTO Consultant (user_id, cost, certification, speciality)
+          INSERT INTO Consultant (user_id, google_meet_link, certification, speciality)
           OUTPUT INSERTED.*
           VALUES (@0, @1, @2, @3)
         `;
 
         const consultantResult = await AppDataSource.query(createConsultantQuery, [
           savedUser.user_id,
-          cost || null,
+          google_meet_link || null,
           certification || null,
           speciality || null
         ]);
@@ -381,7 +381,7 @@ class ConsultantCompleteController {
         const completeConsultantData = {
           // Consultant table fields
           id_consultant: savedConsultant.id_consultant,
-          cost: savedConsultant.cost,
+          google_meet_link: savedConsultant.google_meet_link,
           certification: savedConsultant.certification,
           speciality: savedConsultant.speciality,
 
@@ -434,7 +434,7 @@ class ConsultantCompleteController {
         // User table fields
         role, status, email, img_link,
         // Consultant table fields
-        cost, certification, speciality,
+        google_meet_link, certification, speciality,
         // Profile table fields
         name, bio_json, date_of_birth, job,
         // Availability slots - array of {day_of_week, start_time, end_time}
@@ -467,15 +467,15 @@ class ConsultantCompleteController {
 
       try {
         // 1. Update consultant fields using raw query
-        if (cost !== undefined || certification !== undefined || speciality !== undefined) {
+        if (google_meet_link !== undefined || certification !== undefined || speciality !== undefined) {
           await queryRunner.query(`
             UPDATE Consultant 
-            SET cost = COALESCE(@0, cost),
+            SET google_meet_link = COALESCE(@0, google_meet_link),
                 certification = COALESCE(@1, certification),
                 speciality = COALESCE(@2, speciality)
             WHERE id_consultant = @3
           `, [
-            cost !== undefined ? cost : null,
+            google_meet_link !== undefined ? google_meet_link : null,
             certification !== undefined ? certification : null,
             speciality !== undefined ? speciality : null,
             parseInt(id)
@@ -650,7 +650,7 @@ class ConsultantCompleteController {
         const completeUpdatedData = {
           // Consultant table fields
           id_consultant: updatedConsultant.id_consultant,
-          cost: updatedConsultant.cost,
+          google_meet_link: updatedConsultant.google_meet_link,
           certification: updatedConsultant.certification,
           speciality: updatedConsultant.speciality,
 
@@ -1027,7 +1027,7 @@ class ConsultantCompleteController {
         // Additional related data
         consultant_info: updatedBooking.consultant ? {
           id_consultant: updatedBooking.consultant.id_consultant,
-          cost: updatedBooking.consultant.cost,
+          google_meet_link: updatedBooking.consultant.google_meet_link,
           certification: updatedBooking.consultant.certification,
           speciality: updatedBooking.consultant.speciality,
           consultant_name: updatedBooking.consultant.user?.name,
