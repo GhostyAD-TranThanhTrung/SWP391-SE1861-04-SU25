@@ -65,6 +65,15 @@ const LoginPage = () => {
                 setEmailDisplay('Phiên đăng nhập đã hết hạn');
                 setType('on');
                 navigate('/login');
+            } else if (res.status === 403) {
+                console.error('🚫 Account banned or inactive');
+                // Clear token and redirect to login with error message
+                sessionStorage.removeItem('token');
+                sessionStorage.removeItem('email');
+                const errorData = await res.json().catch(() => ({}));
+                setEmailDisplay(errorData.error || 'Tài khoản không khả dụng');
+                setType('on');
+                navigate('/login');
             } else if (res.status === 404) {
                 console.log('📝 Profile not found, redirecting to choose-role');
                 navigate('/choose-role'); // Profile doesn't exist
@@ -104,16 +113,26 @@ const LoginPage = () => {
             const data = await response.json();
             console.log('Dữ liệu trả về từ API:', data);
 
-            if (response.status !== 401 && data) {
+            if (response.status === 200 && data.success) {
                 console.log('Đăng nhập thành công, email:', email);
                 setEmailDisplay("Xin chào " + email);
                 setType('on');
                 emailRef.current.value = '';
-                passwordRef.current.value = ''; sessionStorage.setItem("email", email);
+                passwordRef.current.value = '';
+
+                sessionStorage.setItem("email", email);
                 sessionStorage.setItem("token", data.token);
 
                 // Kiểm tra profile sau khi lưu token
                 await checkProfileAndRedirect();
+            } else if (response.status === 403) {
+                // Handle banned/inactive accounts
+                console.log('Tài khoản bị khóa hoặc không hoạt động:', data.error);
+                setEmailDisplay(data.error || 'Tài khoản không khả dụng');
+                setType('on');
+                // Clear any stored credentials
+                emailRef.current.value = '';
+                passwordRef.current.value = '';
             } else {
                 console.log('Đăng nhập thất bại:', data.error);
                 setEmailDisplay(data.error || 'Đăng nhập thất bại');
@@ -142,7 +161,7 @@ const LoginPage = () => {
             const data = await response.json();
             console.log('Dữ liệu trả về từ API Google:', data);
 
-            if (data && data.user) {
+            if (response.status === 200 && data && data.user) {
                 console.log('Đăng nhập Google thành công, email:', data.user.email);
                 setEmailDisplay("Xin chào " + data.user.email);
                 setType('on');
@@ -154,6 +173,11 @@ const LoginPage = () => {
 
                 // Kiểm tra profile sau khi lưu token
                 await checkProfileAndRedirect();
+            } else if (response.status === 403) {
+                // Handle banned/inactive accounts
+                console.log('Tài khoản Google bị khóa hoặc không hoạt động:', data.error);
+                setEmailDisplay(data.error || 'Tài khoản không khả dụng');
+                setType('on');
             } else {
                 console.log('Đăng nhập Google thất bại:', data.error);
                 setEmailDisplay(data.error || 'Đăng nhập Google thất bại');
