@@ -274,6 +274,16 @@ app.get("/api/staff", authController.verifyToken, StaffController.getAllStaff);
 app.get("/api/staff/:staffName", authController.verifyToken, StaffController.searchStaffByName);
 
 /**
+ * STAFF DETAILS: Get detailed staff information
+ * Purpose: Retrieve comprehensive staff information including blogs and programs
+ * Method: GET /api/staff/details/:staffId
+ * Input: Path params: { staffId: number }
+ * Output: { success: boolean, data: { staff_info, blogs, programs, statistics }, message: string }
+ * Authentication: Required (Admin/Staff)
+ */
+app.get("/api/staff/details/:staffId", authController.verifyToken, StaffController.getStaffDetails);
+
+/**
  * STAFF CREATE: Create new staff member
  * Purpose: Add new staff member to the system
  * Method: POST /api/staff
@@ -584,6 +594,16 @@ app.get("/api/booking-sessions/scheduled", authController.verifyToken, BookingSe
  * Authentication: Required (Member)
  */
 app.get("/api/booking-sessions/member", authController.verifyToken, BookingSessionController.getBookingSessionsByMember);
+
+/**
+ * BOOKING SESSIONS BY MEMBER (Admin): Get all booking sessions for specific member
+ * Purpose: Retrieve all booking sessions for a specific member (Admin only)
+ * Method: GET /api/booking-sessions/member/:memberId
+ * Input: Path params: { memberId: number }
+ * Output: { success: boolean, data: Array<BookingObject>, count: number, message: string }
+ * Authentication: Required (Admin/Staff)
+ */
+app.get("/api/booking-sessions/member/:memberId", authController.verifyToken, BookingSessionController.getBookingSessionsByMemberAdmin);
 
 /**
  * BOOKING CREATE: Create new booking session

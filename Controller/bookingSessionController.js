@@ -126,6 +126,104 @@ class BookingSessionController {
         }
     }
 
+    /**
+     * Get booking sessions by specific member ID (Admin only)
+     */
+    static async getBookingSessionsByMemberAdmin(req, res) {
+        try {
+            // Get member ID from the request parameters
+            const { memberId } = req.params;
+
+            // Check if user has admin/staff role
+            const userRole = req.user.role;
+            if (!userRole || !['admin', 'staff', 'manager'].includes(userRole)) {
+                return res.status(403).json({
+                    success: false,
+                    data: [],
+                    count: 0,
+                    message: 'Không có quyền truy cập. Chỉ admin/staff mới có thể xem thông tin này.'
+                });
+            }
+
+            if (!memberId) {
+                return res.status(400).json({
+                    success: false,
+                    data: [],
+                    count: 0,
+                    message: 'Member ID là bắt buộc'
+                });
+            }
+
+            const bookingQuery = `
+                SELECT DISTINCT
+                    b.booking_id,
+                    b.consultant_id,
+                    b.member_id,
+                    b.slot_id,
+                    b.google_meet_link,
+                    b.booking_date,
+                    b.status,
+                    b.notes,
+                    cs.day_of_week,
+                    s.start_time,
+                    s.end_time,
+                    p.name as consultant_name
+                FROM Booking_Session b
+                INNER JOIN Consultant c ON b.consultant_id = c.id_consultant
+                INNER JOIN [Users] u ON c.user_id = u.user_id
+                INNER JOIN Profile p ON u.user_id = p.user_id
+                INNER JOIN Slot s ON b.slot_id = s.slot_id
+                INNER JOIN Consultant_Slot cs ON (
+                    b.consultant_id = cs.consultant_id 
+                    AND b.slot_id = cs.slot_id
+                    AND DATENAME(WEEKDAY, b.booking_date) = cs.day_of_week
+                )
+                WHERE b.member_id = @0
+                ORDER BY booking_date ASC, start_time ASC
+            `;
+
+            console.log('Admin fetching member bookings query:', bookingQuery);
+            console.log('Admin fetching member bookings parameters:', [parseInt(memberId)]);
+
+            const bookings = await AppDataSource.query(
+                bookingQuery,
+                [parseInt(memberId)]
+            );
+
+            // Check if no booking sessions exist
+            if (!bookings || bookings.length === 0) {
+                return res.status(200).json({
+                    success: true,
+                    data: [],
+                    count: 0,
+                    message: 'Không có lịch hẹn nào cho thành viên này'
+                });
+            }
+
+            console.log('Admin member bookings response:', {
+                success: true,
+                data: bookings,
+                count: bookings.length,
+                message: 'Lấy danh sách lịch hẹn thành viên thành công'
+            });
+            
+            res.status(200).json({
+                success: true,
+                data: bookings,
+                count: bookings.length,
+                message: 'Lấy danh sách lịch hẹn thành viên thành công'
+            });
+        } catch (error) {
+            console.error('Error getting booking sessions by member (admin):', error);
+            res.status(500).json({
+                success: false,
+                data: [],
+                count: 0,
+                message: error.message || 'Không thể lấy danh sách lịch hẹn'
+            });
+        }
+    }
+
 
     /**
      * Create new booking session
