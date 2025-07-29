@@ -20,13 +20,13 @@ const DetailCommunityEventPage = () => {
     const [progressPercentage, setProgressPercentage] = useState(0);
     const [isCompleted, setIsCompleted] = useState(false);
     const [cancelling, setCancelling] = useState(false);
-    
+
     // Survey modal states
     const [showSurveyModal, setShowSurveyModal] = useState(false);
     const [surveyType, setSurveyType] = useState(''); // 'pre-assessment' or 'post-assessment'
     const [justRegistered, setJustRegistered] = useState(false);
     const [justCompleted, setJustCompleted] = useState(false);
-    
+
     // Survey status states
     const [preAssessmentCompleted, setPreAssessmentCompleted] = useState(false);
     const [postAssessmentCompleted, setPostAssessmentCompleted] = useState(false);
@@ -94,22 +94,22 @@ const DetailCommunityEventPage = () => {
                     const registrationInEvent = data.data && data.data.find(enrollment =>
                         enrollment.program_id === parseInt(id)
                     );
-                    
+
                     if (registrationInEvent) {
                         setIsRegistered(true);
                         setEnrollmentData(registrationInEvent);
-                        
+
                         // Calculate progress percentage
                         if (registrationInEvent.progress && Array.isArray(registrationInEvent.progress)) {
                             const totalContent = registrationInEvent.progress.length;
                             const completedContent = registrationInEvent.progress.filter(item => item.complete).length;
                             const percentage = totalContent > 0 ? (completedContent / totalContent) * 100 : 0;
                             setProgressPercentage(percentage);
-                            
+
                             // Check if event is completed
                             const allCompleted = totalContent > 0 && completedContent === totalContent;
                             setIsCompleted(!!registrationInEvent.complete_at || allCompleted);
-                            
+
                             // If all content is complete but complete_at is not set, update it
                             if (allCompleted && !registrationInEvent.complete_at) {
                                 updateRegistrationCompletion(tokenPayload.userId, parseInt(id));
@@ -150,7 +150,7 @@ const DetailCommunityEventPage = () => {
             alert('Post-event assessment is not available for this community event yet.');
             return;
         }
-        
+
         setSurveyType(type);
         setShowSurveyModal(true);
     };
@@ -195,7 +195,7 @@ const DetailCommunityEventPage = () => {
                 if (preData.success && preData.data && preData.data.length > 0) {
                     preExists = true;
                     const preSurvey = preData.data[0];
-                    
+
                     // Check if user has responded
                     const preCheckResponse = await fetch(
                         `http://localhost:3000/api/survey-responses/check/${preSurvey.survey_id}`,
@@ -233,7 +233,7 @@ const DetailCommunityEventPage = () => {
                 if (postData.success && postData.data && postData.data.length > 0) {
                     postExists = true;
                     const postSurvey = postData.data[0];
-                    
+
                     // Check if user has responded
                     const postCheckResponse = await fetch(
                         `http://localhost:3000/api/survey-responses/check/${postSurvey.survey_id}`,
@@ -294,7 +294,7 @@ const DetailCommunityEventPage = () => {
                 setProgressPercentage(100);
                 setJustCompleted(true);
                 console.log('Event participation updated successfully');
-                
+
                 // Trigger post-assessment survey
                 setTimeout(() => {
                     triggerSurvey('post-assessment');
@@ -317,11 +317,11 @@ const DetailCommunityEventPage = () => {
         console.log('🚀 Starting cancel registration process...');
         console.log('📋 Program ID:', id);
         console.log('🔑 Token available:', !!token);
-        
+
         try {
             const apiUrl = `http://localhost:3000/api/enrollments/my/${id}`;
             console.log('📡 Making DELETE request to:', apiUrl);
-            
+
             const res = await fetch(apiUrl, {
                 method: 'DELETE',
                 headers: {
@@ -336,7 +336,7 @@ const DetailCommunityEventPage = () => {
             if (res.ok) {
                 const responseData = await res.json();
                 console.log('🎉 Cancel registration successful:', responseData);
-                
+
                 // Reset all registration-related states
                 setIsRegistered(false);
                 setEnrollmentData(null);
@@ -382,12 +382,12 @@ const DetailCommunityEventPage = () => {
                 alert('Đăng ký tham gia sự kiện thành công!');
                 setIsRegistered(true);
                 setJustRegistered(true);
-                
+
                 // Check survey status after registration
                 setTimeout(() => {
                     checkSurveyStatus();
                 }, 500);
-                
+
                 // Trigger pre-assessment survey after successful registration
                 setTimeout(() => {
                     triggerSurvey('pre-assessment');
@@ -469,7 +469,7 @@ const DetailCommunityEventPage = () => {
                             <p>{program.description}</p>
                         </div>
                     </div>
-                    
+
                     <div className="register-section">
                         {checkingRegistration ? (
                             <div className="registration-checking">
@@ -494,7 +494,7 @@ const DetailCommunityEventPage = () => {
                                         <p>Bạn có thể xem tất cả tài liệu và hoạt động sự kiện bên dưới</p>
                                     </div>
                                 )}
-                                
+
                                 {/* Survey Buttons */}
                                 {!checkingSurveyStatus && surveysChecked && (
                                     <div className="survey-buttons">
@@ -516,7 +516,7 @@ const DetailCommunityEventPage = () => {
                                         )}
                                     </div>
                                 )}
-                                
+
                                 {/* Cancel Registration Button */}
                                 {!isCompleted && (
                                     <button
@@ -531,18 +531,7 @@ const DetailCommunityEventPage = () => {
                         ) : userId ? (
                             <div className="register-button-section">
                                 <div className="register-benefits">
-                                    <div className="benefit-item">
-                                        <span className="benefit-icon">🎁</span>
-                                        <span>Miễn phí tham gia</span>
-                                    </div>
-                                    <div className="benefit-item">
-                                        <span className="benefit-icon">📚</span>
-                                        <span>Nhận tài liệu sự kiện</span>
-                                    </div>
-                                    <div className="benefit-item">
-                                        <span className="benefit-icon">🤝</span>
-                                        <span>Kết nối cộng đồng</span>
-                                    </div>
+                            
                                 </div>
                                 <button
                                     className={`register-button ${registering ? 'registering' : ''}`}
@@ -623,9 +612,9 @@ const DetailCommunityEventPage = () => {
                                             <td className="title-cell">{content.title}</td>
                                             <td className="type-cell">
                                                 <span className={`content-type ${content.type}`}>
-                                                    {content.type === 'article' ? 'Bài viết' : 
-                                                     content.type === 'video' ? 'Video' : 
-                                                     content.type === 'audio' ? 'Âm thanh' : content.type}
+                                                    {content.type === 'article' ? 'Bài viết' :
+                                                        content.type === 'video' ? 'Video' :
+                                                            content.type === 'audio' ? 'Âm thanh' : content.type}
                                                 </span>
                                             </td>
                                             <td className="complete-cell">

@@ -227,7 +227,7 @@ const CoursePage = () => {
     };
 
     const getVisibleCategories = () => {
-        return categories.filter(category => category.name !== 'Community Event');
+    return categories.filter(category => category.name !== 'Community Event' && category.name !== 'Sự kiện cộng đồng');
     };
 
     const getVisibleEvents = () => {
@@ -653,6 +653,7 @@ const CoursePage = () => {
                                         <div className="text-center">Đang tải danh mục...</div>
                                     ) : (
                                         getVisibleCategories().map((cat) => (
+                                            
                                             <button
                                                 key={cat.category_id}
                                                 className={`btn px-3 py-2 ${selectedCategory && selectedCategory.category_id === cat.category_id ? 'btn-primary' : 'btn-outline-primary'}`}

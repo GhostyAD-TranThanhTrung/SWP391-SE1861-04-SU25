@@ -219,7 +219,7 @@ const SurveyModal = ({
         try {
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
             if (!token) {
-                throw new Error('Authentication required');
+                throw new Error('Cần đăng nhập để thực hiện khảo sát');
             }
 
             // Format responses according to the key-value API format
@@ -249,28 +249,28 @@ const SurveyModal = ({
 
             console.log('[SurveyModal] Survey submit response status:', response.status);
             if (!response.ok) {
-                throw new Error('Failed to submit survey');
+                throw new Error('Gửi khảo sát thất bại');
             }
 
             const result = await response.json();
             console.log('[SurveyModal] Survey submit result:', result);
             if (result.success) {
-                alert('Survey submitted successfully! Thank you for your feedback.');
+                alert('Gửi khảo sát thành công! Cảm ơn bạn đã phản hồi.');
                 if (onComplete) onComplete();
                 onClose();
             } else {
-                throw new Error(result.message || 'Failed to submit survey');
+                throw new Error(result.message || 'Gửi khảo sát thất bại');
             }
         } catch (err) {
             console.error('[SurveyModal] Error submitting survey:', err);
-            alert('Error submitting survey: ' + err.message);
+            alert('Lỗi gửi khảo sát: ' + err.message);
         } finally {
             setSubmitting(false);
         }
     };
 
     const handleSkip = () => {
-        const confirmed = window.confirm('Are you sure you want to skip this survey? You can take it later from your course page.');
+        const confirmed = window.confirm('Bạn có chắc chắn muốn bỏ qua khảo sát này? Bạn có thể thực hiện sau tại trang khóa học.');
         if (confirmed) {
             if (onComplete) onComplete();
             onClose();
@@ -284,7 +284,7 @@ const SurveyModal = ({
             <div className="survey-modal">
                 <div className="modal-header">
                     <h2>
-                        {surveyType === 'pre-assessment' ? 'Pre-Course Assessment' : 'Post-Course Assessment'}
+                        {surveyType === 'pre-assessment' ? 'Khảo sát trước khóa học' : 'Khảo sát sau khóa học'}
                     </h2>
                     <button className="close-button" onClick={onClose}>
                         ×
@@ -295,73 +295,72 @@ const SurveyModal = ({
                     {checkingResponse ? (
                         <div className="survey-loading">
                             <div className="loading-spinner"></div>
-                            <p>Checking survey status...</p>
+                            <p>Đang kiểm tra trạng thái khảo sát...</p>
                         </div>
                     ) : alreadyResponded ? (
                         <div className="already-responded">
                             <div className="success-icon">✅</div>
-                            <h3>Survey Already Completed</h3>
+                            <h3>Đã hoàn thành khảo sát</h3>
                             <p>
-                                You have already completed the {surveyType === 'pre-assessment' ? 'pre-course' : 'post-course'} assessment for this program.
+                                Bạn đã hoàn thành {surveyType === 'pre-assessment' ? 'khảo sát trước khóa học' : 'khảo sát sau khóa học'} cho chương trình này.
                             </p>
-                            <p>Thank you for your feedback!</p>
+                            <p>Cảm ơn bạn đã phản hồi!</p>
                             <button className="close-btn" onClick={onClose}>
-                                Close
+                                Đóng
                             </button>
                         </div>
                     ) : surveyNotFound ? (
                         <div className="survey-not-found">
                             <div className="not-found-icon">📋❌</div>
-                            <h3>Survey Not Available</h3>
+                            <h3>Không có khảo sát</h3>
                             <p>
-                                The {surveyType === 'pre-assessment' ? 'pre-course' : 'post-course'} assessment 
-                                is not currently available for this program.
+                                {surveyType === 'pre-assessment' ? 'Khảo sát trước khóa học' : 'Khảo sát sau khóa học'} hiện chưa có cho chương trình này.
                             </p>
                             <div className="not-found-reasons">
-                                <p><strong>This could be because:</strong></p>
+                                <p><strong>Có thể do:</strong></p>
                                 <ul>
-                                    <li>The assessment hasn't been created yet</li>
-                                    <li>It's temporarily unavailable for maintenance</li>
-                                    <li>This program doesn't require an assessment</li>
+                                    <li>Khảo sát chưa được tạo</li>
+                                    <li>Đang bảo trì tạm thời</li>
+                                    <li>Chương trình này không yêu cầu khảo sát</li>
                                 </ul>
                             </div>
                             <p>
-                                If you believe this is an error, please contact support or check back later.
+                                Nếu bạn nghĩ đây là lỗi, vui lòng liên hệ hỗ trợ hoặc thử lại sau.
                             </p>
                             <button className="close-btn" onClick={onClose}>
-                                Continue
+                                Tiếp tục
                             </button>
                         </div>
                     ) : loading ? (
                         <div className="survey-loading">
                             <div className="loading-spinner"></div>
-                            <p>Loading survey...</p>
+                            <p>Đang tải khảo sát...</p>
                         </div>
                     ) : error ? (
                         <div className="survey-error">
                             <div className="error-icon">⚠️</div>
-                            <h3>Error Loading Survey</h3>
+                            <h3>Lỗi tải khảo sát</h3>
                             <p>{error}</p>
                             <div className="error-actions">
                                 <button className="retry-btn" onClick={checkExistingResponse}>
-                                    Try Again
+                                    Thử lại
                                 </button>
                                 <button className="close-btn" onClick={onClose}>
-                                    Close
+                                    Đóng
                                 </button>
                             </div>
                         </div>
                     ) : !survey || questions.length === 0 ? (
                         <div className="no-survey">
                             <div className="no-survey-icon">📋</div>
-                            <h3>Survey Unavailable</h3>
-                            <p>The survey content could not be loaded properly.</p>
+                            <h3>Không thể tải khảo sát</h3>
+                            <p>Nội dung khảo sát không thể tải đúng cách.</p>
                             <div className="error-actions">
                                 <button className="retry-btn" onClick={fetchSurvey}>
-                                    Retry
+                                    Thử lại
                                 </button>
                                 <button className="close-btn" onClick={onClose}>
-                                    Close
+                                    Đóng
                                 </button>
                             </div>
                         </div>
@@ -370,16 +369,16 @@ const SurveyModal = ({
                             <div className="survey-intro">
                                 <p>
                                     {surveyType === 'pre-assessment' 
-                                        ? 'Please complete this brief assessment before starting the course. This helps us understand your current knowledge and tailor the experience.'
-                                        : 'Please complete this assessment to help us understand how the course has helped you and improve future offerings.'
+                                        ? 'Vui lòng hoàn thành khảo sát ngắn này trước khi bắt đầu khóa học. Điều này giúp chúng tôi hiểu rõ kiến thức hiện tại của bạn và cá nhân hóa trải nghiệm.'
+                                        : 'Vui lòng hoàn thành khảo sát này để giúp chúng tôi hiểu khóa học đã hỗ trợ bạn như thế nào và cải thiện các chương trình sau.'
                                     }
                                 </p>
                             </div>
 
                             <div className="progress-bar">
                                 <div className="progress-info">
-                                    <span>Question {currentQuestionIndex + 1} of {questions.length}</span>
-                                    <span>{Math.round(((currentQuestionIndex + 1) / questions.length) * 100)}% Complete</span>
+                                    <span>Câu hỏi {currentQuestionIndex + 1} / {questions.length}</span>
+                                    <span>{Math.round(((currentQuestionIndex + 1) / questions.length) * 100)}% hoàn thành</span>
                                 </div>
                                 <div className="progress-track">
                                     <div 
@@ -415,7 +414,7 @@ const SurveyModal = ({
                                             onClick={handlePrevious}
                                             disabled={currentQuestionIndex === 0}
                                         >
-                                            Previous
+                                            Trước
                                         </button>
 
                                         {currentQuestionIndex < questions.length - 1 ? (
@@ -424,7 +423,7 @@ const SurveyModal = ({
                                                 onClick={handleNext}
                                                 disabled={!answers[questions[currentQuestionIndex].id]}
                                             >
-                                                Next
+                                                Tiếp
                                             </button>
                                         ) : (
                                             <button 
@@ -432,7 +431,7 @@ const SurveyModal = ({
                                                 onClick={handleSubmit}
                                                 disabled={submitting || !answers[questions[currentQuestionIndex].id]}
                                             >
-                                                {submitting ? 'Submitting...' : 'Submit Survey'}
+                                                {submitting ? 'Đang gửi...' : 'Gửi khảo sát'}
                                             </button>
                                         )}
                                     </div>
@@ -441,7 +440,7 @@ const SurveyModal = ({
 
                             <div className="survey-actions">
                                 <button className="skip-btn" onClick={handleSkip}>
-                                    Skip Survey
+                                    Bỏ qua khảo sát
                                 </button>
                             </div>
                         </div>
