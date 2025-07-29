@@ -583,8 +583,8 @@ const BlogPage = () => {
     const getStatusBadge = (status) => {
         const statusMap = {
             'published': { text: 'Đã xuất bản', class: 'badge-success' },
-            'draft': { text: 'Bản nháp', class: 'badge-warning' },
-            'pending': { text: 'Chờ duyệt', class: 'badge-info' },
+            'draft': { text: 'Bản nháp', class: 'text-dark' },
+            'pending': { text: 'Chờ duyệt', class: 'text-dark' },
             'hidden': { text: 'Đã ẩn', class: 'badge-secondary' }
         };
         const statusInfo = statusMap[status] || { text: status, class: 'badge-secondary' };
@@ -891,7 +891,7 @@ const BlogPage = () => {
                             {activeTab === 'create' && isLoggedIn && (
                                 <div className="create-blog-section">
                                     <h2 className="section-title mb-4">{editingBlog ? 'Chỉnh sửa câu chuyện' : 'Chia sẻ câu chuyện'}</h2>
-                                    
+
                                     <div className="create-blog-form">
                                         {/* Submission Progress Overlay */}
                                         {isSubmitting && selectedImage && (

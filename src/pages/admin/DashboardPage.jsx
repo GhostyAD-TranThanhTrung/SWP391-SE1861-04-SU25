@@ -125,7 +125,7 @@ const DashboardPage = () => {
         type: 'bar',
         data: {
           labels: [
-            'Hoàn thành',
+            'Đã hoàn thành',
             'Đã hủy',
             ['Đang chờ', 'xác nhận'],
             ['Xác nhận', 'thành công']
@@ -239,7 +239,7 @@ const DashboardPage = () => {
           </div>
         </div>
       )}
-      
+
       <div className="row">
         <div className="col-lg-6 mb-4">
           <div className="card h-100" style={{ background: '#fff', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
@@ -253,7 +253,7 @@ const DashboardPage = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="col-lg-6 mb-4">
           <div className="card h-100" style={{ background: '#fff', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
             <div className="card-header" style={{ background: '#f8f9fa', borderBottom: '1px solid #e9ecef' }}>
