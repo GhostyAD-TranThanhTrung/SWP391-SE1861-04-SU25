@@ -136,6 +136,7 @@ const StaffListPage = () => {
         alert("Tạo nhân viên thành công!");
         fetchStaffs();
         handleClosePopup();
+        window.location.reload(); // Force page reload after adding staff
       }
     } catch (err) {
       console.error("Lỗi khi thêm staff:", err);
@@ -178,10 +179,10 @@ const StaffListPage = () => {
         `http://localhost:3000/api/staff/details/${staffId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       if (res.data.success) {
         const { staff_info, blogs, programs, statistics } = res.data.data;
-        
+
         const flatData = {
           email: staff_info.email,
           role: staff_info.role,
@@ -197,7 +198,7 @@ const StaffListPage = () => {
           programs: programs || [],
           statistics: statistics || {}
         };
-        
+
         setViewStaffData(flatData);
         setViewingStaffId(staffId);
         setEditingStaffId(null);
@@ -291,6 +292,7 @@ const StaffListPage = () => {
         alert("Cập nhật nhân viên thành công!");
         fetchStaffs();
         handleClosePopup();
+        window.location.reload(); // Force page reload after updating staff
       }
     } catch (err) {
       console.error("Lỗi khi cập nhật nhân viên:", err);
@@ -398,8 +400,8 @@ const StaffListPage = () => {
     if (sortField !== field) {
       return <FaSort className="ms-1 text-muted" />;
     }
-    return sortDirection === 'asc' ? 
-      <FaSortUp className="ms-1 text-primary" /> : 
+    return sortDirection === 'asc' ?
+      <FaSortUp className="ms-1 text-primary" /> :
       <FaSortDown className="ms-1 text-primary" />;
   };
 
@@ -627,36 +629,36 @@ const StaffListPage = () => {
           <thead>
             <tr>
               <th>#</th>
-              <th 
-                onClick={() => handleSort('name')} 
+              <th
+                onClick={() => handleSort('name')}
                 style={{ cursor: 'pointer', userSelect: 'none' }}
                 title="Click to sort by name"
               >
                 Tên {getSortIcon('name')}
               </th>
-              <th 
-                onClick={() => handleSort('email')} 
+              <th
+                onClick={() => handleSort('email')}
                 style={{ cursor: 'pointer', userSelect: 'none' }}
                 title="Click to sort by email"
               >
                 Email {getSortIcon('email')}
               </th>
-              <th 
-                onClick={() => handleSort('role')} 
+              <th
+                onClick={() => handleSort('role')}
                 style={{ cursor: 'pointer', userSelect: 'none' }}
                 title="Click to sort by role"
               >
                 Vai trò {getSortIcon('role')}
               </th>
-              <th 
-                onClick={() => handleSort('status')} 
+              <th
+                onClick={() => handleSort('status')}
                 style={{ cursor: 'pointer', userSelect: 'none' }}
                 title="Click to sort by status"
               >
                 Trạng thái {getSortIcon('status')}
               </th>
-              <th 
-                onClick={() => handleSort('date_create')} 
+              <th
+                onClick={() => handleSort('date_create')}
                 style={{ cursor: 'pointer', userSelect: 'none' }}
                 title="Click to sort by creation date"
               >
@@ -709,8 +711,8 @@ const StaffListPage = () => {
             <span className="close" onClick={handleClosePopup}><MdCancel /></span>
             <div className="form">
               <h2>
-                {viewingStaffId ? "Xem chi tiết nhân viên" : 
-                 editingStaffId ? "Chỉnh sửa nhân viên" : "Tạo nhân viên mới"}
+                {viewingStaffId ? "Xem chi tiết nhân viên" :
+                  editingStaffId ? "Chỉnh sửa nhân viên" : "Tạo nhân viên mới"}
               </h2>
               <form className="form-grid" onSubmit={editingStaffId ? handleUpdateSubmit : handleSubmit}>
 
@@ -724,14 +726,14 @@ const StaffListPage = () => {
                   <input
                     type="email"
                     name="email"
-                    value={viewingStaffId ? viewStaffData?.email || "" : 
-                           editingStaffId ? editStaffData?.email || "" : newStaff.email}
+                    value={viewingStaffId ? viewStaffData?.email || "" :
+                      editingStaffId ? editStaffData?.email || "" : newStaff.email}
                     onChange={editingStaffId ? handleEditChange : handleChange}
                     required
                     disabled={isAdminEditing || viewingStaffId}
                     className="form-input"
-                    style={{ 
-                      color: '#000', 
+                    style={{
+                      color: '#000',
                       backgroundColor: viewingStaffId ? '#f8f9fa' : '#fff',
                       cursor: viewingStaffId ? 'not-allowed' : 'text'
                     }}
@@ -757,8 +759,8 @@ const StaffListPage = () => {
                       required={!editingStaffId && !viewingStaffId}
                       disabled={isAdminEditing || viewingStaffId}
                       className="form-input"
-                      style={{ 
-                        color: '#000', 
+                      style={{
+                        color: '#000',
                         backgroundColor: viewingStaffId ? '#f8f9fa' : '#fff',
                         cursor: viewingStaffId ? 'not-allowed' : 'text'
                       }}
@@ -790,14 +792,14 @@ const StaffListPage = () => {
                   <label className="form-label">Vai trò *</label>
                   <select
                     name="role"
-                    value={viewingStaffId ? viewStaffData?.role || "" : 
-                           editingStaffId ? editStaffData?.role || "" : newStaff.role}
+                    value={viewingStaffId ? viewStaffData?.role || "" :
+                      editingStaffId ? editStaffData?.role || "" : newStaff.role}
                     onChange={editingStaffId ? handleEditChange : handleChange}
                     required
                     disabled={isAdminEditing || viewingStaffId}
                     className="form-select"
-                    style={{ 
-                      color: '#000', 
+                    style={{
+                      color: '#000',
                       backgroundColor: viewingStaffId ? '#f8f9fa' : '#fff',
                       cursor: viewingStaffId ? 'not-allowed' : 'text'
                     }}
@@ -820,8 +822,8 @@ const StaffListPage = () => {
                       required
                       disabled={isAdminEditing || viewingStaffId}
                       className="form-select"
-                      style={{ 
-                        color: '#000', 
+                      style={{
+                        color: '#000',
                         backgroundColor: viewingStaffId ? '#f8f9fa' : '#fff',
                         cursor: viewingStaffId ? 'not-allowed' : 'text'
                       }}
@@ -844,14 +846,14 @@ const StaffListPage = () => {
                   <input
                     type="text"
                     name="name"
-                    value={viewingStaffId ? viewStaffData?.name || "" : 
-                           editingStaffId ? editStaffData?.name || "" : newStaff.name}
+                    value={viewingStaffId ? viewStaffData?.name || "" :
+                      editingStaffId ? editStaffData?.name || "" : newStaff.name}
                     onChange={editingStaffId ? handleEditChange : handleChange}
                     required
                     disabled={isAdminEditing || viewingStaffId}
                     className="form-input"
-                    style={{ 
-                      color: '#000', 
+                    style={{
+                      color: '#000',
                       backgroundColor: viewingStaffId ? '#f8f9fa' : '#fff',
                       cursor: viewingStaffId ? 'not-allowed' : 'text'
                     }}
@@ -859,17 +861,18 @@ const StaffListPage = () => {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Ngày sinh</label>
+                  <label className="form-label">Ngày sinh *</label>
                   <input
                     type="date"
                     name="date_of_birth"
-                    value={viewingStaffId ? viewStaffData?.date_of_birth || "" : 
-                           editingStaffId ? editStaffData?.date_of_birth || "" : newStaff.date_of_birth}
+                    value={viewingStaffId ? viewStaffData?.date_of_birth || "" :
+                      editingStaffId ? editStaffData?.date_of_birth || "" : newStaff.date_of_birth}
                     onChange={editingStaffId ? handleEditChange : handleChange}
+                    required
                     disabled={isAdminEditing || viewingStaffId}
                     className="form-input"
-                    style={{ 
-                      color: '#000', 
+                    style={{
+                      color: '#000',
                       backgroundColor: viewingStaffId ? '#f8f9fa' : '#fff',
                       cursor: viewingStaffId ? 'not-allowed' : 'text'
                     }}
@@ -877,17 +880,18 @@ const StaffListPage = () => {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Công việc</label>
+                  <label className="form-label">Công việc *</label>
                   <input
                     type="text"
                     name="job"
-                    value={viewingStaffId ? viewStaffData?.job || "" : 
-                           editingStaffId ? editStaffData?.job || "" : newStaff.job}
+                    value={viewingStaffId ? viewStaffData?.job || "" :
+                      editingStaffId ? editStaffData?.job || "" : newStaff.job}
                     onChange={editingStaffId ? handleEditChange : handleChange}
+                    required={!editingStaffId && !viewingStaffId}
                     disabled={isAdminEditing || viewingStaffId}
                     className="form-input"
-                    style={{ 
-                      color: '#000', 
+                    style={{
+                      color: '#000',
                       backgroundColor: viewingStaffId ? '#f8f9fa' : '#fff',
                       cursor: viewingStaffId ? 'not-allowed' : 'text'
                     }}
@@ -895,16 +899,17 @@ const StaffListPage = () => {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Học vấn</label>
+                  <label className="form-label">Học vấn *</label>
                   <select
                     name="education"
-                    value={viewingStaffId ? viewStaffData?.education || "" : 
-                           editingStaffId ? editStaffData?.education || "" : newStaff.education}
+                    value={viewingStaffId ? viewStaffData?.education || "" :
+                      editingStaffId ? editStaffData?.education || "" : newStaff.education}
                     onChange={editingStaffId ? handleEditChange : handleChange}
+                    required={!editingStaffId && !viewingStaffId}
                     disabled={isAdminEditing || viewingStaffId}
                     className="form-select"
-                    style={{ 
-                      color: '#000', 
+                    style={{
+                      color: '#000',
                       backgroundColor: viewingStaffId ? '#f8f9fa' : '#fff',
                       cursor: viewingStaffId ? 'not-allowed' : 'text'
                     }}
@@ -919,19 +924,20 @@ const StaffListPage = () => {
                 </div>
 
                 <div className="form-group form-grid-col-span-2">
-                  <label className="form-label">Tiểu sử</label>
+                  <label className="form-label">Tiểu sử *</label>
                   <textarea
                     name="bio"
-                    value={viewingStaffId ? viewStaffData?.bio || "" : 
-                           editingStaffId ? editStaffData?.bio || "" : newStaff.bio}
+                    value={viewingStaffId ? viewStaffData?.bio || "" :
+                      editingStaffId ? editStaffData?.bio || "" : newStaff.bio}
                     onChange={editingStaffId ? handleEditChange : handleChange}
+
                     disabled={isAdminEditing || viewingStaffId}
                     className="form-textarea"
                     rows="4"
                     placeholder="Nhập tiểu sử chi tiết của nhân viên..."
-                    style={{ 
-                      color: '#000', 
-                      backgroundColor: viewingStaffId ? '#f8f9fa' : '#fff', 
+                    style={{
+                      color: '#000',
+                      backgroundColor: viewingStaffId ? '#f8f9fa' : '#fff',
                       resize: viewingStaffId ? 'none' : 'vertical',
                       cursor: viewingStaffId ? 'not-allowed' : 'text'
                     }}
@@ -982,15 +988,15 @@ const StaffListPage = () => {
                       {viewStaffData.blogs && viewStaffData.blogs.length > 0 ? (
                         <div className="staff-detail-scroll" style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid #dee2e6', borderRadius: '8px' }}>
                           {viewStaffData.blogs.map((blog, index) => (
-                            <div key={blog.blog_id || index} style={{ 
-                              padding: '12px', 
+                            <div key={blog.blog_id || index} style={{
+                              padding: '12px',
                               borderBottom: index < viewStaffData.blogs.length - 1 ? '1px solid #eee' : 'none',
                               background: index % 2 === 0 ? '#f8f9fa' : '#fff'
                             }}>
                               <div style={{ fontWeight: 'bold', color: '#333', marginBottom: '5px' }}>
-                                <a 
-                                  href={`/blog/${blog.blog_id}`} 
-                                  target="_blank" 
+                                <a
+                                  href={`/blog/${blog.blog_id}`}
+                                  target="_blank"
                                   rel="noopener noreferrer"
                                   className="blog-item-link"
                                   title="Nhấp để xem chi tiết bài viết"
@@ -1003,9 +1009,9 @@ const StaffListPage = () => {
                                 Ngày đăng: {blog.created_at ? new Date(blog.created_at).toLocaleDateString('vi-VN') : 'N/A'}
                               </div>
                               <div style={{ fontSize: '12px' }}>
-                                <span style={{ 
-                                  padding: '2px 8px', 
-                                  borderRadius: '12px', 
+                                <span style={{
+                                  padding: '2px 8px',
+                                  borderRadius: '12px',
                                   background: blog.status === 'active' ? '#d4edda' : '#f8d7da',
                                   color: blog.status === 'active' ? '#155724' : '#721c24'
                                 }}>
@@ -1013,8 +1019,10 @@ const StaffListPage = () => {
                                 </span>
                               </div>
                               {blog.body && (
-                                <div style={{ fontSize: '13px', color: '#555', marginTop: '8px', 
-                                           maxHeight: '60px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                <div style={{
+                                  fontSize: '13px', color: '#555', marginTop: '8px',
+                                  maxHeight: '60px', overflow: 'hidden', textOverflow: 'ellipsis'
+                                }}>
                                   {blog.body.length > 100 ? blog.body.substring(0, 100) + '...' : blog.body}
                                 </div>
                               )}
@@ -1022,11 +1030,11 @@ const StaffListPage = () => {
                           ))}
                         </div>
                       ) : (
-                        <div style={{ 
-                          padding: '20px', 
-                          textAlign: 'center', 
-                          color: '#666', 
-                          background: '#f8f9fa', 
+                        <div style={{
+                          padding: '20px',
+                          textAlign: 'center',
+                          color: '#666',
+                          background: '#f8f9fa',
                           borderRadius: '8px',
                           border: '1px dashed #dee2e6'
                         }}>
@@ -1043,15 +1051,15 @@ const StaffListPage = () => {
                       {viewStaffData.programs && viewStaffData.programs.length > 0 ? (
                         <div className="staff-detail-scroll" style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid #dee2e6', borderRadius: '8px' }}>
                           {viewStaffData.programs.map((program, index) => (
-                            <div key={program.program_id || index} style={{ 
-                              padding: '12px', 
+                            <div key={program.program_id || index} style={{
+                              padding: '12px',
                               borderBottom: index < viewStaffData.programs.length - 1 ? '1px solid #eee' : 'none',
                               background: index % 2 === 0 ? '#f8f9fa' : '#fff'
                             }}>
                               <div style={{ fontWeight: 'bold', color: '#333', marginBottom: '5px' }}>
-                                <a 
-                                  href={`/program/${program.program_id}`} 
-                                  target="_blank" 
+                                <a
+                                  href={`/program/${program.program_id}`}
+                                  target="_blank"
                                   rel="noopener noreferrer"
                                   className="program-item-link"
                                   title="Nhấp để xem chi tiết chương trình"
@@ -1064,19 +1072,19 @@ const StaffListPage = () => {
                                 Ngày tạo: {program.create_at ? new Date(program.create_at).toLocaleDateString('vi-VN') : 'N/A'}
                               </div>
                               <div style={{ fontSize: '12px', marginBottom: '5px' }}>
-                                <span style={{ 
-                                  padding: '2px 8px', 
-                                  borderRadius: '12px', 
+                                <span style={{
+                                  padding: '2px 8px',
+                                  borderRadius: '12px',
                                   background: program.status === 'active' ? '#d4edda' : '#f8d7da',
                                   color: program.status === 'active' ? '#155724' : '#721c24'
                                 }}>
                                   {program.status === 'active' ? 'Đang hoạt động' : 'Không hoạt động'}
                                 </span>
                                 {program.category && (
-                                  <span style={{ 
+                                  <span style={{
                                     marginLeft: '8px',
-                                    padding: '2px 8px', 
-                                    borderRadius: '12px', 
+                                    padding: '2px 8px',
+                                    borderRadius: '12px',
                                     background: '#e2e3e5',
                                     color: '#383d41'
                                   }}>
@@ -1085,8 +1093,10 @@ const StaffListPage = () => {
                                 )}
                               </div>
                               {program.description && (
-                                <div style={{ fontSize: '13px', color: '#555', marginTop: '8px',
-                                           maxHeight: '60px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                <div style={{
+                                  fontSize: '13px', color: '#555', marginTop: '8px',
+                                  maxHeight: '60px', overflow: 'hidden', textOverflow: 'ellipsis'
+                                }}>
                                   {program.description.length > 100 ? program.description.substring(0, 100) + '...' : program.description}
                                 </div>
                               )}
@@ -1094,11 +1104,11 @@ const StaffListPage = () => {
                           ))}
                         </div>
                       ) : (
-                        <div style={{ 
-                          padding: '20px', 
-                          textAlign: 'center', 
-                          color: '#666', 
-                          background: '#f8f9fa', 
+                        <div style={{
+                          padding: '20px',
+                          textAlign: 'center',
+                          color: '#666',
+                          background: '#f8f9fa',
                           borderRadius: '8px',
                           border: '1px dashed #dee2e6'
                         }}>

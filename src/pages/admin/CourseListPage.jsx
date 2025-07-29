@@ -108,7 +108,7 @@ const CourseListPage = () => {
   // Sorting state
   const [sortField, setSortField] = useState('');
   const [sortDirection, setSortDirection] = useState('asc'); // 'asc' or 'desc'
-  
+
   // Sorting functions
   const handleSort = (field) => {
     if (sortField === field) {
@@ -1269,11 +1269,10 @@ const CourseListPage = () => {
                       <p><strong>Description:</strong> {selectedProgram.description}</p>
                       <p><strong>Age Group:</strong> {selectedProgram.age_group}</p>
                       <p><strong>Category:</strong> {selectedProgram.category?.name}</p>
-                      <p><strong>Status:</strong> 
-                        <span className={`badge ms-2 ${
-                          selectedProgram.status === 'active' ? 'bg-success' : 
+                      <p><strong>Status:</strong>
+                        <span className={`badge ms-2 ${selectedProgram.status === 'active' ? 'bg-success' :
                           selectedProgram.status === 'draft' ? 'bg-warning' : 'bg-secondary'
-                        }`}>
+                          }`}>
                           {selectedProgram.status?.toUpperCase()}
                         </span>
                       </p>
@@ -1349,17 +1348,7 @@ const CourseListPage = () => {
                       <div className="survey-charts mt-4">
                         <h6>Question Response Analytics</h6>
 
-                        {/* Debug Section - Remove in production */}
-                        <div className="debug-section mb-3">
-                          <details>
-                            <summary className="text-muted">🔍 Debug: Raw Survey Data</summary>
-                            <div className="debug-content p-3 bg-light border rounded">
-                              <pre className="mb-0" style={{ fontSize: '12px', maxHeight: '200px', overflow: 'auto' }}>
-                                {JSON.stringify(surveyAnalytics.surveys, null, 2)}
-                              </pre>
-                            </div>
-                          </details>
-                        </div>
+
 
                         {surveyAnalytics.surveys.map(survey => (
                           <div key={survey.id} className="survey-chart-section mb-4">
@@ -1374,16 +1363,6 @@ const CourseListPage = () => {
                                 </span>
                               )}
                             </h6>
-
-                            {/* Debug individual survey */}
-                            <details className="mb-2">
-                              <summary className="text-muted">🔍 Debug Survey {survey.id}</summary>
-                              <div className="debug-content p-2 bg-light border rounded">
-                                <pre className="mb-0" style={{ fontSize: '11px', maxHeight: '150px', overflow: 'auto' }}>
-                                  {JSON.stringify(survey, null, 2)}
-                                </pre>
-                              </div>
-                            </details>
 
                             {survey.error ? (
                               <div className="alert alert-warning">
@@ -1459,20 +1438,7 @@ const CourseListPage = () => {
                                     ? "No response data available for this survey."
                                     : "No responses recorded for this survey yet."}
                                 </p>
-                                {/* Debug: Show what we have */}
-                                <details>
-                                  <summary className="text-muted">🔍 Why no charts?</summary>
-                                  <div className="debug-content p-2 bg-light border rounded">
-                                    <p><strong>Survey responses object:</strong></p>
-                                    <pre style={{ fontSize: '11px' }}>
-                                      {JSON.stringify(survey.responses, null, 2)}
-                                    </pre>
-                                    <p><strong>Generated charts:</strong></p>
-                                    <pre style={{ fontSize: '11px' }}>
-                                      {JSON.stringify(surveyCharts[survey.id], null, 2)}
-                                    </pre>
-                                  </div>
-                                </details>
+
                               </div>
                             )}
                           </div>
