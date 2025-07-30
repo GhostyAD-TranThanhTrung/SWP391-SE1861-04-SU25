@@ -1,0 +1,53 @@
+nohup: ignoring input
+🔓 SWAGGER BYPASS ENABLED FOR DEVELOPMENT
+To test protected endpoints in Swagger without authentication:
+1. Open Swagger UI at http://localhost:3000/api-docs
+2. For any protected endpoint, add header: x-swagger-bypass: true
+3. This will use a mock admin user for testing
+============================================================
+🔍 Debug: Checking controller imports...
+ProgramController: function
+ProgramController.getAllPrograms: function
+ProgramController.getProgramSurveyAnalytics: function
+(node:28388) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+Server is running on port 3000
+🚀 API Documentation available at: http://localhost:3000/api-docs
+📋 API Routes Summary:
+   Authentication: /api/login, /api/register, /api/google-*
+   Dashboard: /api/dashboard, /api/dashboard/detailed
+   Profile: /api/profile, /api/profile/status
+   User+Profile Combined: /api/user/profile-combined, /api/user/delete-account
+   Staff: /api/staff/*
+   Members: /api/members/*
+   Consultants: /api/consultants/*
+   Booking: /api/booking-sessions/*
+   Assessments: /api/assessments/*
+   Assessment Questions: /api/assessment-questions/*
+   Programs: /api/programs/*
+   Content: /api/content/*
+   Categories: /api/categories/*
+   Blogs: /api/blogs/*
+   Flags: /api/flags/*
+   Enrollments: /api/enrollments/*
+   Surveys: /api/surveys/*
+   Survey Responses: /api/survey-responses/*
+   Images: /api/images/:filename
+Connected to the database
+TypeORM Data Source has been initialized!
+🔓 SWAGGER BYPASS ACTIVATED
+📊 Endpoint: POST /api/answers
+⏰ Timestamp: 7/31/2025, 6:13:22 AM
+✅ Swagger bypass successful with mock user
+🔓 SWAGGER BYPASS ACTIVATED
+📊 Endpoint: PUT /api/answers/1
+⏰ Timestamp: 7/31/2025, 6:14:13 AM
+✅ Swagger bypass successful with mock user
+🔓 SWAGGER BYPASS ACTIVATED
+📊 Endpoint: POST /api/answers/bulk
+⏰ Timestamp: 7/31/2025, 6:14:25 AM
+✅ Swagger bypass successful with mock user
+🔓 SWAGGER BYPASS ACTIVATED
+📊 Endpoint: DELETE /api/answers/5
+⏰ Timestamp: 7/31/2025, 6:14:44 AM
+✅ Swagger bypass successful with mock user

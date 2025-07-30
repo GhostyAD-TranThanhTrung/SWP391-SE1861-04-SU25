@@ -15,14 +15,14 @@ const swaggerDocument = require("./swagger.json");
 
 // Database configuration
 const config = {
-    user: "SA",
-    password: "12345",
-    server: "localhost",
-    port: 1433,
-    database: "SWP391-demo",
-    options: {
-        trustServerCertificate: true,
-    },
+  user: "SA",
+  password: "12345",
+  server: "localhost",
+  port: 1433,
+  database: "SWP391-demo",
+  options: {
+    trustServerCertificate: true,
+  },
 };
 
 // Controller imports (Only used controllers)
@@ -48,6 +48,8 @@ const SurveyController = require("./Controller/surveyController");
 const SurveyResponseController = require("./Controller/surveyResponseController");
 const UserController = require("./Controller/userController");
 const ConsultantCompleteController = require("./Controller/consultantCompleteController");
+const AssessmentQuestionController = require("./Controller/assessmentQuestionController");
+const AnswerController = require("./Controller/answerController");
 const FlagController = require("./Controller/flagController");
 
 // ==================== APP SETUP ====================
@@ -58,42 +60,44 @@ app.use(cors());
 app.use(express.json());
 
 // Static file serving
-app.use('/content', express.static('SWP391-SE1861-04-SU25/content'));
-app.use('/uploads', express.static('SWP391-SE1861-04-SU25/public/uploads'));
+app.use("/content", express.static("SWP391-SE1861-04-SU25/content"));
+app.use("/uploads", express.static("SWP391-SE1861-04-SU25/public/uploads"));
 
 // Swagger Documentation
 app.use(
-    "/api-docs",
-    swaggerUi.serve,
-    swaggerUi.setup(swaggerDocument, { explorer: true })
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerDocument, { explorer: true })
 );
 
 // ==================== DEVELOPMENT BYPASS INFO ====================
 console.log("🔓 SWAGGER BYPASS ENABLED FOR DEVELOPMENT");
 console.log("To test protected endpoints in Swagger without authentication:");
 console.log("1. Open Swagger UI at http://localhost:3000/api-docs");
-console.log("2. For any protected endpoint, add header: x-swagger-bypass: true");
+console.log(
+  "2. For any protected endpoint, add header: x-swagger-bypass: true"
+);
 console.log("3. This will use a mock admin user for testing");
 console.log("=".repeat(60));
 
 // ==================== DATABASE CONNECTIONS ====================
 // SQL Server Connection
 sql.connect(config, (err) => {
-    if (err) {
-        console.error("Database connection failed:", err);
-        return;
-    }
-    console.log("Connected to the database");
+  if (err) {
+    console.error("Database connection failed:", err);
+    return;
+  }
+  console.log("Connected to the database");
 });
 
 // TypeORM Connection
 AppDataSource.initialize()
-    .then(() => {
-        console.log("TypeORM Data Source has been initialized!");
-    })
-    .catch((err) => {
-        console.error("Error during Data Source initialization:", err);
-    });
+  .then(() => {
+    console.log("TypeORM Data Source has been initialized!");
+  })
+  .catch((err) => {
+    console.error("Error during Data Source initialization:", err);
+  });
 
 // ==================== API ROUTES ====================
 
@@ -117,12 +121,12 @@ app.get("/", UserController.getAllUsers);
  * Authentication: Required (with bypass support)
  */
 app.get("/api/test-bypass", authController.verifyToken, (req, res) => {
-    res.json({
-        success: true,
-        message: "🔓 Swagger bypass is working!",
-        user: req.user,
-        timestamp: new Date().toISOString()
-    });
+  res.json({
+    success: true,
+    message: "🔓 Swagger bypass is working!",
+    user: req.user,
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // ==================== AUTHENTICATION ROUTES ====================
@@ -196,7 +200,11 @@ app.get("/api/dashboard/detailed", DashboardController.getDetailedDashboard);
  * Output: { success: boolean, data: object, message: string }
  * Authentication: Required
  */
-app.post("/api/profile", authController.verifyToken, ProfileController.createProfile);
+app.post(
+  "/api/profile",
+  authController.verifyToken,
+  ProfileController.createProfile
+);
 
 /**
  * PROFILE GET: Get current user profile
@@ -206,7 +214,11 @@ app.post("/api/profile", authController.verifyToken, ProfileController.createPro
  * Output: { success: boolean, data: { user: object, profile: object }, message: string }
  * Authentication: Required
  */
-app.get("/api/profile", authController.verifyToken, ProfileController.getUserProfile);
+app.get(
+  "/api/profile",
+  authController.verifyToken,
+  ProfileController.getUserProfile
+);
 
 /**
  * PROFILE STATUS: Check profile completion status
@@ -216,7 +228,11 @@ app.get("/api/profile", authController.verifyToken, ProfileController.getUserPro
  * Output: { success: boolean, hasProfile: boolean, profileComplete: boolean, message: string }
  * Authentication: Required
  */
-app.get("/api/profile/status", authController.verifyToken, ProfileController.checkProfileStatus);
+app.get(
+  "/api/profile/status",
+  authController.verifyToken,
+  ProfileController.checkProfileStatus
+);
 
 // ==================== COMBINED USER+PROFILE ROUTES ====================
 /**
@@ -228,7 +244,11 @@ app.get("/api/profile/status", authController.verifyToken, ProfileController.che
  * Authentication: Required
  * Features: Returns user data (excluding password) combined with profile data
  */
-app.get("/api/user/profile-combined", authController.verifyToken, UserController.getUserProfileCombined);
+app.get(
+  "/api/user/profile-combined",
+  authController.verifyToken,
+  UserController.getUserProfileCombined
+);
 
 /**
  * USER PROFILE COMBINED UPDATE: Update user and profile data together
@@ -239,7 +259,11 @@ app.get("/api/user/profile-combined", authController.verifyToken, UserController
  * Authentication: Required
  * Features: Transactional update, creates profile if doesn't exist, validates JSON
  */
-app.put("/api/user/profile-combined", authController.verifyToken, UserController.updateUserProfileCombined);
+app.put(
+  "/api/user/profile-combined",
+  authController.verifyToken,
+  UserController.updateUserProfileCombined
+);
 
 /**
  * USER ACCOUNT DEACTIVATION: Deactivate user account (soft delete - sets status to 'inactive')
@@ -250,7 +274,11 @@ app.put("/api/user/profile-combined", authController.verifyToken, UserController
  * Authentication: Required
  * Features: Soft delete preserves all data while preventing login, returns deactivated data for logging
  */
-app.delete("/api/user/delete-account", authController.verifyToken, UserController.deleteUserCascade);
+app.delete(
+  "/api/user/delete-account",
+  authController.verifyToken,
+  UserController.deleteUserCascade
+);
 
 // ==================== STAFF MANAGEMENT ROUTES (Admin Only) ====================
 /**
@@ -271,7 +299,11 @@ app.get("/api/staff", authController.verifyToken, StaffController.getAllStaff);
  * Output: { success: boolean, data: Array<StaffObject>, message: string }
  * Authentication: Required (Admin/Staff)
  */
-app.get("/api/staff/:staffName", authController.verifyToken, StaffController.searchStaffByName);
+app.get(
+  "/api/staff/:staffName",
+  authController.verifyToken,
+  StaffController.searchStaffByName
+);
 
 /**
  * STAFF DETAILS: Get detailed staff information
@@ -281,7 +313,11 @@ app.get("/api/staff/:staffName", authController.verifyToken, StaffController.sea
  * Output: { success: boolean, data: { staff_info, blogs, programs, statistics }, message: string }
  * Authentication: Required (Admin/Staff)
  */
-app.get("/api/staff/details/:staffId", authController.verifyToken, StaffController.getStaffDetails);
+app.get(
+  "/api/staff/details/:staffId",
+  authController.verifyToken,
+  StaffController.getStaffDetails
+);
 
 /**
  * STAFF CREATE: Create new staff member
@@ -301,12 +337,17 @@ app.post("/api/staff", authController.verifyToken, StaffController.createStaff);
  * Output: { success: boolean, data: object, message: string }
  * Authentication: Required (Admin)
  */
-app.put("/api/staff/:staffId", authController.verifyToken, (req, res, next) => {
-    console.log('PUT /api/staff/:staffId route hit with params:', req.params);
-    console.log('User from token:', req.user);
-    console.log('Request body:', req.body);
+app.put(
+  "/api/staff/:staffId",
+  authController.verifyToken,
+  (req, res, next) => {
+    console.log("PUT /api/staff/:staffId route hit with params:", req.params);
+    console.log("User from token:", req.user);
+    console.log("Request body:", req.body);
     next();
-}, StaffController.updateStaff);
+  },
+  StaffController.updateStaff
+);
 
 /**
  * STAFF DELETE: Remove staff member
@@ -316,7 +357,11 @@ app.put("/api/staff/:staffId", authController.verifyToken, (req, res, next) => {
  * Output: { success: boolean, message: string }
  * Authentication: Required (Admin)
  */
-app.delete("/api/staff/:staffId", authController.verifyToken, StaffController.deleteStaff);
+app.delete(
+  "/api/staff/:staffId",
+  authController.verifyToken,
+  StaffController.deleteStaff
+);
 
 // ==================== MEMBER MANAGEMENT ROUTES (Admin Only) ====================
 /**
@@ -327,7 +372,11 @@ app.delete("/api/staff/:staffId", authController.verifyToken, StaffController.de
  * Output: { success: boolean, data: Array<MemberObject>, count: number, message: string }
  * Authentication: Required (Admin/Staff)
  */
-app.get("/api/members", authController.verifyToken, MemberController.getAllMembers);
+app.get(
+  "/api/members",
+  authController.verifyToken,
+  MemberController.getAllMembers
+);
 
 /**
  * MEMBERS SEARCH: Search members by name
@@ -337,7 +386,11 @@ app.get("/api/members", authController.verifyToken, MemberController.getAllMembe
  * Output: { success: boolean, data: Array<MemberObject>, message: string }
  * Authentication: Required (Admin/Staff)
  */
-app.get("/api/members/search/:memberName", authController.verifyToken, MemberController.searchMembersByName);
+app.get(
+  "/api/members/search/:memberName",
+  authController.verifyToken,
+  MemberController.searchMembersByName
+);
 
 /**
  * MEMBER DETAILS: Get specific member details
@@ -347,7 +400,11 @@ app.get("/api/members/search/:memberName", authController.verifyToken, MemberCon
  * Output: { success: boolean, data: object, message: string }
  * Authentication: Required (Admin/Staff)
  */
-app.get("/api/members/:memberId", authController.verifyToken, MemberController.getMemberById);
+app.get(
+  "/api/members/:memberId",
+  authController.verifyToken,
+  MemberController.getMemberById
+);
 
 /**
  * MEMBER DETAILS: Get specific member details
@@ -367,7 +424,11 @@ app.get("/api/members/detailed/:memberId", MemberController.getFullMemberById);
  * Output: { success: boolean, data: object, message: string }
  * Authentication: Required (Admin/Staff)
  */
-app.put("/api/members/:memberId", authController.verifyToken, MemberController.updateMember);
+app.put(
+  "/api/members/:memberId",
+  authController.verifyToken,
+  MemberController.updateMember
+);
 
 /**
  * MEMBER DELETE: Remove member
@@ -377,11 +438,19 @@ app.put("/api/members/:memberId", authController.verifyToken, MemberController.u
  * Output: { success: boolean, message: string }
  * Authentication: Required (Admin)
  */
-app.delete("/api/members/:memberId", authController.verifyToken, (req, res, next) => {
-    console.log('DELETE /api/members/:memberId route hit with params:', req.params);
-    console.log('User from token:', req.user);
+app.delete(
+  "/api/members/:memberId",
+  authController.verifyToken,
+  (req, res, next) => {
+    console.log(
+      "DELETE /api/members/:memberId route hit with params:",
+      req.params
+    );
+    console.log("User from token:", req.user);
     next();
-}, MemberController.deleteMember);
+  },
+  MemberController.deleteMember
+);
 
 // ==================== CONSULTANT MANAGEMENT ROUTES ====================
 /**
@@ -402,7 +471,11 @@ app.get("/api/consultants", ConsultantController.getAllConsultants);
  * Output: { success: boolean, data: Array<ConsultantObject>, message: string }
  * Authentication: Required
  */
-app.get("/api/consultants/search/:consultantName", authController.verifyToken, ConsultantController.searchConsultantsByName);
+app.get(
+  "/api/consultants/search/:consultantName",
+  authController.verifyToken,
+  ConsultantController.searchConsultantsByName
+);
 
 /**
  * CONSULTANT DETAILS: Get specific consultant information
@@ -412,7 +485,10 @@ app.get("/api/consultants/search/:consultantName", authController.verifyToken, C
  * Output: { success: boolean, data: object, message: string }
  * Authentication: None (Public directory)
  */
-app.get("/api/consultants/:consultantId", ConsultantController.getConsultantById);
+app.get(
+  "/api/consultants/:consultantId",
+  ConsultantController.getConsultantById
+);
 
 /**
  * CONSULTANT CREATE: Add new consultant
@@ -422,7 +498,11 @@ app.get("/api/consultants/:consultantId", ConsultantController.getConsultantById
  * Output: { success: boolean, data: object, message: string }
  * Authentication: Required (Admin)
  */
-app.post("/api/consultants", authController.verifyToken, ConsultantController.createConsultant);
+app.post(
+  "/api/consultants",
+  authController.verifyToken,
+  ConsultantController.createConsultant
+);
 
 /**
  * CONSULTANT UPDATE: Update consultant information
@@ -432,7 +512,10 @@ app.post("/api/consultants", authController.verifyToken, ConsultantController.cr
  * Output: { success: boolean, data: object, message: string }
  * Authentication: Required (Admin/Consultant)
  */
-app.put("/api/consultants/:consultantId", ConsultantController.updateConsultant);
+app.put(
+  "/api/consultants/:consultantId",
+  ConsultantController.updateConsultant
+);
 
 /**
  * CONSULTANT DELETE: Remove consultant
@@ -442,7 +525,11 @@ app.put("/api/consultants/:consultantId", ConsultantController.updateConsultant)
  * Output: { success: boolean, message: string }
  * Authentication: Required (Admin)
  */
-app.delete("/api/consultants/:consultantId", authController.verifyToken, ConsultantController.deleteConsultant);
+app.delete(
+  "/api/consultants/:consultantId",
+  authController.verifyToken,
+  ConsultantController.deleteConsultant
+);
 
 /**
  * CONSULTANT ID BY USER: Get consultant ID for authenticated user
@@ -452,7 +539,11 @@ app.delete("/api/consultants/:consultantId", authController.verifyToken, Consult
  * Output: { success: boolean, data: { consultant_id: number, user_id: number }, message: string }
  * Authentication: Required (Consultant)
  */
-app.get("/api/consultants/my-id", authController.verifyToken, ConsultantController.getConsultantIdByUserId);
+app.get(
+  "/api/consultants/my-id",
+  authController.verifyToken,
+  ConsultantController.getConsultantIdByUserId
+);
 
 /**
  * CONSULTANT ID BY USER EMAIL: Get consultant ID from user email
@@ -462,7 +553,11 @@ app.get("/api/consultants/my-id", authController.verifyToken, ConsultantControll
  * Output: { success: boolean, data: { consultant_id: number, user_id: number }, message: string }
  * Authentication: None
  */
-app.get("/api/consultants/email/:email", authController.verifyToken, ConsultantController.getConsultantIdByUserEmail);
+app.get(
+  "/api/consultants/email/:email",
+  authController.verifyToken,
+  ConsultantController.getConsultantIdByUserEmail
+);
 
 // ==================== CONSULTANT COMPLETE MANAGEMENT ROUTES ====================
 /**
@@ -473,7 +568,11 @@ app.get("/api/consultants/email/:email", authController.verifyToken, ConsultantC
  * Output: { success: boolean, data: { totalConsultants: number, consultants: Array<CompleteConsultantObject> }, message: string }
  * Authentication: None (Public directory with complete info)
  */
-app.get("/api/consultants-complete", authController.verifyToken, ConsultantCompleteController.getAllConsultantsComplete);
+app.get(
+  "/api/consultants-complete",
+  authController.verifyToken,
+  ConsultantCompleteController.getAllConsultantsComplete
+);
 
 /**
  * CONSULTANT COMPLETE DETAILS: Get specific consultant with complete data
@@ -483,7 +582,10 @@ app.get("/api/consultants-complete", authController.verifyToken, ConsultantCompl
  * Output: { success: boolean, data: CompleteConsultantObject, message: string }
  * Authentication: None (Public directory with complete info)
  */
-app.get("/api/consultants-complete/:consultantId", ConsultantCompleteController.getConsultantCompleteById);
+app.get(
+  "/api/consultants-complete/:consultantId",
+  ConsultantCompleteController.getConsultantCompleteById
+);
 
 /**
  * CONSULTANT COMPLETE CREATE: Create new consultant with complete profile
@@ -493,7 +595,11 @@ app.get("/api/consultants-complete/:consultantId", ConsultantCompleteController.
  * Output: { success: boolean, data: CompleteConsultantObject, message: string }
  * Authentication: Required (Admin)
  */
-app.post("/api/consultants-complete", authController.verifyToken, ConsultantCompleteController.createConsultantComplete);
+app.post(
+  "/api/consultants-complete",
+  authController.verifyToken,
+  ConsultantCompleteController.createConsultantComplete
+);
 
 /**
  * CONSULTANT COMPLETE UPDATE: Update consultant with complete data
@@ -503,7 +609,11 @@ app.post("/api/consultants-complete", authController.verifyToken, ConsultantComp
  * Output: { success: boolean, data: CompleteConsultantObject, message: string }
  * Authentication: Required (Admin/Consultant)
  */
-app.put("/api/consultants-complete/:id", authController.verifyToken, ConsultantCompleteController.updateConsultantComplete);
+app.put(
+  "/api/consultants-complete/:id",
+  authController.verifyToken,
+  ConsultantCompleteController.updateConsultantComplete
+);
 
 /**
  * CONSULTANT COMPLETE DELETE: Delete consultant and all related data
@@ -513,11 +623,19 @@ app.put("/api/consultants-complete/:id", authController.verifyToken, ConsultantC
  * Output: { success: boolean, message: string }
  * Authentication: Required (Admin)
  */
-app.delete("/api/consultants-complete/:consultantId", authController.verifyToken, (req, res, next) => {
-    console.log('🗑️ DELETE /api/consultants-complete/:consultantId route hit with params:', req.params);
-    console.log('👤 User from token:', req.user);
+app.delete(
+  "/api/consultants-complete/:consultantId",
+  authController.verifyToken,
+  (req, res, next) => {
+    console.log(
+      "🗑️ DELETE /api/consultants-complete/:consultantId route hit with params:",
+      req.params
+    );
+    console.log("👤 User from token:", req.user);
     next();
-}, ConsultantCompleteController.deleteConsultantComplete);
+  },
+  ConsultantCompleteController.deleteConsultantComplete
+);
 
 /**
  * CONSULTANT AVAILABILITY BY DAY: Get consultant availability for specific day
@@ -527,7 +645,10 @@ app.delete("/api/consultants-complete/:consultantId", authController.verifyToken
  * Output: { success: boolean, data: { consultant_id: number, day_of_week: string, availability_slots: Array<SlotObject> }, message: string }
  * Authentication: None (Public for booking purposes)
  */
-app.get("/api/consultants-complete/:consultantId/availability/:dayOfWeek", ConsultantCompleteController.getConsultantAvailabilityByDay);
+app.get(
+  "/api/consultants-complete/:consultantId/availability/:dayOfWeek",
+  ConsultantCompleteController.getConsultantAvailabilityByDay
+);
 
 /**
  * BOOKING SESSION UPDATE: Update booking session status and Google Meet link
@@ -537,8 +658,16 @@ app.get("/api/consultants-complete/:consultantId/availability/:dayOfWeek", Consu
  * Output: { success: boolean, data: BookingSessionObject, message: string }
  * Authentication: Required (Consultant/Admin)
  */
-app.put("/api/booking-sessions/:bookingId/status-link", authController.verifyToken, ConsultantCompleteController.updateBookingSessionStatusAndLink);
-app.delete('/api/booking-sessions/:id', authController.verifyToken, BookingSessionController.deleteBookingSession)
+app.put(
+  "/api/booking-sessions/:bookingId/status-link",
+  authController.verifyToken,
+  ConsultantCompleteController.updateBookingSessionStatusAndLink
+);
+app.delete(
+  "/api/booking-sessions/:id",
+  authController.verifyToken,
+  BookingSessionController.deleteBookingSession
+);
 // ==================== CONSULTANT SCHEDULING ROUTES ====================
 /**
  * CONSULTANT SLOTS: Get consultant availability
@@ -548,9 +677,18 @@ app.delete('/api/booking-sessions/:id', authController.verifyToken, BookingSessi
  * Output: { success: boolean, data: Array<SlotObject>, message: string }
  * Authentication: None (Public for booking)
  */
-app.get("/api/consultant-slots/:consultantId", ConsultantSlotController.getSlotsByConsultantId);
-app.delete("/api/consultant-slots/consultant/:consultantId", ConsultantSlotController.deleteConsultantSlots);
-app.post("/api/consultant-slots/consultant/:consultantId", ConsultantSlotController.createConsultantSlots);
+app.get(
+  "/api/consultant-slots/:consultantId",
+  ConsultantSlotController.getSlotsByConsultantId
+);
+app.delete(
+  "/api/consultant-slots/consultant/:consultantId",
+  ConsultantSlotController.deleteConsultantSlots
+);
+app.post(
+  "/api/consultant-slots/consultant/:consultantId",
+  ConsultantSlotController.createConsultantSlots
+);
 /**
  * CONSULTANT SLOTS: Update consultant availability
  * Purpose: Update consultant slots for specific days by deleting existing slots and creating new ones
@@ -559,8 +697,16 @@ app.post("/api/consultant-slots/consultant/:consultantId", ConsultantSlotControl
  * Output: { success: boolean, data: object, message: string }
  * Authentication: Required (Consultant/Admin)
  */
-app.put("/api/consultant-slots", authController.verifyToken, ConsultantSlotController.updateConsultantSlots);
-app.get("/api/user/role/", authController.verifyToken, UserController.getUserRoleById)
+app.put(
+  "/api/consultant-slots",
+  authController.verifyToken,
+  ConsultantSlotController.updateConsultantSlots
+);
+app.get(
+  "/api/user/role/",
+  authController.verifyToken,
+  UserController.getUserRoleById
+);
 /**
  * SLOTS: Get all time slots
  * Purpose: Retrieve all available time slots in the system
@@ -572,8 +718,6 @@ app.get("/api/user/role/", authController.verifyToken, UserController.getUserRol
  */
 app.get("/api/slots", SlotController.getAllSlots);
 
-
-
 // ==================== BOOKING SESSION ROUTES ====================
 /**
  * BOOKING SESSIONS: Get scheduled sessions
@@ -583,7 +727,11 @@ app.get("/api/slots", SlotController.getAllSlots);
  * Output: { success: boolean, data: Array<BookingObject>, count: number, message: string }
  * Authentication: Required
  */
-app.get("/api/booking-sessions/scheduled", authController.verifyToken, BookingSessionController.getScheduledBookingSessions);
+app.get(
+  "/api/booking-sessions/scheduled",
+  authController.verifyToken,
+  BookingSessionController.getScheduledBookingSessions
+);
 
 /**
  * BOOKING SESSIONS BY MEMBER: Get all booking sessions for authenticated member
@@ -593,7 +741,11 @@ app.get("/api/booking-sessions/scheduled", authController.verifyToken, BookingSe
  * Output: { success: boolean, data: Array<BookingObject>, count: number, message: string }
  * Authentication: Required (Member)
  */
-app.get("/api/booking-sessions/member", authController.verifyToken, BookingSessionController.getBookingSessionsByMember);
+app.get(
+  "/api/booking-sessions/member",
+  authController.verifyToken,
+  BookingSessionController.getBookingSessionsByMember
+);
 
 /**
  * BOOKING SESSIONS BY MEMBER (Admin): Get all booking sessions for specific member
@@ -603,7 +755,11 @@ app.get("/api/booking-sessions/member", authController.verifyToken, BookingSessi
  * Output: { success: boolean, data: Array<BookingObject>, count: number, message: string }
  * Authentication: Required (Admin/Staff)
  */
-app.get("/api/booking-sessions/member/:memberId", authController.verifyToken, BookingSessionController.getBookingSessionsByMemberAdmin);
+app.get(
+  "/api/booking-sessions/member/:memberId",
+  authController.verifyToken,
+  BookingSessionController.getBookingSessionsByMemberAdmin
+);
 
 /**
  * BOOKING CREATE: Create new booking session
@@ -613,7 +769,11 @@ app.get("/api/booking-sessions/member/:memberId", authController.verifyToken, Bo
  * Output: { success: boolean, data: object, message: string }
  * Authentication: Required (Member)
  */
-app.post("/api/booking-sessions", authController.verifyToken, BookingSessionController.createBookingSession);
+app.post(
+  "/api/booking-sessions",
+  authController.verifyToken,
+  BookingSessionController.createBookingSession
+);
 
 /**
  * BOOKING SESSIONS BY CONSULTANT: Get consultant's bookings with detailed information
@@ -624,7 +784,11 @@ app.post("/api/booking-sessions", authController.verifyToken, BookingSessionCont
  * Authentication: Required (Consultant/Admin)
  * Features: Includes member profile, slot timing, and booking status information
  */
-app.get("/api/booking-sessions/consultant/:consultantId", authController.verifyToken, BookingSessionController.getDetailedBookingSessionsByConsultant);
+app.get(
+  "/api/booking-sessions/consultant/:consultantId",
+  authController.verifyToken,
+  BookingSessionController.getDetailedBookingSessionsByConsultant
+);
 
 /**
  * BOOKING UPDATE: Update booking session
@@ -635,7 +799,11 @@ app.get("/api/booking-sessions/consultant/:consultantId", authController.verifyT
  * Authentication: Required (Member/Consultant/Admin)
  * Features: Validates all inputs, supports partial updates, includes transaction safety
  */
-app.put("/api/booking-sessions/:bookingId", authController.verifyToken, BookingSessionController.updateBookingSession);
+app.put(
+  "/api/booking-sessions/:bookingId",
+  authController.verifyToken,
+  BookingSessionController.updateBookingSession
+);
 
 // ==================== ASSESSMENT ROUTES ====================
 /**
@@ -646,7 +814,11 @@ app.put("/api/booking-sessions/:bookingId", authController.verifyToken, BookingS
  * Output: { success: boolean, data: Array<AssessmentObject>, count: number, message: string }
  * Authentication: Required (Admin/Staff)
  */
-app.get('/api/assessments', authController.verifyToken, AssessmentController.getAllAssessments);
+app.get(
+  "/api/assessments",
+  authController.verifyToken,
+  AssessmentController.getAllAssessments
+);
 
 /**
  * MY ASSESSMENTS: Get current user's assessments
@@ -656,7 +828,11 @@ app.get('/api/assessments', authController.verifyToken, AssessmentController.get
  * Output: { success: boolean, data: Array<AssessmentObject>, count: number, message: string }
  * Authentication: Required
  */
-app.get('/api/assessments/me', authController.verifyToken, AssessmentController.getAssessmentsByUserToken);
+app.get(
+  "/api/assessments/me",
+  authController.verifyToken,
+  AssessmentController.getAssessmentsByUserToken
+);
 
 /**
  * ASSESSMENT DETAILS: Get detailed assessment results
@@ -666,7 +842,11 @@ app.get('/api/assessments/me', authController.verifyToken, AssessmentController.
  * Output: { success: boolean, data: object, message: string }
  * Authentication: Required (Admin/Staff/Own Results)
  */
-app.get('/api/assessments/details/:userId', authController.verifyToken, AssessmentController.getAssessmentDetails);
+app.get(
+  "/api/assessments/details/:userId",
+  authController.verifyToken,
+  AssessmentController.getAssessmentDetails
+);
 
 /**
  * ASSESSMENTS BY TYPE: Get assessments by type
@@ -676,7 +856,11 @@ app.get('/api/assessments/details/:userId', authController.verifyToken, Assessme
  * Output: { success: boolean, data: Array<AssessmentObject>, count: number, message: string }
  * Authentication: Required (Admin/Staff)
  */
-app.get('/api/assessments/type/:type', authController.verifyToken, AssessmentController.getAssessmentsByType);
+app.get(
+  "/api/assessments/type/:type",
+  authController.verifyToken,
+  AssessmentController.getAssessmentsByType
+);
 
 // ==================== ACTION MANAGEMENT ROUTES ====================
 
@@ -688,7 +872,11 @@ app.get('/api/assessments/type/:type', authController.verifyToken, AssessmentCon
  * Output: { success: boolean, data: Array<ActionObject>, message: string }
  * Authentication: Required (Admin/Staff)
  */
-app.get('/api/actions', authController.verifyToken, ActionController.getAllActions);
+app.get(
+  "/api/actions",
+  authController.verifyToken,
+  ActionController.getAllActions
+);
 
 /**
  * GET ACTION BY ID: Retrieve specific action
@@ -698,7 +886,11 @@ app.get('/api/actions', authController.verifyToken, ActionController.getAllActio
  * Output: { success: boolean, data: ActionObject, message: string }
  * Authentication: Required (Admin/Staff)
  */
-app.get('/api/actions/:id', authController.verifyToken, ActionController.getActionById);
+app.get(
+  "/api/actions/:id",
+  authController.verifyToken,
+  ActionController.getActionById
+);
 
 /**
  * GET ACTIONS BY TYPE: Filter actions by type
@@ -708,7 +900,11 @@ app.get('/api/actions/:id', authController.verifyToken, ActionController.getActi
  * Output: { success: boolean, data: Array<ActionObject>, count: number, message: string }
  * Authentication: Required (Admin/Staff)
  */
-app.get('/api/actions/type/:type', authController.verifyToken, ActionController.getActionsByType);
+app.get(
+  "/api/actions/type/:type",
+  authController.verifyToken,
+  ActionController.getActionsByType
+);
 
 /**
  * GET ACTIONS WITH ASSESSMENTS: Get actions with related assessments
@@ -718,7 +914,11 @@ app.get('/api/actions/type/:type', authController.verifyToken, ActionController.
  * Output: { success: boolean, data: Array<ActionObject>, count: number, message: string }
  * Authentication: Required (Admin/Staff)
  */
-app.get('/api/actions/with-assessments', authController.verifyToken, ActionController.getActionsWithAssessments);
+app.get(
+  "/api/actions/with-assessments",
+  authController.verifyToken,
+  ActionController.getActionsWithAssessments
+);
 
 /**
  * TAKE ASSESSMENT: Submit assessment test
@@ -728,7 +928,11 @@ app.get('/api/actions/with-assessments', authController.verifyToken, ActionContr
  * Output: { success: boolean, data: { results: object, action: object }, message: string }
  * Authentication: Required
  */
-app.post('/api/assessments/take-test', authController.verifyToken, AssessmentController.takeTestFromUser);
+app.post(
+  "/api/assessments/take-test",
+  authController.verifyToken,
+  AssessmentController.takeTestFromUser
+);
 
 /**
  * ASSESSMENT DELETE: Remove assessment
@@ -738,12 +942,282 @@ app.post('/api/assessments/take-test', authController.verifyToken, AssessmentCon
  * Output: { success: boolean, message: string }
  * Authentication: Required (Admin/Staff)
  */
-app.delete('/api/assessments/:id', authController.verifyToken, AssessmentController.deleteAssessment);
+app.delete(
+  "/api/assessments/:id",
+  authController.verifyToken,
+  AssessmentController.deleteAssessment
+);
+
+// ==================== ASSESSMENT QUESTION ROUTES ====================
+/**
+ * ASSESSMENT QUESTION API STRUCTURE:
+ *
+ * GET    /api/assessment-questions                           - Get all questions with answers
+ * GET    /api/assessment-questions/type/:assessment_type     - Get questions by assessment type (main feature)
+ * GET    /api/assessment-questions/question-type/:type       - Get questions by question type
+ * GET    /api/assessment-questions/filters                   - Get questions with multiple filters
+ * GET    /api/assessment-questions/:id                       - Get single question with answers
+ * GET    /api/assessment-questions/types                     - Get all unique assessment types
+ * GET    /api/assessment-questions/question-types            - Get all unique question types
+ * GET    /api/assessment-questions/count-by-type             - Get question counts by assessment type
+ * POST   /api/assessment-questions                           - Create question with answers (admin only)
+ * PUT    /api/assessment-questions/:id                       - Update question with answers (admin only)
+ * DELETE /api/assessment-questions/:id                       - Delete question by ID (admin only)
+ */
+
+/**
+ * ASSESSMENT QUESTIONS GET ALL: Retrieve all questions with answers
+ * Purpose: Get all assessment questions with their corresponding answers
+ * Method: GET /api/assessment-questions
+ * Output: { success: boolean, data: AssessmentQuestion[], count: number, message: string }
+ * Authentication: None (public)
+ */
+app.get(
+  "/api/assessment-questions",
+  AssessmentQuestionController.getAllQuestionsWithAnswers
+);
+
+// TEST ROUTE - This should work if routes are loading correctly
+app.get("/api/assessment-questions/test", (req, res) => {
+  res.json({ success: true, message: "Test route works!" });
+});
+
+/**
+ * ASSESSMENT QUESTIONS BY TYPE: Get questions filtered by assessment_type
+ * Purpose: Main feature - fetch questions and answers by assessment type
+ * Method: GET /api/assessment-questions/type/:assessment_type
+ * Input: Path params: { assessment_type: string }
+ * Output: { success: boolean, data: AssessmentQuestion[], count: number, assessment_type: string, message: string }
+ * Authentication: None (public)
+ */
+app.get(
+  "/api/assessment-questions/type/:assessment_type",
+  AssessmentQuestionController.getQuestionsByAssessmentType
+);
+
+/**
+ * ASSESSMENT QUESTIONS BY QUESTION TYPE: Get questions filtered by question type
+ * Purpose: Fetch questions and answers by question type (multiple_choice, yes_no, numeric, etc.)
+ * Method: GET /api/assessment-questions/question-type/:type
+ * Input: Path params: { type: string }
+ * Output: { success: boolean, data: AssessmentQuestion[], count: number, question_type: string, message: string }
+ * Authentication: None (public)
+ */
+app.get(
+  "/api/assessment-questions/question-type/:type",
+  AssessmentQuestionController.getQuestionsByType
+);
+
+/**
+ * ASSESSMENT QUESTIONS WITH FILTERS: Get questions with multiple filter criteria
+ * Purpose: Advanced filtering by assessment_type, category, substance, type, letter
+ * Method: GET /api/assessment-questions/filters
+ * Input: Query params: { assessment_type?, category?, substance?, type?, letter? }
+ * Output: { success: boolean, data: AssessmentQuestion[], count: number, filters: object, message: string }
+ * Authentication: None (public)
+ */
+app.get(
+  "/api/assessment-questions/filters",
+  AssessmentQuestionController.getQuestionsWithFilters
+);
+
+/**
+ * ASSESSMENT QUESTIONS TYPES: Get all unique assessment types
+ * Purpose: Get list of available assessment types for filtering
+ * Method: GET /api/assessment-questions/types
+ * Output: { success: boolean, data: string[], count: number, message: string }
+ * Authentication: None (public)
+ */
+app.get(
+  "/api/assessment-questions/types",
+  AssessmentQuestionController.getAssessmentTypes
+);
+
+/**
+ * ASSESSMENT QUESTION TYPES: Get all unique question types
+ * Purpose: Get list of available question types (multiple_choice, yes_no, numeric, etc.)
+ * Method: GET /api/assessment-questions/all-question-types
+ * Output: { success: boolean, data: string[], count: number, message: string }
+ * Authentication: None (public)
+ */
+app.get(
+  "/api/assessment-questions/all-question-types",
+  AssessmentQuestionController.getQuestionTypes
+);
+
+/**
+ * ASSESSMENT QUESTIONS COUNT: Get question counts by assessment type
+ * Purpose: Statistics on questions per assessment type
+ * Method: GET /api/assessment-questions/count-by-type
+ * Output: { success: boolean, data: {assessment_type: string, question_count: number}[], message: string }
+ * Authentication: None (public)
+ */
+app.get(
+  "/api/assessment-questions/count-by-type",
+  AssessmentQuestionController.getQuestionCountByType
+);
+
+/**
+ * ASSESSMENT QUESTION BY ID: Get single question with answers
+ * Purpose: Retrieve specific question with all its answers
+ * Method: GET /api/assessment-questions/:id
+ * Input: Path params: { id: number }
+ * Output: { success: boolean, data: AssessmentQuestion, message: string }
+ * Authentication: None (public)
+ */
+app.get(
+  "/api/assessment-questions/:id",
+  AssessmentQuestionController.getQuestionWithAnswersById
+);
+
+/**
+ * ASSESSMENT QUESTION CREATE: Create new question with answers
+ * Purpose: Add new assessment question with multiple choice answers
+ * Method: POST /api/assessment-questions
+ * Input: Body: { question: string, type: string, assessment_type: string, note?: string, multiSelect?: boolean, allowMultiple?: boolean, category?: string, substance?: string, letter?: string, answers?: Answer[] }
+ * Output: { success: boolean, data: AssessmentQuestion, message: string }
+ * Authentication: Required (Admin/Staff)
+ */
+app.post(
+  "/api/assessment-questions",
+  authController.verifyToken,
+  AssessmentQuestionController.createQuestionWithAnswers
+);
+
+/**
+ * ASSESSMENT QUESTION UPDATE: Update question with answers by ID
+ * Purpose: Update existing assessment question and its answers
+ * Method: PUT /api/assessment-questions/:id
+ * Input: Path params: { id: number }, Body: { question?: string, type?: string, assessment_type?: string, note?: string, multiSelect?: boolean, allowMultiple?: boolean, category?: string, substance?: string, letter?: string, answers?: Answer[] }
+ * Output: { success: boolean, data: AssessmentQuestion, message: string }
+ * Authentication: Required (Admin/Staff)
+ */
+app.put(
+  "/api/assessment-questions/:id",
+  authController.verifyToken,
+  AssessmentQuestionController.updateQuestionWithAnswers
+);
+
+/**
+ * ASSESSMENT QUESTION DELETE: Delete question by ID
+ * Purpose: Delete assessment question and all related answers
+ * Method: DELETE /api/assessment-questions/:id
+ * Input: Path params: { id: number }
+ * Output: { success: boolean, message: string, data: { deleted_question_id: number, deleted_answers_count: number } }
+ * Authentication: Required (Admin/Staff)
+ */
+app.delete(
+  "/api/assessment-questions/:id",
+  authController.verifyToken,
+  AssessmentQuestionController.deleteQuestionById
+);
+
+// ==================== ANSWER ROUTES ====================
+/**
+ * ANSWER API STRUCTURE:
+ *
+ * GET    /api/answers                                        - Get all answers with questions
+ * GET    /api/answers/:id                                    - Get single answer by ID
+ * GET    /api/answers/question/:questionId                   - Get answers by assessment question ID
+ * POST   /api/answers                                        - Create single answer (admin only)
+ * POST   /api/answers/bulk                                   - Bulk create answers for a question (admin only)
+ * PUT    /api/answers/:id                                    - Update answer by ID (admin only)
+ * DELETE /api/answers/:id                                    - Delete answer by ID (admin only)
+ */
+
+/**
+ * ANSWER GET ALL: Get all answers with their questions
+ * Purpose: Retrieve all answers with related assessment question details
+ * Method: GET /api/answers
+ * Input: None
+ * Output: { success: boolean, data: array, count: number, message: string }
+ * Authentication: None
+ */
+app.get("/api/answers", AnswerController.getAllAnswers);
+
+/**
+ * ANSWER GET BY ID: Get single answer by ID
+ * Purpose: Retrieve specific answer with question details
+ * Method: GET /api/answers/:id
+ * Input: Path params: { id: number }
+ * Output: { success: boolean, data: object, message: string }
+ * Authentication: None
+ */
+app.get("/api/answers/:id", AnswerController.getAnswerById);
+
+/**
+ * ANSWER GET BY QUESTION: Get answers by assessment question ID
+ * Purpose: Get all answers for a specific assessment question
+ * Method: GET /api/answers/question/:questionId
+ * Input: Path params: { questionId: number }
+ * Output: { success: boolean, data: array, count: number, assessment_question_id: number, message: string }
+ * Authentication: None
+ */
+app.get(
+  "/api/answers/question/:questionId",
+  AnswerController.getAnswersByQuestionId
+);
+
+/**
+ * ANSWER CREATE: Create new answer
+ * Purpose: Create a new answer for an assessment question
+ * Method: POST /api/answers
+ * Input: { assessment_question_id: number, option_id: number, text: string, score?: number, answer_order?: number }
+ * Output: { success: boolean, data: object, message: string }
+ * Authentication: Required (Admin/Staff)
+ */
+app.post(
+  "/api/answers",
+  authController.verifyToken,
+  AnswerController.createAnswer
+);
+
+/**
+ * ANSWER BULK CREATE: Bulk create answers for a question
+ * Purpose: Create multiple answers for an assessment question at once
+ * Method: POST /api/answers/bulk
+ * Input: { assessment_question_id: number, answers: [{ option_id?: number, text: string, score?: number, answer_order?: number }] }
+ * Output: { success: boolean, data: array, count: number, assessment_question_id: number, message: string }
+ * Authentication: Required (Admin/Staff)
+ */
+app.post(
+  "/api/answers/bulk",
+  authController.verifyToken,
+  AnswerController.bulkCreateAnswers
+);
+
+/**
+ * ANSWER UPDATE: Update answer by ID
+ * Purpose: Update existing answer details
+ * Method: PUT /api/answers/:id
+ * Input: Path params: { id: number }, Body: { assessment_question_id?: number, option_id?: number, text?: string, score?: number, answer_order?: number }
+ * Output: { success: boolean, data: object, message: string }
+ * Authentication: Required (Admin/Staff)
+ */
+app.put(
+  "/api/answers/:id",
+  authController.verifyToken,
+  AnswerController.updateAnswer
+);
+
+/**
+ * ANSWER DELETE: Delete answer by ID
+ * Purpose: Delete answer by its primary key
+ * Method: DELETE /api/answers/:id
+ * Input: Path params: { id: number }
+ * Output: { success: boolean, message: string, data: { deleted_answer_id: number, deleted_from_question: number } }
+ * Authentication: Required (Admin/Staff)
+ */
+app.delete(
+  "/api/answers/:id",
+  authController.verifyToken,
+  AnswerController.deleteAnswer
+);
 
 // ==================== PROGRAM ROUTES ====================
 /**
  * PROGRAM API STRUCTURE:
- * 
+ *
  * GET    /api/programs                           - Get all programs
  * GET    /api/programs/my-enrollment-status      - Get programs with user enrollment status (requires auth)
  * GET    /api/programs/user/:userId/enrollment-status - Get programs with specific user enrollment status (admin only)
@@ -755,30 +1229,67 @@ app.delete('/api/assessments/:id', authController.verifyToken, AssessmentControl
 // Program retrieval routes
 // Program retrieval routes
 app.get("/api/programs", ProgramController.getAllPrograms);
-app.get("/api/programs/category-details", ProgramController.getAllProgramsWithCategoryDetails);
-app.get("/api/programs/community-events", ProgramController.getCommunityEventPrograms); // MUST be before :id route
-app.get("/api/programs/my-enrollment-status", authController.verifyToken, ProgramController.getUserProgramsWithEnrollmentStatus);
-app.get("/api/programs/user/:userId/enrollment-status", authController.verifyToken, ProgramController.getUserProgramsWithEnrollmentStatusByAdmin);
-app.get("/api/programs/recommendations", authController.verifyToken, ProgramController.getProgramRecommendationsByAge);
-app.get("/api/programs/category/:categoryId", ProgramController.getProgramsByCategory);
-app.get("/api/programs/:programId/survey-analytics", ProgramController.getProgramSurveyAnalytics);
+app.get(
+  "/api/programs/category-details",
+  ProgramController.getAllProgramsWithCategoryDetails
+);
+app.get(
+  "/api/programs/community-events",
+  ProgramController.getCommunityEventPrograms
+); // MUST be before :id route
+app.get(
+  "/api/programs/my-enrollment-status",
+  authController.verifyToken,
+  ProgramController.getUserProgramsWithEnrollmentStatus
+);
+app.get(
+  "/api/programs/user/:userId/enrollment-status",
+  authController.verifyToken,
+  ProgramController.getUserProgramsWithEnrollmentStatusByAdmin
+);
+app.get(
+  "/api/programs/recommendations",
+  authController.verifyToken,
+  ProgramController.getProgramRecommendationsByAge
+);
+app.get(
+  "/api/programs/category/:categoryId",
+  ProgramController.getProgramsByCategory
+);
+app.get(
+  "/api/programs/:programId/survey-analytics",
+  ProgramController.getProgramSurveyAnalytics
+);
 app.get("/api/programs/:id", ProgramController.getProgramById);
 
 // Program CRUD routes (Admin/Staff only)
-app.post("/api/programs", authController.verifyToken, (req, res, next) => {
+app.post(
+  "/api/programs",
+  authController.verifyToken,
+  (req, res, next) => {
     console.log("POST /api/programs request received:", {
-        headers: req.headers,
-        body: req.body,
-        user: req.user
+      headers: req.headers,
+      body: req.body,
+      user: req.user,
     });
     next();
-}, ProgramController.createProgram);
-app.put("/api/programs/:id", authController.verifyToken, ProgramController.updateProgram);
-app.delete("/api/programs/:id", authController.verifyToken, ProgramController.deleteProgram);
+  },
+  ProgramController.createProgram
+);
+app.put(
+  "/api/programs/:id",
+  authController.verifyToken,
+  ProgramController.updateProgram
+);
+app.delete(
+  "/api/programs/:id",
+  authController.verifyToken,
+  ProgramController.deleteProgram
+);
 // ==================== CONTENT ROUTES ====================
 /**
  * CONTENT API STRUCTURE:
- * 
+ *
  * GET    /api/content                           - Get all content
  * GET    /api/content/:id                       - Get content by ID
  * GET    /api/content/:id/with-program          - Get content with program information
@@ -800,27 +1311,74 @@ app.delete("/api/programs/:id", authController.verifyToken, ProgramController.de
 // Content retrieval routes
 app.get("/api/content", ContentController.getAllContent);
 app.get("/api/content/type/:type", ContentController.getContentByType);
-app.get("/api/content/content-type/:contentType", ContentController.getContentByContentType);
-app.get("/api/content/program/:programId", ContentController.getContentByProgramId);
-app.get("/api/content/preview/:program_id", ContentController.getPreviewContent);
+app.get(
+  "/api/content/content-type/:contentType",
+  ContentController.getContentByContentType
+);
+app.get(
+  "/api/content/program/:programId",
+  ContentController.getContentByProgramId
+);
+app.get(
+  "/api/content/preview/:program_id",
+  ContentController.getPreviewContent
+);
 app.get("/api/content/:id", ContentController.getContentById);
-app.get("/api/content/:id/with-program", ContentController.getContentWithProgram);
-app.get("/api/content/:id/parsed-metadata", ContentController.getParsedMetadataContentById);
+app.get(
+  "/api/content/:id/with-program",
+  ContentController.getContentWithProgram
+);
+app.get(
+  "/api/content/:id/parsed-metadata",
+  ContentController.getParsedMetadataContentById
+);
 app.get("/api/content/file/:id", ContentController.getContentFile);
 
 // Content creation routes
-app.post("/api/content", authController.verifyToken, ContentController.createContent);
-app.post("/api/content/youtube", authController.verifyToken, ContentController.createYouTubeContent);
-app.post("/api/content/markdown", authController.verifyToken, ContentController.createMarkdownContent);
-app.post("/api/content/podcast", authController.verifyToken, ContentController.createPodcastContent);
+app.post(
+  "/api/content",
+  authController.verifyToken,
+  ContentController.createContent
+);
+app.post(
+  "/api/content/youtube",
+  authController.verifyToken,
+  ContentController.createYouTubeContent
+);
+app.post(
+  "/api/content/markdown",
+  authController.verifyToken,
+  ContentController.createMarkdownContent
+);
+app.post(
+  "/api/content/podcast",
+  authController.verifyToken,
+  ContentController.createPodcastContent
+);
 
 // Content management routes
-app.put("/api/content/:id", authController.verifyToken, ContentController.updateContent);
-app.patch("/api/content/:id/order", authController.verifyToken, ContentController.updateContentOrder);
-app.delete("/api/content/:id", authController.verifyToken, ContentController.deleteContent);
+app.put(
+  "/api/content/:id",
+  authController.verifyToken,
+  ContentController.updateContent
+);
+app.patch(
+  "/api/content/:id/order",
+  authController.verifyToken,
+  ContentController.updateContentOrder
+);
+app.delete(
+  "/api/content/:id",
+  authController.verifyToken,
+  ContentController.deleteContent
+);
 
 // Image upload routes
-app.post("/api/images/upload", authController.verifyToken, ContentController.uploadImage);
+app.post(
+  "/api/images/upload",
+  authController.verifyToken,
+  ContentController.uploadImage
+);
 app.get("/api/images/:filename", ContentController.getImage);
 
 // ==================== CATEGORY ROUTES ====================
@@ -842,7 +1400,11 @@ app.get("/api/categories", CategoryController.getAllCategories);
  * Output: { success: boolean, data: CategoryObject, message: string }
  * Authentication: Required (Admin/Staff)
  */
-app.post("/api/categories", authController.verifyToken, CategoryController.createCategory);
+app.post(
+  "/api/categories",
+  authController.verifyToken,
+  CategoryController.createCategory
+);
 
 /**
  * CATEGORY UPDATE: Update existing category
@@ -852,7 +1414,11 @@ app.post("/api/categories", authController.verifyToken, CategoryController.creat
  * Output: { success: boolean, data: CategoryObject, message: string }
  * Authentication: Required (Admin/Staff)
  */
-app.put("/api/categories/:id", authController.verifyToken, CategoryController.updateCategory);
+app.put(
+  "/api/categories/:id",
+  authController.verifyToken,
+  CategoryController.updateCategory
+);
 
 /**
  * CATEGORY DELETE: Remove category
@@ -862,7 +1428,11 @@ app.put("/api/categories/:id", authController.verifyToken, CategoryController.up
  * Output: { success: boolean, message: string, deletedCategory: object }
  * Authentication: Required (Admin/Staff)
  */
-app.delete("/api/categories/:id", authController.verifyToken, CategoryController.deleteCategory);
+app.delete(
+  "/api/categories/:id",
+  authController.verifyToken,
+  CategoryController.deleteCategory
+);
 
 // ==================== BLOG ROUTES ====================
 /**
@@ -874,7 +1444,7 @@ app.delete("/api/categories/:id", authController.verifyToken, CategoryController
  * Authentication: None (Public)
  */
 app.get("/api/blogs", BlogController.getAllBlogs);
-app.get("/api/admin/blogs", BlogController.getAllBlogsForAdmin)
+app.get("/api/admin/blogs", BlogController.getAllBlogsForAdmin);
 /**
  * MY BLOGS: Get current user's blogs
  * Purpose: Retrieve all blog posts created by the authenticated user
@@ -893,7 +1463,11 @@ app.get("/api/blogs/my", authController.verifyToken, BlogController.getMyBlogs);
  * Output: { success: boolean, data: Array<BlogObject>, count: number, message: string }
  * Authentication: Required (Admin/Staff)
  */
-app.get("/api/blogs/pending", authController.verifyStaffOrAdmin, BlogController.getPendingBlogs);
+app.get(
+  "/api/blogs/pending",
+  authController.verifyStaffOrAdmin,
+  BlogController.getPendingBlogs
+);
 
 /**
  * MODERATION STATS: Get blog moderation statistics
@@ -903,7 +1477,11 @@ app.get("/api/blogs/pending", authController.verifyStaffOrAdmin, BlogController.
  * Output: { success: boolean, data: object, message: string }
  * Authentication: Required (Admin/Staff)
  */
-app.get("/api/blogs/moderation/stats", authController.verifyStaffOrAdmin, BlogController.getModerationStats);
+app.get(
+  "/api/blogs/moderation/stats",
+  authController.verifyStaffOrAdmin,
+  BlogController.getModerationStats
+);
 
 /**
  * BLOG DETAILS: Get specific blog post
@@ -933,7 +1511,11 @@ app.post("/api/blogs", authController.verifyToken, BlogController.createBlog);
  * Output: { success: boolean, data: object, message: string }
  * Authentication: Required
  */
-app.post("/api/blogs/with-image", authController.verifyToken, ...BlogController.createBlogWithImage);
+app.post(
+  "/api/blogs/with-image",
+  authController.verifyToken,
+  ...BlogController.createBlogWithImage
+);
 
 /**
  * BLOG UPDATE: Update blog post
@@ -943,7 +1525,11 @@ app.post("/api/blogs/with-image", authController.verifyToken, ...BlogController.
  * Output: { success: boolean, data: object, message: string }
  * Authentication: Required (Author/Admin/Staff)
  */
-app.put("/api/blogs/:id", authController.verifyToken, BlogController.updateBlog);
+app.put(
+  "/api/blogs/:id",
+  authController.verifyToken,
+  BlogController.updateBlog
+);
 
 /**
  * BLOG DELETE: Remove blog post
@@ -953,7 +1539,11 @@ app.put("/api/blogs/:id", authController.verifyToken, BlogController.updateBlog)
  * Output: { success: boolean, message: string }
  * Authentication: Required (Author/Admin/Staff)
  */
-app.delete("/api/blogs/:id", authController.verifyToken, BlogController.deleteBlog);
+app.delete(
+  "/api/blogs/:id",
+  authController.verifyToken,
+  BlogController.deleteBlog
+);
 
 /**
  * BLOG STATUS UPDATE: Change blog status
@@ -963,7 +1553,11 @@ app.delete("/api/blogs/:id", authController.verifyToken, BlogController.deleteBl
  * Output: { success: boolean, data: object, message: string }
  * Authentication: Required (Author/Admin/Staff)
  */
-app.patch("/api/blogs/:id/status", authController.verifyToken, BlogController.updateBlogStatus);
+app.patch(
+  "/api/blogs/:id/status",
+  authController.verifyToken,
+  BlogController.updateBlogStatus
+);
 
 /**
  * BLOG APPROVE: Approve blog for publication
@@ -973,7 +1567,11 @@ app.patch("/api/blogs/:id/status", authController.verifyToken, BlogController.up
  * Output: { success: boolean, data: object, message: string }
  * Authentication: Required (Admin/Staff)
  */
-app.patch("/api/blogs/:id/approve", authController.verifyStaffOrAdmin, BlogController.approveBlog);
+app.patch(
+  "/api/blogs/:id/approve",
+  authController.verifyStaffOrAdmin,
+  BlogController.approveBlog
+);
 
 /**
  * BLOG REJECT: Reject blog post
@@ -983,7 +1581,11 @@ app.patch("/api/blogs/:id/approve", authController.verifyStaffOrAdmin, BlogContr
  * Output: { success: boolean, data: object, message: string }
  * Authentication: Required (Admin/Staff)
  */
-app.patch("/api/blogs/:id/reject", authController.verifyStaffOrAdmin, BlogController.rejectBlog);
+app.patch(
+  "/api/blogs/:id/reject",
+  authController.verifyStaffOrAdmin,
+  BlogController.rejectBlog
+);
 
 // ==================== FLAG ROUTES ====================
 /**
@@ -1004,7 +1606,11 @@ app.post("/api/flags", authController.verifyToken, FlagController.createFlag);
  * Output: { success: boolean, data: Array<FlagObject>, count: number, message: string }
  * Authentication: Required (Admin/Staff)
  */
-app.get("/api/flags/blog/:blogId", authController.verifyStaffOrAdmin, FlagController.getFlagsByBlogId);
+app.get(
+  "/api/flags/blog/:blogId",
+  authController.verifyStaffOrAdmin,
+  FlagController.getFlagsByBlogId
+);
 
 /**
  * FLAGS BY USER: Get flags created by user
@@ -1014,7 +1620,11 @@ app.get("/api/flags/blog/:blogId", authController.verifyStaffOrAdmin, FlagContro
  * Output: { success: boolean, data: Array<FlagObject>, count: number, message: string }
  * Authentication: Required (User/Admin/Staff)
  */
-app.get("/api/flags/user/:userId", authController.verifyToken, FlagController.getFlagsByUser);
+app.get(
+  "/api/flags/user/:userId",
+  authController.verifyToken,
+  FlagController.getFlagsByUser
+);
 
 /**
  * FLAG REMOVE: Remove flag report
@@ -1024,7 +1634,11 @@ app.get("/api/flags/user/:userId", authController.verifyToken, FlagController.ge
  * Output: { success: boolean, message: string, blogUnhidden: boolean, remainingFlags: number, blogId: number }
  * Authentication: Required (Admin/Staff)
  */
-app.delete("/api/flags/:id", authController.verifyStaffOrAdmin, FlagController.removeFlag);
+app.delete(
+  "/api/flags/:id",
+  authController.verifyStaffOrAdmin,
+  FlagController.removeFlag
+);
 
 /**
  * FLAGS LIST: Get all flags
@@ -1034,7 +1648,11 @@ app.delete("/api/flags/:id", authController.verifyStaffOrAdmin, FlagController.r
  * Output: { success: boolean, data: Array<FlagObject>, message: string }
  * Authentication: Required (Admin/Staff)
  */
-app.get("/api/flags", authController.verifyStaffOrAdmin, FlagController.getAllFlags);
+app.get(
+  "/api/flags",
+  authController.verifyStaffOrAdmin,
+  FlagController.getAllFlags
+);
 
 /**
  * MOST FLAGGED BLOGS: Get blogs with most flags
@@ -1044,7 +1662,11 @@ app.get("/api/flags", authController.verifyStaffOrAdmin, FlagController.getAllFl
  * Output: { success: boolean, data: Array<BlogFlagCount>, message: string }
  * Authentication: Required (Admin/Staff)
  */
-app.get("/api/flags/most-flagged-blogs", authController.verifyStaffOrAdmin, FlagController.getMostFlaggedBlogs);
+app.get(
+  "/api/flags/most-flagged-blogs",
+  authController.verifyStaffOrAdmin,
+  FlagController.getMostFlaggedBlogs
+);
 
 /**
  * CLEAR BLOG FLAGS: Remove all flags from a blog
@@ -1054,7 +1676,11 @@ app.get("/api/flags/most-flagged-blogs", authController.verifyStaffOrAdmin, Flag
  * Output: { success: boolean, deletedCount: number, message: string }
  * Authentication: Required (Admin/Staff)
  */
-app.delete("/api/flags/blog/:blogId/clear", authController.verifyStaffOrAdmin, FlagController.clearBlogFlags);
+app.delete(
+  "/api/flags/blog/:blogId/clear",
+  authController.verifyStaffOrAdmin,
+  FlagController.clearBlogFlags
+);
 
 /**
  * BANNED USERS: Get users banned due to flags
@@ -1064,7 +1690,11 @@ app.delete("/api/flags/blog/:blogId/clear", authController.verifyStaffOrAdmin, F
  * Output: { success: boolean, data: Array<BannedUserObject>, count: number, message: string }
  * Authentication: Required (Admin/Staff)
  */
-app.get("/api/flags/banned-users", authController.verifyStaffOrAdmin, FlagController.getBannedUsers);
+app.get(
+  "/api/flags/banned-users",
+  authController.verifyStaffOrAdmin,
+  FlagController.getBannedUsers
+);
 
 /**
  * UNBAN USER: Remove ban from user
@@ -1074,7 +1704,11 @@ app.get("/api/flags/banned-users", authController.verifyStaffOrAdmin, FlagContro
  * Output: { success: boolean, data: object, message: string }
  * Authentication: Required (Admin)
  */
-app.patch("/api/flags/unban-user/:userId", authController.verifyToken, FlagController.unbanUser);
+app.patch(
+  "/api/flags/unban-user/:userId",
+  authController.verifyToken,
+  FlagController.unbanUser
+);
 
 // ==================== ENROLLMENT ROUTES ====================
 /**
@@ -1085,7 +1719,11 @@ app.patch("/api/flags/unban-user/:userId", authController.verifyToken, FlagContr
  * Output: { success: boolean, data: Array<EnrollmentObject>, count: number, message: string }
  * Authentication: Required (User/Admin/Staff)
  */
-app.get("/api/enrollments/user/:userId", authController.verifyToken, EnrollController.getEnrollmentsByUser);
+app.get(
+  "/api/enrollments/user/:userId",
+  authController.verifyToken,
+  EnrollController.getEnrollmentsByUser
+);
 
 /**
  * CHECK MY ENROLLMENT: Check enrollment status for program
@@ -1095,7 +1733,11 @@ app.get("/api/enrollments/user/:userId", authController.verifyToken, EnrollContr
  * Output: { success: boolean, isEnrolled: boolean, enrollment?: object, message: string }
  * Authentication: Required
  */
-app.get("/api/enrollments/check/:programId", authController.verifyToken, EnrollController.getCheckMyEnrollment);
+app.get(
+  "/api/enrollments/check/:programId",
+  authController.verifyToken,
+  EnrollController.getCheckMyEnrollment
+);
 
 /**
  * ENROLLMENT DETAILS: Get specific enrollment
@@ -1105,7 +1747,11 @@ app.get("/api/enrollments/check/:programId", authController.verifyToken, EnrollC
  * Output: { success: boolean, data: object, message: string }
  * Authentication: Required (User/Admin/Staff)
  */
-app.get("/api/enrollments/:userId/:programId", authController.verifyToken, EnrollController.getEnrollmentById);
+app.get(
+  "/api/enrollments/:userId/:programId",
+  authController.verifyToken,
+  EnrollController.getEnrollmentById
+);
 
 /**
  * ENROLLMENT CREATE: Enroll in program
@@ -1115,7 +1761,11 @@ app.get("/api/enrollments/:userId/:programId", authController.verifyToken, Enrol
  * Output: { success: boolean, data: object, message: string }
  * Authentication: Required
  */
-app.post("/api/enrollments", authController.verifyToken, EnrollController.createEnrollment);
+app.post(
+  "/api/enrollments",
+  authController.verifyToken,
+  EnrollController.createEnrollment
+);
 
 /**
  * CONTENT PROGRESS TOGGLE: Mark content as complete/incomplete
@@ -1125,7 +1775,11 @@ app.post("/api/enrollments", authController.verifyToken, EnrollController.create
  * Output: { success: boolean, data: object, message: string }
  * Authentication: Required (Enrolled User)
  */
-app.patch("/api/enrollments/:enrollId/content/:contentId/toggle", authController.verifyToken, EnrollController.toggleContentCompletion);
+app.patch(
+  "/api/enrollments/:enrollId/content/:contentId/toggle",
+  authController.verifyToken,
+  EnrollController.toggleContentCompletion
+);
 
 /**
  * ENROLLMENT COMPLETE: Mark enrollment as completed
@@ -1135,7 +1789,11 @@ app.patch("/api/enrollments/:enrollId/content/:contentId/toggle", authController
  * Output: { success: boolean, data: object, message: string }
  * Authentication: Required (Enrolled User)
  */
-app.put("/api/enrollments/:enrollId/complete", authController.verifyToken, EnrollController.updateEnrollmentCompletionById);
+app.put(
+  "/api/enrollments/:enrollId/complete",
+  authController.verifyToken,
+  EnrollController.updateEnrollmentCompletionById
+);
 
 /**
  * DELETE MY ENROLLMENT: Delete enrollment for current user
@@ -1145,7 +1803,11 @@ app.put("/api/enrollments/:enrollId/complete", authController.verifyToken, Enrol
  * Output: { success: boolean, message: string }
  * Authentication: Required (Enrolled User)
  */
-app.delete("/api/enrollments/my/:programId", authController.verifyToken, EnrollController.deleteMyEnrollment);
+app.delete(
+  "/api/enrollments/my/:programId",
+  authController.verifyToken,
+  EnrollController.deleteMyEnrollment
+);
 
 // ==================== COMMUNITY EVENT ROUTES ====================
 // Community events route is already defined in the Program Routes section above
@@ -1153,40 +1815,56 @@ app.delete("/api/enrollments/my/:programId", authController.verifyToken, EnrollC
 // ==================== SURVEY ROUTES ====================
 /**
  * SURVEY API STRUCTURE:
- * 
+ *
  * GET    /api/surveys/program/:programId/type/:type - Get surveys by program ID and type
  * POST   /api/surveys                               - Create new survey (Admin/Staff)
  * PUT    /api/surveys/:id                           - Update survey and delete all responses (Admin/Staff)
  */
 
 // Core survey routes
-app.get("/api/surveys/program/:programId/type/:type", authController.verifyToken, SurveyController.getSurveysByTypeAndProgramId);
-app.get("/api/surveys/program/:programId", authController.verifyToken, SurveyController.getSurveysByProgramId);
-app.post("/api/surveys", authController.verifyToken, SurveyController.createSurvey);
-app.put("/api/surveys/:id", authController.verifyToken, SurveyController.updateSurvey);
+app.get(
+  "/api/surveys/program/:programId/type/:type",
+  authController.verifyToken,
+  SurveyController.getSurveysByTypeAndProgramId
+);
+app.get(
+  "/api/surveys/program/:programId",
+  authController.verifyToken,
+  SurveyController.getSurveysByProgramId
+);
+app.post(
+  "/api/surveys",
+  authController.verifyToken,
+  SurveyController.createSurvey
+);
+app.put(
+  "/api/surveys/:id",
+  authController.verifyToken,
+  SurveyController.updateSurvey
+);
 
 // Test endpoint for survey updates (temporary for debugging)
 app.put("/api/surveys-test/:id", (req, res) => {
-    console.log("🧪 Test survey update endpoint called");
-    console.log("🧪 Request params:", req.params);
-    console.log("🧪 Request body:", req.body);
-    console.log("🧪 Request headers:", req.headers);
+  console.log("🧪 Test survey update endpoint called");
+  console.log("🧪 Request params:", req.params);
+  console.log("🧪 Request body:", req.body);
+  console.log("🧪 Request headers:", req.headers);
 
-    res.status(200).json({
-        success: true,
-        message: "Test endpoint working",
-        received_data: {
-            id: req.params.id,
-            body: req.body,
-            headers: req.headers
-        }
-    });
+  res.status(200).json({
+    success: true,
+    message: "Test endpoint working",
+    received_data: {
+      id: req.params.id,
+      body: req.body,
+      headers: req.headers,
+    },
+  });
 });
 
 // ==================== SURVEY RESPONSE ROUTES ====================
 /**
  * SURVEY RESPONSE API STRUCTURE:
- * 
+ *
  * GET    /api/survey-responses                        - Get all survey responses (admin)
  * GET    /api/survey-responses/me                     - Get current user's responses (key-value format)
  * GET    /api/survey-responses/check/:surveyId        - Check if current user responded to a survey
@@ -1207,51 +1885,124 @@ app.put("/api/surveys-test/:id", (req, res) => {
  */
 
 // User-facing survey response routes (key-value format)
-app.get("/api/survey-responses/me", authController.verifyToken, SurveyResponseController.getMySurveyResponsesKeyValue);
-app.get("/api/survey-responses/check/:surveyId", authController.verifyToken, SurveyResponseController.checkMyResponse);
-app.post("/api/survey-responses", authController.verifyToken, SurveyResponseController.submitSurveyResponseKeyValue);
-app.put("/api/survey-responses", authController.verifyToken, SurveyResponseController.updateSurveyResponseKeyValue);
+app.get(
+  "/api/survey-responses/me",
+  authController.verifyToken,
+  SurveyResponseController.getMySurveyResponsesKeyValue
+);
+app.get(
+  "/api/survey-responses/check/:surveyId",
+  authController.verifyToken,
+  SurveyResponseController.checkMyResponse
+);
+app.post(
+  "/api/survey-responses",
+  authController.verifyToken,
+  SurveyResponseController.submitSurveyResponseKeyValue
+);
+app.put(
+  "/api/survey-responses",
+  authController.verifyToken,
+  SurveyResponseController.updateSurveyResponseKeyValue
+);
 
 // Admin/Staff survey response routes
-app.get("/api/survey-responses", authController.verifyToken, SurveyResponseController.getAllSurveyResponses);
-app.get("/api/survey-responses/statistics", authController.verifyToken, SurveyResponseController.getSurveyResponseStatistics);
-app.get("/api/survey-responses/date-range", authController.verifyToken, SurveyResponseController.getResponsesByDateRange);
-app.get("/api/survey-responses/:id", authController.verifyToken, SurveyResponseController.getSurveyResponseById);
-app.get("/api/survey-responses/:id/parsed", authController.verifyToken, SurveyResponseController.getParsedSurveyResponseById);
-app.get("/api/survey-responses/:id/with-relations", authController.verifyToken, SurveyResponseController.getResponseWithRelations);
-app.get("/api/survey-responses/survey/:surveyId", authController.verifyToken, SurveyResponseController.getResponsesBySurveyId);
-app.get("/api/survey-responses/user/:userId", authController.verifyToken, SurveyResponseController.getResponsesByUserId);
-app.get("/api/survey-responses/survey/:surveyId/analytics", authController.verifyToken, SurveyResponseController.getSurveyAnalytics);
-app.get("/api/survey-responses/check/:surveyId/:userId", authController.verifyToken, SurveyResponseController.checkUserResponse);
+app.get(
+  "/api/survey-responses",
+  authController.verifyToken,
+  SurveyResponseController.getAllSurveyResponses
+);
+app.get(
+  "/api/survey-responses/statistics",
+  authController.verifyToken,
+  SurveyResponseController.getSurveyResponseStatistics
+);
+app.get(
+  "/api/survey-responses/date-range",
+  authController.verifyToken,
+  SurveyResponseController.getResponsesByDateRange
+);
+app.get(
+  "/api/survey-responses/:id",
+  authController.verifyToken,
+  SurveyResponseController.getSurveyResponseById
+);
+app.get(
+  "/api/survey-responses/:id/parsed",
+  authController.verifyToken,
+  SurveyResponseController.getParsedSurveyResponseById
+);
+app.get(
+  "/api/survey-responses/:id/with-relations",
+  authController.verifyToken,
+  SurveyResponseController.getResponseWithRelations
+);
+app.get(
+  "/api/survey-responses/survey/:surveyId",
+  authController.verifyToken,
+  SurveyResponseController.getResponsesBySurveyId
+);
+app.get(
+  "/api/survey-responses/user/:userId",
+  authController.verifyToken,
+  SurveyResponseController.getResponsesByUserId
+);
+app.get(
+  "/api/survey-responses/survey/:surveyId/analytics",
+  authController.verifyToken,
+  SurveyResponseController.getSurveyAnalytics
+);
+app.get(
+  "/api/survey-responses/check/:surveyId/:userId",
+  authController.verifyToken,
+  SurveyResponseController.checkUserResponse
+);
 
 // Legacy survey response routes (for backward compatibility)
-app.post("/api/survey-responses/legacy", authController.verifyToken, SurveyResponseController.createSurveyResponse);
-app.put("/api/survey-responses/:id", authController.verifyToken, SurveyResponseController.updateSurveyResponse);
-app.delete("/api/survey-responses/:id", authController.verifyToken, SurveyResponseController.deleteSurveyResponse);
+app.post(
+  "/api/survey-responses/legacy",
+  authController.verifyToken,
+  SurveyResponseController.createSurveyResponse
+);
+app.put(
+  "/api/survey-responses/:id",
+  authController.verifyToken,
+  SurveyResponseController.updateSurveyResponse
+);
+app.delete(
+  "/api/survey-responses/:id",
+  authController.verifyToken,
+  SurveyResponseController.deleteSurveyResponse
+);
 
 // ==================== SERVER STARTUP ====================
 app.listen(3000, () => {
-    console.log("Server is running on port 3000");
-    console.log("🚀 API Documentation available at: http://localhost:3000/api-docs");
-    console.log("📋 API Routes Summary:");
-    console.log("   Authentication: /api/login, /api/register, /api/google-*");
-    console.log("   Dashboard: /api/dashboard, /api/dashboard/detailed");
-    console.log("   Profile: /api/profile, /api/profile/status");
-    console.log("   User+Profile Combined: /api/user/profile-combined, /api/user/delete-account");
-    console.log("   Staff: /api/staff/*");
-    console.log("   Members: /api/members/*");
-    console.log("   Consultants: /api/consultants/*");
-    console.log("   Booking: /api/booking-sessions/*");
-    console.log("   Assessments: /api/assessments/*");
-    console.log("   Programs: /api/programs/*");
-    console.log("   Content: /api/content/*");
-    console.log("   Categories: /api/categories/*");
-    console.log("   Blogs: /api/blogs/*");
-    console.log("   Flags: /api/flags/*");
-    console.log("   Enrollments: /api/enrollments/*");
-    console.log("   Surveys: /api/surveys/*");
-    console.log("   Survey Responses: /api/survey-responses/*");
-    console.log("   Images: /api/images/:filename");
+  console.log("Server is running on port 3000");
+  console.log(
+    "🚀 API Documentation available at: http://localhost:3000/api-docs"
+  );
+  console.log("📋 API Routes Summary:");
+  console.log("   Authentication: /api/login, /api/register, /api/google-*");
+  console.log("   Dashboard: /api/dashboard, /api/dashboard/detailed");
+  console.log("   Profile: /api/profile, /api/profile/status");
+  console.log(
+    "   User+Profile Combined: /api/user/profile-combined, /api/user/delete-account"
+  );
+  console.log("   Staff: /api/staff/*");
+  console.log("   Members: /api/members/*");
+  console.log("   Consultants: /api/consultants/*");
+  console.log("   Booking: /api/booking-sessions/*");
+  console.log("   Assessments: /api/assessments/*");
+  console.log("   Assessment Questions: /api/assessment-questions/*");
+  console.log("   Programs: /api/programs/*");
+  console.log("   Content: /api/content/*");
+  console.log("   Categories: /api/categories/*");
+  console.log("   Blogs: /api/blogs/*");
+  console.log("   Flags: /api/flags/*");
+  console.log("   Enrollments: /api/enrollments/*");
+  console.log("   Surveys: /api/surveys/*");
+  console.log("   Survey Responses: /api/survey-responses/*");
+  console.log("   Images: /api/images/:filename");
 });
 
 /*
@@ -1303,6 +2054,28 @@ Members (Admin/Staff):
 - GET /api/assessments/me - Get my assessments
 - POST /api/assessments/take-test - Submit assessment test
 - GET /api/assessments/type/:type - Filter by assessment type
+
+❓ ASSESSMENT QUESTION ROUTES:
+- GET /api/assessment-questions - Get all questions with answers
+- GET /api/assessment-questions/type/:assessment_type - Get questions by assessment type (main feature)
+- GET /api/assessment-questions/question-type/:type - Get questions by question type
+- GET /api/assessment-questions/filters - Get questions with multiple filters
+- GET /api/assessment-questions/:id - Get single question with answers
+- GET /api/assessment-questions/types - Get all unique assessment types
+- GET /api/assessment-questions/question-types - Get all unique question types
+- GET /api/assessment-questions/count-by-type - Get question counts by assessment type
+- POST /api/assessment-questions - Create question with answers (admin)
+- PUT /api/assessment-questions/:id - Update question with answers (admin)
+- DELETE /api/assessment-questions/:id - Delete question by ID (admin)
+
+📝 ANSWER ROUTES:
+- GET /api/answers - Get all answers with questions
+- GET /api/answers/:id - Get single answer by ID
+- GET /api/answers/question/:questionId - Get answers by assessment question ID
+- POST /api/answers - Create single answer (admin)
+- POST /api/answers/bulk - Bulk create answers for a question (admin)
+- PUT /api/answers/:id - Update answer by ID (admin)
+- DELETE /api/answers/:id - Delete answer by ID (admin)
 
 🎓 PROGRAM ROUTES:
 - GET /api/programs - List all programs
@@ -1379,5 +2152,11 @@ All API responses follow this structure:
 // Debug: Check if controllers are properly imported before setting up routes.
 console.log("🔍 Debug: Checking controller imports...");
 console.log("ProgramController:", typeof ProgramController);
-console.log("ProgramController.getAllPrograms:", typeof ProgramController.getAllPrograms);
-console.log("ProgramController.getProgramSurveyAnalytics:", typeof ProgramController.getProgramSurveyAnalytics);
+console.log(
+  "ProgramController.getAllPrograms:",
+  typeof ProgramController.getAllPrograms
+);
+console.log(
+  "ProgramController.getProgramSurveyAnalytics:",
+  typeof ProgramController.getProgramSurveyAnalytics
+);
