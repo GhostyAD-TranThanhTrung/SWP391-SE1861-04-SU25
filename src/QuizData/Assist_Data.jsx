@@ -18,8 +18,7 @@ export const Assist_Data = {
             ],
             type: "multi-select",
             multiSelect: true,
-            allowMultiple: true,
-            correctAnswer: "Tùy câu trả lời"
+            allowMultiple: true
         },
         {
             id: 2,
@@ -32,8 +31,7 @@ export const Assist_Data = {
                 { id: 4, text: "Hàng tuần", score: 4 },
                 { id: 5, text: "Gần như hàng ngày hoặc hàng ngày", score: 6 },
             ],
-            type: "MCQs",
-            correctAnswer: "Tùy câu trả lời",
+            type: "MCQs"
         },
         {
             id: 3,
@@ -46,8 +44,7 @@ export const Assist_Data = {
                 { id: 4, text: "Hàng tuần", score: 5 },
                 { id: 5, text: "Gần như hàng ngày hoặc hàng ngày", score: 6 },
             ],
-            type: "MCQs",
-            correctAnswer: "Tùy câu trả lời",
+            type: "MCQs"
         },
         {
             id: 4,
@@ -60,8 +57,7 @@ export const Assist_Data = {
                 { id: 4, text: "Hàng tuần", score: 6 },
                 { id: 5, text: "Gần như hàng ngày hoặc hàng ngày", score: 7 },
             ],
-            type: "MCQs",
-            correctAnswer: "Tùy câu trả lời",
+            type: "MCQs"
         },
         {
             id: 5,
@@ -74,8 +70,7 @@ export const Assist_Data = {
                 { id: 4, text: "Hàng tuần", score: 7 },
                 { id: 5, text: "Gần như hàng ngày hoặc hàng ngày", score: 8 },
             ],
-            type: "MCQs",
-            correctAnswer: "Tùy câu trả lời",
+            type: "MCQs"
         },
         {
             id: 6,
@@ -86,8 +81,7 @@ export const Assist_Data = {
                 { id: 2, text: "Có, trong 3 tháng qua", score: 6 },
                 { id: 3, text: "Có, nhưng không trong 3 tháng qua", score: 3 },
             ],
-            type: "MCQs",
-            correctAnswer: "Tùy câu trả lời",
+            type: "MCQs"
         },
         {
             id: 7,
@@ -98,8 +92,7 @@ export const Assist_Data = {
                 { id: 2, text: "Có, trong 3 tháng qua", score: 6 },
                 { id: 3, text: "Có, nhưng không trong 3 tháng qua", score: 3 },
             ],
-            type: "MCQs",
-            correctAnswer: "Tùy câu trả lời",
+            type: "MCQs"
         },
         {
             id: 8,
@@ -110,8 +103,7 @@ export const Assist_Data = {
                 { id: 2, text: "Có, trong 3 tháng qua", score: 2 },
                 { id: 3, text: "Có, nhưng không trong 3 tháng qua", score: 1 },
             ],
-            type: "MCQs",
-            correctAnswer: "Tùy câu trả lời",
+            type: "MCQs"
         },
         {
             id: 9,
@@ -124,8 +116,7 @@ export const Assist_Data = {
                 { id: 4, text: "Hàng tuần", score: 6 },
                 { id: 5, text: "Gần như hàng ngày hoặc hàng ngày", score: 7 },
             ],
-            type: "MCQs",
-            correctAnswer: "Tùy câu trả lời",
+            type: "MCQs"
         },
         {
             id: 10,
@@ -136,8 +127,7 @@ export const Assist_Data = {
                 { id: 2, text: "Một hoặc hai lần", score: 4 },
                 { id: 3, text: "Thường xuyên", score: 6 },
             ],
-            type: "MCQs",
-            correctAnswer: "Tùy câu trả lời",
+            type: "MCQs"
         },
         {
             id: 11,
@@ -148,8 +138,7 @@ export const Assist_Data = {
                 { id: 2, text: "Một vài lần", score: 3 },
                 { id: 3, text: "Thường xuyên", score: 5 },
             ],
-            type: "MCQs",
-            correctAnswer: "Tùy câu trả lời",
+            type: "MCQs"
         },
         {
             id: 12,
@@ -160,8 +149,7 @@ export const Assist_Data = {
                 { id: 2, text: "Một vài lần", score: 4 },
                 { id: 3, text: "Thường xuyên", score: 6 },
             ],
-            type: "MCQs",
-            correctAnswer: "Tùy câu trả lời",
+            type: "MCQs"
         },
         {
             id: 13,
@@ -173,7 +161,7 @@ export const Assist_Data = {
                 { id: 3, text: "Thường xuyên", score: 5 },
             ],
             type: "MCQs",
-            correctAnswer: "Tùy câu trả lời",
+          
         },
         {
             id: 14,
@@ -185,7 +173,7 @@ export const Assist_Data = {
                 { id: 3, text: "Hơn một lần", score: 6 },
             ],
             type: "MCQs",
-            correctAnswer: "Tùy câu trả lời",
+            
         },
         {
             id: 15,
@@ -197,7 +185,6 @@ export const Assist_Data = {
                 { id: 3, text: "Nhiều lần", score: 7 },
             ],
             type: "MCQs",
-            correctAnswer: "Tùy câu trả lời",
         }
     ],
 };
