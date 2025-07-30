@@ -1215,12 +1215,22 @@ class ProgramController {
                 });
             }
 
+            const Program = require('../src/entities/Program');
+            const Enroll = require('../src/entities/Enroll');
+            const Content = require('../src/entities/Content');
+            const Survey = require('../src/entities/Survey');
+            const SurveyResponse = require('../src/entities/SurveyResponse');
+
             const programRepository = AppDataSource.getRepository(Program);
+            const enrollRepository = AppDataSource.getRepository(Enroll);
+            const contentRepository = AppDataSource.getRepository(Content);
+            const surveyRepository = AppDataSource.getRepository(Survey);
+            const surveyResponseRepository = AppDataSource.getRepository(SurveyResponse);
 
             // Check if program exists with all related data
             const program = await programRepository.findOne({
                 where: { program_id: parseInt(id) },
-                relations: ['enrollments', 'contents', 'surveys']
+                relations: ['enrollments', 'contents']
             });
 
             if (!program) {
@@ -1230,29 +1240,34 @@ class ProgramController {
                 });
             }
 
-            // Safety checks - prevent deletion if program has related data
-            const hasEnrollments = program.enrollments && program.enrollments.length > 0;
-            const hasContents = program.contents && program.contents.length > 0;
-            const hasSurveys = program.surveys && program.surveys.length > 0;
-
-            if (hasEnrollments || hasContents || hasSurveys) {
-                return res.status(409).json({
-                    success: false,
-                    message: 'Cannot delete program with existing enrollments, contents, or surveys',
-                    details: {
-                        enrollments: hasEnrollments ? program.enrollments.length : 0,
-                        contents: hasContents ? program.contents.length : 0,
-                        surveys: hasSurveys ? program.surveys.length : 0
-                    }
-                });
+            // Delete enrollments
+            if (program.enrollments && program.enrollments.length > 0) {
+                await enrollRepository.remove(program.enrollments);
             }
 
-            // Delete the program
+            // Delete contents
+            if (program.contents && program.contents.length > 0) {
+                await contentRepository.remove(program.contents);
+            }
+
+            // Find and delete surveys and their responses
+            const surveys = await surveyRepository.find({ where: { program_id: parseInt(id) } });
+            if (surveys.length > 0) {
+                for (const survey of surveys) {
+                    const responses = await surveyResponseRepository.find({ where: { survey_id: survey.survey_id } });
+                    if (responses.length > 0) {
+                        await surveyResponseRepository.remove(responses);
+                    }
+                }
+                await surveyRepository.remove(surveys);
+            }
+
+            // Delete the program itself
             await programRepository.remove(program);
 
             res.status(200).json({
                 success: true,
-                message: `Program '${program.title}' deleted successfully`
+                message: `Program '${program.title}' deleted successfully (including enrollments, contents, surveys, and survey responses)`
             });
         } catch (error) {
             console.error('Error deleting program:', error);

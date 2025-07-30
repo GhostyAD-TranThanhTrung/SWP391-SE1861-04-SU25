@@ -310,8 +310,9 @@ class DashboardController {
         // Booking metrics
         bookingStats: {
           total: await booking.getCount(),
-          confirmed: await booking.where('booking.status = :status ', { status: 'Lên lịch' }).getCount(),
+          pending: await booking.where('booking.status = :status ', { status: 'Đang chờ xác nhận' }).getCount(),
           completed: await booking.where('booking.status = :status ', { status: 'Hoàn thành' }).getCount(),
+          confirmed: await booking.where('booking.status = :status ', { status: 'Xác nhận thành công' }).getCount(),
           cancelled: await booking.where('booking.status = :status ', { status: 'Đã hủy' }).getCount(),
         },
 

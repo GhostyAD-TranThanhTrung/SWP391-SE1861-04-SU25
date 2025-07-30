@@ -185,38 +185,7 @@ class AuthController {
     }
   }
 
-  /**
-   * Get all users endpoint
-   */
-  static async getAllUsers(req, res) {
-    try {
-      const userRepository = AppDataSource.getRepository(User);
-      const users = await userRepository.find();
 
-      res.status(200).json({
-        success: true,
-        data: users,
-        message: "Users retrieved successfully",
-      });
-    } catch (error) {
-      console.error("Error getting users:", error);
-      res.status(500).json({
-        success: false,
-        message: "Failed to retrieve users",
-        error: error.message,
-      });
-    }
-  }
-
-  /**
-   * Test API endpoint
-   */
-  static testApi(req, res) {
-    res.json({
-      success: true,
-      message: "Hello from the API!",
-    });
-  }
 
   /**
    * Middleware to verify JWT token for protected routes
@@ -351,47 +320,6 @@ class AuthController {
     });
   }
 
-  /**
-   * Get authenticated user profile
-   */
-  static async getUserProfile(req, res) {
-    try {
-      // The user ID comes from the verified token
-      const userId = req.user.userId;
-
-      const userRepository = AppDataSource.getRepository(User);
-      const user = await userRepository.findOne({
-        where: { user_id: userId },
-      });
-
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: "User not found",
-        });
-      }
-
-      // Return user profile without sensitive information
-      res.status(200).json({
-        success: true,
-        data: {
-          id: user.user_id,
-          email: user.email,
-          role: user.role,
-          status: user.status,
-          img_link: user.img_link || null // Add img_link to response
-        },
-        message: "User profile retrieved successfully",
-      });
-    } catch (error) {
-      console.error("Error getting user profile:", error);
-      res.status(500).json({
-        success: false,
-        message: "Failed to retrieve user profile",
-        error: error.message,
-      });
-    }
-  }
 }
 
 module.exports = AuthController;
