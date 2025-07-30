@@ -1,4 +1,6 @@
 -- DROP TABLES (in dependency-safe order)
+DROP TABLE IF EXISTS Answers;
+DROP TABLE IF EXISTS Assessments_question;
 DROP TABLE IF EXISTS Survey_Responses;
 DROP TABLE IF EXISTS Surveys;
 DROP TABLE IF EXISTS Content;
@@ -196,3 +198,26 @@ CREATE TABLE Survey_Responses (
   FOREIGN KEY (user_id) REFERENCES Users(user_id)
 );
 
+
+CREATE TABLE Assessments_question (
+  assessment_question_id INT IDENTITY(1,1) PRIMARY KEY,
+  question NVARCHAR(MAX) NOT NULL,
+  type NVARCHAR(100) NOT NULL,
+  note NVARCHAR(MAX),
+  assessment_type NVARCHAR(50) NOT NULL,
+  multiSelect BIT DEFAULT 0,
+  allowMultiple BIT DEFAULT 0,
+  category NVARCHAR(50),
+  substance NVARCHAR(50),
+  letter NVARCHAR(10)
+);
+
+CREATE TABLE Answers (
+  answer_id INT IDENTITY(1,1) PRIMARY KEY,
+  assessment_question_id INT NOT NULL,
+  option_id INT NOT NULL,
+  text NVARCHAR(MAX) NOT NULL,
+  score INT NOT NULL DEFAULT 0,
+  answer_order INT,
+  FOREIGN KEY (assessment_question_id) REFERENCES Assessments_question(assessment_question_id) ON DELETE CASCADE
+);
