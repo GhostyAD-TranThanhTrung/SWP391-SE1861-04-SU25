@@ -22,7 +22,7 @@ const ResultPage = () => {
     };
 
     const saveAssessmentResult = async () => {
-        // Prevent duplicate saves
+        // Prevent any save attempts if already saved
         if (hasSaved) {
             console.log('Assessment already saved, skipping...');
             return;
@@ -30,11 +30,10 @@ const ResultPage = () => {
 
         setLoading(true);
         setError(null);
-        setHasSaved(true); // Mark as being saved
-        
+
         console.log('🔄 MANUAL SAVE: Saving assessment result for type:', type);
         console.log('📊 Assessment data to save:', { result, type, userAnswers });
-        
+
         try {
             const token = sessionStorage.getItem('token');
             if (!token) {
@@ -50,7 +49,7 @@ const ResultPage = () => {
             // Chuyển đổi userAnswers thành định dạng API mong muốn
             const answersData = userAnswers ? Object.entries(userAnswers).map(([questionIndex, answerData]) => {
                 const questionId = parseInt(questionIndex) + 1;
-                
+
                 // Handle ASSIST dynamic question text
                 let questionText = answerData.question;
                 if (type.toLowerCase() === 'assist' && questionIndex > 0) {
@@ -60,7 +59,7 @@ const ResultPage = () => {
                         const selectedSubstances = firstQuestionAnswer.selectedOptions
                             .filter(opt => opt.id !== 11)
                             .map(opt => opt.text);
-                        
+
                         if (selectedSubstances.length > 0) {
                             const substanceText = selectedSubstances.join(' hoặc ');
                             questionText = questionText.replace(/\[chất\]/g, substanceText);
@@ -69,7 +68,7 @@ const ResultPage = () => {
                         }
                     }
                 }
-                
+
                 // Xử lý cả trường hợp answer là mảng (cho câu hỏi nhiều lựa chọn)
                 const selectedOption = answerData.selectedOptions
                     ? answerData.selectedOptions.map(a => a.text).join(', ')
@@ -112,16 +111,16 @@ const ResultPage = () => {
             if (response.data.success) {
                 console.log('✅ Assessment saved successfully:', response.data);
                 setAssessmentResult(response.data.data);
-                // Keep hasSaved as true since save was successful
+                setHasSaved(true); // Mark as saved only on success
             } else {
                 console.error('❌ Failed to save assessment:', response.data.message);
                 setError(response.data.message || 'Failed to save assessment');
-                setHasSaved(false); // Reset flag on failure so user can retry
+                setHasSaved(false); // Allow retry on failure
             }
         } catch (error) {
             console.error('💥 Error saving assessment:', error);
-            setHasSaved(false); // Reset flag on error so user can retry
-            
+            setHasSaved(false); // Allow retry on error
+
             if (error.response) {
                 // Server responded with error
                 switch (error.response.status) {
@@ -260,6 +259,52 @@ const ResultPage = () => {
         }
     };
 
+    const getSystemRecommendationButton = (riskLevel) => {
+        switch (riskLevel.toLowerCase()) {
+            case 'thấp':
+                return (
+                    <button
+                        className="btn btn-primary mt-2"
+                        onClick={() => navigate('/courses')}
+                    >
+                        <i className="fas fa-book me-2"></i>
+                        Xem các khóa học
+                    </button>
+                );
+            case 'trung bình':
+                return (
+                    <div className="btn-group mt-2">
+                        <button
+                            className="btn btn-primary me-2"
+                            onClick={() => navigate('/Booking')}
+                        >
+                            <i className="fas fa-user-md me-2"></i>
+                            Tư vấn với chuyên gia
+                        </button>
+                        <button
+                            className="btn btn-outline-primary"
+                            onClick={() => navigate('/courses')}
+                        >
+                            <i className="fas fa-book me-2"></i>
+                            Xem các khóa học
+                        </button>
+                    </div>
+                );
+            case 'cao':
+                return (
+                    <button
+                        className="btn btn-danger mt-2"
+                        onClick={() => navigate('/Booking')}
+                    >
+                        <i className="fas fa-user-md me-2"></i>
+                        Liên hệ chuyên gia ngay
+                    </button>
+                );
+            default:
+                return null;
+        }
+    };
+
     return (
         <motion.div
             className="result-page"
@@ -318,6 +363,7 @@ const ResultPage = () => {
                             <div className="recommendations">
                                 <h4>Khuyến nghị từ hệ thống:</h4>
                                 <p>{assessmentResult.recommended_action.description}</p>
+                                {getSystemRecommendationButton(result.riskLevel)}
                             </div>
                         )}
 
@@ -398,7 +444,7 @@ const ResultPage = () => {
                                 <button
                                     className="btn btn-success btn-lg"
                                     onClick={handleSubmitAssessment}
-                                    disabled={loading}
+                                    disabled={loading || hasSaved}
                                 >
                                     {loading ? (
                                         <>
