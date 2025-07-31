@@ -9,17 +9,17 @@ const Answer = require("../src/entities/Answer");
 
 class AssessmentQuestionController {
   /**
-   * Get all assessment questions with their answers
+   * Get all assessment questions with their options
    */
-  static async getAllQuestionsWithAnswers(req, res) {
+  static async getAllQuestionsWithoptions(req, res) {
     try {
       const assessmentQuestionRepository =
         AppDataSource.getRepository(AssessmentQuestion);
       const questions = await assessmentQuestionRepository.find({
-        relations: ["answers"],
+        relations: ["options"],
         order: {
           assessment_question_id: "ASC",
-          answers: {
+          options: {  // Fixed: changed from options to options
             answer_order: "ASC",
           },
         },
@@ -29,20 +29,20 @@ class AssessmentQuestionController {
         success: true,
         data: questions,
         count: questions.length,
-        message: "Assessment questions with answers retrieved successfully",
+        message: "Assessment questions with options retrieved successfully",
       });
     } catch (error) {
-      console.error("Error getting questions with answers:", error);
+      console.error("Error getting questions with options:", error);
       res.status(500).json({
         success: false,
-        message: "Failed to retrieve questions with answers",
+        message: "Failed to retrieve questions with options",
         error: error.message,
       });
     }
   }
 
   /**
-   * Get assessment questions with answers by assessment_type
+   * Get assessment questions with options by assessment_type
    */
   static async getQuestionsByAssessmentType(req, res) {
     try {
@@ -59,10 +59,10 @@ class AssessmentQuestionController {
         AppDataSource.getRepository(AssessmentQuestion);
       const questions = await assessmentQuestionRepository.find({
         where: { assessment_type },
-        relations: ["answers"],
+        relations: ["options"],
         order: {
           assessment_question_id: "ASC",
-          answers: {
+          options: {  // Fixed: changed from answer to options
             answer_order: "ASC",
           },
         },
@@ -73,7 +73,7 @@ class AssessmentQuestionController {
         data: questions,
         count: questions.length,
         assessment_type: assessment_type,
-        message: `Assessment questions with answers for type '${assessment_type}' retrieved successfully`,
+        message: `Assessment questions with options for type '${assessment_type}' retrieved successfully`,
       });
     } catch (error) {
       console.error("Error getting questions by assessment type:", error);
@@ -86,7 +86,7 @@ class AssessmentQuestionController {
   }
 
   /**
-   * Get assessment questions with answers by question type
+   * Get assessment questions with options by question type
    */
   static async getQuestionsByType(req, res) {
     try {
@@ -103,10 +103,10 @@ class AssessmentQuestionController {
         AppDataSource.getRepository(AssessmentQuestion);
       const questions = await assessmentQuestionRepository.find({
         where: { type },
-        relations: ["answers"],
+        relations: ["options"],
         order: {
           assessment_question_id: "ASC",
-          answers: {
+          options: {  // Fixed: changed from options to options
             answer_order: "ASC",
           },
         },
@@ -117,7 +117,7 @@ class AssessmentQuestionController {
         data: questions,
         count: questions.length,
         question_type: type,
-        message: `Assessment questions with answers for question type '${type}' retrieved successfully`,
+        message: `Assessment questions with options for question type '${type}' retrieved successfully`,
       });
     } catch (error) {
       console.error("Error getting questions by type:", error);
@@ -130,7 +130,7 @@ class AssessmentQuestionController {
   }
 
   /**
-   * Get assessment questions with answers by multiple filters
+   * Get assessment questions with options by multiple filters
    */
   static async getQuestionsWithFilters(req, res) {
     try {
@@ -150,10 +150,10 @@ class AssessmentQuestionController {
 
       const questions = await assessmentQuestionRepository.find({
         where: whereCondition,
-        relations: ["answers"],
+        relations: ["options"],
         order: {
           assessment_question_id: "ASC",
-          answers: {
+          options: {  // Fixed: changed from options to options
             answer_order: "ASC",
           },
         },
@@ -165,7 +165,7 @@ class AssessmentQuestionController {
         count: questions.length,
         filters: whereCondition,
         message:
-          "Filtered assessment questions with answers retrieved successfully",
+          "Filtered assessment questions with options retrieved successfully",
       });
     } catch (error) {
       console.error("Error getting questions with filters:", error);
@@ -178,9 +178,9 @@ class AssessmentQuestionController {
   }
 
   /**
-   * Get single assessment question with answers by ID
+   * Get single assessment question with options by ID
    */
-  static async getQuestionWithAnswersById(req, res) {
+  static async getQuestionWithoptionsById(req, res) {
     try {
       const { id } = req.params;
 
@@ -195,9 +195,9 @@ class AssessmentQuestionController {
         AppDataSource.getRepository(AssessmentQuestion);
       const question = await assessmentQuestionRepository.findOne({
         where: { assessment_question_id: parseInt(id) },
-        relations: ["answers"],
+        relations: ["options"],
         order: {
-          answers: {
+          options: {  // Fixed: changed from options to options
             answer_order: "ASC",
           },
         },
@@ -213,13 +213,13 @@ class AssessmentQuestionController {
       res.status(200).json({
         success: true,
         data: question,
-        message: "Assessment question with answers retrieved successfully",
+        message: "Assessment question with options retrieved successfully",
       });
     } catch (error) {
-      console.error("Error getting question with answers:", error);
+      console.error("Error getting question with options:", error);
       res.status(500).json({
         success: false,
-        message: "Failed to retrieve question with answers",
+        message: "Failed to retrieve question with options",
         error: error.message,
       });
     }
@@ -321,9 +321,9 @@ class AssessmentQuestionController {
   }
 
   /**
-   * Update assessment question with answers by ID
+   * Update assessment question with options by ID
    */
-  static async updateQuestionWithAnswers(req, res) {
+  static async updateQuestionWithoptions(req, res) {
     try {
       const { id } = req.params;
       const {
@@ -336,7 +336,7 @@ class AssessmentQuestionController {
         category,
         substance,
         letter,
-        answers,
+        options,
       } = req.body;
 
       if (!id || isNaN(parseInt(id))) {
@@ -359,7 +359,7 @@ class AssessmentQuestionController {
         // Check if question exists
         const existingQuestion = await assessmentQuestionRepository.findOne({
           where: { assessment_question_id: parseInt(id) },
-          relations: ["answers"],
+          relations: ["options"],
         });
 
         if (!existingQuestion) {
@@ -389,19 +389,19 @@ class AssessmentQuestionController {
           existingQuestion
         );
 
-        // Update answers if provided
-        if (answers && Array.isArray(answers)) {
-          // Delete existing answers
+        // Update options if provided
+        if (options && Array.isArray(options)) {
+          // Delete existing options
           await queryRunner.manager.delete(Answer, {
             assessment_question_id: parseInt(id),
           });
 
-          // Create new answers
-          if (answers.length > 0) {
-            const answerEntities = answers.map((answer, index) => {
+          // Create new options
+          if (options.length > 0) {
+            const answerEntities = options.map((answer, index) => {
               return queryRunner.manager.create(Answer, {
                 assessment_question_id: parseInt(id),
-                option_id: answer.option_id || index + 1,
+                id: answer.id || index + 1,  // Fixed: using id instead of option_id
                 text: answer.text,
                 score: answer.score || 0,
                 answer_order: answer.answer_order || index + 1,
@@ -414,12 +414,12 @@ class AssessmentQuestionController {
 
         await queryRunner.commitTransaction();
 
-        // Fetch the complete updated question with answers
+        // Fetch the complete updated question with options
         const completeQuestion = await assessmentQuestionRepository.findOne({
           where: { assessment_question_id: parseInt(id) },
-          relations: ["answers"],
+          relations: ["options"],
           order: {
-            answers: {
+            options: {  // Fixed: changed from options to options
               answer_order: "ASC",
             },
           },
@@ -428,7 +428,7 @@ class AssessmentQuestionController {
         res.status(200).json({
           success: true,
           data: completeQuestion,
-          message: "Assessment question with answers updated successfully",
+          message: "Assessment question with options updated successfully",
         });
       } catch (error) {
         await queryRunner.rollbackTransaction();
@@ -437,17 +437,17 @@ class AssessmentQuestionController {
         await queryRunner.release();
       }
     } catch (error) {
-      console.error("Error updating question with answers:", error);
+      console.error("Error updating question with options:", error);
       res.status(500).json({
         success: false,
-        message: "Failed to update question with answers",
+        message: "Failed to update question with options",
         error: error.message,
       });
     }
   }
 
   /**
-   * Delete assessment question by ID (cascades to answers)
+   * Delete assessment question by ID (cascades to options)
    */
   static async deleteQuestionById(req, res) {
     try {
@@ -473,7 +473,7 @@ class AssessmentQuestionController {
         // Check if question exists
         const existingQuestion = await assessmentQuestionRepository.findOne({
           where: { assessment_question_id: parseInt(id) },
-          relations: ["answers"],
+          relations: ["options"],
         });
 
         if (!existingQuestion) {
@@ -484,7 +484,7 @@ class AssessmentQuestionController {
           });
         }
 
-        // Delete answers first (due to foreign key constraint)
+        // Delete options first (due to foreign key constraint)
         await queryRunner.manager.delete(Answer, {
           assessment_question_id: parseInt(id),
         });
@@ -499,10 +499,10 @@ class AssessmentQuestionController {
         res.status(200).json({
           success: true,
           message:
-            "Assessment question and related answers deleted successfully",
+            "Assessment question and related options deleted successfully",
           data: {
             deleted_question_id: parseInt(id),
-            deleted_answers_count: existingQuestion.answers.length,
+            deleted_options_count: existingQuestion.options.length,
           },
         });
       } catch (error) {
@@ -522,9 +522,9 @@ class AssessmentQuestionController {
   }
 
   /**
-   * Create new assessment question with answers
+   * Create new assessment question with options
    */
-  static async createQuestionWithAnswers(req, res) {
+  static async createQuestionWithoptions(req, res) {
     try {
       const {
         question,
@@ -536,7 +536,7 @@ class AssessmentQuestionController {
         category,
         substance,
         letter,
-        answers,
+        options,
       } = req.body;
 
       // Validate required fields
@@ -575,32 +575,32 @@ class AssessmentQuestionController {
           newQuestion
         );
 
-        // Create answers if provided
-        let savedAnswers = [];
-        if (answers && Array.isArray(answers) && answers.length > 0) {
-          const answerEntities = answers.map((answer, index) => {
+        // Create options if provided
+        let savedoptions = [];
+        if (options && Array.isArray(options) && options.length > 0) {
+          const answerEntities = options.map((answer, index) => {
             return queryRunner.manager.create(Answer, {
               assessment_question_id: savedQuestion.assessment_question_id,
-              option_id: answer.option_id || index + 1,
+              id: answer.id || index + 1,  // Fixed: using id instead of option_id
               text: answer.text,
               score: answer.score || 0,
               answer_order: answer.answer_order || index + 1,
             });
           });
 
-          savedAnswers = await queryRunner.manager.save(Answer, answerEntities);
+          savedoptions = await queryRunner.manager.save(Answer, answerEntities);
         }
 
         await queryRunner.commitTransaction();
 
-        // Fetch the complete question with answers
+        // Fetch the complete question with options
         const completeQuestion = await assessmentQuestionRepository.findOne({
           where: {
             assessment_question_id: savedQuestion.assessment_question_id,
           },
-          relations: ["answers"],
+          relations: ["options"],
           order: {
-            answers: {
+            options: {  // Fixed: changed from options to options
               answer_order: "ASC",
             },
           },
@@ -609,7 +609,7 @@ class AssessmentQuestionController {
         res.status(201).json({
           success: true,
           data: completeQuestion,
-          message: "Assessment question with answers created successfully",
+          message: "Assessment question with options created successfully",
         });
       } catch (error) {
         await queryRunner.rollbackTransaction();
@@ -618,10 +618,10 @@ class AssessmentQuestionController {
         await queryRunner.release();
       }
     } catch (error) {
-      console.error("Error creating question with answers:", error);
+      console.error("Error creating question with options:", error);
       res.status(500).json({
         success: false,
-        message: "Failed to create question with answers",
+        message: "Failed to create question with options",
         error: error.message,
       });
     }

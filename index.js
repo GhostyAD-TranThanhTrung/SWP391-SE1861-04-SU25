@@ -974,7 +974,7 @@ app.delete(
  */
 app.get(
   "/api/assessment-questions",
-  AssessmentQuestionController.getAllQuestionsWithAnswers
+  AssessmentQuestionController.getAllQuestionsWithoptions
 );
 
 // TEST ROUTE - This should work if routes are loading correctly
@@ -1067,7 +1067,7 @@ app.get(
  */
 app.get(
   "/api/assessment-questions/:id",
-  AssessmentQuestionController.getQuestionWithAnswersById
+  AssessmentQuestionController.getQuestionWithoptionsById
 );
 
 /**
@@ -1081,7 +1081,7 @@ app.get(
 app.post(
   "/api/assessment-questions",
   authController.verifyToken,
-  AssessmentQuestionController.createQuestionWithAnswers
+  AssessmentQuestionController.createQuestionWithoptions
 );
 
 /**
@@ -1095,7 +1095,7 @@ app.post(
 app.put(
   "/api/assessment-questions/:id",
   authController.verifyToken,
-  AssessmentQuestionController.updateQuestionWithAnswers
+  AssessmentQuestionController.updateQuestionWithoptions
 );
 
 /**

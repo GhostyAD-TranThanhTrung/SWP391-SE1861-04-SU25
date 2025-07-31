@@ -215,7 +215,7 @@ CREATE TABLE Assessments_question (
 CREATE TABLE Answers (
   answer_id INT IDENTITY(1,1) PRIMARY KEY,
   assessment_question_id INT NOT NULL,
-  option_id INT NOT NULL,
+  id INT NOT NULL,
   text NVARCHAR(MAX) NOT NULL,
   score INT NOT NULL DEFAULT 0,
   answer_order INT,

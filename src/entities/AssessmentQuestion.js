@@ -60,7 +60,7 @@ const AssessmentQuestion = new EntitySchema({
         }
     },
     relations: {
-        answers: {
+        options: {  // Changed from answers to options
             type: "one-to-many",
             target: "Answer",
             inverseSide: "assessmentQuestion"

@@ -123,15 +123,15 @@ class AnswerController {
    */
   static async createAnswer(req, res) {
     try {
-      const { assessment_question_id, option_id, text, score, answer_order } =
+      const { assessment_question_id, id, text, score, answer_order } =
         req.body;
 
       // Validate required fields
-      if (!assessment_question_id || !option_id || !text) {
+      if (!assessment_question_id || !id || !text) {
         return res.status(400).json({
           success: false,
           message:
-            "assessment_question_id, option_id, and text are required fields",
+            "assessment_question_id, id, and text are required fields",
         });
       }
 
@@ -154,7 +154,7 @@ class AnswerController {
       // Create new answer
       const newAnswer = answerRepository.create({
         assessment_question_id: parseInt(assessment_question_id),
-        option_id: parseInt(option_id),
+        id: parseInt(id),
         text,
         score: score || 0,
         answer_order: answer_order || 1,
@@ -189,7 +189,7 @@ class AnswerController {
   static async updateAnswer(req, res) {
     try {
       const { id } = req.params;
-      const { assessment_question_id, option_id, text, score, answer_order } =
+      const { assessment_question_id, answer_id, text, score, answer_order } =
         req.body;
 
       if (!id || isNaN(parseInt(id))) {
@@ -237,8 +237,8 @@ class AnswerController {
         existingAnswer.assessment_question_id = parseInt(
           assessment_question_id
         );
-      if (option_id !== undefined)
-        existingAnswer.option_id = parseInt(option_id);
+      if (answer_id !== undefined)
+        existingAnswer.id = parseInt(answer_id);
       if (text !== undefined) existingAnswer.text = text;
       if (score !== undefined) existingAnswer.score = score;
       if (answer_order !== undefined)
@@ -357,7 +357,7 @@ class AnswerController {
       const answerEntities = answers.map((answer, index) => {
         return answerRepository.create({
           assessment_question_id: parseInt(assessment_question_id),
-          option_id: answer.option_id || index + 1,
+          id: answer.id || index + 1,
           text: answer.text,
           score: answer.score || 0,
           answer_order: answer.answer_order || index + 1,

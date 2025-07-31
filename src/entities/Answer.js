@@ -17,7 +17,7 @@ const Answer = new EntitySchema({
       type: "int",
       nullable: false,
     },
-    option_id: {
+    id: {  // Changed from option_id to id to match ERD
       type: "int",
       nullable: false,
     },
