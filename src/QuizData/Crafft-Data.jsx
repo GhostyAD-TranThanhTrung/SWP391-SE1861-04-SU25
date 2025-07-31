@@ -1,3 +1,7 @@
+import axios from 'axios';
+
+// Comment out the original hardcoded data
+/*
 export const Crafft_Data = {
     questions: [
         // Part A: Substance Use Screening Questions (1-3)
@@ -121,6 +125,69 @@ export const Crafft_Data = {
         }
     ]
 };
+*/
+
+// API-based CRAFFT data
+export const Crafft_Data = {
+    questions: [],
+    isLoading: false,
+    error: null
+};
+
+// Function to fetch CRAFFT questions from API
+export const fetchCrafftQuestions = async () => {
+    try {
+        Crafft_Data.isLoading = true;
+        Crafft_Data.error = null;
+        
+        console.log('🔄 Fetching CRAFFT questions from API...');
+        
+        // Use the correct endpoint from index.js
+        const response = await axios.get('http://localhost:3000/api/assessment-questions/type/CRAFFT');
+        
+        console.log('📡 CRAFFT API Response:', response);
+        console.log('📊 CRAFFT Response Data:', response.data);
+        
+        if (response.data && response.data.success && response.data.data && response.data.data.length > 0) {
+            console.log('✅ CRAFFT Questions found:', response.data.data.length);
+            console.log('📝 CRAFFT Raw Questions:', response.data.data);
+            
+            // Transform API data to match expected format
+            Crafft_Data.questions = response.data.data.map(question => ({
+                id: question.assessment_question_id,
+                question: question.question,
+                note: question.note,
+                type: question.type,
+                category: question.category,        // Use database value
+                substance: question.substance,      // Use database value
+                letter: question.letter,            // Use database value
+                options: question.options.map(option => ({
+                    id: option.id,
+                    text: option.text,
+                    score: option.score
+                }))
+            }));
+            
+            console.log('🔄 CRAFFT Transformed Questions:', Crafft_Data.questions);
+            console.log('✅ CRAFFT Data loaded successfully!');
+        } else {
+            console.warn('⚠️ No CRAFFT questions found in response');
+            throw new Error('No CRAFFT questions found');
+        }
+    } catch (error) {
+        console.error('❌ Error fetching CRAFFT questions:', error);
+        console.error('❌ Error details:', error.response?.data || error.message);
+        Crafft_Data.error = error.message;
+        // Fallback to empty array if API fails
+        Crafft_Data.questions = [];
+    } finally {
+        Crafft_Data.isLoading = false;
+        console.log('🏁 CRAFFT fetch completed. Loading:', Crafft_Data.isLoading);
+    }
+};
+
+// Initialize CRAFFT data on module load
+fetchCrafftQuestions();
 
 export const resultInitalState = {
     score: 0,

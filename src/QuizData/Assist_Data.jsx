@@ -1,3 +1,7 @@
+import axios from 'axios';
+
+// Comment out the original hardcoded data
+/*
 export const Assist_Data = {
     questions: [
         {
@@ -36,7 +40,7 @@ export const Assist_Data = {
         {
             id: 3,
             question: "Trong 3 tháng qua, bạn có từng rất muốn sử dụng [chất] không?",
-            note: "‘Rất muốn’ tức là cảm giác mạnh mẽ, khó cưỡng lại khi không sử dụng.",
+            note: "'Rất muốn' tức là cảm giác mạnh mẽ, khó cưỡng lại khi không sử dụng.",
             options: [
                 { id: 1, text: "Không bao giờ", score: 0 },
                 { id: 2, text: "Một hoặc hai lần", score: 3 },
@@ -188,6 +192,68 @@ export const Assist_Data = {
         }
     ],
 };
+*/
+
+// API-based ASSIST data
+export const Assist_Data = {
+    questions: [],
+    isLoading: false,
+    error: null
+};
+
+// Function to fetch ASSIST questions from API
+export const fetchAssistQuestions = async () => {
+    try {
+        Assist_Data.isLoading = true;
+        Assist_Data.error = null;
+        
+        console.log('🔄 Fetching ASSIST questions from API...');
+        
+        // Use the correct endpoint from index.js
+        const response = await axios.get('http://localhost:3000/api/assessment-questions/type/ASSIST');
+        
+        console.log('📡 ASSIST API Response:', response);
+        console.log('📊 ASSIST Response Data:', response.data);
+        
+        if (response.data && response.data.success && response.data.data && response.data.data.length > 0) {
+            console.log('✅ ASSIST Questions found:', response.data.data.length);
+            console.log('📝 ASSIST Raw Questions:', response.data.data);
+            
+            // Transform API data to match expected format
+            Assist_Data.questions = response.data.data.map(question => ({
+                id: question.assessment_question_id,
+                question: question.question,
+                note: question.note,
+                type: question.type,
+                multiSelect: question.multiSelect,
+                allowMultiple: question.allowMultiple,
+                options: question.options.map(option => ({
+                    id: option.id,
+                    text: option.text,
+                    score: option.score
+                }))
+            }));
+            
+            console.log('🔄 ASSIST Transformed Questions:', Assist_Data.questions);
+            console.log('✅ ASSIST Data loaded successfully!');
+        } else {
+            console.warn('⚠️ No ASSIST questions found in response');
+            throw new Error('No ASSIST questions found');
+        }
+    } catch (error) {
+        console.error('❌ Error fetching ASSIST questions:', error);
+        console.error('❌ Error details:', error.response?.data || error.message);
+        Assist_Data.error = error.message;
+        // Fallback to empty array if API fails
+        Assist_Data.questions = [];
+    } finally {
+        Assist_Data.isLoading = false;
+        console.log('🏁 ASSIST fetch completed. Loading:', Assist_Data.isLoading);
+    }
+};
+
+// Initialize ASSIST data on module load
+fetchAssistQuestions();
 
 export const resultInitalState = {
     score: 0,
