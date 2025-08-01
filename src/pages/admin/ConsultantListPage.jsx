@@ -318,6 +318,7 @@ const ConsultantListPage = () => {
         bio_json: JSON.stringify({
           bio: newConsultant.bio || "",
           education: newConsultant.education || "",
+          first_time: true
         }),
         date_of_birth: newConsultant.date_of_birth || null,
         job: newConsultant.job || null,
@@ -748,9 +749,9 @@ const ConsultantListPage = () => {
         <div className="card-body">
           <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div className="d-flex gap-2 flex-wrap">
-                              <button onClick={() => { handleEdit(null) }} className="btn btn-primary shadow-sm" title="Tạo tư vấn viên tạm thời">
-                  <FaPlus className="me-1" /> Tạo tư vấn viên mới
-                </button>
+              <button onClick={() => { handleEdit(null) }} className="btn btn-primary shadow-sm" title="Tạo tư vấn viên tạm thời">
+                <FaPlus className="me-1" /> Tạo tư vấn viên mới
+              </button>
               <button
                 onClick={() => setShowInactive(!showInactive)}
                 className={`btn shadow-sm ${showInactive ? 'btn-warning' : 'btn-outline-warning'}`}

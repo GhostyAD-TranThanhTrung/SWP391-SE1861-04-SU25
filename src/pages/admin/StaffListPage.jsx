@@ -120,6 +120,7 @@ const StaffListPage = () => {
         bio_json: {
           bio: newStaff.bio,
           education: newStaff.education,
+          first_time: true
         },
         password: newPassword,
       };

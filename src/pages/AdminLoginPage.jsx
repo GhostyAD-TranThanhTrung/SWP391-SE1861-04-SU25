@@ -23,12 +23,19 @@ const AdminLoginPage = () => {
 
             console.log('Phản hồi từ API (status):', response.status);
             console.log('Dữ liệu trả về từ API:', response.data);
+            console.log('User object:', response.data.user);
+            console.log('First time flag:', response.data.user.first_time);
 
             console.log('Đăng nhập thành công, email:', email);
             emailRef.current.value = '';
             passwordRef.current.value = '';
             sessionStorage.setItem("email2", email);
             sessionStorage.setItem("token", response.data.token);
+            // Check if user needs to reset password on first login
+            if (response.data.user.first_time) {
+                navigate('/admin/reset-password');
+                return;
+            }
 
             if (response.data.user.role === 'manager' || response.data.user.role === 'admin' || response.data.user.role === 'staff') {
                 navigate('/dashboard');

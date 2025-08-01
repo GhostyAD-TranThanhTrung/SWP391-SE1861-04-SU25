@@ -44,13 +44,14 @@ import DetailMemberPage from "./pages/admin/DetailMemberPage";
 //Import layout
 import AdminLayout from "./layout/AdminLayout";
 import ConsultantLayout from "./layout/ConsultantLayout";
+import StaffResetPassword from "./pages/admin/StaffResetPassword";
 
 // Wrapper component to conditionally render Navbar and Footer
 const AppLayout = () => {
   const location = useLocation();
   const hideNavbarAndFooter = ["/login", "/signup", "/forget", "/choose-role", "/admin/login",
     "/dashboard", "/staff-list", "/member-list", "/consultant-list", '/assessment-list',
-    '/course-list', '/blog-list', '/manage-booking', '/certificate'].includes(location.pathname) ||
+    '/course-list', '/blog-list', '/admin/reset-password', '/manage-booking', '/certificate'].includes(location.pathname) ||
     location.pathname.startsWith('/admin/flags/') || location.pathname.startsWith('/member-list/detail');
 
   return (
@@ -87,6 +88,7 @@ const AppLayout = () => {
 
           {/* Admin */}
           <Route path="/admin/login" element={<AdminLoginPage />} />
+          <Route path="/admin/reset-password" element={<StaffResetPassword />} />
           <Route
             path="/dashboard"
             element={
