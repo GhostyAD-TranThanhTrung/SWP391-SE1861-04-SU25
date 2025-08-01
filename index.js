@@ -1720,9 +1720,9 @@ app.patch(
  * Authentication: Required (User/Admin/Staff)
  */
 app.get(
-  "/api/enrollments/user/:userId",
+  "/api/enrollments/my",
   authController.verifyToken,
-  EnrollController.getEnrollmentsByUser
+  EnrollController.getMyEnrollment
 );
 
 /**
