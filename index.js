@@ -15,14 +15,14 @@ const swaggerDocument = require("./swagger.json");
 
 // Database configuration
 const config = {
-  user: "SA",
-  password: "12345",
-  server: "localhost",
-  port: 1433,
-  database: "SWP391-demo",
-  options: {
-    trustServerCertificate: true,
-  },
+    user: "SA",
+    password: "12345",
+    server: "localhost",
+    port: 1433,
+    database: "SWP391-demo",
+    options: {
+        trustServerCertificate: true,
+    },
 };
 
 // Controller imports (Only used controllers)
@@ -65,9 +65,9 @@ app.use("/uploads", express.static("SWP391-SE1861-04-SU25/public/uploads"));
 
 // Swagger Documentation
 app.use(
-  "/api-docs",
-  swaggerUi.serve,
-  swaggerUi.setup(swaggerDocument, { explorer: true })
+    "/api-docs",
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerDocument, { explorer: true })
 );
 
 // ==================== DEVELOPMENT BYPASS INFO ====================
@@ -75,7 +75,7 @@ console.log("🔓 SWAGGER BYPASS ENABLED FOR DEVELOPMENT");
 console.log("To test protected endpoints in Swagger without authentication:");
 console.log("1. Open Swagger UI at http://localhost:3000/api-docs");
 console.log(
-  "2. For any protected endpoint, add header: x-swagger-bypass: true"
+    "2. For any protected endpoint, add header: x-swagger-bypass: true"
 );
 console.log("3. This will use a mock admin user for testing");
 console.log("=".repeat(60));
@@ -83,21 +83,21 @@ console.log("=".repeat(60));
 // ==================== DATABASE CONNECTIONS ====================
 // SQL Server Connection
 sql.connect(config, (err) => {
-  if (err) {
-    console.error("Database connection failed:", err);
-    return;
-  }
-  console.log("Connected to the database");
+    if (err) {
+        console.error("Database connection failed:", err);
+        return;
+    }
+    console.log("Connected to the database");
 });
 
 // TypeORM Connection
 AppDataSource.initialize()
-  .then(() => {
-    console.log("TypeORM Data Source has been initialized!");
-  })
-  .catch((err) => {
-    console.error("Error during Data Source initialization:", err);
-  });
+    .then(() => {
+        console.log("TypeORM Data Source has been initialized!");
+    })
+    .catch((err) => {
+        console.error("Error during Data Source initialization:", err);
+    });
 
 // ==================== API ROUTES ====================
 
@@ -120,15 +120,19 @@ app.get("/", UserController.getAllUsers);
  * Output: { success: boolean, message: string, user: object, timestamp: string }
  * Authentication: Required (with bypass support)
  */
-app.get("/api/test-bypass", authController.verifyToken, (req, res) => {
-  res.json({
-    success: true,
-    message: "🔓 Swagger bypass is working!",
-    user: req.user,
-    timestamp: new Date().toISOString(),
-  });
-});
 
+app.get("/api/test-bypass", authController.verifyToken, (req, res) => {
+    res.json({
+        success: true,
+        message: "🔓 Swagger bypass is working!",
+        user: req.user,
+        timestamp: new Date().toISOString(),
+    });
+});
+/**
+ * Reset password for user
+ */
+app.put("/api/reset-password", authController.verifyToken, authController.resetPassword)
 // ==================== AUTHENTICATION ROUTES ====================
 /**
  * LOGIN: User authentication
@@ -201,9 +205,9 @@ app.get("/api/dashboard/detailed", DashboardController.getDetailedDashboard);
  * Authentication: Required
  */
 app.post(
-  "/api/profile",
-  authController.verifyToken,
-  ProfileController.createProfile
+    "/api/profile",
+    authController.verifyToken,
+    ProfileController.createProfile
 );
 
 /**
@@ -215,9 +219,9 @@ app.post(
  * Authentication: Required
  */
 app.get(
-  "/api/profile",
-  authController.verifyToken,
-  ProfileController.getUserProfile
+    "/api/profile",
+    authController.verifyToken,
+    ProfileController.getUserProfile
 );
 
 /**
@@ -229,9 +233,9 @@ app.get(
  * Authentication: Required
  */
 app.get(
-  "/api/profile/status",
-  authController.verifyToken,
-  ProfileController.checkProfileStatus
+    "/api/profile/status",
+    authController.verifyToken,
+    ProfileController.checkProfileStatus
 );
 
 // ==================== COMBINED USER+PROFILE ROUTES ====================
@@ -245,9 +249,9 @@ app.get(
  * Features: Returns user data (excluding password) combined with profile data
  */
 app.get(
-  "/api/user/profile-combined",
-  authController.verifyToken,
-  UserController.getUserProfileCombined
+    "/api/user/profile-combined",
+    authController.verifyToken,
+    UserController.getUserProfileCombined
 );
 
 /**
@@ -260,9 +264,9 @@ app.get(
  * Features: Transactional update, creates profile if doesn't exist, validates JSON
  */
 app.put(
-  "/api/user/profile-combined",
-  authController.verifyToken,
-  UserController.updateUserProfileCombined
+    "/api/user/profile-combined",
+    authController.verifyToken,
+    UserController.updateUserProfileCombined
 );
 
 /**
@@ -275,9 +279,9 @@ app.put(
  * Features: Soft delete preserves all data while preventing login, returns deactivated data for logging
  */
 app.delete(
-  "/api/user/delete-account",
-  authController.verifyToken,
-  UserController.deleteUserCascade
+    "/api/user/delete-account",
+    authController.verifyToken,
+    UserController.deleteUserCascade
 );
 
 // ==================== STAFF MANAGEMENT ROUTES (Admin Only) ====================
@@ -300,9 +304,9 @@ app.get("/api/staff", authController.verifyToken, StaffController.getAllStaff);
  * Authentication: Required (Admin/Staff)
  */
 app.get(
-  "/api/staff/:staffName",
-  authController.verifyToken,
-  StaffController.searchStaffByName
+    "/api/staff/:staffName",
+    authController.verifyToken,
+    StaffController.searchStaffByName
 );
 
 /**
@@ -314,9 +318,9 @@ app.get(
  * Authentication: Required (Admin/Staff)
  */
 app.get(
-  "/api/staff/details/:staffId",
-  authController.verifyToken,
-  StaffController.getStaffDetails
+    "/api/staff/details/:staffId",
+    authController.verifyToken,
+    StaffController.getStaffDetails
 );
 
 /**
@@ -338,15 +342,15 @@ app.post("/api/staff", authController.verifyToken, StaffController.createStaff);
  * Authentication: Required (Admin)
  */
 app.put(
-  "/api/staff/:staffId",
-  authController.verifyToken,
-  (req, res, next) => {
-    console.log("PUT /api/staff/:staffId route hit with params:", req.params);
-    console.log("User from token:", req.user);
-    console.log("Request body:", req.body);
-    next();
-  },
-  StaffController.updateStaff
+    "/api/staff/:staffId",
+    authController.verifyToken,
+    (req, res, next) => {
+        console.log("PUT /api/staff/:staffId route hit with params:", req.params);
+        console.log("User from token:", req.user);
+        console.log("Request body:", req.body);
+        next();
+    },
+    StaffController.updateStaff
 );
 
 /**
@@ -358,9 +362,9 @@ app.put(
  * Authentication: Required (Admin)
  */
 app.delete(
-  "/api/staff/:staffId",
-  authController.verifyToken,
-  StaffController.deleteStaff
+    "/api/staff/:staffId",
+    authController.verifyToken,
+    StaffController.deleteStaff
 );
 
 // ==================== MEMBER MANAGEMENT ROUTES (Admin Only) ====================
@@ -373,9 +377,9 @@ app.delete(
  * Authentication: Required (Admin/Staff)
  */
 app.get(
-  "/api/members",
-  authController.verifyToken,
-  MemberController.getAllMembers
+    "/api/members",
+    authController.verifyToken,
+    MemberController.getAllMembers
 );
 
 /**
@@ -387,9 +391,9 @@ app.get(
  * Authentication: Required (Admin/Staff)
  */
 app.get(
-  "/api/members/search/:memberName",
-  authController.verifyToken,
-  MemberController.searchMembersByName
+    "/api/members/search/:memberName",
+    authController.verifyToken,
+    MemberController.searchMembersByName
 );
 
 /**
@@ -401,9 +405,9 @@ app.get(
  * Authentication: Required (Admin/Staff)
  */
 app.get(
-  "/api/members/:memberId",
-  authController.verifyToken,
-  MemberController.getMemberById
+    "/api/members/:memberId",
+    authController.verifyToken,
+    MemberController.getMemberById
 );
 
 /**
@@ -425,9 +429,9 @@ app.get("/api/members/detailed/:memberId", MemberController.getFullMemberById);
  * Authentication: Required (Admin/Staff)
  */
 app.put(
-  "/api/members/:memberId",
-  authController.verifyToken,
-  MemberController.updateMember
+    "/api/members/:memberId",
+    authController.verifyToken,
+    MemberController.updateMember
 );
 
 /**
@@ -439,17 +443,17 @@ app.put(
  * Authentication: Required (Admin)
  */
 app.delete(
-  "/api/members/:memberId",
-  authController.verifyToken,
-  (req, res, next) => {
-    console.log(
-      "DELETE /api/members/:memberId route hit with params:",
-      req.params
-    );
-    console.log("User from token:", req.user);
-    next();
-  },
-  MemberController.deleteMember
+    "/api/members/:memberId",
+    authController.verifyToken,
+    (req, res, next) => {
+        console.log(
+            "DELETE /api/members/:memberId route hit with params:",
+            req.params
+        );
+        console.log("User from token:", req.user);
+        next();
+    },
+    MemberController.deleteMember
 );
 
 // ==================== CONSULTANT MANAGEMENT ROUTES ====================
@@ -472,9 +476,9 @@ app.get("/api/consultants", ConsultantController.getAllConsultants);
  * Authentication: Required
  */
 app.get(
-  "/api/consultants/search/:consultantName",
-  authController.verifyToken,
-  ConsultantController.searchConsultantsByName
+    "/api/consultants/search/:consultantName",
+    authController.verifyToken,
+    ConsultantController.searchConsultantsByName
 );
 
 /**
@@ -486,8 +490,8 @@ app.get(
  * Authentication: None (Public directory)
  */
 app.get(
-  "/api/consultants/:consultantId",
-  ConsultantController.getConsultantById
+    "/api/consultants/:consultantId",
+    ConsultantController.getConsultantById
 );
 
 /**
@@ -499,9 +503,9 @@ app.get(
  * Authentication: Required (Admin)
  */
 app.post(
-  "/api/consultants",
-  authController.verifyToken,
-  ConsultantController.createConsultant
+    "/api/consultants",
+    authController.verifyToken,
+    ConsultantController.createConsultant
 );
 
 /**
@@ -513,8 +517,8 @@ app.post(
  * Authentication: Required (Admin/Consultant)
  */
 app.put(
-  "/api/consultants/:consultantId",
-  ConsultantController.updateConsultant
+    "/api/consultants/:consultantId",
+    ConsultantController.updateConsultant
 );
 
 /**
@@ -526,9 +530,9 @@ app.put(
  * Authentication: Required (Admin)
  */
 app.delete(
-  "/api/consultants/:consultantId",
-  authController.verifyToken,
-  ConsultantController.deleteConsultant
+    "/api/consultants/:consultantId",
+    authController.verifyToken,
+    ConsultantController.deleteConsultant
 );
 
 /**
@@ -540,9 +544,9 @@ app.delete(
  * Authentication: Required (Consultant)
  */
 app.get(
-  "/api/consultants/my-id",
-  authController.verifyToken,
-  ConsultantController.getConsultantIdByUserId
+    "/api/consultants/my-id",
+    authController.verifyToken,
+    ConsultantController.getConsultantIdByUserId
 );
 
 /**
@@ -554,9 +558,9 @@ app.get(
  * Authentication: None
  */
 app.get(
-  "/api/consultants/email/:email",
-  authController.verifyToken,
-  ConsultantController.getConsultantIdByUserEmail
+    "/api/consultants/email/:email",
+    authController.verifyToken,
+    ConsultantController.getConsultantIdByUserEmail
 );
 
 // ==================== CONSULTANT COMPLETE MANAGEMENT ROUTES ====================
@@ -569,9 +573,9 @@ app.get(
  * Authentication: None (Public directory with complete info)
  */
 app.get(
-  "/api/consultants-complete",
-  authController.verifyToken,
-  ConsultantCompleteController.getAllConsultantsComplete
+    "/api/consultants-complete",
+    authController.verifyToken,
+    ConsultantCompleteController.getAllConsultantsComplete
 );
 
 /**
@@ -583,8 +587,8 @@ app.get(
  * Authentication: None (Public directory with complete info)
  */
 app.get(
-  "/api/consultants-complete/:consultantId",
-  ConsultantCompleteController.getConsultantCompleteById
+    "/api/consultants-complete/:consultantId",
+    ConsultantCompleteController.getConsultantCompleteById
 );
 
 /**
@@ -596,9 +600,9 @@ app.get(
  * Authentication: Required (Admin)
  */
 app.post(
-  "/api/consultants-complete",
-  authController.verifyToken,
-  ConsultantCompleteController.createConsultantComplete
+    "/api/consultants-complete",
+    authController.verifyToken,
+    ConsultantCompleteController.createConsultantComplete
 );
 
 /**
@@ -610,9 +614,9 @@ app.post(
  * Authentication: Required (Admin/Consultant)
  */
 app.put(
-  "/api/consultants-complete/:id",
-  authController.verifyToken,
-  ConsultantCompleteController.updateConsultantComplete
+    "/api/consultants-complete/:id",
+    authController.verifyToken,
+    ConsultantCompleteController.updateConsultantComplete
 );
 
 /**
@@ -624,17 +628,17 @@ app.put(
  * Authentication: Required (Admin)
  */
 app.delete(
-  "/api/consultants-complete/:consultantId",
-  authController.verifyToken,
-  (req, res, next) => {
-    console.log(
-      "🗑️ DELETE /api/consultants-complete/:consultantId route hit with params:",
-      req.params
-    );
-    console.log("👤 User from token:", req.user);
-    next();
-  },
-  ConsultantCompleteController.deleteConsultantComplete
+    "/api/consultants-complete/:consultantId",
+    authController.verifyToken,
+    (req, res, next) => {
+        console.log(
+            "🗑️ DELETE /api/consultants-complete/:consultantId route hit with params:",
+            req.params
+        );
+        console.log("👤 User from token:", req.user);
+        next();
+    },
+    ConsultantCompleteController.deleteConsultantComplete
 );
 
 /**
@@ -646,8 +650,8 @@ app.delete(
  * Authentication: None (Public for booking purposes)
  */
 app.get(
-  "/api/consultants-complete/:consultantId/availability/:dayOfWeek",
-  ConsultantCompleteController.getConsultantAvailabilityByDay
+    "/api/consultants-complete/:consultantId/availability/:dayOfWeek",
+    ConsultantCompleteController.getConsultantAvailabilityByDay
 );
 
 /**
@@ -659,14 +663,14 @@ app.get(
  * Authentication: Required (Consultant/Admin)
  */
 app.put(
-  "/api/booking-sessions/:bookingId/status-link",
-  authController.verifyToken,
-  ConsultantCompleteController.updateBookingSessionStatusAndLink
+    "/api/booking-sessions/:bookingId/status-link",
+    authController.verifyToken,
+    ConsultantCompleteController.updateBookingSessionStatusAndLink
 );
 app.delete(
-  "/api/booking-sessions/:id",
-  authController.verifyToken,
-  BookingSessionController.deleteBookingSession
+    "/api/booking-sessions/:id",
+    authController.verifyToken,
+    BookingSessionController.deleteBookingSession
 );
 // ==================== CONSULTANT SCHEDULING ROUTES ====================
 /**
@@ -678,16 +682,16 @@ app.delete(
  * Authentication: None (Public for booking)
  */
 app.get(
-  "/api/consultant-slots/:consultantId",
-  ConsultantSlotController.getSlotsByConsultantId
+    "/api/consultant-slots/:consultantId",
+    ConsultantSlotController.getSlotsByConsultantId
 );
 app.delete(
-  "/api/consultant-slots/consultant/:consultantId",
-  ConsultantSlotController.deleteConsultantSlots
+    "/api/consultant-slots/consultant/:consultantId",
+    ConsultantSlotController.deleteConsultantSlots
 );
 app.post(
-  "/api/consultant-slots/consultant/:consultantId",
-  ConsultantSlotController.createConsultantSlots
+    "/api/consultant-slots/consultant/:consultantId",
+    ConsultantSlotController.createConsultantSlots
 );
 /**
  * CONSULTANT SLOTS: Update consultant availability
@@ -698,14 +702,14 @@ app.post(
  * Authentication: Required (Consultant/Admin)
  */
 app.put(
-  "/api/consultant-slots",
-  authController.verifyToken,
-  ConsultantSlotController.updateConsultantSlots
+    "/api/consultant-slots",
+    authController.verifyToken,
+    ConsultantSlotController.updateConsultantSlots
 );
 app.get(
-  "/api/user/role/",
-  authController.verifyToken,
-  UserController.getUserRoleById
+    "/api/user/role/",
+    authController.verifyToken,
+    UserController.getUserRoleById
 );
 /**
  * SLOTS: Get all time slots
@@ -728,9 +732,9 @@ app.get("/api/slots", SlotController.getAllSlots);
  * Authentication: Required
  */
 app.get(
-  "/api/booking-sessions/scheduled",
-  authController.verifyToken,
-  BookingSessionController.getScheduledBookingSessions
+    "/api/booking-sessions/scheduled",
+    authController.verifyToken,
+    BookingSessionController.getScheduledBookingSessions
 );
 
 /**
@@ -742,9 +746,9 @@ app.get(
  * Authentication: Required (Member)
  */
 app.get(
-  "/api/booking-sessions/member",
-  authController.verifyToken,
-  BookingSessionController.getBookingSessionsByMember
+    "/api/booking-sessions/member",
+    authController.verifyToken,
+    BookingSessionController.getBookingSessionsByMember
 );
 
 /**
@@ -756,9 +760,9 @@ app.get(
  * Authentication: Required (Admin/Staff)
  */
 app.get(
-  "/api/booking-sessions/member/:memberId",
-  authController.verifyToken,
-  BookingSessionController.getBookingSessionsByMemberAdmin
+    "/api/booking-sessions/member/:memberId",
+    authController.verifyToken,
+    BookingSessionController.getBookingSessionsByMemberAdmin
 );
 
 /**
@@ -770,9 +774,9 @@ app.get(
  * Authentication: Required (Member)
  */
 app.post(
-  "/api/booking-sessions",
-  authController.verifyToken,
-  BookingSessionController.createBookingSession
+    "/api/booking-sessions",
+    authController.verifyToken,
+    BookingSessionController.createBookingSession
 );
 
 /**
@@ -785,9 +789,9 @@ app.post(
  * Features: Includes member profile, slot timing, and booking status information
  */
 app.get(
-  "/api/booking-sessions/consultant/:consultantId",
-  authController.verifyToken,
-  BookingSessionController.getDetailedBookingSessionsByConsultant
+    "/api/booking-sessions/consultant/:consultantId",
+    authController.verifyToken,
+    BookingSessionController.getDetailedBookingSessionsByConsultant
 );
 
 /**
@@ -800,9 +804,9 @@ app.get(
  * Features: Validates all inputs, supports partial updates, includes transaction safety
  */
 app.put(
-  "/api/booking-sessions/:bookingId",
-  authController.verifyToken,
-  BookingSessionController.updateBookingSession
+    "/api/booking-sessions/:bookingId",
+    authController.verifyToken,
+    BookingSessionController.updateBookingSession
 );
 
 // ==================== ASSESSMENT ROUTES ====================
@@ -815,9 +819,9 @@ app.put(
  * Authentication: Required (Admin/Staff)
  */
 app.get(
-  "/api/assessments",
-  authController.verifyToken,
-  AssessmentController.getAllAssessments
+    "/api/assessments",
+    authController.verifyToken,
+    AssessmentController.getAllAssessments
 );
 
 /**
@@ -829,9 +833,9 @@ app.get(
  * Authentication: Required
  */
 app.get(
-  "/api/assessments/me",
-  authController.verifyToken,
-  AssessmentController.getAssessmentsByUserToken
+    "/api/assessments/me",
+    authController.verifyToken,
+    AssessmentController.getAssessmentsByUserToken
 );
 
 /**
@@ -843,9 +847,9 @@ app.get(
  * Authentication: Required (Admin/Staff/Own Results)
  */
 app.get(
-  "/api/assessments/details/:userId",
-  authController.verifyToken,
-  AssessmentController.getAssessmentDetails
+    "/api/assessments/details/:userId",
+    authController.verifyToken,
+    AssessmentController.getAssessmentDetails
 );
 
 /**
@@ -857,9 +861,9 @@ app.get(
  * Authentication: Required (Admin/Staff)
  */
 app.get(
-  "/api/assessments/type/:type",
-  authController.verifyToken,
-  AssessmentController.getAssessmentsByType
+    "/api/assessments/type/:type",
+    authController.verifyToken,
+    AssessmentController.getAssessmentsByType
 );
 
 // ==================== ACTION MANAGEMENT ROUTES ====================
@@ -873,9 +877,9 @@ app.get(
  * Authentication: Required (Admin/Staff)
  */
 app.get(
-  "/api/actions",
-  authController.verifyToken,
-  ActionController.getAllActions
+    "/api/actions",
+    authController.verifyToken,
+    ActionController.getAllActions
 );
 
 /**
@@ -887,9 +891,9 @@ app.get(
  * Authentication: Required (Admin/Staff)
  */
 app.get(
-  "/api/actions/:id",
-  authController.verifyToken,
-  ActionController.getActionById
+    "/api/actions/:id",
+    authController.verifyToken,
+    ActionController.getActionById
 );
 
 /**
@@ -901,9 +905,9 @@ app.get(
  * Authentication: Required (Admin/Staff)
  */
 app.get(
-  "/api/actions/type/:type",
-  authController.verifyToken,
-  ActionController.getActionsByType
+    "/api/actions/type/:type",
+    authController.verifyToken,
+    ActionController.getActionsByType
 );
 
 /**
@@ -915,9 +919,9 @@ app.get(
  * Authentication: Required (Admin/Staff)
  */
 app.get(
-  "/api/actions/with-assessments",
-  authController.verifyToken,
-  ActionController.getActionsWithAssessments
+    "/api/actions/with-assessments",
+    authController.verifyToken,
+    ActionController.getActionsWithAssessments
 );
 
 /**
@@ -929,9 +933,9 @@ app.get(
  * Authentication: Required
  */
 app.post(
-  "/api/assessments/take-test",
-  authController.verifyToken,
-  AssessmentController.takeTestFromUser
+    "/api/assessments/take-test",
+    authController.verifyToken,
+    AssessmentController.takeTestFromUser
 );
 
 /**
@@ -943,9 +947,9 @@ app.post(
  * Authentication: Required (Admin/Staff)
  */
 app.delete(
-  "/api/assessments/:id",
-  authController.verifyToken,
-  AssessmentController.deleteAssessment
+    "/api/assessments/:id",
+    authController.verifyToken,
+    AssessmentController.deleteAssessment
 );
 
 // ==================== ASSESSMENT QUESTION ROUTES ====================
@@ -973,13 +977,13 @@ app.delete(
  * Authentication: None (public)
  */
 app.get(
-  "/api/assessment-questions",
-  AssessmentQuestionController.getAllQuestionsWithoptions
+    "/api/assessment-questions",
+    AssessmentQuestionController.getAllQuestionsWithoptions
 );
 
 // TEST ROUTE - This should work if routes are loading correctly
 app.get("/api/assessment-questions/test", (req, res) => {
-  res.json({ success: true, message: "Test route works!" });
+    res.json({ success: true, message: "Test route works!" });
 });
 
 /**
@@ -991,8 +995,8 @@ app.get("/api/assessment-questions/test", (req, res) => {
  * Authentication: None (public)
  */
 app.get(
-  "/api/assessment-questions/type/:assessment_type",
-  AssessmentQuestionController.getQuestionsByAssessmentType
+    "/api/assessment-questions/type/:assessment_type",
+    AssessmentQuestionController.getQuestionsByAssessmentType
 );
 
 /**
@@ -1004,8 +1008,8 @@ app.get(
  * Authentication: None (public)
  */
 app.get(
-  "/api/assessment-questions/question-type/:type",
-  AssessmentQuestionController.getQuestionsByType
+    "/api/assessment-questions/question-type/:type",
+    AssessmentQuestionController.getQuestionsByType
 );
 
 /**
@@ -1017,8 +1021,8 @@ app.get(
  * Authentication: None (public)
  */
 app.get(
-  "/api/assessment-questions/filters",
-  AssessmentQuestionController.getQuestionsWithFilters
+    "/api/assessment-questions/filters",
+    AssessmentQuestionController.getQuestionsWithFilters
 );
 
 /**
@@ -1029,8 +1033,8 @@ app.get(
  * Authentication: None (public)
  */
 app.get(
-  "/api/assessment-questions/types",
-  AssessmentQuestionController.getAssessmentTypes
+    "/api/assessment-questions/types",
+    AssessmentQuestionController.getAssessmentTypes
 );
 
 /**
@@ -1041,8 +1045,8 @@ app.get(
  * Authentication: None (public)
  */
 app.get(
-  "/api/assessment-questions/all-question-types",
-  AssessmentQuestionController.getQuestionTypes
+    "/api/assessment-questions/all-question-types",
+    AssessmentQuestionController.getQuestionTypes
 );
 
 /**
@@ -1053,8 +1057,8 @@ app.get(
  * Authentication: None (public)
  */
 app.get(
-  "/api/assessment-questions/count-by-type",
-  AssessmentQuestionController.getQuestionCountByType
+    "/api/assessment-questions/count-by-type",
+    AssessmentQuestionController.getQuestionCountByType
 );
 
 /**
@@ -1066,8 +1070,8 @@ app.get(
  * Authentication: None (public)
  */
 app.get(
-  "/api/assessment-questions/:id",
-  AssessmentQuestionController.getQuestionWithoptionsById
+    "/api/assessment-questions/:id",
+    AssessmentQuestionController.getQuestionWithoptionsById
 );
 
 /**
@@ -1079,9 +1083,9 @@ app.get(
  * Authentication: Required (Admin/Staff)
  */
 app.post(
-  "/api/assessment-questions",
-  authController.verifyToken,
-  AssessmentQuestionController.createQuestionWithoptions
+    "/api/assessment-questions",
+    authController.verifyToken,
+    AssessmentQuestionController.createQuestionWithoptions
 );
 
 /**
@@ -1093,9 +1097,9 @@ app.post(
  * Authentication: Required (Admin/Staff)
  */
 app.put(
-  "/api/assessment-questions/:id",
-  authController.verifyToken,
-  AssessmentQuestionController.updateQuestionWithoptions
+    "/api/assessment-questions/:id",
+    authController.verifyToken,
+    AssessmentQuestionController.updateQuestionWithoptions
 );
 
 /**
@@ -1107,9 +1111,9 @@ app.put(
  * Authentication: Required (Admin/Staff)
  */
 app.delete(
-  "/api/assessment-questions/:id",
-  authController.verifyToken,
-  AssessmentQuestionController.deleteQuestionById
+    "/api/assessment-questions/:id",
+    authController.verifyToken,
+    AssessmentQuestionController.deleteQuestionById
 );
 
 // ==================== ANSWER ROUTES ====================
@@ -1154,8 +1158,8 @@ app.get("/api/answers/:id", AnswerController.getAnswerById);
  * Authentication: None
  */
 app.get(
-  "/api/answers/question/:questionId",
-  AnswerController.getAnswersByQuestionId
+    "/api/answers/question/:questionId",
+    AnswerController.getAnswersByQuestionId
 );
 
 /**
@@ -1167,9 +1171,9 @@ app.get(
  * Authentication: Required (Admin/Staff)
  */
 app.post(
-  "/api/answers",
-  authController.verifyToken,
-  AnswerController.createAnswer
+    "/api/answers",
+    authController.verifyToken,
+    AnswerController.createAnswer
 );
 
 /**
@@ -1181,9 +1185,9 @@ app.post(
  * Authentication: Required (Admin/Staff)
  */
 app.post(
-  "/api/answers/bulk",
-  authController.verifyToken,
-  AnswerController.bulkCreateAnswers
+    "/api/answers/bulk",
+    authController.verifyToken,
+    AnswerController.bulkCreateAnswers
 );
 
 /**
@@ -1195,9 +1199,9 @@ app.post(
  * Authentication: Required (Admin/Staff)
  */
 app.put(
-  "/api/answers/:id",
-  authController.verifyToken,
-  AnswerController.updateAnswer
+    "/api/answers/:id",
+    authController.verifyToken,
+    AnswerController.updateAnswer
 );
 
 /**
@@ -1209,9 +1213,9 @@ app.put(
  * Authentication: Required (Admin/Staff)
  */
 app.delete(
-  "/api/answers/:id",
-  authController.verifyToken,
-  AnswerController.deleteAnswer
+    "/api/answers/:id",
+    authController.verifyToken,
+    AnswerController.deleteAnswer
 );
 
 // ==================== PROGRAM ROUTES ====================
@@ -1230,61 +1234,61 @@ app.delete(
 // Program retrieval routes
 app.get("/api/programs", ProgramController.getAllPrograms);
 app.get(
-  "/api/programs/category-details",
-  ProgramController.getAllProgramsWithCategoryDetails
+    "/api/programs/category-details",
+    ProgramController.getAllProgramsWithCategoryDetails
 );
 app.get(
-  "/api/programs/community-events",
-  ProgramController.getCommunityEventPrograms
+    "/api/programs/community-events",
+    ProgramController.getCommunityEventPrograms
 ); // MUST be before :id route
 app.get(
-  "/api/programs/my-enrollment-status",
-  authController.verifyToken,
-  ProgramController.getUserProgramsWithEnrollmentStatus
+    "/api/programs/my-enrollment-status",
+    authController.verifyToken,
+    ProgramController.getUserProgramsWithEnrollmentStatus
 );
 app.get(
-  "/api/programs/user/:userId/enrollment-status",
-  authController.verifyToken,
-  ProgramController.getUserProgramsWithEnrollmentStatusByAdmin
+    "/api/programs/user/:userId/enrollment-status",
+    authController.verifyToken,
+    ProgramController.getUserProgramsWithEnrollmentStatusByAdmin
 );
 app.get(
-  "/api/programs/recommendations",
-  authController.verifyToken,
-  ProgramController.getProgramRecommendationsByAge
+    "/api/programs/recommendations",
+    authController.verifyToken,
+    ProgramController.getProgramRecommendationsByAge
 );
 app.get(
-  "/api/programs/category/:categoryId",
-  ProgramController.getProgramsByCategory
+    "/api/programs/category/:categoryId",
+    ProgramController.getProgramsByCategory
 );
 app.get(
-  "/api/programs/:programId/survey-analytics",
-  ProgramController.getProgramSurveyAnalytics
+    "/api/programs/:programId/survey-analytics",
+    ProgramController.getProgramSurveyAnalytics
 );
 app.get("/api/programs/:id", ProgramController.getProgramById);
 
 // Program CRUD routes (Admin/Staff only)
 app.post(
-  "/api/programs",
-  authController.verifyToken,
-  (req, res, next) => {
-    console.log("POST /api/programs request received:", {
-      headers: req.headers,
-      body: req.body,
-      user: req.user,
-    });
-    next();
-  },
-  ProgramController.createProgram
+    "/api/programs",
+    authController.verifyToken,
+    (req, res, next) => {
+        console.log("POST /api/programs request received:", {
+            headers: req.headers,
+            body: req.body,
+            user: req.user,
+        });
+        next();
+    },
+    ProgramController.createProgram
 );
 app.put(
-  "/api/programs/:id",
-  authController.verifyToken,
-  ProgramController.updateProgram
+    "/api/programs/:id",
+    authController.verifyToken,
+    ProgramController.updateProgram
 );
 app.delete(
-  "/api/programs/:id",
-  authController.verifyToken,
-  ProgramController.deleteProgram
+    "/api/programs/:id",
+    authController.verifyToken,
+    ProgramController.deleteProgram
 );
 // ==================== CONTENT ROUTES ====================
 /**
@@ -1312,72 +1316,72 @@ app.delete(
 app.get("/api/content", ContentController.getAllContent);
 app.get("/api/content/type/:type", ContentController.getContentByType);
 app.get(
-  "/api/content/content-type/:contentType",
-  ContentController.getContentByContentType
+    "/api/content/content-type/:contentType",
+    ContentController.getContentByContentType
 );
 app.get(
-  "/api/content/program/:programId",
-  ContentController.getContentByProgramId
+    "/api/content/program/:programId",
+    ContentController.getContentByProgramId
 );
 app.get(
-  "/api/content/preview/:program_id",
-  ContentController.getPreviewContent
+    "/api/content/preview/:program_id",
+    ContentController.getPreviewContent
 );
 app.get("/api/content/:id", ContentController.getContentById);
 app.get(
-  "/api/content/:id/with-program",
-  ContentController.getContentWithProgram
+    "/api/content/:id/with-program",
+    ContentController.getContentWithProgram
 );
 app.get(
-  "/api/content/:id/parsed-metadata",
-  ContentController.getParsedMetadataContentById
+    "/api/content/:id/parsed-metadata",
+    ContentController.getParsedMetadataContentById
 );
 app.get("/api/content/file/:id", ContentController.getContentFile);
 
 // Content creation routes
 app.post(
-  "/api/content",
-  authController.verifyToken,
-  ContentController.createContent
+    "/api/content",
+    authController.verifyToken,
+    ContentController.createContent
 );
 app.post(
-  "/api/content/youtube",
-  authController.verifyToken,
-  ContentController.createYouTubeContent
+    "/api/content/youtube",
+    authController.verifyToken,
+    ContentController.createYouTubeContent
 );
 app.post(
-  "/api/content/markdown",
-  authController.verifyToken,
-  ContentController.createMarkdownContent
+    "/api/content/markdown",
+    authController.verifyToken,
+    ContentController.createMarkdownContent
 );
 app.post(
-  "/api/content/podcast",
-  authController.verifyToken,
-  ContentController.createPodcastContent
+    "/api/content/podcast",
+    authController.verifyToken,
+    ContentController.createPodcastContent
 );
 
 // Content management routes
 app.put(
-  "/api/content/:id",
-  authController.verifyToken,
-  ContentController.updateContent
+    "/api/content/:id",
+    authController.verifyToken,
+    ContentController.updateContent
 );
 app.patch(
-  "/api/content/:id/order",
-  authController.verifyToken,
-  ContentController.updateContentOrder
+    "/api/content/:id/order",
+    authController.verifyToken,
+    ContentController.updateContentOrder
 );
 app.delete(
-  "/api/content/:id",
-  authController.verifyToken,
-  ContentController.deleteContent
+    "/api/content/:id",
+    authController.verifyToken,
+    ContentController.deleteContent
 );
 
 // Image upload routes
 app.post(
-  "/api/images/upload",
-  authController.verifyToken,
-  ContentController.uploadImage
+    "/api/images/upload",
+    authController.verifyToken,
+    ContentController.uploadImage
 );
 app.get("/api/images/:filename", ContentController.getImage);
 
@@ -1401,9 +1405,9 @@ app.get("/api/categories", CategoryController.getAllCategories);
  * Authentication: Required (Admin/Staff)
  */
 app.post(
-  "/api/categories",
-  authController.verifyToken,
-  CategoryController.createCategory
+    "/api/categories",
+    authController.verifyToken,
+    CategoryController.createCategory
 );
 
 /**
@@ -1415,9 +1419,9 @@ app.post(
  * Authentication: Required (Admin/Staff)
  */
 app.put(
-  "/api/categories/:id",
-  authController.verifyToken,
-  CategoryController.updateCategory
+    "/api/categories/:id",
+    authController.verifyToken,
+    CategoryController.updateCategory
 );
 
 /**
@@ -1429,9 +1433,9 @@ app.put(
  * Authentication: Required (Admin/Staff)
  */
 app.delete(
-  "/api/categories/:id",
-  authController.verifyToken,
-  CategoryController.deleteCategory
+    "/api/categories/:id",
+    authController.verifyToken,
+    CategoryController.deleteCategory
 );
 
 // ==================== BLOG ROUTES ====================
@@ -1464,9 +1468,9 @@ app.get("/api/blogs/my", authController.verifyToken, BlogController.getMyBlogs);
  * Authentication: Required (Admin/Staff)
  */
 app.get(
-  "/api/blogs/pending",
-  authController.verifyStaffOrAdmin,
-  BlogController.getPendingBlogs
+    "/api/blogs/pending",
+    authController.verifyStaffOrAdmin,
+    BlogController.getPendingBlogs
 );
 
 /**
@@ -1478,9 +1482,9 @@ app.get(
  * Authentication: Required (Admin/Staff)
  */
 app.get(
-  "/api/blogs/moderation/stats",
-  authController.verifyStaffOrAdmin,
-  BlogController.getModerationStats
+    "/api/blogs/moderation/stats",
+    authController.verifyStaffOrAdmin,
+    BlogController.getModerationStats
 );
 
 /**
@@ -1512,9 +1516,9 @@ app.post("/api/blogs", authController.verifyToken, BlogController.createBlog);
  * Authentication: Required
  */
 app.post(
-  "/api/blogs/with-image",
-  authController.verifyToken,
-  ...BlogController.createBlogWithImage
+    "/api/blogs/with-image",
+    authController.verifyToken,
+    ...BlogController.createBlogWithImage
 );
 
 /**
@@ -1526,9 +1530,9 @@ app.post(
  * Authentication: Required (Author/Admin/Staff)
  */
 app.put(
-  "/api/blogs/:id",
-  authController.verifyToken,
-  BlogController.updateBlog
+    "/api/blogs/:id",
+    authController.verifyToken,
+    BlogController.updateBlog
 );
 
 /**
@@ -1540,9 +1544,9 @@ app.put(
  * Authentication: Required (Author/Admin/Staff)
  */
 app.delete(
-  "/api/blogs/:id",
-  authController.verifyToken,
-  BlogController.deleteBlog
+    "/api/blogs/:id",
+    authController.verifyToken,
+    BlogController.deleteBlog
 );
 
 /**
@@ -1554,9 +1558,9 @@ app.delete(
  * Authentication: Required (Author/Admin/Staff)
  */
 app.patch(
-  "/api/blogs/:id/status",
-  authController.verifyToken,
-  BlogController.updateBlogStatus
+    "/api/blogs/:id/status",
+    authController.verifyToken,
+    BlogController.updateBlogStatus
 );
 
 /**
@@ -1568,9 +1572,9 @@ app.patch(
  * Authentication: Required (Admin/Staff)
  */
 app.patch(
-  "/api/blogs/:id/approve",
-  authController.verifyStaffOrAdmin,
-  BlogController.approveBlog
+    "/api/blogs/:id/approve",
+    authController.verifyStaffOrAdmin,
+    BlogController.approveBlog
 );
 
 /**
@@ -1582,9 +1586,9 @@ app.patch(
  * Authentication: Required (Admin/Staff)
  */
 app.patch(
-  "/api/blogs/:id/reject",
-  authController.verifyStaffOrAdmin,
-  BlogController.rejectBlog
+    "/api/blogs/:id/reject",
+    authController.verifyStaffOrAdmin,
+    BlogController.rejectBlog
 );
 
 // ==================== FLAG ROUTES ====================
@@ -1607,9 +1611,9 @@ app.post("/api/flags", authController.verifyToken, FlagController.createFlag);
  * Authentication: Required (Admin/Staff)
  */
 app.get(
-  "/api/flags/blog/:blogId",
-  authController.verifyStaffOrAdmin,
-  FlagController.getFlagsByBlogId
+    "/api/flags/blog/:blogId",
+    authController.verifyStaffOrAdmin,
+    FlagController.getFlagsByBlogId
 );
 
 /**
@@ -1621,9 +1625,9 @@ app.get(
  * Authentication: Required (User/Admin/Staff)
  */
 app.get(
-  "/api/flags/user/:userId",
-  authController.verifyToken,
-  FlagController.getFlagsByUser
+    "/api/flags/user/:userId",
+    authController.verifyToken,
+    FlagController.getFlagsByUser
 );
 
 /**
@@ -1635,9 +1639,9 @@ app.get(
  * Authentication: Required (Admin/Staff)
  */
 app.delete(
-  "/api/flags/:id",
-  authController.verifyStaffOrAdmin,
-  FlagController.removeFlag
+    "/api/flags/:id",
+    authController.verifyStaffOrAdmin,
+    FlagController.removeFlag
 );
 
 /**
@@ -1649,9 +1653,9 @@ app.delete(
  * Authentication: Required (Admin/Staff)
  */
 app.get(
-  "/api/flags",
-  authController.verifyStaffOrAdmin,
-  FlagController.getAllFlags
+    "/api/flags",
+    authController.verifyStaffOrAdmin,
+    FlagController.getAllFlags
 );
 
 /**
@@ -1663,9 +1667,9 @@ app.get(
  * Authentication: Required (Admin/Staff)
  */
 app.get(
-  "/api/flags/most-flagged-blogs",
-  authController.verifyStaffOrAdmin,
-  FlagController.getMostFlaggedBlogs
+    "/api/flags/most-flagged-blogs",
+    authController.verifyStaffOrAdmin,
+    FlagController.getMostFlaggedBlogs
 );
 
 /**
@@ -1677,9 +1681,9 @@ app.get(
  * Authentication: Required (Admin/Staff)
  */
 app.delete(
-  "/api/flags/blog/:blogId/clear",
-  authController.verifyStaffOrAdmin,
-  FlagController.clearBlogFlags
+    "/api/flags/blog/:blogId/clear",
+    authController.verifyStaffOrAdmin,
+    FlagController.clearBlogFlags
 );
 
 /**
@@ -1691,9 +1695,9 @@ app.delete(
  * Authentication: Required (Admin/Staff)
  */
 app.get(
-  "/api/flags/banned-users",
-  authController.verifyStaffOrAdmin,
-  FlagController.getBannedUsers
+    "/api/flags/banned-users",
+    authController.verifyStaffOrAdmin,
+    FlagController.getBannedUsers
 );
 
 /**
@@ -1705,9 +1709,9 @@ app.get(
  * Authentication: Required (Admin)
  */
 app.patch(
-  "/api/flags/unban-user/:userId",
-  authController.verifyToken,
-  FlagController.unbanUser
+    "/api/flags/unban-user/:userId",
+    authController.verifyToken,
+    FlagController.unbanUser
 );
 
 // ==================== ENROLLMENT ROUTES ====================
@@ -1720,9 +1724,9 @@ app.patch(
  * Authentication: Required (User/Admin/Staff)
  */
 app.get(
-  "/api/enrollments/my",
-  authController.verifyToken,
-  EnrollController.getMyEnrollment
+    "/api/enrollments/my",
+    authController.verifyToken,
+    EnrollController.getMyEnrollment
 );
 
 /**
@@ -1734,9 +1738,9 @@ app.get(
  * Authentication: Required
  */
 app.get(
-  "/api/enrollments/check/:programId",
-  authController.verifyToken,
-  EnrollController.getCheckMyEnrollment
+    "/api/enrollments/check/:programId",
+    authController.verifyToken,
+    EnrollController.getCheckMyEnrollment
 );
 
 /**
@@ -1748,9 +1752,9 @@ app.get(
  * Authentication: Required (User/Admin/Staff)
  */
 app.get(
-  "/api/enrollments/:userId/:programId",
-  authController.verifyToken,
-  EnrollController.getEnrollmentById
+    "/api/enrollments/:userId/:programId",
+    authController.verifyToken,
+    EnrollController.getEnrollmentById
 );
 
 /**
@@ -1762,9 +1766,9 @@ app.get(
  * Authentication: Required
  */
 app.post(
-  "/api/enrollments",
-  authController.verifyToken,
-  EnrollController.createEnrollment
+    "/api/enrollments",
+    authController.verifyToken,
+    EnrollController.createEnrollment
 );
 
 /**
@@ -1776,9 +1780,9 @@ app.post(
  * Authentication: Required (Enrolled User)
  */
 app.patch(
-  "/api/enrollments/:enrollId/content/:contentId/toggle",
-  authController.verifyToken,
-  EnrollController.toggleContentCompletion
+    "/api/enrollments/:enrollId/content/:contentId/toggle",
+    authController.verifyToken,
+    EnrollController.toggleContentCompletion
 );
 
 /**
@@ -1790,9 +1794,9 @@ app.patch(
  * Authentication: Required (Enrolled User)
  */
 app.put(
-  "/api/enrollments/:enrollId/complete",
-  authController.verifyToken,
-  EnrollController.updateEnrollmentCompletionById
+    "/api/enrollments/:enrollId/complete",
+    authController.verifyToken,
+    EnrollController.updateEnrollmentCompletionById
 );
 
 /**
@@ -1804,9 +1808,9 @@ app.put(
  * Authentication: Required (Enrolled User)
  */
 app.delete(
-  "/api/enrollments/my/:programId",
-  authController.verifyToken,
-  EnrollController.deleteMyEnrollment
+    "/api/enrollments/my/:programId",
+    authController.verifyToken,
+    EnrollController.deleteMyEnrollment
 );
 
 // ==================== COMMUNITY EVENT ROUTES ====================
@@ -1823,42 +1827,42 @@ app.delete(
 
 // Core survey routes
 app.get(
-  "/api/surveys/program/:programId/type/:type",
-  authController.verifyToken,
-  SurveyController.getSurveysByTypeAndProgramId
+    "/api/surveys/program/:programId/type/:type",
+    authController.verifyToken,
+    SurveyController.getSurveysByTypeAndProgramId
 );
 app.get(
-  "/api/surveys/program/:programId",
-  authController.verifyToken,
-  SurveyController.getSurveysByProgramId
+    "/api/surveys/program/:programId",
+    authController.verifyToken,
+    SurveyController.getSurveysByProgramId
 );
 app.post(
-  "/api/surveys",
-  authController.verifyToken,
-  SurveyController.createSurvey
+    "/api/surveys",
+    authController.verifyToken,
+    SurveyController.createSurvey
 );
 app.put(
-  "/api/surveys/:id",
-  authController.verifyToken,
-  SurveyController.updateSurvey
+    "/api/surveys/:id",
+    authController.verifyToken,
+    SurveyController.updateSurvey
 );
 
 // Test endpoint for survey updates (temporary for debugging)
 app.put("/api/surveys-test/:id", (req, res) => {
-  console.log("🧪 Test survey update endpoint called");
-  console.log("🧪 Request params:", req.params);
-  console.log("🧪 Request body:", req.body);
-  console.log("🧪 Request headers:", req.headers);
+    console.log("🧪 Test survey update endpoint called");
+    console.log("🧪 Request params:", req.params);
+    console.log("🧪 Request body:", req.body);
+    console.log("🧪 Request headers:", req.headers);
 
-  res.status(200).json({
-    success: true,
-    message: "Test endpoint working",
-    received_data: {
-      id: req.params.id,
-      body: req.body,
-      headers: req.headers,
-    },
-  });
+    res.status(200).json({
+        success: true,
+        message: "Test endpoint working",
+        received_data: {
+            id: req.params.id,
+            body: req.body,
+            headers: req.headers,
+        },
+    });
 });
 
 // ==================== SURVEY RESPONSE ROUTES ====================
@@ -1886,123 +1890,123 @@ app.put("/api/surveys-test/:id", (req, res) => {
 
 // User-facing survey response routes (key-value format)
 app.get(
-  "/api/survey-responses/me",
-  authController.verifyToken,
-  SurveyResponseController.getMySurveyResponsesKeyValue
+    "/api/survey-responses/me",
+    authController.verifyToken,
+    SurveyResponseController.getMySurveyResponsesKeyValue
 );
 app.get(
-  "/api/survey-responses/check/:surveyId",
-  authController.verifyToken,
-  SurveyResponseController.checkMyResponse
+    "/api/survey-responses/check/:surveyId",
+    authController.verifyToken,
+    SurveyResponseController.checkMyResponse
 );
 app.post(
-  "/api/survey-responses",
-  authController.verifyToken,
-  SurveyResponseController.submitSurveyResponseKeyValue
+    "/api/survey-responses",
+    authController.verifyToken,
+    SurveyResponseController.submitSurveyResponseKeyValue
 );
 app.put(
-  "/api/survey-responses",
-  authController.verifyToken,
-  SurveyResponseController.updateSurveyResponseKeyValue
+    "/api/survey-responses",
+    authController.verifyToken,
+    SurveyResponseController.updateSurveyResponseKeyValue
 );
 
 // Admin/Staff survey response routes
 app.get(
-  "/api/survey-responses",
-  authController.verifyToken,
-  SurveyResponseController.getAllSurveyResponses
+    "/api/survey-responses",
+    authController.verifyToken,
+    SurveyResponseController.getAllSurveyResponses
 );
 app.get(
-  "/api/survey-responses/statistics",
-  authController.verifyToken,
-  SurveyResponseController.getSurveyResponseStatistics
+    "/api/survey-responses/statistics",
+    authController.verifyToken,
+    SurveyResponseController.getSurveyResponseStatistics
 );
 app.get(
-  "/api/survey-responses/date-range",
-  authController.verifyToken,
-  SurveyResponseController.getResponsesByDateRange
+    "/api/survey-responses/date-range",
+    authController.verifyToken,
+    SurveyResponseController.getResponsesByDateRange
 );
 app.get(
-  "/api/survey-responses/:id",
-  authController.verifyToken,
-  SurveyResponseController.getSurveyResponseById
+    "/api/survey-responses/:id",
+    authController.verifyToken,
+    SurveyResponseController.getSurveyResponseById
 );
 app.get(
-  "/api/survey-responses/:id/parsed",
-  authController.verifyToken,
-  SurveyResponseController.getParsedSurveyResponseById
+    "/api/survey-responses/:id/parsed",
+    authController.verifyToken,
+    SurveyResponseController.getParsedSurveyResponseById
 );
 app.get(
-  "/api/survey-responses/:id/with-relations",
-  authController.verifyToken,
-  SurveyResponseController.getResponseWithRelations
+    "/api/survey-responses/:id/with-relations",
+    authController.verifyToken,
+    SurveyResponseController.getResponseWithRelations
 );
 app.get(
-  "/api/survey-responses/survey/:surveyId",
-  authController.verifyToken,
-  SurveyResponseController.getResponsesBySurveyId
+    "/api/survey-responses/survey/:surveyId",
+    authController.verifyToken,
+    SurveyResponseController.getResponsesBySurveyId
 );
 app.get(
-  "/api/survey-responses/user/:userId",
-  authController.verifyToken,
-  SurveyResponseController.getResponsesByUserId
+    "/api/survey-responses/user/:userId",
+    authController.verifyToken,
+    SurveyResponseController.getResponsesByUserId
 );
 app.get(
-  "/api/survey-responses/survey/:surveyId/analytics",
-  authController.verifyToken,
-  SurveyResponseController.getSurveyAnalytics
+    "/api/survey-responses/survey/:surveyId/analytics",
+    authController.verifyToken,
+    SurveyResponseController.getSurveyAnalytics
 );
 app.get(
-  "/api/survey-responses/check/:surveyId/:userId",
-  authController.verifyToken,
-  SurveyResponseController.checkUserResponse
+    "/api/survey-responses/check/:surveyId/:userId",
+    authController.verifyToken,
+    SurveyResponseController.checkUserResponse
 );
 
 // Legacy survey response routes (for backward compatibility)
 app.post(
-  "/api/survey-responses/legacy",
-  authController.verifyToken,
-  SurveyResponseController.createSurveyResponse
+    "/api/survey-responses/legacy",
+    authController.verifyToken,
+    SurveyResponseController.createSurveyResponse
 );
 app.put(
-  "/api/survey-responses/:id",
-  authController.verifyToken,
-  SurveyResponseController.updateSurveyResponse
+    "/api/survey-responses/:id",
+    authController.verifyToken,
+    SurveyResponseController.updateSurveyResponse
 );
 app.delete(
-  "/api/survey-responses/:id",
-  authController.verifyToken,
-  SurveyResponseController.deleteSurveyResponse
+    "/api/survey-responses/:id",
+    authController.verifyToken,
+    SurveyResponseController.deleteSurveyResponse
 );
 
 // ==================== SERVER STARTUP ====================
 app.listen(3000, () => {
-  console.log("Server is running on port 3000");
-  console.log(
-    "🚀 API Documentation available at: http://localhost:3000/api-docs"
-  );
-  console.log("📋 API Routes Summary:");
-  console.log("   Authentication: /api/login, /api/register, /api/google-*");
-  console.log("   Dashboard: /api/dashboard, /api/dashboard/detailed");
-  console.log("   Profile: /api/profile, /api/profile/status");
-  console.log(
-    "   User+Profile Combined: /api/user/profile-combined, /api/user/delete-account"
-  );
-  console.log("   Staff: /api/staff/*");
-  console.log("   Members: /api/members/*");
-  console.log("   Consultants: /api/consultants/*");
-  console.log("   Booking: /api/booking-sessions/*");
-  console.log("   Assessments: /api/assessments/*");
-  console.log("   Assessment Questions: /api/assessment-questions/*");
-  console.log("   Programs: /api/programs/*");
-  console.log("   Content: /api/content/*");
-  console.log("   Categories: /api/categories/*");
-  console.log("   Blogs: /api/blogs/*");
-  console.log("   Flags: /api/flags/*");
-  console.log("   Enrollments: /api/enrollments/*");
-  console.log("   Surveys: /api/surveys/*");
-  console.log("   Survey Responses: /api/survey-responses/*");
-  console.log("   Images: /api/images/:filename");
+    console.log("Server is running on port 3000");
+    console.log(
+        "🚀 API Documentation available at: http://localhost:3000/api-docs"
+    );
+    console.log("📋 API Routes Summary:");
+    console.log("   Authentication: /api/login, /api/register, /api/google-*");
+    console.log("   Dashboard: /api/dashboard, /api/dashboard/detailed");
+    console.log("   Profile: /api/profile, /api/profile/status");
+    console.log(
+        "   User+Profile Combined: /api/user/profile-combined, /api/user/delete-account"
+    );
+    console.log("   Staff: /api/staff/*");
+    console.log("   Members: /api/members/*");
+    console.log("   Consultants: /api/consultants/*");
+    console.log("   Booking: /api/booking-sessions/*");
+    console.log("   Assessments: /api/assessments/*");
+    console.log("   Assessment Questions: /api/assessment-questions/*");
+    console.log("   Programs: /api/programs/*");
+    console.log("   Content: /api/content/*");
+    console.log("   Categories: /api/categories/*");
+    console.log("   Blogs: /api/blogs/*");
+    console.log("   Flags: /api/flags/*");
+    console.log("   Enrollments: /api/enrollments/*");
+    console.log("   Surveys: /api/surveys/*");
+    console.log("   Survey Responses: /api/survey-responses/*");
+    console.log("   Images: /api/images/:filename");
 });
 
 /*
@@ -2153,10 +2157,10 @@ All API responses follow this structure:
 console.log("🔍 Debug: Checking controller imports...");
 console.log("ProgramController:", typeof ProgramController);
 console.log(
-  "ProgramController.getAllPrograms:",
-  typeof ProgramController.getAllPrograms
+    "ProgramController.getAllPrograms:",
+    typeof ProgramController.getAllPrograms
 );
 console.log(
-  "ProgramController.getProgramSurveyAnalytics:",
-  typeof ProgramController.getProgramSurveyAnalytics
+    "ProgramController.getProgramSurveyAnalytics:",
+    typeof ProgramController.getProgramSurveyAnalytics
 );

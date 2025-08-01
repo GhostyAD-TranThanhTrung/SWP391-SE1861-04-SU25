@@ -5,6 +5,7 @@
 const jwt = require("jsonwebtoken");
 const AppDataSource = require("../src/data-source");
 const User = require("../src/entities/User");
+const Profile = require("../src/entities/Profile");
 
 // Define a secret key for signing the JWT tokens
 // NOTE: In production, this should be stored in environment variables for security
@@ -59,7 +60,16 @@ class AuthController {
           status: user.status
         });
       }
+      const profileRepo = AppDataSource.getRepository(Profile);
 
+      // Find user by email and password
+      const profile = await profileRepo.findOne({
+        where: {
+          user_id: user.user_id
+        },
+      });
+      const bio_json = JSON.parse(profile.bio_json)
+      const first_time = bio_json.first_time
       // Generate a JWT token with user information as the payload
       const token = jwt.sign(
         {
@@ -81,6 +91,20 @@ class AuthController {
       console.log("=".repeat(50));
 
       // Return success response with user data and the token
+      if (first_time) {
+        res.status(200).json({
+          success: true,
+          message: "Login successful",
+          user: {
+            id: user.user_id,
+            email: user.email,
+            role: user.role || "Member",
+            img_link: user.img_link || null, // Add img_link to response
+            first_time: Boolean(first_time)
+          },
+          token: token, // Include the JWT token in the response
+        });
+      }
       res.status(200).json({
         success: true,
         message: "Login successful",
@@ -101,7 +125,48 @@ class AuthController {
       });
     }
   }
+  static async resetPassword(req, res) {
 
+    try {
+      const { password } = req.body
+      const u_id = req.user.userId
+      if (!u_id) {
+        return res.status(400).json({
+          success: false,
+          message: "User ID is required from token",
+        });
+      }
+      const user = await AppDataSource.getRepository(User).findOne({
+        where: {
+          user_id: u_id
+        }
+      })
+      const profile = await AppDataSource.getRepository(Profile).findOne({
+        where: {
+          user_id: u_id
+        }
+      })
+      user.password = password
+      const bio_json = JSON.parse(profile.bio_json)
+      bio_json.first_time = false
+      profile.bio_json = JSON.stringify(bio_json)
+      await AppDataSource.getRepository(User).save(user)
+      await AppDataSource.getRepository(Profile).save(profile)
+      console.log("Successfully resetting password:");
+      return res.status(200).json({
+        success: true,
+        message: "Successfully resetting password"
+      });
+    } catch (err) {
+      console.error("Error resetting password image:", err);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to serve image",
+        error: err.message,
+      });
+
+    }
+  }
   /**
    * Register new user endpoint
    */
@@ -197,10 +262,10 @@ class AuthController {
       console.log('🔓 SWAGGER BYPASS ACTIVATED');
       console.log(`📊 Endpoint: ${req.method} ${req.path}`);
       console.log(`⏰ Timestamp: ${new Date().toLocaleString()}`);
-      
+
       // Use mock admin user for testing, but still check if real user exists and is active
       const mockUserId = 1; // Assuming admin user has ID 1
-      
+
       try {
         const userRepository = AppDataSource.getRepository(User);
         const user = await userRepository.findOne({
