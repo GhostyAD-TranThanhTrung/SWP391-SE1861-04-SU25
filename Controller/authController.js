@@ -100,7 +100,7 @@ class AuthController {
             email: user.email,
             role: user.role || "Member",
             img_link: user.img_link || null, // Add img_link to response
-            first_time: Boolean(first_time)
+            first_time: first_time
           },
           token: token, // Include the JWT token in the response
         });
