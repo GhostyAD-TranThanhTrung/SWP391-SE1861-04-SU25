@@ -148,7 +148,7 @@ class DashboardService {
     ] = await Promise.all([
       bookingRepository.count(),
       bookingRepository.count({ where: { status: "Đang chờ xác nhận" } }),
-      bookingRepository.count({ where: { status: "Đã xác nhận" } }),
+      bookingRepository.count({ where: { status: "Xác nhận thành công" } }),
       bookingRepository.count({ where: { status: "Đã hoàn thành" } }),
       bookingRepository.count({ where: { status: "Đã hủy" } }),
     ]);

@@ -206,7 +206,7 @@ class BookingSessionController {
                 count: bookings.length,
                 message: 'Lấy danh sách lịch hẹn thành viên thành công'
             });
-            
+
             res.status(200).json({
                 success: true,
                 data: bookings,
@@ -247,12 +247,12 @@ class BookingSessionController {
             console.log('Checking ongoing bookings - Parameters:', [
                 parseInt(member_id),
                 'Đang chờ xác nhận',
-                'Đã xác nhận'
+                'Xác nhận thành công'
             ]);
 
             const [ongoingResult] = await AppDataSource.query(
                 ongoingBookingsQuery,
-                [parseInt(member_id), 'Đang chờ xác nhận', 'Đã xác nhận']
+                [parseInt(member_id), 'Đang chờ xác nhận', 'Xác nhận thành công']
             );
 
             const ongoingCount = ongoingResult.ongoing_count;
@@ -275,7 +275,7 @@ class BookingSessionController {
 
             const startDateWithTime = `${booking_date}T${startTime}`;
             const endDateWithTime = `${booking_date}T${endTime}`;
-            
+
             if (getSlot.length === 0) {
                 console.log('Slot not found:', slot_id);
                 return res.status(404).json({
@@ -289,7 +289,7 @@ class BookingSessionController {
             // Get consultant's google meet link
             const getConsultant = await AppDataSource.query('SELECT google_meet_link FROM Consultant WHERE id_consultant = @0', [consultant_id]);
             let google_meet_link = null;
-            
+
             if (getConsultant.length === 0) {
                 console.log('Consultant not found:', consultant_id);
                 return res.status(404).json({
@@ -299,7 +299,7 @@ class BookingSessionController {
                     message: 'Chuyên gia không tồn tại'
                 });
             }
-            
+
             google_meet_link = getConsultant[0].google_meet_link;
 
 
@@ -387,12 +387,12 @@ class BookingSessionController {
                 parseInt(member_id),
                 booking_date,
                 'Đang chờ xác nhận',
-                'Đã xác nhận'
+                'Xác nhận thành công'
             ]);
 
             const [memberBooking] = await AppDataSource.query(
                 memberBookingQuery,
-                [parseInt(member_id), booking_date, 'Đang chờ xác nhận', 'Đã xác nhận']
+                [parseInt(member_id), booking_date, 'Đang chờ xác nhận', 'Xác nhận thành công']
             );
 
             if (memberBooking) {
@@ -614,7 +614,7 @@ class BookingSessionController {
     }
 
     /**
-     * Confirm booking session - Update status from "Đang xác nhận" to "Đã xác nhận"
+     * Confirm booking session - Update status from "Đang xác nhận" to "Xác nhận thành công"
      */
     static async updateBookingNotes(req, res) {
         try {
