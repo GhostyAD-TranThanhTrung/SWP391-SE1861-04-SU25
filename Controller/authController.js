@@ -60,6 +60,38 @@ class AuthController {
           status: user.status
         });
       }
+      // Generate a JWT token with user information as the payload
+      const token = jwt.sign(
+        {
+          userId: user.user_id, // Include user ID in the token payload
+          email: user.email, // Include email in the token payload
+          role: user.role || "member", // Include user role with a default value
+        },
+        JWT_SECRET, // Sign the token with our secret key
+        { expiresIn: "24h" } // Token will expire in 24 hours
+      );
+      // Login successful - log information
+      console.log("=".repeat(50));
+      console.log(`✅ LOGIN SUCCESSFUL`);
+      console.log(`📧 Email: ${user.email}`);
+      console.log(`🆔 User ID: ${user.user_id}`);
+      console.log(`🔑 JWT Token generated successfully`);
+      console.log(`⏰ Login time: ${new Date().toLocaleString()}`);
+      console.log("=".repeat(50));
+
+      if (user.role === 'member') {
+        return res.status(200).json({
+          success: true,
+          message: "Login successful",
+          user: {
+            id: user.user_id,
+            email: user.email,
+            role: user.role || "member",
+            img_link: user.img_link || null, // Add img_link to response
+          },
+          token: token, // Include the JWT token in the response
+        });
+      }
       const profileRepo = AppDataSource.getRepository(Profile);
 
       // Find user by email and password
@@ -70,25 +102,8 @@ class AuthController {
       });
       const bio_json = JSON.parse(profile.bio_json)
       const first_time = bio_json.first_time
-      // Generate a JWT token with user information as the payload
-      const token = jwt.sign(
-        {
-          userId: user.user_id, // Include user ID in the token payload
-          email: user.email, // Include email in the token payload
-          role: user.role || "Member", // Include user role with a default value
-        },
-        JWT_SECRET, // Sign the token with our secret key
-        { expiresIn: "24h" } // Token will expire in 24 hours
-      );
 
-      // Login successful - log information
-      console.log("=".repeat(50));
-      console.log(`✅ LOGIN SUCCESSFUL`);
-      console.log(`📧 Email: ${user.email}`);
-      console.log(`🆔 User ID: ${user.user_id}`);
-      console.log(`🔑 JWT Token generated successfully`);
-      console.log(`⏰ Login time: ${new Date().toLocaleString()}`);
-      console.log("=".repeat(50));
+
 
       // Return success response with user data and the token
       if (first_time) {
@@ -98,7 +113,7 @@ class AuthController {
           user: {
             id: user.user_id,
             email: user.email,
-            role: user.role || "Member",
+            role: user.role || "member",
             img_link: user.img_link || null, // Add img_link to response
             first_time: first_time
           },
@@ -111,11 +126,12 @@ class AuthController {
         user: {
           id: user.user_id,
           email: user.email,
-          role: user.role || "Member",
+          role: user.role || "member",
           img_link: user.img_link || null, // Add img_link to response
         },
         token: token, // Include the JWT token in the response
       });
+
     } catch (error) {
       console.error("Error during login:", error);
       res.status(500).json({
@@ -212,7 +228,7 @@ class AuthController {
         {
           userId: savedUser.user_id,
           email: savedUser.email,
-          role: savedUser.role || "Member",
+          role: savedUser.role || "member",
         },
         JWT_SECRET,
         { expiresIn: "24h" }
