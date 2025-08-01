@@ -499,16 +499,15 @@ const BookingPage = () => {
                     color: '#000'
                 };
             case 'Xác nhận thành công':
-            case 'Đã xác nhận':
                 return { 
-                    label: 'Đã xác nhận', 
+                    label: 'Xác nhận thành công', 
                     class: 'status-confirmed',
                     backgroundColor: '#28a745',
                     color: '#fff'
                 };
             case 'confirmed':
                 return { 
-                    label: 'Đã xác nhận', 
+                    label: 'Xác nhận thành công', 
                     class: 'status-confirmed',
                     backgroundColor: '#28a745',
                     color: '#fff'

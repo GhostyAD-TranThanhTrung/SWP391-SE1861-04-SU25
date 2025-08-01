@@ -161,7 +161,6 @@ const ManageBookingPage = () => {
       // Skip if already completed, cancelled, confirmed, or confirmed successfully
       if (booking.status === 'Hoàn thành' ||
         booking.status === 'Đã hủy' ||
-        booking.status === 'Đã xác nhận' ||
         booking.status === 'Xác nhận thành công') {
         return;
       }
@@ -622,7 +621,6 @@ const ManageBookingPage = () => {
   const getBookingTimeStatus = (booking) => {
     if (booking.status === 'Hoàn thành' ||
       booking.status === 'Đã hủy' ||
-      booking.status === 'Đã xác nhận' ||
       booking.status === 'Xác nhận thành công') {
       return 'completed';
     }

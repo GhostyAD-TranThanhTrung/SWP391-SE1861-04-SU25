@@ -26,7 +26,7 @@ const DetailMemberPage = () => {
   const [assessmentTypeFilter, setAssessmentTypeFilter] = useState('all'); // 'all', 'crafft', 'assist'
   const token = sessionStorage.getItem('token');
   const { memberId } = useParams();
-  
+
   // Use memberId as userId for consistency with the backend
   const userId = memberId;
 
@@ -60,7 +60,7 @@ const DetailMemberPage = () => {
     const fetchData = async () => {
       setLoading(true);
       setError(null);
-      
+
       // Check if userId is available
       if (!userId) {
         setError("ID thành viên không hợp lệ");
@@ -70,13 +70,13 @@ const DetailMemberPage = () => {
 
       try {
         console.log(`Fetching member details from: http://localhost:3000/api/members/detailed/${userId}`);
-        
+
         // Fetch member details first
         const memberRes = await axios.get(`http://localhost:3000/api/members/detailed/${userId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         console.log('Member details response:', memberRes.data);
-        
+
         // The API returns nested structure: { data: { user: {...}, profile: {...} } }
         const responseData = memberRes.data.data;
         if (responseData) {
@@ -92,13 +92,13 @@ const DetailMemberPage = () => {
         } else {
           setMemberDetails(null);
         }
-       
+
         // Fetch enrolled courses for the specific user using the new admin endpoint
         const coursesRes = await axios.get(`http://localhost:3000/api/programs/user/${userId}/enrollment-status`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setEnrolledCourses(coursesRes.data.data || []);
-        
+
         // Fetch written blogs for the specific user  
         // Note: This might need to be adjusted based on available blog endpoints
         try {
@@ -119,7 +119,7 @@ const DetailMemberPage = () => {
             setWrittenBlogs([]);
           }
         }
-        
+
         // Fetch booking sessions for the specific member
         try {
           setLoadingBookings(true);
@@ -134,7 +134,7 @@ const DetailMemberPage = () => {
         } finally {
           setLoadingBookings(false);
         }
-        
+
       } catch (err) {
         console.error('Error fetching data:', err);
         setError(err.response?.data?.message || err.message || "Đã xảy ra lỗi khi tải dữ liệu.");
@@ -153,16 +153,16 @@ const DetailMemberPage = () => {
   // Helper to translate status from Vietnamese to English
   const translateStatus = (status) => {
     if (!status) return 'Không xác định';
-    
+
     const statusTranslations = {
       'Hoạt động': 'Hoạt động',
-      'Không hoạt động': 'Không hoạt động', 
+      'Không hoạt động': 'Không hoạt động',
       'Bị cấm': 'Bị cấm',
       'active': 'Hoạt động',
       'inactive': 'Không hoạt động',
       'banned': 'Bị cấm'
     };
-    
+
     return statusTranslations[status] || status;
   };
 
@@ -193,10 +193,10 @@ const DetailMemberPage = () => {
         const hasSubstanceUse = resultData.result && resultData.result.some((answer, index) => {
           return index < 3 && answer.score > 0; // First 3 questions are Part A
         });
-        
+
         // Check CAR question (question 4, index 3)
         const hasCarRisk = resultData.result && resultData.result[3]?.score === 1;
-        
+
         // Create userAnswers object for CRAFFT assessment
         const userAnswers = {};
         if (resultData.result) {
@@ -204,14 +204,14 @@ const DetailMemberPage = () => {
             userAnswers[index] = answer;
           });
         }
-        
+
         riskLevel = assessCrafftRisk(score, userAnswers);
       } else if (assessmentType === 'assist') {
         // For ASSIST, check if it's cannabis or other substances
-        const isCannabis = resultData.result && resultData.result[0] && 
-          resultData.result[0].selectedOption && 
+        const isCannabis = resultData.result && resultData.result[0] &&
+          resultData.result[0].selectedOption &&
           resultData.result[0].selectedOption.includes('Cần sa');
-        
+
         riskLevel = assessAssistRisk(score, isCannabis);
       }
 
@@ -240,7 +240,7 @@ const DetailMemberPage = () => {
   const translateAgeGroup = (ageGroup) => {
     const translations = {
       'children': 'Trẻ em',
-      'teenager': 'Thiếu niên', 
+      'teenager': 'Thiếu niên',
       'adult': 'Người lớn',
       'elderly': 'Người cao tuổi',
       'all': 'Tất cả độ tuổi'
@@ -251,15 +251,15 @@ const DetailMemberPage = () => {
   // Sort and filter assessments function
   const sortAndFilterAssessments = (assessments) => {
     if (!assessments || assessments.length === 0) return [];
-    
+
     // First filter by type
     let filtered = [...assessments];
     if (assessmentTypeFilter !== 'all') {
-      filtered = filtered.filter(assessment => 
+      filtered = filtered.filter(assessment =>
         assessment.type?.toLowerCase() === assessmentTypeFilter.toLowerCase()
       );
     }
-    
+
     // Then sort by time
     return filtered.sort((a, b) => {
       const dateA = new Date(a.create_at);
@@ -272,7 +272,7 @@ const DetailMemberPage = () => {
   // Booking helper functions (similar to BookingPage)
   const formatTime = (timeString) => {
     if (!timeString) return '';
-    
+
     // Handle different time formats
     if (timeString.includes('T')) {
       // ISO format: "1900-01-01T09:00:00.000Z"
@@ -282,19 +282,19 @@ const DetailMemberPage = () => {
       // Direct time format: "09:00:00"
       return timeString.substring(0, 5); // Returns "09:00"
     }
-    
+
     return timeString;
   };
 
   // Format booking date with day of week and dd/mm/yyyy
   const formatBookingDate = (dateString) => {
     if (!dateString) return 'N/A';
-    
+
     const date = new Date(dateString);
     const dayNames = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
     const dayOfWeek = dayNames[date.getDay()];
     const formattedDate = date.toLocaleDateString('vi-VN');
-    
+
     return `${dayOfWeek}, ${formattedDate}`;
   };
 
@@ -303,14 +303,12 @@ const DetailMemberPage = () => {
     switch (status) {
       case 'Đang chờ xác nhận':
         return { className: 'bg-warning text-dark', text: 'Đang chờ xác nhận' };
-      case 'Đã xác nhận':
-        return { className: 'bg-success text-white', text: 'Đã xác nhận' };
+      case 'Xác nhận thành công':
+        return { className: 'bg-success text-white', text: 'Xác nhận thành công' };
       case 'Đã hoàn thành':
         return { className: 'bg-info text-white', text: 'Đã hoàn thành' };
       case 'Đã hủy':
         return { className: 'bg-danger text-white', text: 'Đã hủy' };
-      case 'Bỏ lỡ':
-        return { className: 'bg-secondary text-white', text: 'Bỏ lỡ' };
       default:
         return { className: 'bg-light text-dark', text: status || 'Không xác định' };
     }
@@ -319,10 +317,10 @@ const DetailMemberPage = () => {
   // Check if booking is today
   const isBookingToday = (booking) => {
     if (!booking.booking_date) return false;
-    
+
     const today = new Date();
     const bookingDate = new Date(booking.booking_date);
-    
+
     return today.toDateString() === bookingDate.toDateString();
   };
 
@@ -330,34 +328,34 @@ const DetailMemberPage = () => {
   const getBookingRowStyle = (booking) => {
     const today = new Date();
     const bookingDate = new Date(booking.booking_date);
-    
+
     if (booking.status === 'Đã hủy' || booking.status === 'Bỏ lỡ') {
       return { backgroundColor: '#f8f9fa', opacity: '0.7' };
     }
-    
+
     if (bookingDate < today && booking.status !== 'Đã hoàn thành') {
       return { backgroundColor: '#fff3cd' }; // Light yellow for overdue
     }
-    
+
     if (isBookingToday(booking)) {
       return { backgroundColor: '#d4edda' }; // Light green for today
     }
-    
+
     return {};
   };
 
   // Sort and filter booking sessions function
   const sortAndFilterBookings = (bookings) => {
     if (!bookings || bookings.length === 0) return [];
-    
+
     // First filter by status
     let filtered = [...bookings];
     if (bookingStatusFilter !== 'all') {
-      filtered = filtered.filter(booking => 
+      filtered = filtered.filter(booking =>
         booking.status === bookingStatusFilter
       );
     }
-    
+
     // Then sort by date
     return filtered.sort((a, b) => {
       const dateA = new Date(a.booking_date);
@@ -462,7 +460,7 @@ const DetailMemberPage = () => {
     );
   };
 
-  return(
+  return (
     <div className="detail-member-page">
       <button
         className="btn btn-outline-secondary mb-2"
@@ -520,8 +518,8 @@ const DetailMemberPage = () => {
                       <div className="mt-2 p-2 bg-light rounded">
                         {(() => {
                           try {
-                            const bioData = typeof memberDetails.profile.bio_json === 'string' 
-                              ? JSON.parse(memberDetails.profile.bio_json) 
+                            const bioData = typeof memberDetails.profile.bio_json === 'string'
+                              ? JSON.parse(memberDetails.profile.bio_json)
                               : memberDetails.profile.bio_json;
                             return bioData?.bio || bioData?.biography || 'Chưa cập nhật tiểu sử';
                           } catch (error) {
@@ -545,7 +543,7 @@ const DetailMemberPage = () => {
                 <div className="d-flex gap-2">
                   {showAssessments && memberDetails.assessments && memberDetails.assessments.length > 0 && (
                     <>
-                      <select 
+                      <select
                         className="form-select form-select-sm"
                         style={{ width: 'auto' }}
                         value={assessmentTypeFilter}
@@ -555,7 +553,7 @@ const DetailMemberPage = () => {
                         <option value="crafft">CRAFFT</option>
                         <option value="assist">ASSIST</option>
                       </select>
-                      <select 
+                      <select
                         className="form-select form-select-sm"
                         style={{ width: 'auto' }}
                         value={assessmentSortOrder}
@@ -566,7 +564,7 @@ const DetailMemberPage = () => {
                       </select>
                     </>
                   )}
-                  <button 
+                  <button
                     className="btn btn-outline-secondary btn-sm"
                     onClick={() => setShowAssessments(!showAssessments)}
                   >
@@ -583,8 +581,8 @@ const DetailMemberPage = () => {
                       <div className="col-md-6">
                         <div className="info-item">
                           <strong>Số lần đánh giá:</strong> {
-                            assessmentTypeFilter === 'all' 
-                              ? (memberDetails.assessments?.length || 0) 
+                            assessmentTypeFilter === 'all'
+                              ? (memberDetails.assessments?.length || 0)
                               : (sortAndFilterAssessments(memberDetails.assessments).length || 0)
                           } lần
                           {assessmentTypeFilter !== 'all' && (
@@ -614,7 +612,7 @@ const DetailMemberPage = () => {
                         <h5 className="mb-3">Lịch sử đánh giá chi tiết</h5>
                         {(() => {
                           const filteredAndSortedAssessments = sortAndFilterAssessments(memberDetails.assessments);
-                          
+
                           if (filteredAndSortedAssessments.length === 0) {
                             return (
                               <div className="text-center text-muted p-4">
@@ -622,112 +620,109 @@ const DetailMemberPage = () => {
                               </div>
                             );
                           }
-                          
+
                           return filteredAndSortedAssessments.map((assessment, index) => {
-                          // Parse result_json to extract meaningful data
-                          let parsedResult = null;
-                          let totalScore = 0;
-                          let questionCount = 0;
+                            // Parse result_json to extract meaningful data
+                            let parsedResult = null;
+                            let totalScore = 0;
+                            let questionCount = 0;
 
-                          console.log(`Assessment ${index + 1}:`, assessment);
-                          console.log(`Assessment type: ${assessment.type}`);
-                          console.log(`Assessment result_json:`, assessment.result_json);
+                            console.log(`Assessment ${index + 1}:`, assessment);
+                            console.log(`Assessment type: ${assessment.type}`);
+                            console.log(`Assessment result_json:`, assessment.result_json);
 
-                          try {
-                            if (assessment.result_json) {
-                              parsedResult = JSON.parse(assessment.result_json);
-                              console.log(`Parsed result for assessment ${index + 1}:`, parsedResult);
-                              
-                              if (parsedResult.result && Array.isArray(parsedResult.result)) {
-                                questionCount = parsedResult.result.length;
-                                totalScore = parsedResult.score || 0;
-                                console.log(`Question count: ${questionCount}, Total score: ${totalScore}`);
-                                console.log('Individual questions:', parsedResult.result);
+                            try {
+                              if (assessment.result_json) {
+                                parsedResult = JSON.parse(assessment.result_json);
+                                console.log(`Parsed result for assessment ${index + 1}:`, parsedResult);
+
+                                if (parsedResult.result && Array.isArray(parsedResult.result)) {
+                                  questionCount = parsedResult.result.length;
+                                  totalScore = parsedResult.score || 0;
+                                  console.log(`Question count: ${questionCount}, Total score: ${totalScore}`);
+                                  console.log('Individual questions:', parsedResult.result);
+                                }
                               }
+                            } catch (e) {
+                              console.error(`Error parsing assessment ${index + 1} result:`, e);
+                              console.error('Raw result_json:', assessment.result_json);
                             }
-                          } catch (e) {
-                            console.error(`Error parsing assessment ${index + 1} result:`, e);
-                            console.error('Raw result_json:', assessment.result_json);
-                          }
 
-                          const { riskLevel, score } = calculateRiskLevel(assessment);
-                          const riskLevelClass = getRiskLevelClass(riskLevel);
+                            const { riskLevel, score } = calculateRiskLevel(assessment);
+                            const riskLevelClass = getRiskLevelClass(riskLevel);
 
-                          console.log(`Assessment ${index + 1} risk calculation:`, {
-                            riskLevel,
-                            score,
-                            riskLevelClass,
-                            assessmentType: assessment.type
-                          });
+                            console.log(`Assessment ${index + 1} risk calculation:`, {
+                              riskLevel,
+                              score,
+                              riskLevelClass,
+                              assessmentType: assessment.type
+                            });
 
-                          return (
-                            <div key={index} className="assessment-item mb-4 p-3 border rounded">
-                              <div className="row">
-                                <div className="col-md-6">
-                                  <div className="info-item mb-2">
-                                    <strong>Loại đánh giá:</strong> 
-                                    <span className={`ms-2 badge ${
-                                      assessment.type === 'assist' ? 'bg-success' :
-                                      assessment.type === 'crafft' ? 'bg-primary' : 'bg-secondary'
-                                    }`}>
-                                      {assessment.type?.toUpperCase() || 'Chưa xác định'}
-                                    </span>
+                            return (
+                              <div key={index} className="assessment-item mb-4 p-3 border rounded">
+                                <div className="row">
+                                  <div className="col-md-6">
+                                    <div className="info-item mb-2">
+                                      <strong>Loại đánh giá:</strong>
+                                      <span className={`ms-2 badge ${assessment.type === 'assist' ? 'bg-success' :
+                                          assessment.type === 'crafft' ? 'bg-primary' : 'bg-secondary'
+                                        }`}>
+                                        {assessment.type?.toUpperCase() || 'Chưa xác định'}
+                                      </span>
+                                    </div>
+                                    <div className="info-item mb-2">
+                                      <strong>Ngày thực hiện:</strong> {formatDate(assessment.create_at)}
+                                    </div>
                                   </div>
-                                  <div className="info-item mb-2">
-                                    <strong>Ngày thực hiện:</strong> {formatDate(assessment.create_at)}
+                                  <div className="col-md-6">
+                                    <div className="info-item mb-2">
+                                      <strong>Tổng điểm:</strong>
+                                      <span className={`ms-2 fw-bold ${score >= 15 ? 'text-danger' :
+                                          score >= 10 ? 'text-warning' :
+                                            score >= 5 ? 'text-info' : 'text-success'
+                                        }`}>
+                                        {score}
+                                      </span>
+                                    </div>
+                                    <div className="info-item mb-2">
+                                      <strong>Mức độ rủi ro:</strong>
+                                      <span className={`ms-2 badge ${riskLevelClass}`}>
+                                        {riskLevel}
+                                      </span>
+                                    </div>
                                   </div>
                                 </div>
-                                <div className="col-md-6">
-                                  <div className="info-item mb-2">
-                                    <strong>Tổng điểm:</strong> 
-                                    <span className={`ms-2 fw-bold ${
-                                      score >= 15 ? 'text-danger' :
-                                      score >= 10 ? 'text-warning' :
-                                      score >= 5 ? 'text-info' : 'text-success'
-                                    }`}>
-                                      {score}
-                                    </span>
+
+                                {parsedResult && parsedResult.result && (
+                                  <div className="question-details mt-3">
+                                    <h6 className="mb-2">Chi tiết câu trả lời:</h6>
+                                    <div className="bg-light p-2 rounded" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                                      {parsedResult.result.map((question, qIndex) => (
+                                        <div key={qIndex} className={`p-2 mb-1 rounded small ${question.score > 2 ? 'bg-danger bg-opacity-10 border-start border-danger border-3' :
+                                            'bg-success bg-opacity-10 border-start border-success border-3'
+                                          }`}>
+                                          <div className="mb-1">
+                                            <strong>Q{question.questionId}:</strong>
+                                            {(question.questionText || question.question) && (
+                                              <div className="text-muted small mt-1" style={{ fontStyle: 'italic' }}>
+                                                "{question.questionText || question.question}"
+                                              </div>
+                                            )}
+                                          </div>
+                                          <div>
+                                            <strong>Trả lời:</strong> {question.selectedOption}
+                                            <span className={`ms-2 fw-bold ${question.score > 2 ? 'text-danger' : 'text-success'}`}>
+                                              ({question.score} điểm)
+                                            </span>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
                                   </div>
-                                  <div className="info-item mb-2">
-                                    <strong>Mức độ rủi ro:</strong> 
-                                    <span className={`ms-2 badge ${riskLevelClass}`}>
-                                      {riskLevel}
-                                    </span>
-                                  </div>
-                                </div>
+                                )}
                               </div>
-                              
-                              {parsedResult && parsedResult.result && (
-                                <div className="question-details mt-3">
-                                  <h6 className="mb-2">Chi tiết câu trả lời:</h6>
-                                  <div className="bg-light p-2 rounded" style={{ maxHeight: '200px', overflowY: 'auto' }}>
-                                    {parsedResult.result.map((question, qIndex) => (
-                                      <div key={qIndex} className={`p-2 mb-1 rounded small ${
-                                        question.score > 2 ? 'bg-danger bg-opacity-10 border-start border-danger border-3' : 
-                                        'bg-success bg-opacity-10 border-start border-success border-3'
-                                      }`}>
-                                        <div className="mb-1">
-                                          <strong>Q{question.questionId}:</strong>
-                                          {(question.questionText || question.question) && (
-                                            <div className="text-muted small mt-1" style={{ fontStyle: 'italic' }}>
-                                              "{question.questionText || question.question}"
-                                            </div>
-                                          )}
-                                        </div>
-                                        <div>
-                                          <strong>Trả lời:</strong> {question.selectedOption}
-                                          <span className={`ms-2 fw-bold ${question.score > 2 ? 'text-danger' : 'text-success'}`}>
-                                            ({question.score} điểm)
-                                          </span>
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        });
+                            );
+                          });
                         })()}
                       </div>
                     ) : (
@@ -745,7 +740,7 @@ const DetailMemberPage = () => {
           <div className="enrolled-courses mb-4">
             <div className="d-flex justify-content-between align-items-center mb-3">
               <h3 className="mb-0">Khóa học đã đăng ký</h3>
-              <button 
+              <button
                 className="btn btn-outline-secondary btn-sm"
                 onClick={() => setShowCourses(!showCourses)}
               >
@@ -798,7 +793,7 @@ const DetailMemberPage = () => {
           <div className="written-blogs mb-4">
             <div className="d-flex justify-content-between align-items-center mb-3">
               <h3 className="mb-0">Bài blog đã viết</h3>
-              <button 
+              <button
                 className="btn btn-outline-secondary btn-sm"
                 onClick={() => setShowBlogs(!showBlogs)}
               >
@@ -834,7 +829,7 @@ const DetailMemberPage = () => {
                             <div className="card-meta">
                               <div><b>Tác giả:</b> {
                                 typeof blog.author === 'string' ? blog.author : blog.author ? JSON.stringify(blog.author) :
-                                (typeof blog.creator_email === 'string' ? blog.creator_email : blog.creator_email ? JSON.stringify(blog.creator_email) : "N/A")
+                                  (typeof blog.creator_email === 'string' ? blog.creator_email : blog.creator_email ? JSON.stringify(blog.creator_email) : "N/A")
                               }</div>
                               <div>{formatDate(blog.created_at || blog.createdAt)}</div>
                             </div>
@@ -855,7 +850,7 @@ const DetailMemberPage = () => {
               <div className="d-flex gap-2">
                 {showBookings && bookingSessions && bookingSessions.length > 0 && (
                   <>
-                    <select 
+                    <select
                       className="form-select form-select-sm"
                       style={{ width: 'auto' }}
                       value={bookingStatusFilter}
@@ -863,12 +858,12 @@ const DetailMemberPage = () => {
                     >
                       <option value="all">Tất cả trạng thái</option>
                       <option value="Đang chờ xác nhận">Đang chờ xác nhận</option>
-                      <option value="Đã xác nhận">Đã xác nhận</option>
+                      <option value="Xác nhận thành công">Xác nhận thành công</option>
                       <option value="Đã hoàn thành">Đã hoàn thành</option>
                       <option value="Đã hủy">Đã hủy</option>
                       <option value="Bỏ lỡ">Bỏ lỡ</option>
                     </select>
-                    <select 
+                    <select
                       className="form-select form-select-sm"
                       style={{ width: 'auto' }}
                       value={bookingSortOrder}
@@ -879,7 +874,7 @@ const DetailMemberPage = () => {
                     </select>
                   </>
                 )}
-                <button 
+                <button
                   className="btn btn-outline-secondary btn-sm"
                   onClick={() => setShowBookings(!showBookings)}
                 >
@@ -907,7 +902,7 @@ const DetailMemberPage = () => {
                         <div className="col-md-6">
                           <div className="info-item">
                             <strong>Số lịch hẹn hiển thị:</strong> {
-                              bookingStatusFilter === 'all' 
+                              bookingStatusFilter === 'all'
                                 ? bookingSessions.length
                                 : sortAndFilterBookings(bookingSessions).length
                             } / {bookingSessions.length} lịch hẹn
@@ -945,7 +940,7 @@ const DetailMemberPage = () => {
                         <tbody>
                           {(() => {
                             const filteredAndSortedBookings = sortAndFilterBookings(bookingSessions);
-                            
+
                             if (filteredAndSortedBookings.length === 0) {
                               return (
                                 <tr>
@@ -955,11 +950,11 @@ const DetailMemberPage = () => {
                                 </tr>
                               );
                             }
-                            
+
                             return filteredAndSortedBookings.map((booking, index) => {
                               const statusInfo = getStatusInfo(booking.status);
                               const rowStyle = getBookingRowStyle(booking);
-                              
+
                               return (
                                 <tr key={booking.booking_id || index} style={rowStyle}>
                                   <td>
@@ -991,8 +986,8 @@ const DetailMemberPage = () => {
                                     <div style={{ maxWidth: '200px' }}>
                                       {booking.notes ? (
                                         <small className="text-muted">
-                                          {booking.notes.length > 50 
-                                            ? `${booking.notes.substring(0, 50)}...` 
+                                          {booking.notes.length > 50
+                                            ? `${booking.notes.substring(0, 50)}...`
                                             : booking.notes}
                                         </small>
                                       ) : (
@@ -1006,7 +1001,7 @@ const DetailMemberPage = () => {
                           })()}
                         </tbody>
                       </table>
-                      
+
                       {/* Summary Statistics */}
                       <div className="mt-3 p-3 bg-light rounded">
                         <div className="row text-center">
@@ -1020,7 +1015,7 @@ const DetailMemberPage = () => {
                           </div>
                           <div className="col-md-3">
                             <div className="fw-bold text-success">
-                              {bookingStatusFilter === 'all' 
+                              {bookingStatusFilter === 'all'
                                 ? bookingSessions.filter(b => b.status === 'Đã hoàn thành').length
                                 : sortAndFilterBookings(bookingSessions).filter(b => b.status === 'Đã hoàn thành').length
                               }
@@ -1030,11 +1025,11 @@ const DetailMemberPage = () => {
                           <div className="col-md-3">
                             <div className="fw-bold text-warning">
                               {bookingStatusFilter === 'all'
-                                ? bookingSessions.filter(b => b.status === 'Đang chờ xác nhận' || b.status === 'Đã xác nhận').length
-                                : sortAndFilterBookings(bookingSessions).filter(b => b.status === 'Đang chờ xác nhận' || b.status === 'Đã xác nhận').length
+                                ? bookingSessions.filter(b => b.status === 'Đang chờ xác nhận' || b.status === 'Xác nhận thành công').length
+                                : sortAndFilterBookings(bookingSessions).filter(b => b.status === 'Đang chờ xác nhận' || b.status === 'Xác nhận thành công').length
                               }
                             </div>
-                            <small className="text-muted">Đang chờ/Đã xác nhận</small>
+                            <small className="text-muted">Đang chờ/Xác nhận thành công</small>
                           </div>
                           <div className="col-md-3">
                             <div className="fw-bold text-danger">
@@ -1046,7 +1041,7 @@ const DetailMemberPage = () => {
                             <small className="text-muted">Đã hủy/Bỏ lỡ</small>
                           </div>
                         </div>
-                        
+
                         {/* Additional Filter Info */}
                         {bookingStatusFilter !== 'all' && (
                           <div className="mt-3 text-center">
@@ -1054,7 +1049,7 @@ const DetailMemberPage = () => {
                               <i className="bi bi-funnel me-1"></i>
                               Hiển thị {sortAndFilterBookings(bookingSessions).length} trong tổng số {bookingSessions.length} lịch hẹn
                             </small>
-                            <button 
+                            <button
                               className="btn btn-sm btn-outline-secondary ms-2"
                               onClick={() => setBookingStatusFilter('all')}
                             >
