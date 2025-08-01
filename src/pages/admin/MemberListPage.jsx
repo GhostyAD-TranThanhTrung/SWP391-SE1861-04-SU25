@@ -29,11 +29,11 @@ const MemberListPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const maxPageNumbersToShow = 5;
-  
+
   // Sorting state
   const [sortField, setSortField] = useState('');
   const [sortDirection, setSortDirection] = useState('asc'); // 'asc' or 'desc'
-  
+
   // Statistics state - no longer needed as we'll calculate from filtered data
 
   // Helper function to calculate risk level from assessment data
@@ -56,10 +56,10 @@ const MemberListPage = () => {
         const hasSubstanceUse = resultData.result && resultData.result.some((answer, index) => {
           return index < 3 && answer.score > 0; // First 3 questions are Part A
         });
-        
+
         // Check CAR question (question 4, index 3)
         const hasCarRisk = resultData.result && resultData.result[3]?.score === 1;
-        
+
         // Create userAnswers object for CRAFFT assessment
         const userAnswers = {};
         if (resultData.result) {
@@ -67,14 +67,14 @@ const MemberListPage = () => {
             userAnswers[index] = answer;
           });
         }
-        
+
         riskLevel = assessCrafftRisk(score, userAnswers);
       } else if (assessmentType === 'assist') {
         // For ASSIST, check if it's cannabis or other substances
-        const isCannabis = resultData.result && resultData.result[0] && 
-          resultData.result[0].selectedOption && 
+        const isCannabis = resultData.result && resultData.result[0] &&
+          resultData.result[0].selectedOption &&
           resultData.result[0].selectedOption.includes('Cần sa');
-        
+
         riskLevel = assessAssistRisk(score, isCannabis);
       }
 
@@ -252,7 +252,7 @@ const MemberListPage = () => {
       );
       if (res.data.success) {
         const { data } = res.data;
-        
+
         if (data.action === "status_changed_to_inactive") {
           // Member has references, status changed to inactive
           alert(`Thành viên có ${data.references.total_count} tham chiếu (${data.references.blogs_count} blog, ${data.references.booking_sessions_count} phiên tư vấn, ${data.references.survey_responses_count} phản hồi khảo sát, ${data.references.assessments_count} đánh giá).\nTrạng thái đã được chuyển thành "Không hoạt động" thay vì xóa.`);
@@ -261,13 +261,13 @@ const MemberListPage = () => {
           let deletedEntities = [];
           if (data.deleted_entities.profile) deletedEntities.push("hồ sơ cá nhân");
           if (data.deleted_entities.user) deletedEntities.push("tài khoản người dùng");
-          
+
           alert(`Xóa thành viên thành công!\nĐã xóa: ${deletedEntities.join(", ")}`);
         } else {
           // Fallback message
           alert("Thao tác thành công!");
         }
-        
+
         // Refresh the member list to reflect changes
         fetchMembers();
       }
@@ -290,8 +290,8 @@ const MemberListPage = () => {
       console.log('Token exists:', !!token);
 
       setLoadingStatistics(true);
-      const res = await axios.get(`http://localhost:3000/api/members/detailed/${memberId}`, { 
-        headers: { Authorization: `Bearer ${token}` } 
+      const res = await axios.get(`http://localhost:3000/api/members/detailed/${memberId}`, {
+        headers: { Authorization: `Bearer ${token}` }
       });
 
       console.log('API Response Status:', res.status);
@@ -300,11 +300,11 @@ const MemberListPage = () => {
       if (res.data.success) {
         console.log('Member detail data received:', res.data.data);
         let memberData = res.data.data;
-        
+
         // Show popup first with basic data
         setSelectedMember(memberData);
         setShowPopup(true);
-        
+
         // Try to fetch additional statistics if not already included
         try {
           // Fetch course enrollment status
@@ -315,7 +315,7 @@ const MemberListPage = () => {
           const completedCourses = enrolledCourses.filter(course => course.enrollment_status?.has_complete);
           memberData.completed_courses_count = completedCourses.length;
           memberData.total_courses_count = enrolledCourses.length;
-          
+
           console.log('Course statistics:', {
             total: enrolledCourses.length,
             completed: completedCourses.length
@@ -332,7 +332,7 @@ const MemberListPage = () => {
             headers: { Authorization: `Bearer ${token}` }
           });
           memberData.blog_posts_count = blogsRes.data.data?.length || 0;
-          
+
           console.log('Blog statistics:', {
             count: memberData.blog_posts_count
           });
@@ -340,7 +340,7 @@ const MemberListPage = () => {
           console.warn('Could not fetch blog statistics:', blogError);
           memberData.blog_posts_count = 0;
         }
-        
+
         // Update with complete statistics
         setSelectedMember({...memberData});
         console.log('Member detail popup opened successfully with statistics');
@@ -379,8 +379,8 @@ const MemberListPage = () => {
     if (sortField !== field) {
       return <FaSort className="ms-1 text-muted" />;
     }
-    return sortDirection === 'asc' ? 
-      <FaSortUp className="ms-1 text-primary" /> : 
+    return sortDirection === 'asc' ?
+      <FaSortUp className="ms-1 text-primary" /> :
       <FaSortDown className="ms-1 text-primary" />;
   };
 
@@ -392,7 +392,7 @@ const MemberListPage = () => {
     }
     // Apply status filter and search term
     return (statusFilter === '' || member.status === statusFilter) &&
-           (searchTerm === '' || member.profile?.name?.toLowerCase().includes(searchTerm.toLowerCase()));
+      (searchTerm === '' || member.profile?.name?.toLowerCase().includes(searchTerm.toLowerCase()));
   });
 
   // Sort filtered members
@@ -449,7 +449,7 @@ const MemberListPage = () => {
 
   return (
     <div className="staff-container">
-      
+
       <div className="row g-4 mb-4">
         {/* Total Members Card */}
         <div className="col-xl-3 col-md-6">
@@ -552,8 +552,8 @@ const MemberListPage = () => {
         <div className="card-body">
           <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div className="d-flex gap-2 flex-wrap">
-              <button 
-                onClick={() => setShowInactive(!showInactive)} 
+              <button
+                onClick={() => setShowInactive(!showInactive)}
                 className={`btn shadow-sm ${showInactive ? 'btn-warning' : 'btn-outline-warning'}`}
                 title={showInactive ? "Ẩn người dùng không hoạt động" : "Hiển thị người dùng không hoạt động"}
               >
@@ -561,28 +561,28 @@ const MemberListPage = () => {
               </button>
             </div>
             <div className="d-flex gap-2 flex-wrap">
-          <select
+              <select
                 className="form-select shadow-sm"
                 style={{ minWidth: '150px' }}
-            value={statusFilter}
-            onChange={e => setStatusFilter(e.target.value)}
-          >
-            <option value="">Tất cả trạng thái</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="banned">Banned</option>
-          </select>
+                value={statusFilter}
+                onChange={e => setStatusFilter(e.target.value)}
+              >
+                <option value="">Tất cả trạng thái</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="banned">Banned</option>
+              </select>
               <div className="input-group" style={{ minWidth: '250px' }}>
-          <input
-            type="text"
+                <input
+                  type="text"
                   className="form-control shadow-sm"
-            placeholder="Tìm kiếm thành viên..."
-            value={searchTerm}
-            onChange={handleSearch}
-          />
+                  placeholder="Tìm kiếm thành viên..."
+                  value={searchTerm}
+                  onChange={handleSearch}
+                />
                 <button className="btn btn-outline-secondary shadow-sm" onClick={handleSearchClick}>
-            <FaSearch />
-          </button>
+                  <FaSearch />
+                </button>
               </div>
             </div>
           </div>
@@ -594,36 +594,36 @@ const MemberListPage = () => {
           <thead>
             <tr>
               <th>#</th>
-              <th 
-                onClick={() => handleSort('name')} 
+              <th
+                onClick={() => handleSort('name')}
                 style={{ cursor: 'pointer', userSelect: 'none' }}
                 title="Click to sort by name"
               >
                 Tên {getSortIcon('name')}
               </th>
-              <th 
-                onClick={() => handleSort('email')} 
+              <th
+                onClick={() => handleSort('email')}
                 style={{ cursor: 'pointer', userSelect: 'none' }}
                 title="Click to sort by email"
               >
                 Email {getSortIcon('email')}
               </th>
-              <th 
-                onClick={() => handleSort('role')} 
+              <th
+                onClick={() => handleSort('role')}
                 style={{ cursor: 'pointer', userSelect: 'none' }}
                 title="Click to sort by role"
               >
                 Vai trò {getSortIcon('role')}
               </th>
-              <th 
-                onClick={() => handleSort('status')} 
+              <th
+                onClick={() => handleSort('status')}
                 style={{ cursor: 'pointer', userSelect: 'none' }}
                 title="Click to sort by status"
               >
                 Trạng thái {getSortIcon('status')}
               </th>
-              <th 
-                onClick={() => handleSort('date_create')} 
+              <th
+                onClick={() => handleSort('date_create')}
                 style={{ cursor: 'pointer', userSelect: 'none' }}
                 title="Click to sort by creation date"
               >
@@ -636,7 +636,7 @@ const MemberListPage = () => {
             {paginatedMembers.map((member, index) => (
               <tr key={member.user_id}>
                 <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
-                <td>{member.profile.name}</td>
+                <td>{member.profile?.name ? member.profile.name : 'Unnamed'}</td>
                 <td>{member.email}</td>
                 <td>{member.role}</td>
                 <td>{member.status}</td>
@@ -724,11 +724,11 @@ const MemberListPage = () => {
                       <span className="member-detail-label">Họ và tên:</span>
                       <span className="member-detail-value" style={{ fontWeight: 'bold' }}>{selectedMember.profile?.name || 'Chưa cập nhật'}</span>
                     </div>
-              <div className="member-detail-row">
+                    <div className="member-detail-row">
                       <span className="member-detail-label">Email:</span>
                       <span className="member-detail-value">{selectedMember.user?.email || selectedMember.email || 'Chưa cập nhật'}</span>
-              </div>
-              <div className="member-detail-row">
+                    </div>
+                    <div className="member-detail-row">
                       <span className="member-detail-label">Nghề nghiệp:</span>
                       <span className="member-detail-value">{selectedMember.profile?.job || 'Chưa cập nhật'}</span>
                     </div>
@@ -741,20 +741,20 @@ const MemberListPage = () => {
                           new Date(selectedMember.profile.date_of_birth).toLocaleDateString('vi-VN') :
                           'Chưa cập nhật'}
                       </span>
-              </div>
-              <div className="member-detail-row">
+                    </div>
+                    <div className="member-detail-row">
                       <span className="member-detail-label">Vai trò:</span>
                       <span className="member-detail-value">{selectedMember.user?.role || selectedMember.role || 'Chưa cập nhật'}</span>
-              </div>
-              <div className="member-detail-row">
+                    </div>
+                    <div className="member-detail-row">
                       <span className="member-detail-label">Trạng thái:</span>
                       <span className="member-detail-value">
                         <span className={`status-badge ${(selectedMember.user?.status || selectedMember.status)?.toLowerCase()}`}>
                           {selectedMember.user?.status || selectedMember.status || 'Không xác định'}
                         </span>
                       </span>
-              </div>
-              <div className="member-detail-row">
+                    </div>
+                    <div className="member-detail-row">
                       <span className="member-detail-label">Ngày tạo tài khoản:</span>
                       <span className="member-detail-value">
                         {(selectedMember.user?.date_create || selectedMember.date_create) ?
@@ -802,7 +802,7 @@ const MemberListPage = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="col-md-4">
                   <div className="card h-100 border-0 shadow-sm">
                     <div className="card-body text-center" style={{ backgroundColor: '#e8f5e8' }}>
@@ -823,7 +823,7 @@ const MemberListPage = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="col-md-4">
                   <div className="card h-100 border-0 shadow-sm">
                     <div className="card-body text-center" style={{ backgroundColor: '#fff3e0' }}>
@@ -861,10 +861,10 @@ const MemberListPage = () => {
                       {selectedMember.assessments.slice(0, 3).map((assessment, index) => {
                         const { riskLevel, score } = calculateRiskLevel(assessment);
                         const riskLevelClass = getRiskLevelClass(riskLevel);
-                        
+
                         return (
                           <div key={index} className="col-md-4">
-                            <div className="card h-100 border-0" style={{ 
+                            <div className="card h-100 border-0" style={{
                               backgroundColor: assessment.type === 'assist' ? '#f8fff8' : '#f0f8ff',
                               border: `2px solid ${assessment.type === 'assist' ? '#28a745' : '#007bff'}20`
                             }}>
@@ -877,23 +877,23 @@ const MemberListPage = () => {
                                     {riskLevel}
                                   </span>
                                 </div>
-                                
+
                                 <div className="mb-2">
                                   <div className="d-flex justify-content-between">
                                     <small className="text-muted">Điểm số:</small>
                                     <strong style={{
                                       color: score >= 15 ? '#dc3545' :
                                         score >= 10 ? '#fd7e14' :
-                                        score >= 5 ? '#ffc107' : '#28a745'
+                                          score >= 5 ? '#ffc107' : '#28a745'
                                     }}>
                                       {score}
                                     </strong>
                                   </div>
                                 </div>
-                                
+
                                 <small className="text-muted d-block">
-                                  {assessment.create_at ? 
-                                    new Date(assessment.create_at).toLocaleDateString('vi-VN') : 
+                                  {assessment.create_at ?
+                                    new Date(assessment.create_at).toLocaleDateString('vi-VN') :
                                     'Chưa cập nhật'
                                   }
                                 </small>
@@ -903,7 +903,7 @@ const MemberListPage = () => {
                         );
                       })}
                     </div>
-                    
+
                     {selectedMember.assessments.length > 3 && (
                       <div className="text-center mt-3">
                         <small className="text-muted">
@@ -967,7 +967,7 @@ const MemberListPage = () => {
             <div className="form">
               <h2>Chỉnh sửa thành viên</h2>
               <form className="form-grid" onSubmit={handleUpdateSubmit}>
-                
+
                 {/* User Information Section */}
                 <div className="form-section-header form-grid-col-span-2">
                   <h3>Thông tin tài khoản</h3>
@@ -993,10 +993,10 @@ const MemberListPage = () => {
                 <div className="form-group">
                   <label className="form-label">Mật khẩu *</label>
                   <div className="d-flex align-items-center">
-                  <input
+                    <input
                       type={showPassword ? "text" : "password"}
-                    name="password"
-                    placeholder="Mật khẩu"
+                      name="password"
+                      placeholder="Mật khẩu"
                       value={getPasswordDisplayValue()}
                       onChange={(e) => {
                         if (showPassword) {
@@ -1005,7 +1005,7 @@ const MemberListPage = () => {
                         }
                       }}
                       disabled={!showPassword}
-                    className="form-input"
+                      className="form-input"
                       style={{ color: '#000', backgroundColor: '#fff' }}
                     />
                     {isAdmin && (
