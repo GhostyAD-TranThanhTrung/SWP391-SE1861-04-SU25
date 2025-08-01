@@ -78,11 +78,11 @@ const DetailCoursePage = () => {
 
             try {
                 // Decode token to get user ID
-                const tokenPayload = JSON.parse(atob(token.split('.')[1]));
-                setUserId(tokenPayload.userId);
+                // Do NOT decode token on frontend. Backend will get userId from token.
+                setUserId(null); // Optionally clear userId, or remove this line if not needed
 
-                // Check enrollment status by fetching user's enrollments for this program
-                const res = await fetch(`http://localhost:3000/api/enrollments/user/${tokenPayload.userId}`, {
+                // Check registration status by fetching user's enrollments for this event
+                const res = await fetch(`http://localhost:3000/api/enrollments/my`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
