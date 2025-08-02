@@ -327,7 +327,7 @@ class SurveyController {
         survey_id: survey.survey_id,
         type: survey.type,
         program_id: survey.program_id,
-        questions_count: survey.questions_json ? JSON.parse(survey.questions_json).questions?.length || 0 : 0,
+        questions_count: survey.questions_json ? JSON.parse(survey.questions_json).questions?.length : 0 ,
         responses_count: survey.responses?.length || 0
       });
 
@@ -373,11 +373,11 @@ class SurveyController {
           // Validate each question has required fields
           for (let i = 0; i < newQuestionsData.questions.length; i++) {
             const question = newQuestionsData.questions[i];
-            if (!question.id || !question.question) {
+            if (!question.id || !question.question || !question.options) {
               console.log("❌ Invalid question at index", i, ":", question);
               return res.status(400).json({
                 success: false,
-                message: `Question at index ${i} must have 'id' and 'question' properties`,
+                message: `Question at index ${i} must have 'id', 'options' and 'question' properties`,
               });
             }
           }
@@ -387,7 +387,7 @@ class SurveyController {
           try {
             if (survey.questions_json) {
               const currentData = JSON.parse(survey.questions_json);
-              currentQuestions = Array.isArray(currentData) ? currentData : (currentData.questions || []);
+              currentQuestions = currentData;
             }
           } catch (parseError) {
             console.log("⚠️ Could not parse current questions, treating as empty array");
@@ -404,7 +404,7 @@ class SurveyController {
           console.log("🔧 Current questions count:", currentQuestions.length);
           console.log("🔧 New questions count:", newQuestions.length);
 
-          // First, add all existing questions to processed list
+          // First, add all existing questions to processed list // backward compatibility with old data do not remove for now
           currentQuestions.forEach(existingQuestion => {
             processedQuestions.push({
               ...existingQuestion,
@@ -412,12 +412,22 @@ class SurveyController {
             });
           });
 
+          const hasOptionsOmitted = (oldOptions, newOptions) => {
+            if (!oldOptions || !newOptions) return false;
+            
+            // Check if any old options are missing in new options
+            return oldOptions.some(oldOption => 
+              !newOptions.includes(oldOption)
+            );
+          };
+
+
           // Process each new question
           newQuestions.forEach((newQuestion, index) => {
             const existingQuestionIndex = currentQuestions.findIndex(q => q.id === newQuestion.id);
             
             if (existingQuestionIndex !== -1) {
-              // Question exists, check if it has changed
+              // Question exists, check for changes or deletion
               const existingQuestion = currentQuestions[existingQuestionIndex];
               
               const hasQuestionChanged = 
@@ -427,38 +437,45 @@ class SurveyController {
                 existingQuestion.required !== newQuestion.required;
 
               if (hasQuestionChanged) {
-                console.log(`🔧 Question ${newQuestion.id} has changed, creating new version`);
+                const oldOptions = existingQuestion.options || [];
+                const newOptions = newQuestion.options || [];
                 
-                // Mark original question as deleted
-                processedQuestions[existingQuestionIndex].deleted = true;
-                
-                // Add new version with new ID
-                processedQuestions.push({
-                  ...newQuestion,
-                  id: nextQuestionId++,
-                  deleted: false,
-                  original_id: newQuestion.id, // Reference to original question
-                  version: (existingQuestion.version || 1) + 1
-                });
-                
-                hasChanges = true;
+                if (hasOptionsOmitted(oldOptions, newOptions)) {
+                  console.log(`🔧 Question ${newQuestion.id} has omitted options - creating new version`);
+                  console.log(`🔧 Old options:`, oldOptions);
+                  console.log(`🔧 New options:`, newOptions);
+                  
+                  processedQuestions[existingQuestionIndex].deleted = true;
+                  
+                  const newVersionId = nextQuestionId++;
+                  processedQuestions.push({
+                    ...newQuestion,
+                    id: newVersionId,                           // ✅ UNIQUE ID
+                    deleted: false,
+                    version: (existingQuestion.version || 1) + 1,
+                  });
+                  
+                  hasChanges = true;
+                  console.log(`✅ Created new question version with ID ${newVersionId} (original: ${existingQuestion.id})`);
+                  
+                } else {
+                  console.log(`🔧 Question ${newQuestion.id} updated safely (no options omitted)`);
+                  
+                  processedQuestions[existingQuestionIndex] = {
+                    ...newQuestion,
+                    deleted: newQuestion.deleted || false,
+                    version: (existingQuestion.version || 1) + 1
+                  };
+                  hasChanges = true;
+                }
               } else {
-                // Question unchanged, just ensure it's not marked as deleted
+                // No changes, ensure not deleted
                 processedQuestions[existingQuestionIndex].deleted = false;
               }
             } else {
-              // Completely new question
-              console.log(`🔧 Adding new question with ID ${newQuestion.id}`);
-              
-              // Check if this ID already exists in processed questions
-              const existingInProcessed = processedQuestions.find(q => q.id === newQuestion.id);
-              if (existingInProcessed) {
-                // ID conflict, assign new ID
-                newQuestion.id = nextQuestionId++;
-              }
-              
+              // New question - add it
               processedQuestions.push({
-                ...newQuestion,
+                ...newQuestion, 
                 deleted: false,
                 version: 1
               });
@@ -466,15 +483,15 @@ class SurveyController {
             }
           });
 
-          // Mark questions that were removed from the new list as deleted
+          // SINGLE place to handle implicit deletion (questions not in new list)
           currentQuestions.forEach(existingQuestion => {
             const stillExists = newQuestions.some(newQ => newQ.id === existingQuestion.id);
             if (!stillExists && !existingQuestion.deleted) {
-              console.log(`🔧 Marking question ${existingQuestion.id} as deleted (removed from new list)`);
               const processedIndex = processedQuestions.findIndex(q => q.id === existingQuestion.id);
               if (processedIndex !== -1) {
                 processedQuestions[processedIndex].deleted = true;
                 hasChanges = true;
+                console.log(`🔧 Question ${existingQuestion.id} implicitly deleted (removed from list)`);
               }
             }
           });
