@@ -212,10 +212,10 @@ class SurveyController {
         const processedQuestions = [];
         for (let i = 0; i < parsedQuestions.questions.length; i++) {
           const question = parsedQuestions.questions[i];
-          if (!question.id || !question.question) {
+          if (!question.id || !question.question || !question.options) {
             return res.status(400).json({
               success: false,
-              message: `Question at index ${i} must have 'id' and 'question' properties`,
+              message: `Question at index ${i} must have 'id', 'options' and 'question' properties`,
             });
           }
 
