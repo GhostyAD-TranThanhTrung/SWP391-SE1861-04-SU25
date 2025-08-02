@@ -15,7 +15,7 @@ const DetailCommunityEventPage = () => {
     const [registering, setRegistering] = useState(false);
     const [isRegistered, setIsRegistered] = useState(false);
     const [checkingRegistration, setCheckingRegistration] = useState(true);
-    const [userId, setUserId] = useState(null);
+    // Removed userId state; backend will get userId from token
     const [enrollmentData, setEnrollmentData] = useState(null);
     const [progressPercentage, setProgressPercentage] = useState(0);
     const [isCompleted, setIsCompleted] = useState(false);
@@ -373,7 +373,6 @@ const DetailCommunityEventPage = () => {
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    user_id: userId,
                     program_id: parseInt(id)
                 })
             });

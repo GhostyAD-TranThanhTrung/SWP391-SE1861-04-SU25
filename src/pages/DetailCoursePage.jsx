@@ -15,7 +15,6 @@ const DetailCoursePage = () => {
     const [enrolling, setEnrolling] = useState(false);
     const [isEnrolled, setIsEnrolled] = useState(false);
     const [checkingEnrollment, setCheckingEnrollment] = useState(true);
-    const [userId, setUserId] = useState(null);
     const [enrollmentData, setEnrollmentData] = useState(null);
     const [progressPercentage, setProgressPercentage] = useState(0);
     const [isCompleted, setIsCompleted] = useState(false);
@@ -77,10 +76,6 @@ const DetailCoursePage = () => {
             }
 
             try {
-                // Decode token to get user ID
-                // Do NOT decode token on frontend. Backend will get userId from token.
-                setUserId(null); // Optionally clear userId, or remove this line if not needed
-
                 // Check registration status by fetching user's enrollments for this event
                 const res = await fetch(`http://localhost:3000/api/enrollments/my`, {
                     headers: {
@@ -112,7 +107,7 @@ const DetailCoursePage = () => {
 
                             // If all content is complete but complete_at is not set, update it
                             if (allCompleted && !enrollmentInProgram.complete_at) {
-                                updateEnrollmentCompletion(tokenPayload.userId, parseInt(id));
+                                updateEnrollmentCompletion(enrollmentInProgram.user_id, parseInt(id));
                             }
                         }
                     } else {
@@ -348,7 +343,6 @@ const DetailCoursePage = () => {
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    user_id: userId,
                     program_id: parseInt(id)
                 })
             });
@@ -499,7 +493,7 @@ const DetailCoursePage = () => {
                                     </button>
                                 )}
                             </div>
-                        ) : userId ? (
+                        ) : (sessionStorage.getItem('token')) ? (
                             <div className="enroll-button-section">
                                 <button
                                     className={`enroll-button ${enrolling ? 'enrolling' : ''}`}

@@ -38,7 +38,9 @@ const ContentViewPage = () => {
                 const contentUrl = `${API_URL}/content/${contentId}`;
                 console.log('📡 GET content from:', contentUrl);
                 const contentRes = await fetch(contentUrl, {
-                    headers: getAuthHeaders()
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
                 });
 
                 if (!contentRes.ok) {
@@ -53,7 +55,9 @@ const ContentViewPage = () => {
                 const fileUrl = `${API_URL}/content/file/${contentId}`;
                 console.log('📡 GET content file from:', fileUrl);
                 const fileRes = await fetch(fileUrl, {
-                    headers: getAuthHeaders()
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
                 });
 
                 if (fileRes.ok) {
@@ -260,7 +264,9 @@ const ContentViewPage = () => {
             const contentsUrl = `${API_URL}/content/program/${programId}`;
             console.log('📡 GET program contents from:', contentsUrl);
             const contentsRes = await fetch(contentsUrl, {
-                headers: getAuthHeaders()
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             });
 
             if (contentsRes.ok) {
@@ -342,7 +348,9 @@ const ContentViewPage = () => {
             // Check if user is enrolled in this program
             const enrollmentUrl = `${API_URL}/enrollments/check/${programId}`;
             const enrollmentRes = await fetch(enrollmentUrl, {
-                headers: getAuthHeaders()
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             });
 
             if (enrollmentRes.ok) {
@@ -392,7 +400,9 @@ const ContentViewPage = () => {
 
             const res = await fetch(url, {
                 method: 'PATCH',
-                headers: getAuthHeaders()
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             });
 
             console.log('Toggle response status:', res.status);
