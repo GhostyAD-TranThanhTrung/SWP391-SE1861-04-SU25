@@ -14,13 +14,13 @@ const SurveyQuestionViewer = ({ survey, onEdit, readOnly = false }) => {
         : survey.questions_json;
     questions = parsed.questions || [];
   } catch (e) {
-    return <div>Invalid survey questions format.</div>;
+    return <div>Định dạng câu hỏi khảo sát không hợp lệ.</div>;
   }
 
   return (
     <div className="survey-question-viewer">
-      <h5 className="mb-3">Survey Questions</h5>
-      {questions.length === 0 && <div>No questions found.</div>}
+      <h5 className="mb-3">Câu hỏi khảo sát</h5>
+      {questions.length === 0 && <div>Không tìm thấy câu hỏi nào.</div>}
       {questions.map((q, idx) => (
         <div key={q.id || idx} className="question-block mb-4 p-3 border rounded bg-light">
           <div className="d-flex align-items-center mb-2">
@@ -40,7 +40,7 @@ const SurveyQuestionViewer = ({ survey, onEdit, readOnly = false }) => {
                 ))}
               </ul>
             ) : (
-              <div className="text-muted">No options</div>
+              <div className="text-muted">Không có tùy chọn</div>
             )}
           </div>
         </div>
@@ -48,7 +48,7 @@ const SurveyQuestionViewer = ({ survey, onEdit, readOnly = false }) => {
       {!readOnly && onEdit && (
         <div className="text-end">
           <button className="btn btn-warning" onClick={onEdit}>
-            Edit Survey
+            Chỉnh sửa khảo sát
           </button>
         </div>
       )}

@@ -3,12 +3,12 @@ import { FaPlus, FaTrash, FaSave, FaTimes, FaCopy } from "react-icons/fa";
 import { MdPreview } from "react-icons/md";
 // import "../../styles/SurveyQuestionCreator.scss";
 
-const SurveyQuestionCreator = ({ 
-  survey, 
-  onSave, 
-  onCancel, 
+const SurveyQuestionCreator = ({
+  survey,
+  onSave,
+  onCancel,
   onPreview,
-  isEditing = false 
+  isEditing = false
 }) => {
   const [questions, setQuestions] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState({
@@ -65,7 +65,7 @@ const SurveyQuestionCreator = ({
 
   const handleSaveQuestion = () => {
     console.log("SurveyQuestionCreator - Saving question:", currentQuestion);
-    
+
     if (!currentQuestion.question.trim()) {
       alert("Please enter a question text.");
       return;
@@ -77,7 +77,7 @@ const SurveyQuestionCreator = ({
     }
 
     const updatedQuestions = [...questions];
-    
+
     if (editingIndex !== null) {
       // Editing existing question
       console.log("SurveyQuestionCreator - Editing existing question at index:", editingIndex);
@@ -178,7 +178,7 @@ const SurveyQuestionCreator = ({
     console.log("🔄 SurveyQuestionCreator - handleSaveSurvey called");
     console.log("🔄 SurveyQuestionCreator - Current questions:", questions);
     console.log("🔄 SurveyQuestionCreator - Current survey prop:", survey);
-    
+
     if (questions.length === 0) {
       console.log("❌ SurveyQuestionCreator - No questions to save");
       alert("Please add at least one question to the survey.");
@@ -210,7 +210,7 @@ const SurveyQuestionCreator = ({
     console.log("✅ SurveyQuestionCreator - Questions structure:", surveyData.questions);
     console.log("✅ SurveyQuestionCreator - Number of questions:", surveyData.questions.questions.length);
     console.log("✅ SurveyQuestionCreator - Calling onSave callback");
-    
+
     onSave(surveyData);
   };
 
@@ -226,29 +226,29 @@ const SurveyQuestionCreator = ({
   return (
     <div className="survey-question-creator">
       <div className="creator-header">
-        <h5>{isEditing ? 'Edit' : 'Create'} Survey Questions</h5>
+        <h5>{isEditing ? 'Edit' : 'Create'} Câu hỏi khảo sát</h5>
         <div className="header-actions">
-          <button 
+          <button
             className="btn btn-outline-info btn-sm me-2"
             onClick={handlePreview}
           >
             <MdPreview className="me-1" />
             {showPreview ? 'Hide Preview' : 'Preview'}
           </button>
-          <button 
+          <button
             className="btn btn-success btn-sm me-2"
             onClick={handleSaveSurvey}
             disabled={questions.length === 0}
           >
             <FaSave className="me-1" />
-            Save Survey
+            Lưu khảo sát
           </button>
-          <button 
+          <button
             className="btn btn-secondary btn-sm"
             onClick={onCancel}
           >
             <FaTimes className="me-1" />
-            Cancel
+            Đóng
           </button>
         </div>
       </div>
@@ -257,12 +257,12 @@ const SurveyQuestionCreator = ({
         {/* Left: Question List */}
         <div className="questions-list">
           <div className="questions-header">
-            <h6>Questions ({questions.length})</h6>
+            <h6>Câu hỏi ({questions.length})</h6>
           </div>
           <div className="questions-scroll">
             {questions.length === 0 && (
               <div className="no-questions">
-                <p>No questions added yet. Click "Add Question" to get started.</p>
+                <p>Chưa có câu hỏi nào được thêm vào. Nhấp vào "Thêm câu hỏi" để bắt đầu.</p>
               </div>
             )}
             {questions.map((question, index) => (
@@ -333,7 +333,7 @@ const SurveyQuestionCreator = ({
                     onClick={e => { e.stopPropagation(); handleEditQuestion(index); }}
                     title="Edit"
                   >
-                    Edit
+                    Biên tập
                   </button>
                   <button
                     className="btn btn-sm btn-outline-info"
@@ -354,12 +354,12 @@ const SurveyQuestionCreator = ({
             ))}
           </div>
           <div className="add-question-sticky">
-            <button 
+            <button
               className="btn btn-primary"
               onClick={handleAddQuestion}
             >
               <FaPlus className="me-1" />
-              Add Question
+              Thêm câu hỏi
             </button>
           </div>
         </div>
@@ -417,7 +417,7 @@ const SurveyQuestionCreator = ({
                       onClick={handleAddOption}
                     >
                       <FaPlus className="me-1" />
-                      Add Option
+                      Thêm tùy chọn
                     </button>
                   </div>
                 </div>
@@ -427,7 +427,7 @@ const SurveyQuestionCreator = ({
                     onClick={handleSaveQuestion}
                   >
                     <FaSave className="me-1" />
-                    Save Question
+                    Lưu câu hỏi
                   </button>
                   {editingIndex !== null && (
                     <button
@@ -435,7 +435,7 @@ const SurveyQuestionCreator = ({
                       onClick={handleCancelEdit}
                     >
                       <FaTimes className="me-1" />
-                      Cancel
+                      Đóng
                     </button>
                   )}
                 </div>
@@ -443,7 +443,7 @@ const SurveyQuestionCreator = ({
             </div>
           ) : (
             <div className="editor-placeholder">
-              <p>Select a question to edit or click "Add Question" to create a new one.</p>
+              <p>Chọn câu hỏi để chỉnh sửa hoặc nhấp vào "Thêm câu hỏi" để tạo câu hỏi mới.</p>
             </div>
           )}
         </div>
@@ -452,7 +452,7 @@ const SurveyQuestionCreator = ({
       {/* Preview Section (full width below) */}
       {showPreview && (
         <div className="preview-section">
-          <h6>Preview</h6>
+          <h6>Xem trước</h6>
           <div className="preview-questions">
             {questions.map((question, index) => (
               <div key={question.id} className="preview-question">

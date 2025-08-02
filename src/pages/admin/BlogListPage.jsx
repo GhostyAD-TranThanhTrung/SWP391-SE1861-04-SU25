@@ -103,7 +103,7 @@ const BlogListPage = () => {
     }
 
   }
-    useEffect(() => {
+  useEffect(() => {
     (async () => {
       await userRole()
     })()
@@ -538,7 +538,7 @@ const BlogListPage = () => {
               <div className="ms-3">
                 <div className="small text-muted">Blog đã xuất bản</div>
                 <div className="h3 mb-0 fw-bold">{publishedCount}</div>
-                <div className="small text-muted">published</div>
+                <div className="small text-muted">được xuất bản</div>
               </div>
             </div>
           </div>
@@ -562,7 +562,7 @@ const BlogListPage = () => {
               <div className="ms-3">
                 <div className="small text-muted">Bản nháp</div>
                 <div className="h3 mb-0 fw-bold">{draftCount}</div>
-                <div className="small text-muted">draft</div>
+                <div className="small text-muted">Nháp</div>
               </div>
             </div>
           </div>
@@ -586,7 +586,7 @@ const BlogListPage = () => {
               <div className="ms-3">
                 <div className="small text-muted">Chờ duyệt</div>
                 <div className="h3 mb-0 fw-bold">{pendingCount}</div>
-                <div className="small text-muted">pending</div>
+                <div className="small text-muted">Chờ duyệt</div>
               </div>
             </div>
           </div>

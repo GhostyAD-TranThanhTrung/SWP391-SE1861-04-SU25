@@ -709,7 +709,7 @@ const ConsultantListPage = () => {
               <div className="ms-3">
                 <div className="small text-muted">Tư vấn viên hoạt động</div>
                 <div className="h3 mb-0 fw-bold">{activeCount}</div>
-                <div className="small text-muted">active</div>
+                <div className="small text-muted">Hoạt động</div>
               </div>
             </div>
           </div>
@@ -733,7 +733,7 @@ const ConsultantListPage = () => {
               <div className="ms-3">
                 <div className="small text-muted">Không hoạt động</div>
                 <div className="h3 mb-0 fw-bold">{inactiveCount}</div>
-                <div className="small text-muted">inactive</div>
+                <div className="small text-muted">Không hoạt động</div>
               </div>
             </div>
           </div>
@@ -757,7 +757,7 @@ const ConsultantListPage = () => {
               <div className="ms-3">
                 <div className="small text-muted">Bị cấm</div>
                 <div className="h3 mb-0 fw-bold">{bannedCount}</div>
-                <div className="small text-muted">banned</div>
+                <div className="small text-muted">Bị cấm</div>
               </div>
             </div>
           </div>
@@ -787,9 +787,9 @@ const ConsultantListPage = () => {
                 onChange={handleStatusFilterChange}
               >
                 <option value="all">Tất cả trạng thái</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="banned">Banned</option>
+                <option value="active">Hoạt động</option>
+                <option value="inactive">Không hoạt động</option>
+                <option value="banned">Bị cấm</option>
               </select>
               <div className="input-group" style={{ minWidth: '250px' }}>
                 <input
@@ -816,35 +816,35 @@ const ConsultantListPage = () => {
               <th
                 onClick={() => handleSort('name')}
                 style={{ cursor: 'pointer', userSelect: 'none' }}
-                title="Click to sort by name"
+                title="Nhấn để sắp xếp theo tên"
               >
                 Tên {getSortIcon('name')}
               </th>
               <th
                 onClick={() => handleSort('email')}
                 style={{ cursor: 'pointer', userSelect: 'none' }}
-                title="Click to sort by email"
+                title="Nhấn để sắp xếp theo email"
               >
                 Email {getSortIcon('email')}
               </th>
               <th
                 onClick={() => handleSort('role')}
                 style={{ cursor: 'pointer', userSelect: 'none' }}
-                title="Click to sort by role"
+                title="Nhấn để sắp xếp theo vai trò"
               >
                 Vai trò {getSortIcon('role')}
               </th>
               <th
                 onClick={() => handleSort('status')}
                 style={{ cursor: 'pointer', userSelect: 'none' }}
-                title="Click to sort by status"
+                title="Nhấn để sắp xếp theo trạng thái"
               >
                 Trạng thái {getSortIcon('status')}
               </th>
               <th
                 onClick={() => handleSort('date_create')}
                 style={{ cursor: 'pointer', userSelect: 'none' }}
-                title="Click to sort by creation date"
+                title="Nhấn để sắp xếp theo ngày tạo"
               >
                 Ngày tạo {getSortIcon('date_create')}
               </th>
