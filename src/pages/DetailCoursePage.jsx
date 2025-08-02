@@ -156,105 +156,13 @@ const DetailCoursePage = () => {
 
     // Function to check survey completion status
     const checkSurveyStatus = async () => {
-        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-        if (!token || !isEnrolled) return;
-
-        setCheckingSurveyStatus(true);
-        try {
-            // Check for pre-assessment survey
-            const preResponse = await fetch(
-                `http://localhost:3000/api/surveys/program/${id}/type/pre-assessment`,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                }
-            );
-
-            let preExists = false;
-            let preCompleted = false;
-
-            if (preResponse.ok) {
-                const preData = await preResponse.json();
-                if (preData.success && preData.data && preData.data.length > 0) {
-                    preExists = true;
-                    const preSurvey = preData.data[0];
-
-                    // Check if user has responded
-                    const preCheckResponse = await fetch(
-                        `http://localhost:3000/api/survey-responses/check/${preSurvey.survey_id}`,
-                        {
-                            headers: {
-                                'Authorization': `Bearer ${token}`,
-                                'Content-Type': 'application/json'
-                            }
-                        }
-                    );
-
-                    if (preCheckResponse.ok) {
-                        const preCheckData = await preCheckResponse.json();
-                        preCompleted = preCheckData.success && preCheckData.hasResponded;
-                    }
-                }
-            }
-
-            // Check for post-assessment survey
-            const postResponse = await fetch(
-                `http://localhost:3000/api/surveys/program/${id}/type/post-assessment`,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                }
-            );
-
-            let postExists = false;
-            let postCompleted = false;
-
-            if (postResponse.ok) {
-                const postData = await postResponse.json();
-                if (postData.success && postData.data && postData.data.length > 0) {
-                    postExists = true;
-                    const postSurvey = postData.data[0];
-
-                    // Check if user has responded
-                    const postCheckResponse = await fetch(
-                        `http://localhost:3000/api/survey-responses/check/${postSurvey.survey_id}`,
-                        {
-                            headers: {
-                                'Authorization': `Bearer ${token}`,
-                                'Content-Type': 'application/json'
-                            }
-                        }
-                    );
-
-                    if (postCheckResponse.ok) {
-                        const postCheckData = await postCheckResponse.json();
-                        postCompleted = postCheckData.success && postCheckData.hasResponded;
-                    }
-                }
-            }
-
-            // Update states
-            setPreAssessmentExists(preExists);
-            setPostAssessmentExists(postExists);
-            setPreAssessmentCompleted(preCompleted);
-            setPostAssessmentCompleted(postCompleted);
-            setSurveysChecked(true);
-
-        } catch (err) {
-            console.error('Error checking survey status:', err);
-            // Set defaults if there's an error
-            setPreAssessmentExists(false);
-            setPostAssessmentExists(false);
-            setPreAssessmentCompleted(false);
-            setPostAssessmentCompleted(false);
-            setSurveysChecked(true);
-        } finally {
-            setCheckingSurveyStatus(false);
-        }
+        // Simplified survey status check - just set default states
+        setPreAssessmentExists(false);
+        setPostAssessmentExists(false);
+        setPreAssessmentCompleted(false);
+        setPostAssessmentCompleted(false);
+        setSurveysChecked(true);
+        setCheckingSurveyStatus(false);
     };
 
     // Function to update enrollment completion
@@ -279,11 +187,6 @@ const DetailCoursePage = () => {
                 setProgressPercentage(100);
                 setJustCompleted(true);
                 console.log('Course completion updated successfully');
-
-                // Trigger post-assessment survey
-                setTimeout(() => {
-                    triggerSurvey('post-assessment');
-                }, 1000); // Small delay to let completion state update
             }
         } catch (err) {
             console.error('Error updating course completion:', err);
@@ -356,11 +259,6 @@ const DetailCoursePage = () => {
                 setTimeout(() => {
                     checkSurveyStatus();
                 }, 500);
-
-                // Trigger pre-assessment survey after successful enrollment
-                setTimeout(() => {
-                    triggerSurvey('pre-assessment');
-                }, 1500); // Small delay to let enrollment success message show
             } else {
                 const errorData = await res.json();
                 alert(errorData.message || 'Có lỗi xảy ra khi đăng ký');
@@ -435,7 +333,7 @@ const DetailCoursePage = () => {
                             <p>{program.description}</p>
                         </div>
                     </div>
-                    
+
                     <div className="enroll-section">
                         {checkingEnrollment ? (
                             <div className="enrollment-checking">
@@ -459,7 +357,7 @@ const DetailCoursePage = () => {
                                         <p>Bạn có thể xem tất cả nội dung khóa học bên dưới</p>
                                     </div>
                                 )}
-                                
+
                                 {/* Survey Buttons */}
                                 {!checkingSurveyStatus && surveysChecked && (
                                     <div className="survey-buttons">
@@ -481,7 +379,7 @@ const DetailCoursePage = () => {
                                         )}
                                     </div>
                                 )}
-                                
+
                                 {/* Delete Enrollment Button */}
                                 {!isCompleted && (
                                     <button
@@ -574,9 +472,9 @@ const DetailCoursePage = () => {
                                             <td className="title-cell">{content.title}</td>
                                             <td className="type-cell">
                                                 <span className={`content-type ${content.type}`}>
-                                                    {content.type === 'article' ? 'Bài viết' : 
-                                                     content.type === 'video' ? 'Video' : 
-                                                     content.type === 'audio' ? 'Âm thanh' : content.type}
+                                                    {content.type === 'article' ? 'Bài viết' :
+                                                        content.type === 'video' ? 'Video' :
+                                                            content.type === 'audio' ? 'Âm thanh' : content.type}
                                                 </span>
                                             </td>
                                             <td className="complete-cell">

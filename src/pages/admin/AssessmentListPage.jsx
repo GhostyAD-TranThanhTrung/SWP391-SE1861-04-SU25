@@ -43,12 +43,16 @@ const AssessmentListPage = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       )
       if (!(res.data.role && (res.data.role === 'admin' || res.data.role === 'manager' || res.data.role === 'staff'))) navigate('/admin/login')
-    } catch{
+    } catch {
       navigate('/admin/login')
     }
 
   }
-  userRole()
+  useEffect(() => {
+    (async () => {
+      await userRole()
+    })()
+  }, [])
 
 
   const fetchAssessments = async () => {
@@ -97,19 +101,19 @@ const AssessmentListPage = () => {
     if (sortField !== field) {
       return <FaSort className="ms-1 text-muted" />;
     }
-    return sortDirection === 'asc' ? 
-      <FaSortUp className="ms-1 text-primary" /> : 
+    return sortDirection === 'asc' ?
+      <FaSortUp className="ms-1 text-primary" /> :
       <FaSortDown className="ms-1 text-primary" />;
   };
 
   // Filtering and pagination logic
   const filteredAssessments = assessments.filter(assessment => {
     const matchesSearch = assessment.user_id?.toString().includes(searchTerm) ||
-                         assessment.assessment_id?.toString().includes(searchTerm) ||
-                         assessment.type?.toLowerCase().includes(searchTerm.toLowerCase());
-    
+      assessment.assessment_id?.toString().includes(searchTerm) ||
+      assessment.type?.toLowerCase().includes(searchTerm.toLowerCase());
+
     const matchesType = !filterType || assessment.type === filterType;
-    
+
     return matchesSearch && matchesType;
   });
 
@@ -170,12 +174,12 @@ const AssessmentListPage = () => {
 
   // Get unique action types
   const actionTypes = Object.keys(actionsByType);
-  
+
   // Prepare data for each action type
   const getChartDataForType = (actionType) => {
     const actionsOfType = actionsByType[actionType] || [];
     const actionIdCounts = {};
-    
+
     assessments.forEach(assessment => {
       if (assessment.action_id && assessment.action_id !== 1) {
         const action = actions.find(a => a.action_id === assessment.action_id);
@@ -197,7 +201,7 @@ const AssessmentListPage = () => {
     if (actionStatsCanvasRef1.current && actionTypes.length > 0 && actions.length > 0) {
       const firstType = actionTypes[0];
       const chartData = getChartDataForType(firstType);
-      
+
       if (chartData.actionIds.length > 0) {
         const ctx = actionStatsCanvasRef1.current.getContext('2d');
         if (actionStatsChartInstance1.current) {
@@ -239,7 +243,7 @@ const AssessmentListPage = () => {
     if (actionStatsCanvasRef2.current && actionTypes.length > 1 && actions.length > 0) {
       const secondType = actionTypes[1];
       const chartData = getChartDataForType(secondType);
-      
+
       if (chartData.actionIds.length > 0) {
         const ctx = actionStatsCanvasRef2.current.getContext('2d');
         if (actionStatsChartInstance2.current) {
@@ -299,10 +303,10 @@ const AssessmentListPage = () => {
         const hasSubstanceUse = resultData.result && resultData.result.some((answer, index) => {
           return index < 3 && answer.score > 0; // First 3 questions are Part A
         });
-        
+
         // Check CAR question (question 4, index 3)
         const hasCarRisk = resultData.result && resultData.result[3]?.score === 1;
-        
+
         // Create userAnswers object for CRAFFT assessment
         const userAnswers = {};
         if (resultData.result) {
@@ -310,14 +314,14 @@ const AssessmentListPage = () => {
             userAnswers[index] = answer;
           });
         }
-        
+
         riskLevel = assessCrafftRisk(score, userAnswers);
       } else if (assessmentType === 'assist') {
         // For ASSIST, check if it's cannabis or other substances
-        const isCannabis = resultData.result && resultData.result[0] && 
-          resultData.result[0].selectedOption && 
+        const isCannabis = resultData.result && resultData.result[0] &&
+          resultData.result[0].selectedOption &&
           resultData.result[0].selectedOption.includes('Cần sa');
-        
+
         riskLevel = assessAssistRisk(score, isCannabis);
       }
 
@@ -457,22 +461,22 @@ const AssessmentListPage = () => {
           <thead>
             <tr>
               <th>#</th>
-              <th 
-                onClick={() => handleSort('assessment_id')} 
+              <th
+                onClick={() => handleSort('assessment_id')}
                 style={{ cursor: 'pointer', userSelect: 'none' }}
                 title="Click to sort by assessment ID"
               >
                 ID Bài đánh giá {getSortIcon('assessment_id')}
               </th>
-              <th 
-                onClick={() => handleSort('user_id')} 
+              <th
+                onClick={() => handleSort('user_id')}
                 style={{ cursor: 'pointer', userSelect: 'none' }}
                 title="Click to sort by user ID"
               >
                 ID Người dùng {getSortIcon('user_id')}
               </th>
-              <th 
-                onClick={() => handleSort('type')} 
+              <th
+                onClick={() => handleSort('type')}
                 style={{ cursor: 'pointer', userSelect: 'none' }}
                 title="Click to sort by type"
               >
@@ -480,15 +484,15 @@ const AssessmentListPage = () => {
               </th>
               <th>Điểm số</th>
               <th>Mức độ rủi ro</th>
-              <th 
-                onClick={() => handleSort('action_id')} 
+              <th
+                onClick={() => handleSort('action_id')}
                 style={{ cursor: 'pointer', userSelect: 'none' }}
                 title="Click to sort by action ID"
               >
                 Action ID {getSortIcon('action_id')}
               </th>
-              <th 
-                onClick={() => handleSort('created_at')} 
+              <th
+                onClick={() => handleSort('created_at')}
                 style={{ cursor: 'pointer', userSelect: 'none' }}
                 title="Click to sort by creation date"
               >
@@ -523,8 +527,8 @@ const AssessmentListPage = () => {
                   <td>{assessment.action_id || 'N/A'}</td>
                   <td>{assessment.create_at ? new Date(assessment.create_at).toLocaleDateString('vi-VN') : 'N/A'}</td>
                   <td className="action-buttons">
-                    <button 
-                      className="btn btn-light me-2" 
+                    <button
+                      className="btn btn-light me-2"
                       title="Xem chi tiết"
                       onClick={() => handleViewDetail(assessment)}
                     >
@@ -566,7 +570,7 @@ const AssessmentListPage = () => {
             </div>
           </div>
         )}
-        
+
         {/* Second Chart */}
         {actionTypes.length > 1 && (
           <div className="col-lg-6 mb-4">
@@ -650,9 +654,9 @@ const AssessmentListPage = () => {
                 <h5 className="modal-title">
                   Chi tiết bài đánh giá #{selectedAssessment.assessment_id}
                 </h5>
-                <button 
-                  type="button" 
-                  className="btn-close" 
+                <button
+                  type="button"
+                  className="btn-close"
                   onClick={handleCloseDetailModal}
                   aria-label="Close"
                 ></button>
@@ -727,7 +731,7 @@ const AssessmentListPage = () => {
                             const resultData = typeof selectedAssessment.result_json === 'string'
                               ? JSON.parse(selectedAssessment.result_json)
                               : selectedAssessment.result_json;
-                            
+
                             if (resultData && resultData.result && Array.isArray(resultData.result)) {
                               return (
                                 <div className="table-responsive" style={{ maxHeight: '400px', overflow: 'auto' }}>

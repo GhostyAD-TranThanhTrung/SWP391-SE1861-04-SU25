@@ -49,7 +49,11 @@ const CourseListPage = () => {
     }
 
   }
-  userRole()
+    useEffect(() => {
+    (async () => {
+      await userRole()
+    })()
+  }, [])
   // Modal states
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);

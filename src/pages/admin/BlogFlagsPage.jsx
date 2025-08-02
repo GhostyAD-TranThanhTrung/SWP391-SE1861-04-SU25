@@ -25,7 +25,11 @@ const BlogFlagsPage = () => {
     }
 
   }
-  userRole()
+    useEffect(() => {
+    (async () => {
+      await userRole()
+    })()
+  }, [])
   useEffect(() => {
     fetchBlogAndFlags();
   }, [blogId]);

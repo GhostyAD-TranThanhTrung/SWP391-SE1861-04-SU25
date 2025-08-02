@@ -57,7 +57,11 @@ const StaffListPage = () => {
     }
 
   }
-  userRole()
+  useEffect(() => {
+    (async () => {
+      await userRole()
+    })()
+  }, [])
   const fetchStaffs = async () => {
     try {
       const res = await axios.get("http://localhost:3000/api/staff", {

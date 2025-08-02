@@ -71,11 +71,13 @@ const ConsultantListPage = () => {
     }
 
   }
-  (
-    async () => {
+
+  useEffect(() => {
+    (async () => {
       await userRole()
-    }
-  )()
+    })()
+  }, [])
+
 
   // Days of week configuration
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];

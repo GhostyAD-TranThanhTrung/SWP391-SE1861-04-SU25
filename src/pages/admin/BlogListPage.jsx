@@ -103,7 +103,11 @@ const BlogListPage = () => {
     }
 
   }
-  userRole()
+    useEffect(() => {
+    (async () => {
+      await userRole()
+    })()
+  }, [])
   const fetchBlogs = async (page = currentPage) => {
     try {
       let endpoint = "http://localhost:3000/api/admin/blogs";

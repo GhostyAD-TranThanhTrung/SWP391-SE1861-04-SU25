@@ -24,7 +24,11 @@ const DashboardPage = () => {
     }
 
   }
-  userRole()
+    useEffect(() => {
+    (async () => {
+      await userRole()
+    })()
+  }, [])
   const [dashboardData, setDashboardData] = useState({
     totalMonthlyCourseEnrollment: 0,
     totalMonthlyCourseCompletion: 0,

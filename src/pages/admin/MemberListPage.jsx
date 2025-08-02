@@ -120,7 +120,11 @@ const MemberListPage = () => {
     }
 
   }
-  userRole()
+    useEffect(() => {
+    (async () => {
+      await userRole()
+    })()
+  }, [])
   const fetchMembers = async () => {
     try {
       const res = await axios.get("http://localhost:3000/api/members", { headers: { Authorization: `Bearer ${token}` } });
