@@ -202,7 +202,7 @@ const MemberListPage = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (res.data.success) {
-        fetchMembers();
+        await fetchMembers();
         handleClosePopup();
       }
     } catch (err) {
@@ -216,7 +216,7 @@ const MemberListPage = () => {
 
   const handleSearchClick = async () => {
     if (searchTerm.trim() === '') {
-      fetchMembers();
+      await fetchMembers();
       return;
     }
     try {
@@ -230,7 +230,11 @@ const MemberListPage = () => {
   };
 
   useEffect(() => {
-    fetchMembers();
+    (
+      async () => {
+        await fetchMembers();
+      }
+    )()
   }, []);
 
   const handleOpenDeleteDialog = (memberId) => {
@@ -269,7 +273,7 @@ const MemberListPage = () => {
         }
 
         // Refresh the member list to reflect changes
-        fetchMembers();
+        await fetchMembers();
       }
     } catch (err) {
       console.error("Lỗi khi xóa thành viên:", err);
@@ -342,7 +346,7 @@ const MemberListPage = () => {
         }
 
         // Update with complete statistics
-        setSelectedMember({...memberData});
+        setSelectedMember({ ...memberData });
         console.log('Member detail popup opened successfully with statistics');
       } else {
         console.error("Failed to fetch member details:", res.data.message);
