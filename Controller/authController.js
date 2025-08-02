@@ -79,7 +79,7 @@ class AuthController {
       console.log(`⏰ Login time: ${new Date().toLocaleString()}`);
       console.log("=".repeat(50));
 
-      if (user.role === 'member' || user.role === 'admin') {
+      if (user.role === 'member') {
         return res.status(200).json({
           success: true,
           message: "Login successful",
@@ -100,13 +100,25 @@ class AuthController {
           user_id: user.user_id
         },
       });
-      const bio_json = JSON.parse(profile.bio_json)
-      const first_time = bio_json.first_time
 
-
-
-      // Return success response with user data and the token
-      if (first_time) {
+      try {
+        const bio_json = JSON.parse(profile.bio_json)
+        const first_time = bio_json.first_time
+        if (first_time) {
+          return res.status(200).json({
+            success: true,
+            message: "Login successful",
+            user: {
+              id: user.user_id,
+              email: user.email,
+              role: user.role || "member",
+              img_link: user.img_link || null, // Add img_link to response
+              first_time: first_time
+            },
+            token: token, // Include the JWT token in the response
+          });
+        }
+      } catch (err) {
         return res.status(200).json({
           success: true,
           message: "Login successful",
@@ -115,11 +127,14 @@ class AuthController {
             email: user.email,
             role: user.role || "member",
             img_link: user.img_link || null, // Add img_link to response
-            first_time: first_time
           },
           token: token, // Include the JWT token in the response
         });
       }
+
+
+      // Return success response with user data and the token
+
       return res.status(200).json({
         success: true,
         message: "Login successful",
