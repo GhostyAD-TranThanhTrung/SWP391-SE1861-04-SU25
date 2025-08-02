@@ -385,7 +385,7 @@ const AssessmentListPage = () => {
               </div>
               <div>
                 <h3 className="mb-1" style={{ color: '#212529', fontSize: '1.8rem', fontWeight: 'bold' }}>{typeStats['CRAFFT'] || 0}</h3>
-                <p className="text-muted mb-0" style={{ fontSize: '0.9rem' }}>CRAFFT Assessments</p>
+                <p className="text-muted mb-0" style={{ fontSize: '0.9rem' }}>Đánh giá CRAFFT</p>
               </div>
             </div>
           </div>
@@ -399,7 +399,7 @@ const AssessmentListPage = () => {
               </div>
               <div>
                 <h3 className="mb-1" style={{ color: '#212529', fontSize: '1.8rem', fontWeight: 'bold' }}>{typeStats['ASSIST'] || 0}</h3>
-                <p className="text-muted mb-0" style={{ fontSize: '0.9rem' }}>ASSIST Assessments</p>
+                <p className="text-muted mb-0" style={{ fontSize: '0.9rem' }}>Đánh giá ASSIST</p>
               </div>
             </div>
           </div>

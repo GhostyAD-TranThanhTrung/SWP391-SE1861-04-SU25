@@ -1,19 +1,19 @@
 import React, { useState, useRef, useEffect } from "react";
-import { 
-  FaPlus, FaTrash, FaSave, FaTimes, FaImage, FaCode, FaEye, FaBold, FaItalic, 
+import {
+  FaPlus, FaTrash, FaSave, FaTimes, FaImage, FaCode, FaEye, FaBold, FaItalic,
   FaLink, FaListUl, FaListOl, FaQuoteLeft, FaTable, FaUndo, FaRedo,
   FaHeading, FaStrikethrough, FaExpand, FaCompress, FaVideo, FaExternalLinkAlt
 } from "react-icons/fa";
 import { MdCancel, MdSave, MdPreview, MdVerticalSplit, MdFullscreen } from "react-icons/md";
 import "../styles/ContentCreator.scss";
 
-const ContentCreator = ({ 
-  program, 
-  contents, 
-  onSave, 
-  onCancel, 
+const ContentCreator = ({
+  program,
+  contents,
+  onSave,
+  onCancel,
   onDelete,
-  onUpdate 
+  onUpdate
 }) => {
   const [showMarkdownEditor, setShowMarkdownEditor] = useState(false);
   const [markdownContent, setMarkdownContent] = useState("");
@@ -23,7 +23,7 @@ const ContentCreator = ({
   const [uploadedImages, setUploadedImages] = useState([]); // Store uploaded image paths
   const [showImagePanel, setShowImagePanel] = useState(false); // Toggle image panel
   const textareaRef = useRef(null);
-  
+
   const [newContent, setNewContent] = useState({
     title: "",
     type: "markdown",
@@ -55,7 +55,7 @@ const ContentCreator = ({
     if (!editingContent) {
       const markdownDraft = localStorage.getItem('markdown-draft');
       const videoDraft = localStorage.getItem('video-url-draft');
-      
+
       if (markdownDraft && newContent.type === 'markdown') {
         setMarkdownContent(markdownDraft);
       }
@@ -81,9 +81,9 @@ const ContentCreator = ({
     const end = selectionEnd ?? textarea.selectionEnd;
     const before = markdownContent.substring(0, start);
     const after = markdownContent.substring(end);
-    
+
     setMarkdownContent(before + text + after);
-    
+
     // Set cursor position after insertion
     setTimeout(() => {
       textarea.focus();
@@ -99,7 +99,7 @@ const ContentCreator = ({
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const selectedText = markdownContent.substring(start, end);
-    
+
     if (selectedText) {
       insertAtCursor(before + selectedText + after, start, end);
     } else {
@@ -135,9 +135,9 @@ const ContentCreator = ({
       // Images - convert relative paths to absolute URLs for live preview
       .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, src) => {
         console.log('Image found in markdown:', { match, alt, src });
-        
+
         let finalSrc = src;
-        
+
         // Handle different path formats and convert to API endpoint
         if (src.startsWith('../image/')) {
           const filename = src.replace('../image/', '');
@@ -163,7 +163,7 @@ const ContentCreator = ({
           console.log('Converted plain filename to API path:', finalSrc);
         }
         // If it's already a valid HTTP URL or data URL, keep it as is
-        
+
         const imgTag = `<img src="${finalSrc}" alt="${alt}" style="max-width: 100%; height: auto; border-radius: 8px; margin: 10px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" onError="console.error('Image failed to load:', '${finalSrc}'); this.style.border='2px dashed #dc3545'; this.style.padding='20px'; this.style.backgroundColor='#f8d7da'; this.style.color='#721c24'; this.innerHTML='❌ Image failed to load: ${alt || 'Unknown'}'; this.style.textAlign='center';" />`;
         console.log('Generated img tag:', imgTag);
         return imgTag;
@@ -181,7 +181,7 @@ const ContentCreator = ({
     // Wrap lists
     html = html.replace(/(<li class="ordered">.*?<\/li>(?:\s*<br\/>\s*<li class="ordered">.*?<\/li>)*)/gims, '<ol>$1</ol>');
     html = html.replace(/(<li class="unordered">.*?<\/li>(?:\s*<br\/>\s*<li class="unordered">.*?<\/li>)*)/gims, '<ul>$1</ul>');
-    
+
     // Clean up
     html = html.replace(/<br\/>\s*(<[ou]l>)/gim, '$1');
     html = html.replace(/(<\/[ou]l>)\s*<br\/>/gim, '$1');
@@ -214,7 +214,7 @@ const ContentCreator = ({
   const handleImageUpload = async (file) => {
     const formData = new FormData();
     formData.append('image', file);
-    
+
     // Get image dimensions before upload
     const getImageDimensions = (file) => {
       return new Promise((resolve) => {
@@ -231,15 +231,15 @@ const ContentCreator = ({
         img.src = url;
       });
     };
-    
+
     try {
       console.log("Uploading image:", file.name);
-      
+
       // Get file size and dimensions
       const fileSizeKB = Math.round(file.size / 1024);
       const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
       const dimensions = await getImageDimensions(file);
-      
+
       const res = await fetch("http://localhost:3000/api/images/upload", {
         method: 'POST',
         body: formData,
@@ -247,17 +247,17 @@ const ContentCreator = ({
           'Authorization': `Bearer ${sessionStorage.getItem("token")}`
         }
       });
-      
+
       if (res.ok) {
         const data = await res.json();
         console.log("Upload response:", data);
         if (data.success) {
           const imageUrl = data.imageUrl || data.data.relativePath;
           const imageMarkdown = `![Image](${imageUrl})`;
-          
+
           // Create preview URL for the uploaded image using the correct API endpoint
           const previewUrl = `http://localhost:3000/api/images/${data.data.filename}`;
-          
+
           // Add to uploaded images list with enhanced data
           const newImage = {
             id: Date.now(),
@@ -271,7 +271,7 @@ const ContentCreator = ({
             previewUrl: previewUrl,
             mimeType: file.type
           };
-          
+
           setUploadedImages(prev => [...prev, newImage]);
           setShowImagePanel(true); // Auto-show the panel when image is uploaded
         } else {
@@ -355,7 +355,7 @@ const ContentCreator = ({
       content_type: content.content_type,
       content_metadata_json: content.content_metadata_json
     });
-    
+
     // Set content based on type
     if (content.type === 'video' || content.content_type === 'video') {
       setVideoUrl(content.content_file_link || "");
@@ -364,7 +364,7 @@ const ContentCreator = ({
       setMarkdownContent(content.content_file_link || "");
       setVideoUrl("");
     }
-    
+
     localStorage.removeItem('markdown-draft');
     localStorage.removeItem('video-url-draft');
   };
@@ -422,9 +422,9 @@ const ContentCreator = ({
   };
 
   const handleCancelEdit = () => {
-    const hasChanges = (newContent.type === 'markdown' && markdownContent) || 
-                      (newContent.type === 'video' && videoUrl);
-    
+    const hasChanges = (newContent.type === 'markdown' && markdownContent) ||
+      (newContent.type === 'video' && videoUrl);
+
     if (hasChanges && window.confirm("You have unsaved changes. Are you sure you want to cancel?")) {
       setShowMarkdownEditor(false);
       setEditingContent(null);
@@ -451,16 +451,16 @@ const ContentCreator = ({
   const handleMoveContentUp = (content) => {
     const sortedContents = [...contents].sort((a, b) => a.orders - b.orders);
     const currentIndex = sortedContents.findIndex(c => c.content_id === content.content_id);
-    
+
     if (currentIndex > 0) {
       const currentContent = sortedContents[currentIndex];
       const previousContent = sortedContents[currentIndex - 1];
-      
+
       // Swap orders
       const tempOrder = currentContent.orders;
       currentContent.orders = previousContent.orders;
       previousContent.orders = tempOrder;
-      
+
       // Update both contents
       onUpdate(currentContent.content_id, currentContent);
       onUpdate(previousContent.content_id, previousContent);
@@ -470,16 +470,16 @@ const ContentCreator = ({
   const handleMoveContentDown = (content) => {
     const sortedContents = [...contents].sort((a, b) => a.orders - b.orders);
     const currentIndex = sortedContents.findIndex(c => c.content_id === content.content_id);
-    
+
     if (currentIndex < sortedContents.length - 1) {
       const currentContent = sortedContents[currentIndex];
       const nextContent = sortedContents[currentIndex + 1];
-      
+
       // Swap orders
       const tempOrder = currentContent.orders;
       currentContent.orders = nextContent.orders;
       nextContent.orders = tempOrder;
-      
+
       // Update both contents
       onUpdate(currentContent.content_id, currentContent);
       onUpdate(nextContent.content_id, nextContent);
@@ -508,7 +508,7 @@ const ContentCreator = ({
           break;
       }
     }
-    
+
     // Tab for indentation
     if (e.key === 'Tab') {
       e.preventDefault();
@@ -529,9 +529,9 @@ const ContentCreator = ({
           <FaHeading />3
         </button>
       </div>
-      
+
       <div className="toolbar-separator"></div>
-      
+
       <div className="toolbar-group">
         <button onClick={() => toolbarActions.bold()} title="Bold (Ctrl+B)" className="toolbar-btn">
           <FaBold />
@@ -543,9 +543,9 @@ const ContentCreator = ({
           <FaStrikethrough />
         </button>
       </div>
-      
+
       <div className="toolbar-separator"></div>
-      
+
       <div className="toolbar-group">
         <button onClick={() => toolbarActions.unorderedList()} title="Bullet List" className="toolbar-btn">
           <FaListUl />
@@ -557,9 +557,9 @@ const ContentCreator = ({
           <FaQuoteLeft />
         </button>
       </div>
-      
+
       <div className="toolbar-separator"></div>
-      
+
       <div className="toolbar-group">
         <button onClick={() => toolbarActions.link()} title="Link (Ctrl+K)" className="toolbar-btn">
           <FaLink />
@@ -571,42 +571,42 @@ const ContentCreator = ({
           <FaTable />
         </button>
       </div>
-      
+
       <div className="toolbar-separator"></div>
-      
+
       <div className="toolbar-group">
         <button onClick={() => toolbarActions.code()} title="Inline Code" className="toolbar-btn">
           <FaCode />
         </button>
         <button onClick={() => toolbarActions.codeBlock()} title="Code Block" className="toolbar-btn">
           <FaCode />
-          <span style={{fontSize: '0.8em'}}>□</span>
+          <span style={{ fontSize: '0.8em' }}>□</span>
         </button>
       </div>
-      
+
       <div className="toolbar-separator"></div>
-      
+
       <div className="toolbar-group">
         <input
           type="file"
           id="imageUpload"
           accept="image/*"
-          style={{display: 'none'}}
+          style={{ display: 'none' }}
           onChange={(e) => handleImageUpload(e.target.files[0])}
         />
-        <button 
+        <button
           onClick={() => document.getElementById('imageUpload').click()}
           title="Upload Image"
           className="toolbar-btn"
         >
-          <FaImage /> Upload
+          <FaImage /> Tải lên
         </button>
-        <button 
+        <button
           onClick={() => setShowImagePanel(!showImagePanel)}
           title="Toggle Image Panel"
           className={`toolbar-btn ${showImagePanel ? 'active' : ''}`}
         >
-          <FaImage /> Panel {uploadedImages.length > 0 && `(${uploadedImages.length})`}
+          <FaImage /> Bảng điều khiển {uploadedImages.length > 0 && `(${uploadedImages.length})`}
         </button>
       </div>
     </div>
@@ -617,11 +617,11 @@ const ContentCreator = ({
       <div className="creator-header">
         <h5>{program?.title}</h5>
         <div className="header-actions">
-          <button 
+          <button
             className="btn btn-primary"
             onClick={handleCreateContent}
           >
-            <FaPlus className="me-1" /> Create New Content
+            <FaPlus className="me-1" /> Tạo nội dung mới
           </button>
         </div>
       </div>
@@ -630,66 +630,66 @@ const ContentCreator = ({
         {showMarkdownEditor ? (
           <div className="markdown-editor">
             <div className="editor-header">
-              <h6>{editingContent ? 'Edit Content' : 'Create New Content'}</h6>
+              <h6>{editingContent ? 'Chỉnh sửa nội dung' : 'Tạo nội dung mới'}</h6>
               <div className="mode-controls">
-                <button 
+                <button
                   className={`btn btn-sm ${editorMode === 'edit' ? 'btn-primary' : 'btn-outline-secondary'} me-2`}
                   onClick={() => setEditorMode('edit')}
                   title="Edit Mode"
                 >
-                  <FaCode className="me-1" /> Edit
+                  <FaCode className="me-1" /> Chỉnh sửa
                 </button>
-                <button 
+                <button
                   className={`btn btn-sm ${editorMode === 'split' ? 'btn-primary' : 'btn-outline-secondary'} me-2`}
                   onClick={() => setEditorMode('split')}
                   title="Split Mode"
                 >
-                  <MdVerticalSplit className="me-1" /> Split
+                  <MdVerticalSplit className="me-1" /> Tách ra
                 </button>
-                <button 
+                <button
                   className={`btn btn-sm ${editorMode === 'preview' ? 'btn-primary' : 'btn-outline-secondary'} me-2`}
                   onClick={() => setEditorMode('preview')}
                   title="Preview Mode"
                 >
-                  <FaEye className="me-1" /> Preview
+                  <FaEye className="me-1" /> Xem trước
                 </button>
-                <button 
+                <button
                   className="btn btn-sm btn-success me-2"
                   onClick={handleSaveContent}
                   title="Save (Ctrl+S)"
                 >
-                  <FaSave className="me-1" /> Save
+                  <FaSave className="me-1" /> Lưu
                 </button>
-                <button 
+                <button
                   className="btn btn-sm btn-secondary"
                   onClick={handleCancelEdit}
                   title="Cancel"
                 >
-                  <FaTimes className="me-1" /> Cancel
+                  <FaTimes className="me-1" /> Đóng
                 </button>
               </div>
             </div>
 
             {/* Content Details Form - Moved to Top */}
             <div className="content-details-form">
-              <h6>Content Details</h6>
+              <h6>Chi tiết nội dung</h6>
               <div className="row g-3">
                 <div className="col-md-6">
-                  <label className="form-label">Content Title *</label>
-                  <input 
-                    type="text" 
+                  <label className="form-label">Tiêu đề nội dung *</label>
+                  <input
+                    type="text"
                     className="form-control"
                     value={newContent.title}
-                    onChange={(e) => setNewContent({...newContent, title: e.target.value})}
+                    onChange={(e) => setNewContent({ ...newContent, title: e.target.value })}
                     placeholder="Enter content title..."
                   />
                 </div>
                 <div className="col-md-3">
-                  <label className="form-label">Content Type</label>
-                  <select 
+                  <label className="form-label">Loại nội dung</label>
+                  <select
                     className="form-control"
                     value={newContent.type}
-                    onChange={(e) => setNewContent({...newContent, type: e.target.value, content_type: e.target.value})}
+                    onChange={(e) => setNewContent({ ...newContent, type: e.target.value, content_type: e.target.value })}
                   >
                     <option value="markdown">📝 Markdown</option>
                     <option value="video">🎥 Video</option>
@@ -697,12 +697,12 @@ const ContentCreator = ({
                 </div>
                 <div className="col-md-3">
                   <label className="form-label">Order</label>
-                  <input 
-                    type="number" 
-                    className="form-control" 
+                  <input
+                    type="number"
+                    className="form-control"
                     min="1"
                     value={newContent.orders}
-                    onChange={(e) => setNewContent({...newContent, orders: parseInt(e.target.value)})}
+                    onChange={(e) => setNewContent({ ...newContent, orders: parseInt(e.target.value) })}
                   />
                 </div>
               </div>
@@ -715,8 +715,8 @@ const ContentCreator = ({
                 <div className="row g-3">
                   <div className="col-md-8">
                     <label className="form-label">Video URL *</label>
-                    <input 
-                      type="url" 
+                    <input
+                      type="url"
                       className="form-control"
                       value={videoUrl}
                       onChange={(e) => setVideoUrl(e.target.value)}
@@ -758,7 +758,7 @@ const ContentCreator = ({
                   <h6>Uploaded Images</h6>
                   <div className="panel-actions">
                     {uploadedImages.length > 0 && (
-                      <button 
+                      <button
                         className="btn btn-sm btn-outline-danger me-2"
                         onClick={clearUploadedImages}
                         title="Clear all images"
@@ -766,7 +766,7 @@ const ContentCreator = ({
                         Clear All
                       </button>
                     )}
-                    <button 
+                    <button
                       className="btn btn-sm btn-secondary"
                       onClick={() => setShowImagePanel(false)}
                       title="Close panel"
@@ -778,16 +778,16 @@ const ContentCreator = ({
                 <div className="image-panel-content">
                   {uploadedImages.length === 0 ? (
                     <div className="no-images">
-                      <p>No images uploaded yet. Use the "Upload" button to add images.</p>
+                      <p>Chưa có hình ảnh nào được tải lên. Sử dụng nút "Tải lên" để thêm hình ảnh.</p>
                     </div>
                   ) : (
                     <div className="image-list">
                       {uploadedImages.map((image) => (
-                        <div key={image.id} className="image-item" style={{border: '1px solid #dee2e6', borderRadius: '8px', padding: '15px', marginBottom: '15px', backgroundColor: '#fff'}}>
-                          <div className="image-preview-section" style={{display: 'flex', gap: '15px', marginBottom: '10px'}}>
+                        <div key={image.id} className="image-item" style={{ border: '1px solid #dee2e6', borderRadius: '8px', padding: '15px', marginBottom: '15px', backgroundColor: '#fff' }}>
+                          <div className="image-preview-section" style={{ display: 'flex', gap: '15px', marginBottom: '10px' }}>
                             <div className="image-preview">
-                              <img 
-                                src={image.previewUrl} 
+                              <img
+                                src={image.previewUrl}
                                 alt={image.originalName}
                                 style={{
                                   maxWidth: '120px',
@@ -806,7 +806,7 @@ const ContentCreator = ({
                                   console.log('Image preview loaded successfully:', image.previewUrl);
                                 }}
                               />
-                              <div 
+                              <div
                                 style={{
                                   display: 'none',
                                   width: '120px',
@@ -823,21 +823,21 @@ const ContentCreator = ({
                                 Preview failed
                               </div>
                             </div>
-                            <div className="image-meta" style={{flex: 1}}>
-                              <div className="image-dimensions" style={{marginBottom: '5px'}}>
-                                <span style={{color: '#0066cc', fontWeight: '600', fontSize: '14px'}}>
+                            <div className="image-meta" style={{ flex: 1 }}>
+                              <div className="image-dimensions" style={{ marginBottom: '5px' }}>
+                                <span style={{ color: '#0066cc', fontWeight: '600', fontSize: '14px' }}>
                                   {image.dimensions.width} × {image.dimensions.height} px
                                 </span>
                               </div>
-                              <div className="image-size" style={{marginBottom: '3px'}}>
+                              <div className="image-size" style={{ marginBottom: '3px' }}>
                                 <small className="text-muted">
-                                  <i className="bi bi-file-earmark" style={{marginRight: '5px'}}></i>
+                                  <i className="bi bi-file-earmark" style={{ marginRight: '5px' }}></i>
                                   {image.fileSize}
                                 </small>
                               </div>
                               <div className="image-type">
                                 <small className="text-muted">
-                                  <i className="bi bi-image" style={{marginRight: '5px'}}></i>
+                                  <i className="bi bi-image" style={{ marginRight: '5px' }}></i>
                                   {image.mimeType}
                                 </small>
                               </div>
@@ -895,8 +895,8 @@ const ContentCreator = ({
                                   onClick={async () => {
                                     const apiUrl = `http://localhost:3000/api/images/${image.filename}`;
                                     const isWorking = await testImageUrl(apiUrl);
-                                    alert(isWorking ? 
-                                      `✅ Image API is working!\nURL: ${apiUrl}` : 
+                                    alert(isWorking ?
+                                      `✅ Image API is working!\nURL: ${apiUrl}` :
                                       `❌ Image API failed!\nURL: ${apiUrl}\nCheck browser console for details.`
                                     );
                                   }}
@@ -950,14 +950,14 @@ const ContentCreator = ({
                         value={markdownContent}
                         onChange={(e) => setMarkdownContent(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        placeholder="# Start writing your markdown here...
+                        placeholder="# Bắt đầu viết markdown của bạn tại đây...
 
-You can use the toolbar above or keyboard shortcuts:
-- Ctrl+B for **bold**
-- Ctrl+I for *italic*  
-- Ctrl+K for [links](url)
-- Tab for indentation
-- Ctrl+S to save"
+Bạn có thể sử dụng thanh công cụ ở trên hoặc phím tắt:
+- Ctrl+B để **in đậm**
+- Ctrl+I để *in nghiêng*
+- Ctrl+K để [liên kết](url)
+- Tab để thụt lề
+- Ctrl+S để lưu"
                         spellCheck="false"
                       />
                     </div>
@@ -976,7 +976,7 @@ You can use the toolbar above or keyboard shortcuts:
                           <div dangerouslySetInnerHTML={{ __html: formatMarkdown(markdownContent) }} />
                         ) : (
                           <div className="preview-placeholder">
-                            <p>Your markdown preview will appear here as you type...</p>
+                            <p>Bản xem trước markdown của bạn sẽ xuất hiện ở đây khi bạn nhập...</p>
                           </div>
                         )}
                       </div>
@@ -988,7 +988,7 @@ You can use the toolbar above or keyboard shortcuts:
                 {newContent.type === 'markdown' && (
                   <div className="col-md-6">
                     <div className="markdown-guide">
-                      <h6>Markdown Guide</h6>
+                      <h6>Hướng dẫn đánh dấu</h6>
                       <div className="guide-examples">
                         <div className="guide-item">
                           <code># H1</code>
@@ -1032,17 +1032,17 @@ You can use the toolbar above or keyboard shortcuts:
         ) : (
           <div className="content-list">
             <div className="content-header">
-              <h6>Content List ({contents.length} items)</h6>
+              <h6>Danh sách nội dung ({contents.length} items)</h6>
             </div>
-            
+
             {contents.length === 0 ? (
               <div className="no-content">
-                <p>No content found for this program.</p>
-                <button 
+                <p>Không tìm thấy nội dung nào cho chương trình này.</p>
+                <button
                   className="btn btn-primary"
                   onClick={handleCreateContent}
                 >
-                  <FaPlus className="me-1" /> Create First Content
+                  <FaPlus className="me-1" /> Tạo nội dung đầu tiên
                 </button>
               </div>
             ) : (
@@ -1050,10 +1050,10 @@ You can use the toolbar above or keyboard shortcuts:
                 <table className="table table-sm">
                   <thead>
                     <tr>
-                      <th>Order</th>
-                      <th>Title</th>
-                      <th>Type</th>
-                      <th>Actions</th>
+                      <th>Đặt hàng</th>
+                      <th>Tiêu đề</th>
+                      <th>Kiểu</th>
+                      <th>hành động</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1062,15 +1062,15 @@ You can use the toolbar above or keyboard shortcuts:
                         <td>{content.orders}</td>
                         <td>{content.title}</td>
                         <td>
-                          <span className={`badge bg-${content.type === 'markdown' ? 'primary' : 
-                            content.type === 'video' ? 'success' : 
-                            content.type === 'podcast' ? 'warning' : 'info'}`}>
+                          <span className={`badge bg-${content.type === 'markdown' ? 'primary' :
+                            content.type === 'video' ? 'success' :
+                              content.type === 'podcast' ? 'warning' : 'info'}`}>
                             {content.type}
                           </span>
                         </td>
                         <td>
                           <div className="action-buttons d-flex align-items-center gap-1">
-                            <button 
+                            <button
                               className="btn btn-sm btn-outline-secondary"
                               onClick={() => handleMoveContentUp(content)}
                               disabled={index === 0}
@@ -1078,7 +1078,7 @@ You can use the toolbar above or keyboard shortcuts:
                             >
                               ↑
                             </button>
-                            <button 
+                            <button
                               className="btn btn-sm btn-outline-secondary"
                               onClick={() => handleMoveContentDown(content)}
                               disabled={index === contents.length - 1}
@@ -1086,14 +1086,14 @@ You can use the toolbar above or keyboard shortcuts:
                             >
                               ↓
                             </button>
-                            <button 
+                            <button
                               className="btn btn-sm btn-warning"
                               onClick={() => handleEditContent(content)}
                               title="Edit"
                             >
                               <FaCode />
                             </button>
-                            <button 
+                            <button
                               className="btn btn-sm btn-danger"
                               onClick={() => handleDeleteContent(content.content_id, content.title)}
                               title="Delete"

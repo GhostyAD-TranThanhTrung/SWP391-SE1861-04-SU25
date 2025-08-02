@@ -120,7 +120,7 @@ const MemberListPage = () => {
     }
 
   }
-    useEffect(() => {
+  useEffect(() => {
     (async () => {
       await userRole()
     })()
@@ -506,7 +506,7 @@ const MemberListPage = () => {
               <div className="ms-3">
                 <div className="small text-muted">Thành viên hoạt động</div>
                 <div className="h3 mb-0 fw-bold">{activeCount}</div>
-                <div className="small text-muted">active</div>
+                <div className="small text-muted">Hoạt động</div>
               </div>
             </div>
           </div>
@@ -530,7 +530,7 @@ const MemberListPage = () => {
               <div className="ms-3">
                 <div className="small text-muted">Không hoạt động</div>
                 <div className="h3 mb-0 fw-bold">{inactiveCount}</div>
-                <div className="small text-muted">inactive</div>
+                <div className="small text-muted">Không hoạt động</div>
               </div>
             </div>
           </div>
@@ -554,7 +554,7 @@ const MemberListPage = () => {
               <div className="ms-3">
                 <div className="small text-muted">Bị cấm</div>
                 <div className="h3 mb-0 fw-bold">{bannedCount}</div>
-                <div className="small text-muted">banned</div>
+                <div className="small text-muted">bị cấm</div>
               </div>
             </div>
           </div>
