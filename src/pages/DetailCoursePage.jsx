@@ -127,7 +127,27 @@ const DetailCoursePage = () => {
         checkEnrollmentStatus();
     }, [id]);
 
-    // Check survey status when enrollment status changes
+    // Check survey status when enrollment status changes and trigger surveys automatically
+    useEffect(() => {
+        if (isEnrolled && !checkingEnrollment && surveysChecked) {
+            // Auto-trigger pre-assessment for newly enrolled users
+            if (justEnrolled && preAssessmentExists && !preAssessmentCompleted) {
+                setTimeout(() => {
+                    triggerSurvey('pre-assessment');
+                }, 1000);
+            }
+            
+            // Auto-trigger post-assessment for users who just completed the course
+            // BUT only if they have already completed the pre-assessment
+            if (justCompleted && postAssessmentExists && !postAssessmentCompleted && preAssessmentCompleted) {
+                setTimeout(() => {
+                    triggerSurvey('post-assessment');
+                }, 1000);
+            }
+        }
+    }, [isEnrolled, checkingEnrollment, surveysChecked, justEnrolled, justCompleted, preAssessmentExists, postAssessmentExists, preAssessmentCompleted, postAssessmentCompleted]);
+
+    // Initial survey status check when enrollment changes
     useEffect(() => {
         if (isEnrolled && !checkingEnrollment) {
             checkSurveyStatus();
@@ -156,13 +176,87 @@ const DetailCoursePage = () => {
 
     // Function to check survey completion status
     const checkSurveyStatus = async () => {
-        // Simplified survey status check - just set default states
-        setPreAssessmentExists(false);
-        setPostAssessmentExists(false);
-        setPreAssessmentCompleted(false);
-        setPostAssessmentCompleted(false);
-        setSurveysChecked(true);
-        setCheckingSurveyStatus(false);
+        const token = sessionStorage.getItem('token');
+        if (!token) {
+            setSurveysChecked(true);
+            return;
+        }
+
+        setCheckingSurveyStatus(true);
+        
+        try {
+            // Check for pre-assessment survey
+            const preRes = await fetch(`http://localhost:3000/api/surveys/program/${id}/type/pre-assessment`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (preRes.ok) {
+                const preData = await preRes.json();
+                if (preData.data && preData.data.length > 0) {
+                    setPreAssessmentExists(true);
+                    const preSurvey = preData.data[0];
+                    
+                    // Check if user has completed pre-assessment
+                    const preCheckRes = await fetch(`http://localhost:3000/api/survey-responses/check/${preSurvey.survey_id}`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    if (preCheckRes.ok) {
+                        const preCheckData = await preCheckRes.json();
+                        setPreAssessmentCompleted(preCheckData.hasResponded || false);
+                    }
+                } else {
+                    setPreAssessmentExists(false);
+                }
+            } else {
+                setPreAssessmentExists(false);
+            }
+
+            // Check for post-assessment survey
+            const postRes = await fetch(`http://localhost:3000/api/surveys/program/${id}/type/post-assessment`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (postRes.ok) {
+                const postData = await postRes.json();
+                if (postData.data && postData.data.length > 0) {
+                    setPostAssessmentExists(true);
+                    const postSurvey = postData.data[0];
+                    
+                    // Check if user has completed post-assessment
+                    const postCheckRes = await fetch(`http://localhost:3000/api/survey-responses/check/${postSurvey.survey_id}`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    if (postCheckRes.ok) {
+                        const postCheckData = await postCheckRes.json();
+                        setPostAssessmentCompleted(postCheckData.hasResponded || false);
+                    }
+                } else {
+                    setPostAssessmentExists(false);
+                }
+            } else {
+                setPostAssessmentExists(false);
+            }
+
+        } catch (error) {
+            console.error('Error checking survey status:', error);
+            setPreAssessmentExists(false);
+            setPostAssessmentExists(false);
+            setPreAssessmentCompleted(false);
+            setPostAssessmentCompleted(false);
+        } finally {
+            setSurveysChecked(true);
+            setCheckingSurveyStatus(false);
+        }
     };
 
     // Function to update enrollment completion
@@ -359,9 +453,15 @@ const DetailCoursePage = () => {
                                 )}
 
                                 {/* Survey Buttons */}
-                                {!checkingSurveyStatus && surveysChecked && (
+                                {checkingSurveyStatus ? (
+                                    <div className="survey-loading">
+                                        <div className="loading-spinner"></div>
+                                        <p>Đang kiểm tra khảo sát...</p>
+                                    </div>
+                                ) : surveysChecked && (
                                     <div className="survey-buttons">
-                                        {!isCompleted && !preAssessmentCompleted && preAssessmentExists && (
+                                        {/* Pre-assessment button - show if exists and not completed */}
+                                        {!preAssessmentCompleted && preAssessmentExists && (
                                             <button
                                                 className="survey-btn pre-assessment-btn"
                                                 onClick={() => triggerSurvey('pre-assessment')}
@@ -369,13 +469,34 @@ const DetailCoursePage = () => {
                                                 📋 Làm đánh giá trước khóa học
                                             </button>
                                         )}
-                                        {isCompleted && !postAssessmentCompleted && postAssessmentExists && (
+                                        
+                                        {/* Post-assessment button - only show if pre-assessment is completed and course is completed */}
+                                        {isCompleted && preAssessmentCompleted && !postAssessmentCompleted && postAssessmentExists && (
                                             <button
                                                 className="survey-btn post-assessment-btn"
                                                 onClick={() => triggerSurvey('post-assessment')}
                                             >
                                                 📊 Làm đánh giá sau khóa học
                                             </button>
+                                        )}
+
+                                        {/* Warning message if course is completed but pre-assessment not done */}
+                                        {isCompleted && preAssessmentExists && !preAssessmentCompleted && postAssessmentExists && (
+                                            <div className="survey-warning">
+                                                ⚠️ Bạn cần hoàn thành đánh giá trước khóa học trước khi có thể làm đánh giá sau khóa học
+                                            </div>
+                                        )}
+                                        
+                                        {/* Completion status messages */}
+                                        {preAssessmentExists && preAssessmentCompleted && (
+                                            <div className="survey-completed">
+                                                ✅ Đã hoàn thành đánh giá trước khóa học
+                                            </div>
+                                        )}
+                                        {postAssessmentExists && postAssessmentCompleted && (
+                                            <div className="survey-completed">
+                                                ✅ Đã hoàn thành đánh giá sau khóa học
+                                            </div>
                                         )}
                                     </div>
                                 )}
