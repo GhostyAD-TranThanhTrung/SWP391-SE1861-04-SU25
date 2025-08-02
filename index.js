@@ -1496,7 +1496,7 @@ app.get(
  * Authentication: None (Public for published blogs)
  */
 app.get("/api/blogs/:id", BlogController.getBlogWithRelations);
-
+app.get("/api/blogs/user/:authorId", BlogController.getBlogsByAuthorId);
 /**
  * BLOG CREATE: Create new blog post
  * Purpose: Create new blog post with text content
