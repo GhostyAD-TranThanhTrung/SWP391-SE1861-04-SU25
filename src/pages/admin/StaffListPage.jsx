@@ -70,7 +70,12 @@ const StaffListPage = () => {
   };
 
   useEffect(() => {
-    fetchStaffs();
+    (
+      async () => {
+        await fetchStaffs();
+      }
+    )()
+
   }, []);
 
   const handleOpenPopup = () => {
