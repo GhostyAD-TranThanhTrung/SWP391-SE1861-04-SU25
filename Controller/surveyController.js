@@ -10,129 +10,6 @@ const SurveyResponse = require("../src/entities/SurveyResponse");
 class SurveyController {
 
   /**
-   * Get single survey by ID
-   */
-  static async getSurveyById(req, res) {
-    try {
-      const { id } = req.params;
-      const surveyRepository = AppDataSource.getRepository(Survey);
-
-      // Validate survey ID
-      if (!id || isNaN(parseInt(id))) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid survey ID provided",
-        });
-      }
-
-      const survey = await surveyRepository.findOne({
-        where: { survey_id: parseInt(id) },
-        relations: ['responses']
-      });
-
-      if (!survey) {
-        return res.status(404).json({
-          success: false,
-          message: "Survey not found",
-        });
-      }
-
-      // Filter out deleted questions
-      const filteredSurvey = { ...survey };
-      if (filteredSurvey.questions_json) {
-        try {
-          const parsedQuestions = typeof filteredSurvey.questions_json === 'string' 
-            ? JSON.parse(filteredSurvey.questions_json) 
-            : filteredSurvey.questions_json;
-          
-          if (parsedQuestions.questions && Array.isArray(parsedQuestions.questions)) {
-            const activeQuestions = parsedQuestions.questions.filter(question => 
-              question.deleted === false || question.deleted === undefined
-            );
-            
-            filteredSurvey.questions_json = JSON.stringify({
-              ...parsedQuestions,
-              questions: activeQuestions
-            });
-          }
-        } catch (parseError) {
-          console.error('Error parsing questions JSON:', parseError);
-        }
-      }
-
-      res.status(200).json({
-        success: true,
-        data: filteredSurvey,
-        message: "Survey retrieved successfully",
-      });
-    } catch (error) {
-      console.error("Error getting survey by ID:", error);
-      res.status(500).json({
-        success: false,
-        message: "Failed to retrieve survey",
-        error: error.message,
-      });
-    }
-  }
-
-  /**
-   * Get all surveys
-   */
-  static async getAllSurveys(req, res) {
-    try {
-      const surveyRepository = AppDataSource.getRepository(Survey);
-
-      const surveys = await surveyRepository.find({
-        order: { 
-          program_id: 'ASC',
-          type: 'ASC',
-          survey_id: 'ASC' 
-        }
-      });
-
-      // Filter out deleted questions from all surveys
-      const filteredSurveys = surveys.map(survey => {
-        const surveyData = { ...survey };
-        if (surveyData.questions_json) {
-          try {
-            const parsedQuestions = typeof surveyData.questions_json === 'string' 
-              ? JSON.parse(surveyData.questions_json) 
-              : surveyData.questions_json;
-            
-            if (parsedQuestions.questions && Array.isArray(parsedQuestions.questions)) {
-              const activeQuestions = parsedQuestions.questions.filter(question => 
-                question.deleted === false || question.deleted === undefined
-              );
-              
-              surveyData.questions_json = JSON.stringify({
-                ...parsedQuestions,
-                questions: activeQuestions
-              });
-            }
-          } catch (parseError) {
-            console.error('Error parsing questions JSON:', parseError);
-          }
-        }
-        return surveyData;
-      });
-
-      res.status(200).json({
-        success: true,
-        data: filteredSurveys,
-        count: filteredSurveys.length,
-        message: "All surveys retrieved successfully",
-      });
-    } catch (error) {
-      console.error("Error getting all surveys:", error);
-      res.status(500).json({
-        success: false,
-        message: "Failed to retrieve surveys",
-        error: error.message,
-      });
-    }
-  }
-
-  /**
    * Get surveys by type and program ID
    */
   static async getSurveysByTypeAndProgramId(req, res) {
@@ -315,7 +192,7 @@ class SurveyController {
         });
       }
 
-      // Validate questions format
+      // Validate questions format and add deleted/version keys
       let questions_json = null;
       try {
         questions_json = typeof questions === "string" ? questions : JSON.stringify(questions);
@@ -331,7 +208,8 @@ class SurveyController {
           });
         }
 
-        // Validate each question has required fields
+        // Validate each question has required fields and add deleted/version keys
+        const processedQuestions = [];
         for (let i = 0; i < parsedQuestions.questions.length; i++) {
           const question = parsedQuestions.questions[i];
           if (!question.id || !question.question) {
@@ -340,7 +218,25 @@ class SurveyController {
               message: `Question at index ${i} must have 'id' and 'question' properties`,
             });
           }
+
+          // Add deleted and version keys for new survey creation
+          processedQuestions.push({
+            ...question,
+            deleted: false,  // All questions start as active
+            version: 1       // Initial version for new questions
+          });
         }
+
+        // Update the questions_json with processed questions
+        const updatedQuestionsData = {
+          ...parsedQuestions,
+          questions: processedQuestions
+        };
+        questions_json = JSON.stringify(updatedQuestionsData);
+
+        console.log("✅ CreateSurvey - Added deleted and version keys to questions");
+        console.log("✅ CreateSurvey - Processed questions count:", processedQuestions.length);
+        
       } catch (jsonError) {
         return res.status(400).json({
           success: false,
