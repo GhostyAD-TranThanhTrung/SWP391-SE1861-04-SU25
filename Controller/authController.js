@@ -107,7 +107,7 @@ class AuthController {
 
       // Return success response with user data and the token
       if (first_time) {
-        res.status(200).json({
+        return res.status(200).json({
           success: true,
           message: "Login successful",
           user: {
@@ -120,7 +120,7 @@ class AuthController {
           token: token, // Include the JWT token in the response
         });
       }
-      res.status(200).json({
+      return res.status(200).json({
         success: true,
         message: "Login successful",
         user: {
