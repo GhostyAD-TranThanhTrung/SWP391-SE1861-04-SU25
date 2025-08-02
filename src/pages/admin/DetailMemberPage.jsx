@@ -665,7 +665,7 @@ const DetailMemberPage = () => {
                                     <div className="info-item mb-2">
                                       <strong>Loại đánh giá:</strong>
                                       <span className={`ms-2 badge ${assessment.type === 'assist' ? 'bg-success' :
-                                          assessment.type === 'crafft' ? 'bg-primary' : 'bg-secondary'
+                                        assessment.type === 'crafft' ? 'bg-primary' : 'bg-secondary'
                                         }`}>
                                         {assessment.type?.toUpperCase() || 'Chưa xác định'}
                                       </span>
@@ -678,8 +678,8 @@ const DetailMemberPage = () => {
                                     <div className="info-item mb-2">
                                       <strong>Tổng điểm:</strong>
                                       <span className={`ms-2 fw-bold ${score >= 15 ? 'text-danger' :
-                                          score >= 10 ? 'text-warning' :
-                                            score >= 5 ? 'text-info' : 'text-success'
+                                        score >= 10 ? 'text-warning' :
+                                          score >= 5 ? 'text-info' : 'text-success'
                                         }`}>
                                         {score}
                                       </span>
@@ -699,7 +699,7 @@ const DetailMemberPage = () => {
                                     <div className="bg-light p-2 rounded" style={{ maxHeight: '200px', overflowY: 'auto' }}>
                                       {parsedResult.result.map((question, qIndex) => (
                                         <div key={qIndex} className={`p-2 mb-1 rounded small ${question.score > 2 ? 'bg-danger bg-opacity-10 border-start border-danger border-3' :
-                                            'bg-success bg-opacity-10 border-start border-success border-3'
+                                          'bg-success bg-opacity-10 border-start border-success border-3'
                                           }`}>
                                           <div className="mb-1">
                                             <strong>Q{question.questionId}:</strong>
@@ -824,12 +824,11 @@ const DetailMemberPage = () => {
                               typeof blog.title === 'string' ? blog.title : blog.title ? JSON.stringify(blog.title) : ''
                             }</div>
                             <div className="card-desc">{
-                              typeof blog.description === 'string' ? blog.description : blog.description ? JSON.stringify(blog.description) : "N/A"
+                              typeof blog.body === 'string' ? blog.body : blog.body ? JSON.stringify(blog.body) : "N/A"
                             }</div>
                             <div className="card-meta">
                               <div><b>Tác giả:</b> {
-                                typeof blog.author === 'string' ? blog.author : blog.author ? JSON.stringify(blog.author) :
-                                  (typeof blog.creator_email === 'string' ? blog.creator_email : blog.creator_email ? JSON.stringify(blog.creator_email) : "N/A")
+                                memberDetails.profile?.name || 'N/A'
                               }</div>
                               <div>{formatDate(blog.created_at || blog.createdAt)}</div>
                             </div>
