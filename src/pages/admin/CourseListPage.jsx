@@ -373,32 +373,6 @@ const CourseListPage = () => {
         data: err.response?.data
       });
       // Don't show alert for analytics errors as they're not critical
-    }
-
-    // Also fetch detailed survey response statistics for additional insights
-    try {
-      console.log("🔄 CourseListPage - Fetching detailed survey response statistics for program:", program.program_id);
-      const statsRes = await axios.get(`http://localhost:3000/api/survey-responses/statistics?programId=${program.program_id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      if (statsRes.data.success) {
-        console.log("✅ CourseListPage - Survey response statistics:", statsRes.data.data);
-        // Store detailed statistics for potential use
-        setSurveyAnalytics(prev => ({
-          ...prev,
-          detailed_statistics: statsRes.data.data
-        }));
-      } else {
-        console.warn("⚠️ CourseListPage - Survey response statistics request failed:", statsRes.data.message);
-      }
-    } catch (err) {
-      console.error("❌ CourseListPage - Error fetching survey response statistics:", {
-        error: err,
-        response: err.response,
-        data: err.response?.data
-      });
-      // Don't show alert for statistics errors as they're not critical
     } finally {
       setAnalyticsLoading(false);
     }

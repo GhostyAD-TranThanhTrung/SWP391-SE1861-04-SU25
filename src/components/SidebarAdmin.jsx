@@ -7,11 +7,9 @@ const SidebarAdmin = ({ isOpen }) => {
     const currentPath = location.pathname;
     const navigate = useNavigate();
     const [userRole, setUserRole] = useState(null);
-    const email = sessionStorage.getItem("email2");
-
     const handleLogout = (e) => {
         e.preventDefault();
-        sessionStorage.removeItem("email2");
+        localStorage.removeItem("email2");
         sessionStorage.removeItem("token");
         navigate("/admin/login");
     };
@@ -42,25 +40,25 @@ const SidebarAdmin = ({ isOpen }) => {
             {/* Navigation */}
             <ul className="sidebar-menu">
                 <li className={currentPath === "/dashboard" ? "active" : ""}>
-                    <Link to="/dashboard"><FaGauge className='icon' /> Bảng báo cáo</Link>
+                    <Link className={userRole !== 'manager' ? 'disabled btn btn-link' : ''} to="/dashboard"><FaGauge className='icon' /> Bảng báo cáo</Link>
                 </li>
                 <li className={currentPath === "/member-list" ? "active" : ""}>
-                    <Link to="/member-list"><FaUser className='icon' /> Thành viên</Link>
+                    <Link className={(userRole !== 'admin' && userRole !== 'manager') ? 'disabled btn btn-link' : ''} to="/member-list"><FaUser className='icon' /> Thành viên</Link>
                 </li>
                 <li className={currentPath === "/staff-list" ? "active" : ""}>
-                    <Link to="/staff-list"><FaIdBadge className='icon' /> Nhân viên</Link>
+                    <Link className={(userRole !== 'admin' && userRole !== 'manager') ? 'disabled btn btn-link' : ''} to="/staff-list"><FaIdBadge className='icon' /> Nhân viên</Link>
                 </li>
                 <li className={currentPath === "/consultant-list" ? "active" : ""}>
-                    <Link to="/consultant-list"><FaUserCheck className='icon' /> Tư vấn viên</Link>
+                    <Link className={(userRole !== 'admin' && userRole !== 'manager') ? 'disabled btn btn-link' : ''} to="/consultant-list"><FaUserCheck className='icon' /> Tư vấn viên</Link>
                 </li>
                 <li className={currentPath === "/assessment-list" ? "active" : ""}>
-                    <Link to="/assessment-list"><FaClipboardList className='icon' /> Đánh giá</Link>
+                    <Link className={userRole !== 'manager' ? 'disabled btn btn-link' : ''} to="/assessment-list"><FaClipboardList className='icon' /> Đánh giá</Link>
                 </li>
                 <li className={currentPath === "/course-list" ? "active" : ""}>
-                    <Link to="/course-list"><FaBook className='icon' /> Khóa học</Link>
+                    <Link className={userRole !== 'manager' ? 'disabled btn btn-link' : ''} to="/course-list"><FaBook className='icon' /> Khóa học</Link>
                 </li>
                 <li className={currentPath === "/blog-list" ? "active" : ""}>
-                    <Link to="/blog-list"><FaBlog className='icon' /> Blog</Link>
+                    <Link className={(userRole === 'staff' || userRole === 'manager') ? '' : 'disabled btn btn-link'} to="/blog-list"><FaBlog className='icon' /> Blog</Link>
                 </li>
                 <li>
                     <Link to="#" onClick={handleLogout}><FaRightFromBracket className='icon' /> Đăng xuất</Link>
@@ -71,7 +69,7 @@ const SidebarAdmin = ({ isOpen }) => {
             <div className="sidebar-footer">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/2048px-No_image_available.svg.png" alt="Ảnh đại diện Admin" />
                 <div>
-                    <strong>{email}</strong>
+                    <strong>Quản trị viên</strong>
                 </div>
             </div>
         </div>
