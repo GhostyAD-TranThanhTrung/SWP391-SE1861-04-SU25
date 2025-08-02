@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import PaginationComp from "../../components/Pagination.jsx";
 const StaffListPage = () => {
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isAllowedToChangePassword, setIsAllowedToChangePassword] = useState(false)
   const [showPopup, setShowPopup] = useState(false);
   const [staffs, setStaffs] = useState([]);
   const [newStaff, setNewStaff] = useState({
@@ -48,8 +49,9 @@ const StaffListPage = () => {
       const res = await axios.get('http://localhost:3000/api/user/role/',
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      if (res.data.role === 'admin' || res.data.role === 'manager' || res.data.role === 'staff') setIsAdmin(true);
       if (!(res.data.role && (res.data.role === 'admin' || res.data.role === 'manager' || res.data.role === 'staff'))) navigate('/admin/login')
+      if (res.data.role === 'admin' || res.data.role === 'manager' || res.data.role === 'staff') setIsAdmin(true);
+      if (res.data.role === 'admin') setIsAllowedToChangePassword(true)
     } catch {
       navigate('/admin/login')
     }
@@ -288,7 +290,9 @@ const StaffListPage = () => {
 
       console.log("Payload gửi:", payload);
       console.log("Editing Staff ID:", editingStaffId);
-
+      if (payload.password === '' || payload.password === '*********' || payload.password === null) {
+        delete payload.password
+      }
       const res = await axios.put(
         `http://localhost:3000/api/staff/${editingStaffId}`,
         payload,
@@ -579,7 +583,7 @@ const StaffListPage = () => {
         <div className="card-body">
           <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div className="d-flex gap-2 flex-wrap">
-              <button className="btn btn-primary shadow-sm" onClick={handleOpenPopup}>
+              <button className="btn btn-primary shadow-sm" onClick={handleOpenPopup} disabled={!isAllowedToChangePassword}>
                 <FaPlus className="me-1" /> Tạo nhân viên mới
               </button>
               <button
@@ -755,15 +759,17 @@ const StaffListPage = () => {
                       value={getPasswordDisplayValue()}
                       onChange={(e) => {
                         if (editingStaffId) {
-                          // When editing staff, always update newPassword for changes
-                          setNewPassword(e.target.value);
+                          // When editing staff, only allow admins to change password
+                          if (isAllowedToChangePassword) {
+                            setNewPassword(e.target.value);
+                          }
                         } else if (!viewingStaffId) {
                           // When creating new staff
                           setNewPassword(e.target.value);
                         }
                       }}
                       required={!editingStaffId && !viewingStaffId}
-                      disabled={isAdminEditing || viewingStaffId}
+                      disabled={isAdminEditing || viewingStaffId || (!isAllowedToChangePassword && editingStaffId)}
                       className="form-input"
                       style={{
                         color: '#000',
@@ -771,7 +777,7 @@ const StaffListPage = () => {
                         cursor: viewingStaffId ? 'not-allowed' : 'text'
                       }}
                     />
-                    {(editingStaffId || viewingStaffId) && (
+                    {((editingStaffId && isAllowedToChangePassword) || viewingStaffId) && (
                       <button
                         type="button"
                         className="btn btn-outline-secondary ms-2"
@@ -784,7 +790,8 @@ const StaffListPage = () => {
                   </div>
                   {editingStaffId && (
                     <small className="text-muted mt-1">
-                      {showPassword ? "Để trống nếu không muốn thay đổi mật khẩu" : "Nhấn nút mắt để xem/chỉnh sửa mật khẩu"}
+                      {!isAllowedToChangePassword ? "Chỉ admin mới có thể thay đổi mật khẩu" :
+                        showPassword ? "Để trống nếu không muốn thay đổi mật khẩu" : "Nhấn nút mắt để xem/chỉnh sửa mật khẩu"}
                     </small>
                   )}
                   {viewingStaffId && (

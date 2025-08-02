@@ -12,6 +12,7 @@ import { assessRiskLevel as assessAssistRisk } from "../../QuizData/Assist_Data"
 
 const MemberListPage = () => {
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isAllowedToChangePassword, setIsAllowedToChangePassword] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [members, setMembers] = useState([]);
   const [selectedMember, setSelectedMember] = useState(null);
@@ -112,6 +113,7 @@ const MemberListPage = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       )
       if (res.data.role === 'admin' || res.data.role === 'manager' || res.data.role === 'staff') setIsAdmin(true);
+      if (res.data.role === 'admin') setIsAllowedToChangePassword(true);
       if (!(res.data.role && (res.data.role === 'admin' || res.data.role === 'manager' || res.data.role === 'staff'))) navigate('/admin/login')
     } catch {
       navigate('/admin/login')
@@ -193,16 +195,23 @@ const MemberListPage = () => {
       delete payload.bio;
       delete payload.interests;
 
+      // Only include password in payload if admin is editing and password was changed
+      if (!isAllowedToChangePassword || !showPassword || !editMemberData.password || editMemberData.password.trim() === '' || editMemberData.password === '*********') {
+        delete payload.password;
+      }
+
       console.log("Payload gửi:", payload);
       console.log("Editing Member ID:", editingMemberId);
-
+      if (payload.password === '' || payload.password === '*********' || payload.password === null) {
+        delete payload.password
+      }
       const res = await axios.put(
         `http://localhost:3000/api/members/${editingMemberId}`,
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (res.data.success) {
-        await fetchMembers();
+        fetchMembers();
         handleClosePopup();
       }
     } catch (err) {
@@ -216,7 +225,7 @@ const MemberListPage = () => {
 
   const handleSearchClick = async () => {
     if (searchTerm.trim() === '') {
-      await fetchMembers();
+      fetchMembers();
       return;
     }
     try {
@@ -230,11 +239,7 @@ const MemberListPage = () => {
   };
 
   useEffect(() => {
-    (
-      async () => {
-        await fetchMembers();
-      }
-    )()
+    fetchMembers();
   }, []);
 
   const handleOpenDeleteDialog = (memberId) => {
@@ -273,7 +278,7 @@ const MemberListPage = () => {
         }
 
         // Refresh the member list to reflect changes
-        await fetchMembers();
+        fetchMembers();
       }
     } catch (err) {
       console.error("Lỗi khi xóa thành viên:", err);
@@ -1003,16 +1008,16 @@ const MemberListPage = () => {
                       placeholder="Mật khẩu"
                       value={getPasswordDisplayValue()}
                       onChange={(e) => {
-                        if (showPassword) {
-                          // When password is visible, allow editing
+                        if (showPassword && isAllowedToChangePassword) {
+                          // When password is visible and user is admin, allow editing
                           setEditMemberData({ ...editMemberData, password: e.target.value });
                         }
                       }}
-                      disabled={!showPassword}
+                      disabled={!showPassword || !isAllowedToChangePassword}
                       className="form-input"
                       style={{ color: '#000', backgroundColor: '#fff' }}
                     />
-                    {isAdmin && (
+                    {isAllowedToChangePassword && (
                       <button
                         type="button"
                         className="btn btn-outline-secondary ms-2"
@@ -1023,7 +1028,11 @@ const MemberListPage = () => {
                       </button>
                     )}
                   </div>
-                  {showPassword ? (
+                  {!isAllowedToChangePassword ? (
+                    <small className="text-muted mt-1">
+                      Chỉ admin mới có thể thay đổi mật khẩu
+                    </small>
+                  ) : showPassword ? (
                     <small className="text-muted mt-1">
                       Để trống nếu không muốn thay đổi mật khẩu
                     </small>

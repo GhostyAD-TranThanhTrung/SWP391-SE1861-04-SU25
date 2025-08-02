@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import PaginationComp from "../../components/Pagination";
 const ConsultantListPage = () => {
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isAllowedToChangePassword, setIsAllowedToChangePassword] = useState(false);
   const [consultants, setConsultants] = useState([]);
   const [newConsultant, setNewConsultant] = useState({
     email: "",
@@ -63,13 +64,19 @@ const ConsultantListPage = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       )
       if (res.data.role === 'admin' || res.data.role === 'manager' || res.data.role === 'staff') setIsAdmin(true);
+      if (res.data.role === 'admin') setIsAllowedToChangePassword(true);
       if (!(res.data.role && (res.data.role === 'admin' || res.data.role === 'manager' || res.data.role === 'staff'))) navigate('/admin/login')
     } catch (err) {
       navigate('/admin/login')
     }
 
   }
-  userRole()
+  (
+    async () => {
+      await userRole()
+    }
+  )()
+
   // Days of week configuration
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   const dayLabels = {
@@ -268,7 +275,12 @@ const ConsultantListPage = () => {
   };
 
   useEffect(() => {
-    fetchConsultants();
+    (
+      async () => {
+        await fetchConsultants();
+      }
+    )()
+
   }, []);
 
   const handleSubmit = async (e) => {
@@ -332,7 +344,7 @@ const ConsultantListPage = () => {
 
       if (res.data.success) {
         alert("Tạo tư vấn viên thành công!");
-        fetchConsultants();
+        await fetchConsultants();
         handleClosePopup();
       }
     } catch (err) {
@@ -377,7 +389,7 @@ const ConsultantListPage = () => {
 
   const handleSearchClick = async () => {
     if (searchTerm.trim() === "") {
-      fetchConsultants();
+      await fetchConsultants();
       return;
     }
 
@@ -440,7 +452,7 @@ const ConsultantListPage = () => {
 
         console.log(`✅ Frontend: Delete operation completed, refreshing list...`);
         // Refresh the consultant list to reflect changes
-        fetchConsultants();
+        await fetchConsultants();
       }
     } catch (err) {
       console.error("❌ Frontend: Error deleting consultant:", err);
@@ -469,6 +481,7 @@ const ConsultantListPage = () => {
         const consultant = res.data.data;
         let bio = "";
         let education = "";
+        setNewPassword(consultant.password)
         if (consultant && consultant.bio_json) {
           try {
             let bioObj = typeof consultant.bio_json === "string"
@@ -486,9 +499,11 @@ const ConsultantListPage = () => {
           bio,
           education,
           date_of_birth: consultant.date_of_birth ? consultant.date_of_birth.slice(0, 10) : "",
+
           password: consultant.password || "", // Include actual password from API
         });
         setEditingConsultantId(consultantId);
+
         setShowPassword(false);
         setShowPopup(true);
       }
@@ -502,7 +517,7 @@ const ConsultantListPage = () => {
     if (editingConsultantId) {
       // When editing existing consultant
       if (showPassword) {
-        return editConsultantData?.password || ""; // Show actual password when admin toggles visibility
+        return newPassword || ""; // Show new password being typed
       } else {
         return "*********"; // Hide password by default when editing
       }
@@ -531,7 +546,7 @@ const ConsultantListPage = () => {
     }
 
     // Validate password length if changed
-    if (showPassword && editConsultantData.password && editConsultantData.password.length < 6) {
+    if (showPassword && newPassword && newPassword.length < 6) {
       alert("Mật khẩu phải có ít nhất 6 ký tự");
       return;
     }
@@ -564,19 +579,21 @@ const ConsultantListPage = () => {
         date_of_birth: editConsultantData.date_of_birth || null,
         job: editConsultantData.job || null,
 
-        // Include password only if it was changed
-        ...(showPassword && editConsultantData.password ? { password: editConsultantData.password } : {})
+        // Include password only if admin changed it
+        ...(showPassword && newPassword && isAllowedToChangePassword ? { password: newPassword } : {})
       };
 
       console.log("ID cần update:", editingConsultantId);
       console.log("Payload gửi:", payload);
-
+      if (payload.password === '' || payload.password === '*********' || payload.password === null) {
+        delete payload.password
+      }
       const res = await axios.put(`http://localhost:3000/api/consultants-complete/${editingConsultantId}`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data.success) {
         alert("Cập nhật tư vấn viên thành công!");
-        fetchConsultants();
+        await fetchConsultants();
         handleClosePopup();
       }
     } catch (err) {
@@ -749,7 +766,7 @@ const ConsultantListPage = () => {
         <div className="card-body">
           <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div className="d-flex gap-2 flex-wrap">
-              <button onClick={() => { handleEdit(null) }} className="btn btn-primary shadow-sm" title="Tạo tư vấn viên tạm thời">
+              <button onClick={() => { handleEdit(null) }} className="btn btn-primary shadow-sm" disabled={!isAllowedToChangePassword} title="Tạo tư vấn viên tạm thời">
                 <FaPlus className="me-1" /> Tạo tư vấn viên mới
               </button>
               <button
@@ -842,7 +859,7 @@ const ConsultantListPage = () => {
                 <td>{consultant.status}</td>
                 <td>{new Date(consultant.date_create).toLocaleDateString()}</td>
                 <td className="action-buttons">
-                  <button className="btn btn-outline-warning btn-sm me-2" onClick={() => handleEdit(consultant.id_consultant)}>
+                  <button className="btn btn-outline-warning btn-sm me-2" onClick={async () => await handleEdit(consultant.id_consultant)}>
                     <FaEdit />
                   </button>
                   <button className="btn btn-outline-info btn-sm me-2" onClick={() => handleOpenSlotModal(consultant)} title="Quản lý lịch làm việc">
@@ -901,20 +918,20 @@ const ConsultantListPage = () => {
                       name="password"
                       value={getPasswordDisplayValue()}
                       onChange={(e) => {
-                        if (editingConsultantId && showPassword) {
-                          // When editing and password is visible, allow editing
-                          setEditConsultantData({ ...editConsultantData, password: e.target.value });
+                        if (editingConsultantId && showPassword && isAllowedToChangePassword) {
+                          // When editing and password is visible, allow editing only for admin
+                          setNewPassword(e.target.value);
                         } else if (!editingConsultantId) {
                           // When creating new consultant
                           setNewPassword(e.target.value);
                         }
                       }}
                       required={!editingConsultantId}
-                      disabled={editingConsultantId && !showPassword}
+                      disabled={editingConsultantId && (!showPassword || !isAllowedToChangePassword)}
                       className="form-input"
                       style={{ color: '#000', backgroundColor: '#fff' }}
                     />
-                    {editingConsultantId && isAdmin && (
+                    {editingConsultantId && isAllowedToChangePassword && (
                       <button
                         type="button"
                         className="btn btn-outline-secondary ms-2"
@@ -927,7 +944,10 @@ const ConsultantListPage = () => {
                   </div>
                   {editingConsultantId && (
                     <small className="text-muted mt-1">
-                      {showPassword ? "Để trống nếu không muốn thay đổi mật khẩu" : "Nhấn nút mắt để xem/chỉnh sửa mật khẩu"}
+                      {isAllowedToChangePassword
+                        ? (showPassword ? "Để trống nếu không muốn thay đổi mật khẩu" : "Nhấn nút mắt để xem/chỉnh sửa mật khẩu")
+                        : "Chỉ admin mới có thể chỉnh sửa mật khẩu"
+                      }
                     </small>
                   )}
                 </div>
