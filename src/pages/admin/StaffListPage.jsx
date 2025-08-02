@@ -76,7 +76,7 @@ const StaffListPage = () => {
       }
     )()
 
-  }, []);
+  }, [staffs]);
 
   const handleOpenPopup = () => {
     setShowPopup(true);
