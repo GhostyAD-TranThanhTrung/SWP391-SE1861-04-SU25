@@ -81,12 +81,7 @@ const CoursePage = () => {
 
                 const res = await response.json();
 
-                // Filter out community events from regular programs display
-                const filteredPrograms = (res.data || []).filter(program => {
-                    return !program.category || program.category.name !== 'Community Event';
-                });
-
-                setPrograms(filteredPrograms);
+                setPrograms(res.data);
             } catch (err) {
                 console.error('Error fetching programs:', err);
                 setError('Không thể tải chương trình. Vui lòng thử lại sau.');
@@ -200,17 +195,6 @@ const CoursePage = () => {
         }
     };
 
-    const getCategoryDisplayName = (category) => {
-        if (category.name && category.description) {
-            return `${category.name} - ${category.description}`;
-        } else if (category.name) {
-            return category.name;
-        } else if (category.description) {
-            return category.description;
-        } else {
-            return 'Danh mục không xác định';
-        }
-    };
 
     const getCategoryShortName = (category) => {
         return category.name || category.description || 'Danh mục';
