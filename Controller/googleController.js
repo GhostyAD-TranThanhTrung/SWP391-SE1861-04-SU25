@@ -126,7 +126,7 @@ exports.googleLogin = async (req, res) => {
                 {
                     userId: user.user_id,
                     email: user.email,
-                    role: user.role || 'Member'
+                    role: user.role || 'member'
                 },
                 JWT_SECRET,
                 { expiresIn: '24h' }
