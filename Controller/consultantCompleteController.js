@@ -252,6 +252,17 @@ class ConsultantCompleteController {
         });
       }
 
+      const currentDate = new Date();
+      const currentYear = currentDate.getFullYear();
+      const dateOfBirth = new Date(date_of_birth);
+
+      if(currentYear - dateOfBirth.getFullYear() > 100){
+        return res.status(400).json({
+          success: false,
+          message: "Date of birth is invalid",
+        });
+      }
+
       // Check if user already exists with this email
       const existingUserQuery = 'SELECT user_id FROM Users WHERE email = @0';
       const existingUsers = await AppDataSource.query(existingUserQuery, [email]);
