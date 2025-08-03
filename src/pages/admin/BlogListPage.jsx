@@ -329,7 +329,16 @@ const BlogListPage = () => {
 
   const truncateText = (text, maxLength = 100) => {
     if (!text) return '';
-    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+    
+    // Remove HTML tags from the text
+    const stripHtml = (html) => {
+      const tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      return tmp.textContent || tmp.innerText || '';
+    };
+    
+    const cleanText = stripHtml(text);
+    return cleanText.length > maxLength ? cleanText.substring(0, maxLength) + '...' : cleanText;
   };
 
   // Flag functionality handlers

@@ -20,7 +20,7 @@ const AssessmentListPage = () => {
   const [assessments, setAssessments] = useState([]);
   const [actions, setActions] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterType, setFilterType] = useState("");
+  const [filterType, setFilterType] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [maxPageNumbersToShow] = useState(5);
@@ -112,7 +112,7 @@ const AssessmentListPage = () => {
       assessment.assessment_id?.toString().includes(searchTerm) ||
       assessment.type?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesType = !filterType || assessment.type === filterType;
+    const matchesType = filterType === "all" || assessment.type === filterType;
 
     return matchesSearch && matchesType;
   });
@@ -280,9 +280,6 @@ const AssessmentListPage = () => {
     }
   }, [assessments, actions]);
 
-  // Get unique assessment types for filter dropdown
-  const uniqueTypes = [...new Set(assessments.map(a => a.type).filter(Boolean))];
-
   // Helper function to calculate risk level from assessment data
   const calculateRiskLevel = (assessment) => {
     try {
@@ -436,15 +433,15 @@ const AssessmentListPage = () => {
               </div>
             </div>
             <div className="col-md-3">
-              <select
-                className="form-select"
+            <select
+                className="form-select shadow-sm"
+                style={{ minWidth: "300px" }}
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value)}
               >
-                <option value="">Tất cả loại</option>
-                {uniqueTypes.map(type => (
-                  <option key={type} value={type}>{type}</option>
-                ))}
+                <option value="all">Tất cả loại</option>
+                <option value="assist">ASSIST</option>
+                <option value="crafft">CRAFFT</option>
               </select>
             </div>
           </div>
@@ -528,7 +525,7 @@ const AssessmentListPage = () => {
                       title="Xem chi tiết"
                       onClick={() => handleViewDetail(assessment)}
                     >
-                      <FaEye color="#0ea5e9" />
+                      <FaEye color="blue" />
                     </button>
                   </td>
                 </tr>

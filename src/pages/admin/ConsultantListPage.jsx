@@ -861,14 +861,14 @@ const ConsultantListPage = () => {
                 <td>{consultant.status}</td>
                 <td>{new Date(consultant.date_create).toLocaleDateString()}</td>
                 <td className="action-buttons">
-                  <button className="btn btn-outline-warning btn-sm me-2" onClick={async () => await handleEdit(consultant.id_consultant)}>
-                    <FaEdit />
+                  <button className="btn btn-light btn-sm me-2" onClick={async () => await handleEdit(consultant.id_consultant)}>
+                    <FaEdit color="yellow"/>
                   </button>
-                  <button className="btn btn-outline-info btn-sm me-2" onClick={() => handleOpenSlotModal(consultant)} title="Quản lý lịch làm việc">
-                    <FaClock />
+                  <button className="btn btn-light btn-sm me-2" onClick={() => handleOpenSlotModal(consultant)} title="Quản lý lịch làm việc">
+                    <FaClock color="blue" />
                   </button>
-                  <button className="btn btn-outline-danger btn-sm" onClick={() => handleOpenDeleteDialog(consultant.id_consultant)}>
-                    <FaTrash />
+                  <button className="btn btn-light btn-sm" onClick={() => handleOpenDeleteDialog(consultant.id_consultant)}>
+                    <FaTrash color="red"/>
                   </button>
                 </td>
               </tr>

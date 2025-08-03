@@ -652,7 +652,7 @@ const MemberListPage = () => {
                 <td>{new Date(member.date_create).toLocaleDateString()}</td>
                 <td className="action-buttons">
                   <button className="btn btn-light me-2" onClick={() => handleView(member.user_id)}>
-                    <FaEye />
+                    <FaEye color="blue"/>
                   </button>
                   <button className="btn btn-light me-2" onClick={() => handleEdit(member.user_id)}>
                     <FaEdit color="yellow" />

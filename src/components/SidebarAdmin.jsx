@@ -2,6 +2,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import '../styles/SidebarAdmin.scss';
 import { FaBlog, FaBook, FaClipboardList, FaGauge, FaIdBadge, FaRightFromBracket, FaUser, FaUserCheck } from "react-icons/fa6";
 import { useState } from 'react';
+import { FaQuestionCircle } from 'react-icons/fa';
+import { MdRecommend } from 'react-icons/md';
 const SidebarAdmin = ({ isOpen }) => {
     const location = useLocation();
     const currentPath = location.pathname;
@@ -55,6 +57,12 @@ const SidebarAdmin = ({ isOpen }) => {
                 </li>
                 <li className={currentPath === "/assessment-list" ? "active" : ""}>
                     <Link to="/assessment-list"><FaClipboardList className='icon' /> Đánh giá</Link>
+                </li>
+                <li className={currentPath === "/action-list" ? "active" : ""}>
+                    <Link to="/action-list"><MdRecommend className='icon'/> Hành động</Link>
+                </li>
+                <li className={currentPath === "/question-list" ? "active" : ""}>
+                    <Link to="/question-list"><FaQuestionCircle className='icon' /> Câu hỏi</Link>
                 </li>
                 <li className={currentPath === "/course-list" ? "active" : ""}>
                     <Link to="/course-list"><FaBook className='icon' /> Khóa học</Link>

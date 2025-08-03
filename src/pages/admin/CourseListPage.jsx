@@ -971,25 +971,25 @@ const CourseListPage = () => {
                   <td>{new Date(program.create_at).toLocaleDateString()}</td>
                   <td className="action-buttons">
                     <button
-                      className="btn btn-info btn-sm me-1"
+                      className="btn btn-light btn-sm me-1"
                       onClick={() => openDetailModal(program)}
-                      title="View Details"
+                      title="Xem chi tiết"
                     >
-                      <FaEye />
+                      <FaEye color="blue"/>
                     </button>
                     <button
-                      className="btn btn-warning btn-sm me-1"
+                      className="btn btn-light btn-sm me-1"
                       onClick={() => openUpdateModal(program)}
-                      title="Edit Program"
+                      title="Sửa chương trình"
                     >
-                      <FaEdit />
+                      <FaEdit color="yellow"/>
                     </button>
                     <button
-                      className="btn btn-danger btn-sm"
+                      className="btn btn-light btn-sm"
                       onClick={() => handleDeleteProgram(program.program_id, program.title)}
-                      title="Delete Program"
+                      title="Xóa chương trình"
                     >
-                      <FaTrash />
+                      <FaTrash color="red"/>
                     </button>
                   </td>
                 </tr>

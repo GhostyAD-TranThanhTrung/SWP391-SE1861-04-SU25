@@ -40,18 +40,21 @@ import AssessmentResultPage from "./pages/AssessmentResultPage";
 import WriteBlogs from "./pages/WriteBlogs";
 import CompleteCourse from "./pages/CompleteCourse";
 import DetailMemberPage from "./pages/admin/DetailMemberPage";
+import ActionListPage from "./pages/admin/ActionListPage";
+import QuestionListPage from "./pages/admin/QuestionListPage";
+import StaffResetPassword from "./pages/admin/StaffResetPassword";
 
 //Import layout
 import AdminLayout from "./layout/AdminLayout";
 import ConsultantLayout from "./layout/ConsultantLayout";
-import StaffResetPassword from "./pages/admin/StaffResetPassword";
+
 
 // Wrapper component to conditionally render Navbar and Footer
 const AppLayout = () => {
   const location = useLocation();
   const hideNavbarAndFooter = ["/login", "/signup", "/forget", "/choose-role", "/admin/login",
     "/dashboard", "/staff-list", "/member-list", "/consultant-list", '/assessment-list',
-    '/course-list', '/blog-list', '/admin/reset-password', '/manage-booking', '/certificate'].includes(location.pathname) ||
+    '/course-list', '/blog-list', '/admin/reset-password', '/manage-booking', '/certificate', '/question-list', '/action-list'].includes(location.pathname) ||
     location.pathname.startsWith('/admin/flags/') || location.pathname.startsWith('/member-list/detail');
 
   return (
@@ -126,6 +129,22 @@ const AppLayout = () => {
             element={
               <AdminLayout>
                 <AssessmentListPage />
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/action-list"
+            element={
+              <AdminLayout>
+                <ActionListPage />
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/question-list"
+            element={
+              <AdminLayout>
+                <QuestionListPage />
               </AdminLayout>
             }
           />

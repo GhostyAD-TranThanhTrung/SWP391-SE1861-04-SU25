@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import "bootstrap-icons/font/bootstrap-icons.css";
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
@@ -7,24 +7,11 @@ import Logo from '../images/Logo.png';
 import '../styles/Navbar.scss';
 
 const Navbar = () => {
-    const searchRef = useRef();
     const navigate = useNavigate();
     const location = useLocation();
     const email = sessionStorage.getItem("email");
     const [dropdownOpen, setDropdownOpen] = useState(false);
 
-    const handleSearch = () => {
-        const query = searchRef.current.value.trim();
-        if (query) {
-            console.log("Đang tìm kiếm:", query);
-        }
-    };
-
-    const handleKeyPress = (e) => {
-        if (e.key === 'Enter') {
-            handleSearch();
-        }
-    };
 
     const handleLogout = () => {
         sessionStorage.removeItem("email");
@@ -145,24 +132,6 @@ const Navbar = () => {
 
                 {/* Right: search + buttons or email */}
                 <div className="d-flex align-items-center gap-3">
-                    <div className="search-box">
-                        <input
-                            type="text"
-                            className="form-control"
-                            placeholder="Tìm kiếm..."
-                            ref={searchRef}
-                            onKeyPress={handleKeyPress}
-                            aria-label="Tìm kiếm"
-                        />
-                        <button
-                            className="btn btn-search"
-                            onClick={handleSearch}
-                            aria-label="Nút tìm kiếm"
-                            type="button"
-                        >
-                            <i className="bi bi-search text-white"></i>
-                        </button>
-                    </div>
 
                     {email ? (
                         <div className="dropdown">

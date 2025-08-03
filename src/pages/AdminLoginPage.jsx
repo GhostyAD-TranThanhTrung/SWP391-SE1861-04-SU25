@@ -1,6 +1,6 @@
 import '../styles/AdminLoginPage.scss';
 import PreventionImage from '../images/Prevention.jpg';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -9,6 +9,16 @@ const AdminLoginPage = () => {
     const passwordRef = useRef(null);
     const [error, setError] = useState('');
     const navigate = useNavigate();
+
+    useEffect(() => {
+        // Nếu đã đăng nhập member thì xóa session member trước khi đăng nhập admin
+        const wasMember = sessionStorage.getItem('token') || sessionStorage.getItem('email');
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('email');
+        if (wasMember) {
+            alert('Bạn đã được đăng xuất khỏi tài khoản member');
+        }
+    }, []);
 
     async function login() {
         try {
