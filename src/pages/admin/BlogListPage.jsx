@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { FaSearch, FaPlus, FaEdit, FaEye, FaFlag, FaUsers, FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
+import { FaSearch, FaPlus, FaEdit, FaEye, FaFlag, FaUsers } from "react-icons/fa";
 import { FaTrash } from "react-icons/fa6";
 import { MdCancel, MdApproval, MdBlock } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
@@ -67,25 +67,6 @@ const BlogListPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [totalBlogs, setTotalBlogs] = useState(0);
-
-  // Sorting state
-  const [sortField, setSortField] = useState('');
-  const [sortDirection, setSortDirection] = useState('asc');
-
-  // Sorting functions
-  const handleSort = (field) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('asc');
-    }
-  };
-
-  const getSortIcon = (field) => {
-    if (sortField !== field) return <FaSort />;
-    return sortDirection === 'asc' ? <FaSortUp /> : <FaSortDown />;
-  };
 
   // Statistics state - no longer needed as we'll calculate from filtered data
 
@@ -453,39 +434,8 @@ const BlogListPage = () => {
   };
 
 
-  // Filter and sort blogs
+  // Filter blogs
   const filteredBlogs = blogs.filter(b => filterStatus === 'all' || b.status === filterStatus);
-
-  // Sort filtered blogs
-  const sortedBlogs = [...filteredBlogs].sort((a, b) => {
-    if (!sortField) return 0;
-
-    let aValue = a[sortField];
-    let bValue = b[sortField];
-
-    // Handle different data types
-    if (sortField === 'created_at' || sortField === 'date_create') {
-      aValue = new Date(aValue);
-      bValue = new Date(bValue);
-    } else if (sortField === 'name' || sortField === 'author_name') {
-      // Handle author name (nested property)
-      aValue = a.author_name || a.name || '';
-      bValue = b.author_name || b.name || '';
-      aValue = aValue.toLowerCase();
-      bValue = bValue.toLowerCase();
-    } else if (typeof aValue === 'string') {
-      aValue = aValue.toLowerCase();
-      bValue = bValue.toLowerCase();
-    }
-
-    if (aValue < bValue) {
-      return sortDirection === 'asc' ? -1 : 1;
-    }
-    if (aValue > bValue) {
-      return sortDirection === 'asc' ? 1 : -1;
-    }
-    return 0;
-  });
 
   // Calculate statistics from all blogs data
   const publishedCount = blogs.filter(b => b.status === 'published' || b.status === 'Đã xuất bản').length;
@@ -493,21 +443,15 @@ const BlogListPage = () => {
   const pendingCount = blogs.filter(b => b.status === 'pending').length;
 
   return (
-    <div className={`staff-container ${showPopup ? 'modal-open' : ''}`}>
+    <div className={`blog-list-container ${showPopup ? 'modal-open' : ''}`}>
 
       <div className="row g-4 mb-4">
         {/* Total Blogs Card */}
         <div className="col-xl-3 col-md-6">
-          <div className="card border-0 shadow-sm h-100" style={{
-            background: '#f8f9fa',
-            color: '#212529'
-          }}>
+          <div className="card border-0 shadow-sm h-100">
             <div className="card-body d-flex align-items-center">
               <div className="flex-shrink-0">
-                <div className="p-3 rounded-circle" style={{
-                  backgroundColor: '#e9ecef',
-                  fontSize: '2rem'
-                }}>
+                <div className="p-3 rounded-circle">
                   <FaUsers />
                 </div>
               </div>
@@ -522,16 +466,10 @@ const BlogListPage = () => {
 
         {/* Published Blogs Card */}
         <div className="col-xl-3 col-md-6">
-          <div className="card border-0 shadow-sm h-100" style={{
-            background: '#f8f9fa',
-            color: '#212529'
-          }}>
+          <div className="card border-0 shadow-sm h-100">
             <div className="card-body d-flex align-items-center">
               <div className="flex-shrink-0">
-                <div className="p-3 rounded-circle" style={{
-                  backgroundColor: '#e9ecef',
-                  fontSize: '2rem'
-                }}>
+                <div className="p-3 rounded-circle">
                   <FaUsers />
                 </div>
               </div>
@@ -546,16 +484,10 @@ const BlogListPage = () => {
 
         {/* Draft Blogs Card */}
         <div className="col-xl-3 col-md-6">
-          <div className="card border-0 shadow-sm h-100" style={{
-            background: '#f8f9fa',
-            color: '#212529'
-          }}>
+          <div className="card border-0 shadow-sm h-100">
             <div className="card-body d-flex align-items-center">
               <div className="flex-shrink-0">
-                <div className="p-3 rounded-circle" style={{
-                  backgroundColor: '#e9ecef',
-                  fontSize: '2rem'
-                }}>
+                <div className="p-3 rounded-circle">
                   <FaUsers />
                 </div>
               </div>
@@ -570,16 +502,10 @@ const BlogListPage = () => {
 
         {/* Pending Blogs Card */}
         <div className="col-xl-3 col-md-6">
-          <div className="card border-0 shadow-sm h-100" style={{
-            background: '#f8f9fa',
-            color: '#212529'
-          }}>
+          <div className="card border-0 shadow-sm h-100">
             <div className="card-body d-flex align-items-center">
               <div className="flex-shrink-0">
-                <div className="p-3 rounded-circle" style={{
-                  backgroundColor: '#e9ecef',
-                  fontSize: '2rem'
-                }}>
+                <div className="p-3 rounded-circle">
                   <FaUsers />
                 </div>
               </div>
@@ -626,7 +552,6 @@ const BlogListPage = () => {
             <div className="d-flex gap-2 flex-wrap">
               <select
                 className="form-select shadow-sm"
-                style={{ minWidth: '150px' }}
                 value={filterStatus}
                 onChange={e => setFilterStatus(e.target.value)}
               >
@@ -636,7 +561,7 @@ const BlogListPage = () => {
                 <option value="draft">Bản nháp</option>
                 <option value="rejected">Bị từ chối</option>
               </select>
-              <div className="input-group" style={{ minWidth: '250px' }}>
+              <div className="input-group">
                 <input
                   type="text"
                   className="form-control shadow-sm"
@@ -653,146 +578,148 @@ const BlogListPage = () => {
         </div>
       </div>
 
-      <div className="table-wrapper">
-        <table className="table table-bordered">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th onClick={() => handleSort('title')} style={{ cursor: 'pointer', userSelect: 'none' }} title="Click to sort by title">
-                Tiêu đề {getSortIcon('title')}
-              </th>
-              <th>Nội dung</th>
-              <th onClick={() => handleSort('status')} style={{ cursor: 'pointer', userSelect: 'none' }} title="Click to sort by status">
-                Trạng thái {getSortIcon('status')}
-              </th>
-              <th>Báo cáo</th>
-              <th onClick={() => handleSort('author_name')} style={{ cursor: 'pointer', userSelect: 'none' }} title="Click to sort by author">
-                Tác giả {getSortIcon('author_name')}
-              </th>
-              <th onClick={() => handleSort('created_at')} style={{ cursor: 'pointer', userSelect: 'none' }} title="Click to sort by creation date">
-                Ngày tạo {getSortIcon('created_at')}
-              </th>
-              <th>Hình ảnh</th>
-              <th>Thao tác</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sortedBlogs.map((blog, index) => (
-              <tr key={blog.blog_id}>
-                <td>{index + 1}</td>
-                <td>
-                  <div style={{ maxWidth: '200px' }}>
-                    {truncateText(blog.title, 50)}
+      <div className="blog-cards-wrapper">
+        <div className="row g-4">
+          {filteredBlogs.map((blog) => (
+            <div key={blog.blog_id} className="col-xl-3 col-lg-4 col-md-6">
+              <div className="blog-card">
+                <div className="blog-card-header">
+                  <div className="blog-image">
+                    {blog.img_link ? (
+                      <img
+                        src={blog.img_link}
+                        alt="Blog"
+                        onError={(e) => { e.target.style.display = 'none' }}
+                      />
+                    ) : (
+                      <div className="no-image">
+                        <FaUsers />
+                      </div>
+                    )}
                   </div>
-                </td>
-                <td>
-                  <div style={{ maxWidth: '300px' }}>
-                    {truncateText(blog.body, 75)}
-                  </div>
-                </td>
-                <td>
-                  <div className="d-flex flex-column align-items-start">
-                    <span className={`badge bg-${getStatusBadge(blog.status)} mb-1`}>
+                  <div className="blog-status">
+                    <span className={`badge bg-${getStatusBadge(blog.status)}`}>
                       {blog.status || 'draft'}
                     </span>
                     {blog.status === 'hidden' && (
-                      <span className="badge bg-warning text-dark">
+                      <span className="badge bg-warning text-dark ms-1">
                         Ẩn
                       </span>
                     )}
                   </div>
-                </td>
-                <td>
-                  <div className="d-flex align-items-center">
-                    <span className={`badge ${blogFlagCounts[blog.blog_id] >= 3
-                      ? 'bg-danger'
-                      : blogFlagCounts[blog.blog_id] >= 1
-                        ? 'bg-warning'
-                        : 'bg-success'
-                      }`}>
-                      {blogFlagCounts[blog.blog_id] || 0} báo cáo
-                    </span>
+                </div>
+                
+                <div className="blog-card-body">
+                  <h5 className="blog-title">
+                    {truncateText(blog.title, 60)}
+                  </h5>
+                  <p className="blog-content">
+                    {truncateText(blog.body, 120)}
+                  </p>
+                  
+                  <div className="blog-meta">
+                    <div className="meta-item">
+                      <span className="meta-label">Tác giả:</span>
+                      <span className="meta-value">{blog.author?.name || blog.author_id}</span>
+                    </div>
+                    <div className="meta-item">
+                      <span className="meta-label">Ngày tạo:</span>
+                      <span className="meta-value">
+                        {blog.created_at ? new Date(blog.created_at).toLocaleDateString() : 'N/A'}
+                      </span>
+                    </div>
+                    <div className="meta-item">
+                      <span className="meta-label">Báo cáo:</span>
+                      <span className={`badge ${blogFlagCounts[blog.blog_id] >= 3
+                        ? 'bg-danger'
+                        : blogFlagCounts[blog.blog_id] >= 1
+                          ? 'bg-warning'
+                          : 'bg-success'
+                        }`}>
+                        {blogFlagCounts[blog.blog_id] || 0}
+                      </span>
+                    </div>
                   </div>
-                </td>
-                <td>{blog.author?.name || blog.author_id}</td>
-                <td>{blog.created_at ? new Date(blog.created_at).toLocaleDateString() : 'N/A'}</td>
-                <td>
-                  {blog.img_link ? (
-                    <img
-                      src={blog.img_link}
-                      alt="Blog"
-                      style={{ width: '50px', height: '30px', objectFit: 'cover' }}
-                      onError={(e) => { e.target.style.display = 'none' }}
-                    />
-                  ) : 'Không có'}
-                </td>
-                <td className="action-buttons">
-                  <button
-                    className="btn btn-outline-info btn-sm me-1"
-                    onClick={() => window.open(`/blog/${blog.blog_id}`, '_blank')}
-                    title="Xem blog"
-                  >
-                    <FaEye />
-                  </button>
-                  {blog.status === 'pending' && (
-                    <>
-                      <button
-                        className="btn btn-outline-success btn-sm me-1"
-                        onClick={() => handleStatusChange(blog.blog_id, 'published')}
-                        title="Phê duyệt"
-                      >
-                        <MdApproval />
-                      </button>
-                      <button
-                        className="btn btn-outline-danger btn-sm me-1"
-                        onClick={() => handleStatusChange(blog.blog_id, 'rejected')}
-                        title="Từ chối"
-                      >
-                        <MdBlock />
-                      </button>
-                    </>
-                  )}
-                  <button
-                    className={`btn btn-sm me-1 ${blogFlagStatus[blog.blog_id]?.flagged
-                      ? 'btn-warning'
-                      : 'btn-outline-warning'
-                      }`}
-                    onClick={() => handleFlagClick(blog)}
-                    title={
-                      blogFlagStatus[blog.blog_id]?.flagged
-                        ? 'Gỡ báo cáo'
-                        : 'Báo cáo bài viết'
-                    }
-                  >
-                    <FaFlag />
-                  </button>
-                  <button
-                    className="btn btn-outline-secondary btn-sm me-1"
-                    onClick={() => window.open(`/admin/flags/blog/${blog.blog_id}`, '_blank')}
-                    title="Xem tất cả báo cáo"
-                  >
-                    <FaFlag />
-                    <small className="ms-1">({blogFlagCounts[blog.blog_id] || 0})</small>
-                  </button>
-                  <button
-                    className="btn btn-outline-danger btn-sm"
-                    onClick={() => handleOpenDeleteDialog(blog.blog_id)}
-                    title="Xóa"
-                  >
-                    <FaTrash />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                </div>
+                
+                <div className="blog-card-footer">
+                  <div className="action-buttons">
+                    <button
+                      className="btn btn-outline-info btn-sm"
+                      onClick={() => window.open(`/blog/${blog.blog_id}`, '_blank')}
+                      title="Xem blog"
+                    >
+                      <FaEye />
+                    </button>
+                    
+                    {blog.status === 'pending' && (
+                      <>
+                        <button
+                          className="btn btn-outline-success btn-sm"
+                          onClick={() => handleStatusChange(blog.blog_id, 'published')}
+                          title="Phê duyệt"
+                        >
+                          <MdApproval />
+                        </button>
+                        <button
+                          className="btn btn-outline-danger btn-sm"
+                          onClick={() => handleStatusChange(blog.blog_id, 'rejected')}
+                          title="Từ chối"
+                        >
+                          <MdBlock />
+                        </button>
+                      </>
+                    )}
+                    
+                    <button
+                      className={`btn btn-sm ${blogFlagStatus[blog.blog_id]?.flagged
+                        ? 'btn-warning'
+                        : 'btn-outline-warning'
+                        }`}
+                      onClick={() => handleFlagClick(blog)}
+                      title={
+                        blogFlagStatus[blog.blog_id]?.flagged
+                          ? 'Gỡ báo cáo'
+                          : 'Báo cáo bài viết'
+                      }
+                    >
+                      <FaFlag />
+                    </button>
+                    
+                    <button
+                      className="btn btn-outline-secondary btn-sm"
+                      onClick={() => window.open(`/admin/flags/blog/${blog.blog_id}`, '_blank')}
+                      title="Xem tất cả báo cáo"
+                    >
+                      <FaFlag />
+                      <small className="ms-1">({blogFlagCounts[blog.blog_id] || 0})</small>
+                    </button>
+                    
+                    <button
+                      className="btn btn-outline-danger btn-sm"
+                      onClick={() => handleOpenDeleteDialog(blog.blog_id)}
+                      title="Xóa"
+                    >
+                      <FaTrash />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
 
-        {sortedBlogs.length === 0 && (
-          <div className="text-center py-4">
-            <p>Không có blog nào để hiển thị.</p>
+        {filteredBlogs.length === 0 && (
+          <div className="text-center py-5">
+            <div className="empty-state">
+              <FaUsers className="empty-icon" />
+              <h4>Không có blog nào để hiển thị</h4>
+              <p>Hãy tạo blog mới hoặc thay đổi bộ lọc để xem kết quả</p>
+            </div>
           </div>
         )}
       </div>
+
 
       {/* Pagination below table */}
       <PaginationComp
