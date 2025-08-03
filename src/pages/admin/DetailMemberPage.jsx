@@ -4,7 +4,7 @@ import "../../styles/DetailMemberPage.scss";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import axios from "axios";
 import Image from '../../images/Images.jpg';
-import { assessRiskLevel as assessCrafftRisk } from "../../QuizData/Crafft-Data";
+import { assessRiskLevel as assessCrafftRisk, hasSubstanceUseInPartA, hasCarRisk } from "../../QuizData/Crafft-Data";
 import { assessRiskLevel as assessAssistRisk } from "../../QuizData/Assist_Data";
 
 const DetailMemberPage = () => {
@@ -189,14 +189,6 @@ const DetailMemberPage = () => {
       const assessmentType = assessment.type?.toLowerCase();
 
       if (assessmentType === 'crafft') {
-        // For CRAFFT, we need to check substance use from Part A
-        const hasSubstanceUse = resultData.result && resultData.result.some((answer, index) => {
-          return index < 3 && answer.score > 0; // First 3 questions are Part A
-        });
-
-        // Check CAR question (question 4, index 3)
-        const hasCarRisk = resultData.result && resultData.result[3]?.score === 1;
-
         // Create userAnswers object for CRAFFT assessment
         const userAnswers = {};
         if (resultData.result) {
@@ -204,6 +196,10 @@ const DetailMemberPage = () => {
             userAnswers[index] = answer;
           });
         }
+
+        // Use database-driven helper functions instead of hardcoded logic
+        const hasSubstanceUse = hasSubstanceUseInPartA(userAnswers);
+        const hasCarRiskFactor = hasCarRisk(userAnswers);
 
         riskLevel = assessCrafftRisk(score, userAnswers);
       } else if (assessmentType === 'assist') {

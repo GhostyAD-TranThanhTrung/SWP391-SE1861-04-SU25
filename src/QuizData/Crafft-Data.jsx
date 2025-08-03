@@ -194,25 +194,57 @@ export const resultInitalState = {
     riskLevel: "Chưa xác định",
 };
 
+// Helper functions for dynamic CRAFFT scoring
+export const getCrafftPartAScore = (userAnswers) => {
+    const crafftQuestions = Crafft_Data.questions;
+    return Object.entries(userAnswers).reduce((total, [questionIndex, answer]) => {
+        const questionId = parseInt(questionIndex);
+        const question = crafftQuestions.find(q => q.id === questionId);
+        return question?.category === 'partA' ? total + (answer?.score || 0) : total;
+    }, 0);
+};
+
+export const getCrafftPartBScore = (userAnswers) => {
+    const crafftQuestions = Crafft_Data.questions;
+    return Object.entries(userAnswers).reduce((total, [questionIndex, answer]) => {
+        const questionId = parseInt(questionIndex);
+        const question = crafftQuestions.find(q => q.id === questionId);
+        return question?.category === 'partB' ? total + (answer?.score || 0) : total;
+    }, 0);
+};
+
+export const hasSubstanceUseInPartA = (userAnswers) => {
+    const crafftQuestions = Crafft_Data.questions;
+    return Object.entries(userAnswers).some(([questionIndex, answer]) => {
+        const questionId = parseInt(questionIndex);
+        const question = crafftQuestions.find(q => q.id === questionId);
+        return question?.category === 'partA' && answer?.score > 0;
+    });
+};
+
+export const hasCarRisk = (userAnswers) => {
+    const crafftQuestions = Crafft_Data.questions;
+    return Object.entries(userAnswers).some(([questionIndex, answer]) => {
+        const questionId = parseInt(questionIndex);
+        const question = crafftQuestions.find(q => q.id === questionId);
+        return question?.letter === 'C' && answer?.score === 1;
+    });
+};
+
 // CRAFFT 2.1 Risk Assessment Function - Compatible with ExamPage flow
 export const assessRiskLevel = (totalScore, userAnswers = {}) => {
     // totalScore now only contains Part B score (0-6) since Part A doesn't contribute
     const partBScore = totalScore;
 
-    // Determine if there's any substance use from Part A answers (questions 1-3)
-    const hasSubstanceUse = Object.entries(userAnswers).some(([questionIndex, answer]) => {
-        const questionNum = parseInt(questionIndex) + 1;
-        return questionNum <= 3 && answer?.score > 0;
-    });
-
-    // Check CAR question specifically (question 4, which is index 3 in userAnswers)
-    const hasCarRisk = userAnswers[3]?.score === 1 || false;
+    // Use helper functions for dynamic assessment
+    const hasSubstanceUse = hasSubstanceUseInPartA(userAnswers);
+    const hasCarRiskFactor = hasCarRisk(userAnswers);
 
     // Apply CRAFFT 2.1 risk assessment logic
     if (!hasSubstanceUse && partBScore === 0) {
         // LOW RISK: No use in past 12 months AND CRAFFT score = 0
         return "Thấp";
-    } else if ((!hasSubstanceUse && hasCarRisk) || (hasSubstanceUse && partBScore < 2)) {
+    } else if ((!hasSubstanceUse && hasCarRiskFactor) || (hasSubstanceUse && partBScore < 2)) {
         // MEDIUM RISK: No use + CAR risk OR Any use + CRAFFT < 2
         return "Trung bình";
     } else if (hasSubstanceUse && partBScore >= 2) {
@@ -227,6 +259,7 @@ export const assessRiskLevel = (totalScore, userAnswers = {}) => {
 export const calculateCrafftResults = (userAnswers) => {
     if (!userAnswers || Object.keys(userAnswers).length === 0) {
         return {
+            partAScore: 0,
             partBScore: 0,
             hasSubstanceUse: false,
             hasCarRisk: false,
@@ -235,20 +268,11 @@ export const calculateCrafftResults = (userAnswers) => {
         };
     }
 
-    // Extract Part A answers (questions 1-3) 
-    const hasSubstanceUse = Object.entries(userAnswers).some(([questionIndex, answer]) => {
-        const questionNum = parseInt(questionIndex) + 1;
-        return questionNum <= 3 && answer?.score > 0;
-    });
-
-    // Calculate Part B score (questions 4-9) 
-    const partBScore = Object.entries(userAnswers).reduce((total, [questionIndex, answer]) => {
-        const questionNum = parseInt(questionIndex) + 1;
-        return questionNum >= 4 && questionNum <= 9 ? total + (answer?.score || 0) : total;
-    }, 0);
-
-    // Check CAR question specifically (question 4)
-    const hasCarRisk = userAnswers[3]?.score === 1 || false;
+    // Use helper functions for dynamic scoring
+    const partAScore = getCrafftPartAScore(userAnswers);
+    const partBScore = getCrafftPartBScore(userAnswers);
+    const hasSubstanceUse = hasSubstanceUseInPartA(userAnswers);
+    const hasCarRiskFactor = hasCarRisk(userAnswers);
 
     // Determine risk level according to CRAFFT 2.1 guidelines
     let riskLevel;
@@ -257,7 +281,7 @@ export const calculateCrafftResults = (userAnswers) => {
     if (!hasSubstanceUse && partBScore === 0) {
         riskLevel = "Thấp";
         clinicalAction = "Cung cấp thông tin về rủi ro của việc sử dụng chất và lái xe/đi xe với người đã sử dụng chất; khen ngợi và khuyến khích";
-    } else if ((!hasSubstanceUse && hasCarRisk) || (hasSubstanceUse && partBScore < 2)) {
+    } else if ((!hasSubstanceUse && hasCarRiskFactor) || (hasSubstanceUse && partBScore < 2)) {
         riskLevel = "Trung bình";
         clinicalAction = "Cung cấp thông tin về rủi ro; tư vấn ngắn; có thể cần tái khám";
     } else if (hasSubstanceUse && partBScore >= 2) {
@@ -269,9 +293,10 @@ export const calculateCrafftResults = (userAnswers) => {
     }
 
     return {
+        partAScore,
         partBScore,
         hasSubstanceUse,
-        hasCarRisk,
+        hasCarRisk: hasCarRiskFactor,
         riskLevel,
         clinicalAction,
         details: {

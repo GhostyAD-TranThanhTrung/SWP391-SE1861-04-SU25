@@ -27,7 +27,7 @@ const BookingPage = () => {
         { slot_id: 6, start_time: '14:00:00', end_time: '15:00:00' },
         { slot_id: 7, start_time: '15:00:00', end_time: '16:00:00' },
         { slot_id: 8, start_time: '16:00:00', end_time: '17:00:00' }
-    ];
+    ]; //Change to fetch using api (put it to use effect)
 
     // API calls and data transformation functions (same as before)
     const fetchAllConsultants = async () => {
