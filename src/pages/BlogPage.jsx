@@ -647,19 +647,23 @@ const BlogPage = () => {
                                 <div className="featured-blog-card">
                                     <div className="row">
                                         <div className="col-md-4">
-                                            <div className="featured-image">
-                                                <img
-                                                    src={getImageUrl(posts[0].img_link)}
-                                                    alt={posts[0].title}
-                                                    className="img-fluid rounded"
-                                                    onError={handleImageError}
-                                                    style={{ width: '100%', height: '200px', objectFit: 'cover' }}
-                                                />
-                                            </div>
+                                            <Link to={`/blog/${posts[0].blog_id}`} className="text-decoration-none">
+                                                <div className="featured-image">
+                                                    <img
+                                                        src={getImageUrl(posts[0].img_link)}
+                                                        alt={posts[0].title}
+                                                        className="img-fluid rounded"
+                                                        onError={handleImageError}
+                                                        style={{ width: '100%', height: '200px', objectFit: 'cover' }}
+                                                    />
+                                                </div>
+                                            </Link>
                                         </div>
                                         <div className="col-md-8">
                                             <div className="featured-content">
-                                                <h3 className="featured-title mb-2">{posts[0].title}</h3>
+                                                <Link to={`/blog/${posts[0].blog_id}`} className="text-decoration-none">
+                                                    <h3 className="featured-title mb-2">{posts[0].title}</h3>
+                                                </Link>
                                                 <div className="featured-body mb-3">
                                                     <div dangerouslySetInnerHTML={createMarkup(truncateText(posts[0].body, 200))} className="blog-content-display"></div>
                                                 </div>
@@ -671,7 +675,7 @@ const BlogPage = () => {
                                                         </small>
                                                         <span className="mx-2">|</span>
                                                         <small className="text-muted">
-                                                            Post by: {posts[0].author || 'Anonymous'}
+                                                            Post by: {posts[0].author?.name || posts[0].author?.email || 'Anonymous'}
                                                         </small>
                                                     </div>
                                                     {getStatusBadge(posts[0].status)}
@@ -699,7 +703,8 @@ const BlogPage = () => {
                                         <div className="row">
                                             {posts.slice(1).map((post) => (
                                                 <div key={post.blog_id} className="col-lg-4 col-md-6 mb-4">
-                                                    <div className="blog-card h-100">
+                                                    <Link to={`/blog/${post.blog_id}`} className="text-decoration-none">
+                                                        <div className="blog-card h-100">
                                                         <div className="blog-image">
                                                             <img
                                                                 src={getImageUrl(post.img_link)}
@@ -722,12 +727,13 @@ const BlogPage = () => {
                                                                     </small>
                                                                     <br />
                                                                     <small className="text-muted">
-                                                                        Post by: {post.author || 'Anonymous'}
+                                                                        Post by: {post.author?.email || 'Anonymous'}
                                                                     </small>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                     </div>
+                                                    </Link>
                                                 </div>
                                             ))}
                                         </div>

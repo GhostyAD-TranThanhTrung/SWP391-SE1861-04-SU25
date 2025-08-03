@@ -367,7 +367,7 @@ const HomePage = () => {
                                         <div className="d-flex justify-content-between align-items-center">
                                             <span>
                                                 <i className="bi bi-person-circle me-1"></i>
-                                                {truncateText(blog.author || 'Admin', 15)}
+                                                {truncateText(blog.author?.name || blog.author?.email || 'Admin', 15)}
                                             </span>
                                             <span>
                                                 <i className="bi bi-calendar3 me-1"></i>

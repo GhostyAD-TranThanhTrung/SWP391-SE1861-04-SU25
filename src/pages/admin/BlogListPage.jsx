@@ -620,7 +620,7 @@ const BlogListPage = () => {
                   <div className="blog-meta">
                     <div className="meta-item">
                       <span className="meta-label">Tác giả:</span>
-                      <span className="meta-value">{blog.author?.name || blog.author_id}</span>
+                      <span className="meta-value">{blog.author?.name || blog.author?.email}</span>
                     </div>
                     <div className="meta-item">
                       <span className="meta-label">Ngày tạo:</span>
