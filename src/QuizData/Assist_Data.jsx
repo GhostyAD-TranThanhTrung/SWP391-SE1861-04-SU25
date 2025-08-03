@@ -260,15 +260,74 @@ export const resultInitalState = {
     riskLevel: "Chưa xác định",
 };
 
-export const assessRiskLevel = (score, isCannabis = false) => {
-    if (isCannabis) {
-        if (score <= 4) return "Thấp";
-        if (score <= 26) return "Trung bình";
-        return "Cao";
-    } else {
-        if (score <= 3) return "Thấp";
-        if (score <= 26) return "Trung bình";
-        return "Cao";
+// Function to get risk level based on score and action ranges from API
+export const assessRiskLevel = async (score, isCannabis = false) => {
+    try {
+        // Fetch actions from API to get dynamic ranges
+        const response = await axios.get('http://localhost:3000/api/actions/type/ASSIST');
+        
+        if (response.data && response.data.success && response.data.data) {
+            const actions = response.data.data;
+            
+            // Sort actions by range to ensure proper order
+            const sortedActions = actions.sort((a, b) => a.range - b.range);
+            
+            // Find the appropriate action based on score
+            let selectedAction = null;
+            
+            for (let i = sortedActions.length - 1; i >= 0; i--) {
+                if (score >= sortedActions[i].range) {
+                    selectedAction = sortedActions[i];
+                    break;
+                }
+            }
+            
+            // If no action found, use the lowest range action
+            if (!selectedAction && sortedActions.length > 0) {
+                selectedAction = sortedActions[0];
+            }
+            
+            // Extract risk level from action description
+            if (selectedAction) {
+                const description = selectedAction.description;
+                if (description.includes('Thấp') || description.includes('thấp')) {
+                    return "Thấp";
+                } else if (description.includes('Trung bình') || description.includes('trung bình')) {
+                    return "Trung bình";
+                } else if (description.includes('Cao') || description.includes('cao')) {
+                    return "Cao";
+                } else {
+                    // Fallback based on score ranges
+                    if (score <= 4) return "Thấp";
+                    if (score <= 26) return "Trung bình";
+                    return "Cao";
+                }
+            }
+        }
+        
+        // Fallback to hardcoded values if API fails
+        if (isCannabis) {
+            if (score <= 4) return "Thấp";
+            if (score <= 26) return "Trung bình";
+            return "Cao";
+        } else {
+            if (score <= 3) return "Thấp";
+            if (score <= 26) return "Trung bình";
+            return "Cao";
+        }
+    } catch (error) {
+        console.error('Error fetching actions for risk assessment:', error);
+        
+        // Fallback to hardcoded values
+        if (isCannabis) {
+            if (score <= 4) return "Thấp";
+            if (score <= 26) return "Trung bình";
+            return "Cao";
+        } else {
+            if (score <= 3) return "Thấp";
+            if (score <= 26) return "Trung bình";
+            return "Cao";
+        }
     }
 };
 
