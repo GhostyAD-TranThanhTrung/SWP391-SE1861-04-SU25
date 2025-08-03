@@ -60,6 +60,25 @@ class BlogController {
         },
       });
 
+      const userRepository = AppDataSource.getRepository(User);
+
+      // Fetch all authors in parallel for better performance
+      const authorPromises = blogs.map(blog => 
+        userRepository.findOne({
+          where: {
+            user_id: blog.author_id
+          }
+        })
+      );
+      
+      const authors = await Promise.all(authorPromises);
+      
+      // Assign the resolved user data to each blog
+      blogs.forEach((blog, index) => {
+        blog.author = authors[index];
+      });
+
+
       res.status(200).json({
         success: true,
         data: blogs,
@@ -82,6 +101,24 @@ class BlogController {
         order: {
           created_at: "DESC",
         },
+      });
+
+      const userRepository = AppDataSource.getRepository(User);
+
+      // Fetch all authors in parallel for better performance
+      const authorPromises = blogs.map(blog => 
+        userRepository.findOne({
+          where: {
+            user_id: blog.author_id
+          }
+        })
+      );
+      
+      const authors = await Promise.all(authorPromises);
+      
+      // Assign the resolved user data to each blog
+      blogs.forEach((blog, index) => {
+        blog.author = authors[index];
       });
 
       res.status(200).json({
