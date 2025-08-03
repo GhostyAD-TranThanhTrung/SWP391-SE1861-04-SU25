@@ -293,17 +293,8 @@ export const calculateCrafftResults = (userAnswers) => {
     }
 
     return {
-        partAScore,
-        partBScore,
-        hasSubstanceUse,
-        hasCarRisk: hasCarRiskFactor,
         riskLevel,
-        clinicalAction,
-        details: {
-            substanceUseStatus: hasSubstanceUse ? "Có sử dụng chất trong 12 tháng qua" : "Không sử dụng chất trong 12 tháng qua",
-            crafftScore: `${partBScore}/6`,
-            interpretation: getScoreInterpretation(partBScore),
-        }
+        score: partBScore
     };
 };
 
