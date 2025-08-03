@@ -925,6 +925,51 @@ app.get(
 );
 
 /**
+     * CREATE ACTION: Create a new action
+     * Purpose: Create a new action in the system
+     * Method: POST /api/actions
+     * Input: { range: int, description: string, type: string }
+     * Output: { success: boolean, data: ActionObject, message: string }
+     * Authentication: Required (Admin/Staff)
+     */
+
+app.post(
+    "/api/actions",
+    authController.verifyToken,
+    ActionController.createAction
+);
+
+/**
+ * UPDATE ACTION: Update an existing action
+ * Purpose: Update an existing action in the system
+ * Method: PUT /api/actions/:id
+ * Input: { range: int, description: string, type: string }
+ * Output: { success: boolean, data: ActionObject, message: string }
+ * Authentication: Required (Admin/Staff)
+ */
+
+app.put(
+    "/api/actions/:id",
+    authController.verifyToken,
+    ActionController.updateAction
+);
+
+/**
+ * DELETE ACTION: Remove an action from the system
+ * Purpose: Delete an action by its ID
+ * Method: DELETE /api/actions/:id
+ * Input: Path params: { id: number }
+ * Output: { success: boolean, message: string }
+ * Authentication: Required (Admin/Staff)
+ */
+
+app.delete(
+    "/api/actions/:id",
+    authController.verifyToken,
+    ActionController.deleteAction
+);
+
+/**
  * TAKE ASSESSMENT: Submit assessment test
  * Purpose: Submit assessment test responses and get results with recommendations
  * Method: POST /api/assessments/take-test

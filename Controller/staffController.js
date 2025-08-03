@@ -46,7 +46,7 @@ class StaffController {
                     // Convert bio_json from text to JSON if it exists
                     if (profile && profile.bio_json) {
                         try {
-                            profile.bio_json = JSON.parse(profile.bio_json);
+                            profile.bio_json = JSON.stringify(profile.bio_json);
                         } catch (error) {
                             // If parsing fails, keep as string
                             console.warn(`Failed to parse bio_json for user ${user.user_id}:`, error);
