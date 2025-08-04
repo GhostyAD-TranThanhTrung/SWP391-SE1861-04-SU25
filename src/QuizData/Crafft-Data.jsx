@@ -298,19 +298,5 @@ export const calculateCrafftResults = (userAnswers) => {
     };
 };
 
-// Get interpretation based on CRAFFT score
-const getScoreInterpretation = (score) => {
-    const interpretations = {
-        0: "Không có dấu hiệu rối loạn sử dụng chất",
-        1: "Rủi ro thấp, cần theo dõi",
-        2: "Rủi ro trung bình, cần tư vấn",
-        3: "Rủi ro cao, cần can thiệp",
-        4: "Rủi ro rất cao (54% khả năng rối loạn sử dụng chất mức độ trung bình-nặng)",
-        5: "Rủi ro nghiêm trọng (70% khả năng rối loạn sử dụng chất mức độ trung bình-nặng)",
-        6: "Rủi ro cực cao (100% khả năng rối loạn sử dụng chất mức độ trung bình-nặng)"
-    };
-
-    return interpretations[score] || "Điểm số không hợp lệ";
-};
 
 

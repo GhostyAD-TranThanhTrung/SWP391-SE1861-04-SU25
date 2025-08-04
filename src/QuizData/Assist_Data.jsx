@@ -263,8 +263,13 @@ export const resultInitalState = {
 // Function to get risk level based on score and action ranges from API
 export const assessRiskLevel = async (score) => {
     try {
+        // Get token from sessionStorage
+        const token = sessionStorage.getItem("token");
+        
         // Fetch actions from API to get dynamic ranges
-        const response = await axios.get('http://localhost:3000/api/actions/type/ASSIST');
+        const response = await axios.get('http://localhost:3000/api/actions/type/ASSIST', {
+            headers: { Authorization: `Bearer ${token}` }
+        });
         
         if (response.data && response.data.success && response.data.data) {
             const actions = response.data.data;
