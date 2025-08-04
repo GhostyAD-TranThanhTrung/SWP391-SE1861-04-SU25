@@ -106,14 +106,16 @@ const ManageBookingPage = () => {
         const hasSubstanceUse = hasSubstanceUseInPartA(userAnswers);
         const hasCarRiskFactor = hasCarRisk(userAnswers);
 
-        riskLevel = assessCrafftRisk(score, userAnswers);
+        const calculatedRiskLevel = assessCrafftRisk(score, userAnswers);
+        riskLevel = typeof calculatedRiskLevel === 'string' ? calculatedRiskLevel : 'Không xác định';
       } else if (assessmentType === 'assist') {
         // For ASSIST, check if it's cannabis or other substances
         const isCannabis = resultData.result && resultData.result[0] &&
           resultData.result[0].selectedOption &&
           resultData.result[0].selectedOption.includes('Cần sa');
 
-        riskLevel = assessAssistRisk(score, isCannabis);
+        const calculatedRiskLevel = assessAssistRisk(score, isCannabis);
+        riskLevel = typeof calculatedRiskLevel === 'string' ? calculatedRiskLevel : 'Không xác định';
       }
 
       return { riskLevel, score };
@@ -125,7 +127,10 @@ const ManageBookingPage = () => {
 
   // Get risk level color class
   const getRiskLevelClass = (riskLevel) => {
-    switch (riskLevel.toLowerCase()) {
+    // Ensure riskLevel is a string
+    const riskLevelStr = typeof riskLevel === 'string' ? riskLevel : 'không xác định';
+    
+    switch (riskLevelStr.toLowerCase()) {
       case 'thấp':
         return 'bg-success';
       case 'trung bình':
