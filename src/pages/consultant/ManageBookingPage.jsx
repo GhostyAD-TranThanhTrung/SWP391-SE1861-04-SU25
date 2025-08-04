@@ -94,28 +94,32 @@ const ManageBookingPage = () => {
       const assessmentType = assessment.type?.toLowerCase();
 
       if (assessmentType === 'crafft') {
-        // Create userAnswers object for CRAFFT assessment
-        const userAnswers = {};
-        if (resultData.result) {
-          resultData.result.forEach((answer, index) => {
-            userAnswers[index] = answer;
-          });
+        // CRAFFT risk level calculation
+        if (score >= 2) {
+          riskLevel = "Cao";
+        } else if (score >= 1) {
+          riskLevel = "Trung bình";
+        } else {
+          riskLevel = "Thấp";
         }
-
-        // Use database-driven helper functions instead of hardcoded logic
-        const hasSubstanceUse = hasSubstanceUseInPartA(userAnswers);
-        const hasCarRiskFactor = hasCarRisk(userAnswers);
-
-        const calculatedRiskLevel = assessCrafftRisk(score, userAnswers);
-        riskLevel = typeof calculatedRiskLevel === 'string' ? calculatedRiskLevel : 'Không xác định';
       } else if (assessmentType === 'assist') {
-        // For ASSIST, check if it's cannabis or other substances
-        const isCannabis = resultData.result && resultData.result[0] &&
-          resultData.result[0].selectedOption &&
-          resultData.result[0].selectedOption.includes('Cần sa');
-
-        const calculatedRiskLevel = assessAssistRisk(score, isCannabis);
-        riskLevel = typeof calculatedRiskLevel === 'string' ? calculatedRiskLevel : 'Không xác định';
+        // ASSIST risk level calculation
+        if (score >= 27) {
+          riskLevel = "Cao";
+        } else if (score >= 4) {
+          riskLevel = "Trung bình";
+        } else {
+          riskLevel = "Thấp";
+        }
+      } else {
+        // For unknown types, use ASSIST scoring as default
+        if (score >= 27) {
+          riskLevel = "Cao";
+        } else if (score >= 4) {
+          riskLevel = "Trung bình";
+        } else {
+          riskLevel = "Thấp";
+        }
       }
 
       return { riskLevel, score };
@@ -1319,13 +1323,18 @@ const ManageBookingPage = () => {
                         </div>
                         <div className="member-detail-row">
                           <span className="member-detail-label">Mô tả:</span>
-                          <span className="member-detail-value">{assessment.description || 'Không có mô tả'}</span>
+                          <span className="member-detail-value">
+                            {assessment.description || 
+                             assessment.assessment_description || 
+                             (assessment.type ? `Đánh giá ${assessment.type.toUpperCase()}` : 'Đánh giá tâm lý') || 
+                             'Không có mô tả'}
+                          </span>
                         </div>
                         <div className="member-detail-row">
                           <span className="member-detail-label">Ngày thực hiện:</span>
                           <span className="member-detail-value">
-                            {assessment.created_at ?
-                              new Date(assessment.created_at).toLocaleDateString('vi-VN', {
+                            {(assessment.created_at || assessment.create_at || assessment.date_created) ?
+                              new Date(assessment.created_at || assessment.create_at || assessment.date_created).toLocaleDateString('vi-VN', {
                                 year: 'numeric',
                                 month: 'long',
                                 day: 'numeric',
