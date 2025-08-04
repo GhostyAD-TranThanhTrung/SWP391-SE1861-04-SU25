@@ -16,6 +16,7 @@ const ExamPage = () => {
     const [quizData, setQuizData] = useState(null);
     const [assessRiskLevel, setAssessRiskLevel] = useState(() => () => 'Chưa xác định');
     const [isLoading, setIsLoading] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [savedAnswers, setSavedAnswers] = useState({});
 
     useEffect(() => {
@@ -35,7 +36,7 @@ const ExamPage = () => {
                 navigate('/choosetype');
             }
             setIsLoading(false);
-        }, 500);
+        }, 1000);
     }, [type, navigate]);
 
     const handleOptionSelect = (option) => {
@@ -98,7 +99,7 @@ const ExamPage = () => {
         return questionText;
     };
 
-    const handleNextQuestion = () => {
+    const handleNextQuestion = async () => {
         if (currentQuestionIndex === 0 && type.toLowerCase() === 'assist') {
             if (selectedOptions.length === 0) {
                 alert('Vui lòng chọn ít nhất một đáp án trước khi tiếp tục.');
@@ -116,16 +117,18 @@ const ExamPage = () => {
             
             // If they selected "never used" and no substances, skip to end
             if (hasNeverUsed && !hasSubstances) {
+                const userAnswers = {
+                    0: {
+                        question: quizData.questions[0].question,
+                        selectedOptions: selectedOptions
+                    }
+                };
+                
                 navigate('/result', {
                     state: {
                         result: { ...result, score: 0, riskLevel: 'Thấp' },
                         type,
-                        userAnswers: {
-                            0: {
-                                question: quizData.questions[0].question,
-                                selectedOptions: selectedOptions
-                            }
-                        }
+                        userAnswers: userAnswers
                     }
                 });
                 return;
@@ -154,13 +157,12 @@ const ExamPage = () => {
                     selectedOption: selectedOption
                 }
         };
+
         setSavedAnswers(updatedAnswers);
 
         setResult((prev) => ({
             ...prev,
             score: newScore,
-            correctAnswers: prev.correctAnswers + (selectedOption?.score === 0 ? 1 : 0),
-            wrongAnswers: prev.wrongAnswers + (selectedOption?.score > 0 ? 1 : 0),
         }));
 
         if (currentQuestionIndex < quizData.questions.length - 1) {
@@ -181,9 +183,26 @@ const ExamPage = () => {
             }
         } else {
             // Enhanced risk assessment for CRAFFT, simple for ASSIST
-            const riskLevel = type.toLowerCase() === 'crafft' 
-                ? assessRiskLevel(newScore, updatedAnswers)
-                : assessRiskLevel(newScore);
+            setIsSubmitting(true);
+            let riskLevel;
+            try {
+                if (type.toLowerCase() === 'crafft') {
+                    riskLevel = assessRiskLevel(newScore, updatedAnswers);
+                } else {
+                    // For ASSIST, await the async function
+                    riskLevel = await assessRiskLevel(newScore);
+                }
+                
+                // Ensure riskLevel is a string, not a Promise or other object
+                if (typeof riskLevel !== 'string') {
+                    riskLevel = 'Chưa xác định';
+                }
+            } catch (error) {
+                console.error('Error calculating risk level:', error);
+                riskLevel = 'Chưa xác định';
+            } finally {
+                setIsSubmitting(false);
+            }
             
             navigate('/result', {
                 state: {
@@ -341,10 +360,20 @@ const ExamPage = () => {
                             <button
                                 className="btn btn-primary"
                                 onClick={handleNextQuestion}
+                                disabled={isSubmitting}
                             >
-                                {currentQuestionIndex === quizData.questions.length - 1
-                                    ? 'Hoàn thành'
-                                    : 'Câu tiếp theo'}
+                                {isSubmitting ? (
+                                    <>
+                                        <div className="spinner-border spinner-border-sm me-2" role="status">
+                                            <span className="visually-hidden">Loading...</span>
+                                        </div>
+                                        Đang xử lý...
+                                    </>
+                                ) : (
+                                    currentQuestionIndex === quizData.questions.length - 1
+                                        ? 'Hoàn thành'
+                                        : 'Câu tiếp theo'
+                                )}
                             </button>
                         </div>
                     </div>
