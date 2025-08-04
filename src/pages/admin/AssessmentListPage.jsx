@@ -24,6 +24,7 @@ const AssessmentListPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [maxPageNumbersToShow] = useState(5);
+  const [riskLevels, setRiskLevels] = useState({});
 
   // Sorting state
   const [sortField, setSortField] = useState('');
@@ -83,6 +84,29 @@ const AssessmentListPage = () => {
     fetchAssessments();
     fetchActions();
   }, []);
+
+  // Pre-calculate risk levels when assessments change
+  useEffect(() => {
+    const calculateAllRiskLevels = async () => {
+      const newRiskLevels = {};
+      
+      for (const assessment of assessments) {
+        try {
+          const result = await calculateRiskLevel(assessment);
+          newRiskLevels[assessment.assessment_id] = result;
+        } catch (error) {
+          console.error(`Error calculating risk level for assessment ${assessment.assessment_id}:`, error);
+          newRiskLevels[assessment.assessment_id] = { riskLevel: 'Lỗi', score: 0 };
+        }
+      }
+      
+      setRiskLevels(newRiskLevels);
+    };
+
+    if (assessments.length > 0) {
+      calculateAllRiskLevels();
+    }
+  }, [assessments]);
 
   // Sorting function
   const handleSort = (field) => {
@@ -281,7 +305,7 @@ const AssessmentListPage = () => {
   }, [assessments, actions]);
 
   // Helper function to calculate risk level from assessment data
-  const calculateRiskLevel = (assessment) => {
+  const calculateRiskLevel = async (assessment) => {
     try {
       const resultData = typeof assessment.result_json === 'string'
         ? JSON.parse(assessment.result_json)
@@ -311,13 +335,14 @@ const AssessmentListPage = () => {
         const calculatedRiskLevel = assessCrafftRisk(score, userAnswers);
         riskLevel = typeof calculatedRiskLevel === 'string' ? calculatedRiskLevel : 'Không xác định';
       } else if (assessmentType === 'assist') {
-        // For ASSIST, check if it's cannabis or other substances
-        const isCannabis = resultData.result && resultData.result[0] &&
-          resultData.result[0].selectedOption &&
-          resultData.result[0].selectedOption.includes('Cần sa');
-
-        const calculatedRiskLevel = assessAssistRisk(score, isCannabis);
-        riskLevel = typeof calculatedRiskLevel === 'string' ? calculatedRiskLevel : 'Không xác định';
+        // For ASSIST, now using async function without isCannabis parameter
+        try {
+          const calculatedRiskLevel = await assessAssistRisk(score);
+          riskLevel = typeof calculatedRiskLevel === 'string' ? calculatedRiskLevel : 'Không xác định';
+        } catch (error) {
+          console.error('Error calculating ASSIST risk level:', error);
+          riskLevel = 'Lỗi';
+        }
       }
 
       return { riskLevel, score };
@@ -501,7 +526,8 @@ const AssessmentListPage = () => {
           </thead>
           <tbody>
             {paginatedAssessments.map((assessment, index) => {
-              const { riskLevel, score } = calculateRiskLevel(assessment);
+              const calculatedData = riskLevels[assessment.assessment_id] || { riskLevel: 'Đang tính...', score: 0 };
+              const { riskLevel, score } = calculatedData;
               return (
                 <tr key={assessment.assessment_id}>
                   <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
@@ -695,7 +721,8 @@ const AssessmentListPage = () => {
                   <div className="col-md-6">
                     <h6>Kết quả đánh giá</h6>
                     {(() => {
-                      const { riskLevel, score } = calculateRiskLevel(selectedAssessment);
+                      const calculatedData = riskLevels[selectedAssessment.assessment_id] || { riskLevel: 'Đang tính...', score: 0 };
+                      const { riskLevel, score } = calculatedData;
                       return (
                         <div className="card">
                           <div className="card-body">
