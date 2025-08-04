@@ -625,7 +625,7 @@ const fetchCrafftQuestions = async () => {
                 <>
                   <select
                     className="form-select shadow-sm"
-                    style={{ minWidth: '140px' }}
+                    style={{ minWidth: "300px" }}
                     value={filterType}
                     onChange={handleTypeChange}
                   >

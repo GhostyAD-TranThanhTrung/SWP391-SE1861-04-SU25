@@ -58,9 +58,6 @@ const SidebarAdmin = ({ isOpen }) => {
                 <li className={currentPath === "/assessment-list" ? "active" : ""}>
                     <Link to="/assessment-list"><FaClipboardList className='icon' /> Đánh giá</Link>
                 </li>
-                <li className={currentPath === "/action-list" ? "active" : ""}>
-                    <Link to="/action-list"><MdRecommend className='icon'/> Hành động</Link>
-                </li>
                 <li className={currentPath === "/question-list" ? "active" : ""}>
                     <Link to="/question-list"><FaQuestionCircle className='icon' /> Câu hỏi</Link>
                 </li>
