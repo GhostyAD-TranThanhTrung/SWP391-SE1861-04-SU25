@@ -45,42 +45,46 @@ const MemberListPage = () => {
         : assessment.result_json;
 
       if (!resultData || resultData.score === undefined) {
-        return { riskLevel: 'Không xác định', score: 0 };
+        return { riskLevel: 'Thấp', score: 0 };
       }
 
       const score = resultData.score;
-      let riskLevel = 'Không xác định';
+      let riskLevel = 'Thấp'; // Default to 'Thấp' instead of 'Không xác định'
       const assessmentType = assessment.type?.toLowerCase();
 
       if (assessmentType === 'crafft') {
-        // Create userAnswers object for CRAFFT assessment
-        const userAnswers = {};
-        if (resultData.result) {
-          resultData.result.forEach((answer, index) => {
-            userAnswers[index] = answer;
-          });
+        // CRAFFT risk level calculation
+        if (score >= 2) {
+          riskLevel = "Cao";
+        } else if (score >= 1) {
+          riskLevel = "Trung bình";
+        } else {
+          riskLevel = "Thấp";
         }
-
-        // Use database-driven helper functions instead of hardcoded logic
-        const hasSubstanceUse = hasSubstanceUseInPartA(userAnswers);
-        const hasCarRiskFactor = hasCarRisk(userAnswers);
-
-        const calculatedRiskLevel = assessCrafftRisk(score, userAnswers);
-        riskLevel = typeof calculatedRiskLevel === 'string' ? calculatedRiskLevel : 'Không xác định';
       } else if (assessmentType === 'assist') {
-        // For ASSIST, check if it's cannabis or other substances
-        const isCannabis = resultData.result && resultData.result[0] &&
-          resultData.result[0].selectedOption &&
-          resultData.result[0].selectedOption.includes('Cần sa');
-
-        const calculatedRiskLevel = assessAssistRisk(score, isCannabis);
-        riskLevel = typeof calculatedRiskLevel === 'string' ? calculatedRiskLevel : 'Không xác định';
+        // ASSIST risk level calculation
+        if (score >= 27) {
+          riskLevel = "Cao";
+        } else if (score >= 4) {
+          riskLevel = "Trung bình";
+        } else {
+          riskLevel = "Thấp";
+        }
+      } else {
+        // For unknown types, use ASSIST scoring as default
+        if (score >= 27) {
+          riskLevel = "Cao";
+        } else if (score >= 4) {
+          riskLevel = "Trung bình";
+        } else {
+          riskLevel = "Thấp";
+        }
       }
 
       return { riskLevel, score };
     } catch (error) {
       console.error('Error calculating risk level:', error);
-      return { riskLevel: 'Lỗi', score: 0 };
+      return { riskLevel: 'Thấp', score: 0 };
     }
   };
 
