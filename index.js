@@ -906,7 +906,6 @@ app.get(
  */
 app.get(
     "/api/actions/type/:type",
-    authController.verifyToken,
     ActionController.getActionsByType
 );
 
