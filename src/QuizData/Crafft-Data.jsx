@@ -196,63 +196,157 @@ export const resultInitalState = {
 
 // Helper functions for dynamic CRAFFT scoring
 export const getCrafftPartAScore = (userAnswers) => {
-    const crafftQuestions = Crafft_Data.questions;
-    return Object.entries(userAnswers).reduce((total, [questionIndex, answer]) => {
-        const questionId = parseInt(questionIndex);
-        const question = crafftQuestions.find(q => q.id === questionId);
-        return question?.category === 'partA' ? total + (answer?.score || 0) : total;
+    if (!userAnswers || Object.keys(userAnswers).length === 0) {
+        return 0;
+    }
+    
+    return Object.entries(userAnswers).reduce((total, [questionIndex, answerData]) => {
+        const selectedOption = answerData.selectedOptions 
+            ? answerData.selectedOptions[0] // Take first if multiple
+            : answerData.selectedOption;
+        
+        // Only count Part B questions (category should be 'partB')
+        if (selectedOption && selectedOption.category === 'partA') {
+            return total + (selectedOption.score || 0);
+        }
+        return total;
     }, 0);
 };
 
 export const getCrafftPartBScore = (userAnswers) => {
-    const crafftQuestions = Crafft_Data.questions;
-    return Object.entries(userAnswers).reduce((total, [questionIndex, answer]) => {
-        const questionId = parseInt(questionIndex);
-        const question = crafftQuestions.find(q => q.id === questionId);
-        return question?.category === 'partB' ? total + (answer?.score || 0) : total;
+    if (!userAnswers || Object.keys(userAnswers).length === 0) {
+        return 0;
+    }
+    
+    return Object.entries(userAnswers).reduce((total, [questionIndex, answerData]) => {
+        const selectedOption = answerData.selectedOptions 
+            ? answerData.selectedOptions[0] // Take first if multiple
+            : answerData.selectedOption;
+        
+        // Only count Part B questions (category should be 'partB')
+        if (selectedOption && selectedOption.category === 'partB') {
+            return total + (selectedOption.score || 0);
+        }
+        return total;
+    }, 0);
+};
+
+// Helper function to get Part B score for saving (alternative calculation method)
+export const getCrafftPartBScoreForSaving = (userAnswers) => {
+    if (!userAnswers || Object.keys(userAnswers).length === 0) {
+        return 0;
+    }
+    
+    return Object.entries(userAnswers).reduce((total, [questionIndex, answerData]) => {
+        const selectedOption = answerData.selectedOptions 
+            ? answerData.selectedOptions[0] // Take first if multiple
+            : answerData.selectedOption;
+        
+        // Only count Part B questions (category should be 'partB')
+        if (selectedOption && selectedOption.category === 'partB') {
+            return total + (selectedOption.score || 0);
+        }
+        return total;
     }, 0);
 };
 
 export const hasSubstanceUseInPartA = (userAnswers) => {
     const crafftQuestions = Crafft_Data.questions;
-    return Object.entries(userAnswers).some(([questionIndex, answer]) => {
-        const questionId = parseInt(questionIndex);
-        const question = crafftQuestions.find(q => q.id === questionId);
-        return question?.category === 'partA' && answer?.score > 0;
+    return Object.entries(userAnswers).some(([questionIndex, answerData]) => {
+        const questionNumber = parseInt(questionIndex) + 1; // Convert 0-based index to 1-based
+        const question = crafftQuestions.find(q => q.id === questionNumber);
+        
+        if (question?.category === 'partA') {
+            const selectedOption = answerData.selectedOptions 
+                ? answerData.selectedOptions[0] // Take first if multiple
+                : answerData.selectedOption;
+            return selectedOption?.score > 0;
+        }
+        return false;
     });
 };
 
 export const hasCarRisk = (userAnswers) => {
     const crafftQuestions = Crafft_Data.questions;
-    return Object.entries(userAnswers).some(([questionIndex, answer]) => {
-        const questionId = parseInt(questionIndex);
-        const question = crafftQuestions.find(q => q.id === questionId);
-        return question?.letter === 'C' && answer?.score === 1;
+    return Object.entries(userAnswers).some(([questionIndex, answerData]) => {
+        const questionNumber = parseInt(questionIndex) + 1; // Convert 0-based index to 1-based
+        const question = crafftQuestions.find(q => q.id === questionNumber);
+        
+        if (question?.letter === 'C') {
+            const selectedOption = answerData.selectedOptions 
+                ? answerData.selectedOptions[0] // Take first if multiple
+                : answerData.selectedOption;
+            return selectedOption?.score === 1;
+        }
+        return false;
     });
 };
 
-// CRAFFT 2.1 Risk Assessment Function - Compatible with ExamPage flow
-export const assessRiskLevel = (totalScore, userAnswers = {}) => {
-    // totalScore now only contains Part B score (0-6) since Part A doesn't contribute
-    const partBScore = totalScore;
-
-    // Use helper functions for dynamic assessment
-    const hasSubstanceUse = hasSubstanceUseInPartA(userAnswers);
-    const hasCarRiskFactor = hasCarRisk(userAnswers);
-
-    // Apply CRAFFT 2.1 risk assessment logic
-    if (!hasSubstanceUse && partBScore === 0) {
-        // LOW RISK: No use in past 12 months AND CRAFFT score = 0
-        return "Thấp";
-    } else if ((!hasSubstanceUse && hasCarRiskFactor) || (hasSubstanceUse && partBScore < 2)) {
-        // MEDIUM RISK: No use + CAR risk OR Any use + CRAFFT < 2
-        return "Trung bình";
-    } else if (hasSubstanceUse && partBScore >= 2) {
-        // HIGH RISK: Any use + CRAFFT >= 2
-        return "Cao";
-    } else {
-        return "Trung bình";
+// CRAFFT 2.1 Risk Assessment Function - Simplified to only return partBScore and risk level
+export const assessRiskLevel = async (userAnswers) => {
+    if (!userAnswers || Object.keys(userAnswers).length === 0) {
+        return "Chưa xác định";
     }
+
+    // Calculate partB score and substance use from userAnswers
+    const partBScore = getCrafftPartBScore(userAnswers);
+    const hasSubstanceUse = getCrafftPartAScore(userAnswers);;
+
+    console.log('📊 CRAFFT Risk Assessment:', {
+        partBScore,
+        hasSubstanceUse,
+    });
+
+    // Determine risk level according to CRAFFT 2.1 guidelines using dynamic API
+    let riskLevel;
+    try {
+        const token = sessionStorage.getItem("token");
+        
+        // Fetch actions from API to get dynamic ranges
+        const response = await axios.get('http://localhost:3000/api/actions/type/CRAFFT', {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        if (response.data && response.data.success && response.data.data) {
+            const actions = response.data.data;
+            console.log('📡 CRAFFT Actions from API:', actions);
+            
+            const sortedActions = actions.sort((a, b) => a.range - b.range);
+            console.log('🔢 Sorted CRAFFT Actions:', sortedActions);
+
+            // CRAFFT 2.1 Logic using dynamic ranges
+            if (hasSubstanceUse == 0  && partBScore === sortedActions[0].range) {
+                riskLevel = "Thấp";
+            } else if ((hasSubstanceUse != 0  && partBScore < sortedActions[2].range) || (hasSubstanceUse == 0 && partBScore > sortedActions[2].range)) {
+                riskLevel = "Trung bình";
+            } else if (hasSubstanceUse !=0 && partBScore >= sortedActions[2].range) {
+                riskLevel = "Cao";
+            } else {
+                riskLevel = "Chưa xác định";
+            }
+        } else {
+            console.error('❌ No CRAFFT actions found in API response');
+            throw new Error('No actions found');
+        }
+    } catch(err) {
+        console.error('❌ Error fetching CRAFFT actions, using fallback logic:', err);
+        
+        // Fallback logic with hardcoded values from database
+        if (hasSubstanceUse == 0 && partBScore === 0) {
+            riskLevel = "Thấp";
+        } else if ((hasSubstanceUse != 0 && partBScore < 2) || (hasSubstanceUse == 0 && partBScore > 2)) {
+            riskLevel = "Trung bình";
+        } else if (hasSubstanceUse != 0 && partBScore >= 2) {
+            riskLevel = "Cao";
+        } else {
+            riskLevel = "Chưa xác định";
+        }
+    }
+
+    console.log('🎯 Final CRAFFT Risk Level:', riskLevel);
+    console.log('🎯 Part B Score to save:', partBScore);
+    
+    return riskLevel;
 };
 
 // Advanced CRAFFT calculation for detailed results (optional, for future use)
@@ -278,7 +372,7 @@ export const calculateCrafftResults = (userAnswers) => {
     let riskLevel;
     let clinicalAction;
 
-    if (!hasSubstanceUse && partBScore === 0) {
+    if (!hasSubstanceUse && partBScore === 0 && !hasCarRiskFactor) {
         riskLevel = "Thấp";
         clinicalAction = "Cung cấp thông tin về rủi ro của việc sử dụng chất và lái xe/đi xe với người đã sử dụng chất; khen ngợi và khuyến khích";
     } else if ((!hasSubstanceUse && hasCarRiskFactor) || (hasSubstanceUse && partBScore < 2)) {

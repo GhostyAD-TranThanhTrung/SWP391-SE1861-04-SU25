@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import axios from 'axios';
+import { getCrafftPartBScoreForSaving } from '../QuizData/Crafft-Data';
 import '../styles/ResultPage.scss';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -81,9 +82,17 @@ const ResultPage = () => {
                 score: result.score
             }];
 
+            // Calculate the correct score to save based on assessment type
+            let scoreToSave = result.score;
+            if (type.toLowerCase() === 'crafft') {
+                // For CRAFFT, save Part B score only using helper function
+                scoreToSave = getCrafftPartBScoreForSaving(userAnswers);
+                console.log('🎯 CRAFFT Part B Score to save:', scoreToSave);
+            }
+
             const requestData = {
                 type,
-                score: result.score,
+                score: scoreToSave,
                 results: answersData
             };
 

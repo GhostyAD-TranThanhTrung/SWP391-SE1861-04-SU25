@@ -787,6 +787,7 @@ const fetchCrafftQuestions = async () => {
                   <input
                     type="number"
                     name="range"
+                    min="0"
                     value={viewingActionId ? viewActionData?.range || "" :
                       editingActionId ? editActionData?.range || "" : newAction.range}
                     onChange={editingActionId ? handleEditChange : handleChange}

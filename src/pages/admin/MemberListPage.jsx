@@ -6,8 +6,6 @@ import "../../styles/MemberListPage.scss";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import PaginationComp from "../../components/Pagination";
-import { assessRiskLevel as assessCrafftRisk, hasSubstanceUseInPartA, hasCarRisk } from "../../QuizData/Crafft-Data";
-import { assessRiskLevel as assessAssistRisk } from "../../QuizData/Assist_Data";
 
 
 const MemberListPage = () => {
@@ -37,47 +35,35 @@ const MemberListPage = () => {
 
   // Statistics state - no longer needed as we'll calculate from filtered data
 
-  // Helper function to calculate risk level from assessment data
-  const calculateRiskLevel = (assessment) => {
+  // Risk level mapping based on action_id
+  const RISK_LEVEL_MAPPING = {
+    2: 'Thấp',      // ASSIST
+    3: 'Trung bình', // ASSIST
+    4: 'Thấp',      // ASSIST
+    5: 'Thấp',      // CRAFFT
+    6: 'Trung bình', // CRAFFT
+    7: 'Cao'        // CRAFFT
+  };
+
+  // Helper function to get risk level and score from assessment data
+  const getRiskLevelFromAssessment = (assessment) => {
     try {
+      // Access action_id from the nested action object
+      const actionId = assessment.action?.action_id || assessment.action_id;
+      
+      // Use direct mapping from action_id
+      const riskLevel = RISK_LEVEL_MAPPING[actionId] || assessment.risk_level || 'Không xác định';
+      
+      // Get score from result_json
       const resultData = typeof assessment.result_json === 'string'
         ? JSON.parse(assessment.result_json)
         : assessment.result_json;
 
-      if (!resultData || resultData.score === undefined) {
-        return { riskLevel: 'Không xác định', score: 0 };
-      }
-
-      const score = resultData.score;
-      let riskLevel = 'Không xác định';
-      const assessmentType = assessment.type?.toLowerCase();
-
-      if (assessmentType === 'crafft') {
-        // Create userAnswers object for CRAFFT assessment
-        const userAnswers = {};
-        if (resultData.result) {
-          resultData.result.forEach((answer, index) => {
-            userAnswers[index] = answer;
-          });
-        }
-
-        // Use database-driven helper functions instead of hardcoded logic
-        const hasSubstanceUse = hasSubstanceUseInPartA(userAnswers);
-        const hasCarRiskFactor = hasCarRisk(userAnswers);
-
-        riskLevel = assessCrafftRisk(score, userAnswers);
-      } else if (assessmentType === 'assist') {
-        // For ASSIST, check if it's cannabis or other substances
-        const isCannabis = resultData.result && resultData.result[0] &&
-          resultData.result[0].selectedOption &&
-          resultData.result[0].selectedOption.includes('Cần sa');
-
-        riskLevel = assessAssistRisk(score, isCannabis);
-      }
+      const score = resultData?.score || 0;
 
       return { riskLevel, score };
     } catch (error) {
-      console.error('Error calculating risk level:', error);
+      console.error('Error getting risk level from assessment:', error);
       return { riskLevel: 'Lỗi', score: 0 };
     }
   };
@@ -868,7 +854,7 @@ const MemberListPage = () => {
                   <div className="card-body">
                     <div className="row g-3">
                       {selectedMember.assessments.slice(0, 3).map((assessment, index) => {
-                        const { riskLevel, score } = calculateRiskLevel(assessment);
+                        const { riskLevel, score } = getRiskLevelFromAssessment(assessment);
                         const riskLevelClass = getRiskLevelClass(riskLevel);
 
                         return (

@@ -5,8 +5,7 @@ import "../../styles/AssessmentListPage.scss";
 import { useNavigate } from "react-router-dom";
 import { FaUsers, FaClipboardList, FaSearch, FaEye, FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
 import PaginationComp from "../../components/Pagination.jsx";
-import { assessRiskLevel as assessCrafftRisk, hasSubstanceUseInPartA, hasCarRisk } from "../../QuizData/Crafft-Data";
-import { assessRiskLevel as assessAssistRisk } from "../../QuizData/Assist_Data";
+// Removed imports for Crafft-Data and Assist_Data - using direct action mapping instead
 
 const AssessmentListPage = () => {
 
@@ -85,28 +84,28 @@ const AssessmentListPage = () => {
     fetchActions();
   }, []);
 
-  // Pre-calculate risk levels when assessments change
+  // Pre-calculate risk levels when assessments or actions change
   useEffect(() => {
-    const calculateAllRiskLevels = async () => {
+    const calculateAllRiskLevels = () => {
       const newRiskLevels = {};
       
-      for (const assessment of assessments) {
+      assessments.forEach(assessment => {
         try {
-          const result = await calculateRiskLevel(assessment);
+          const result = calculateRiskLevel(assessment);
           newRiskLevels[assessment.assessment_id] = result;
         } catch (error) {
           console.error(`Error calculating risk level for assessment ${assessment.assessment_id}:`, error);
-          newRiskLevels[assessment.assessment_id] = { riskLevel: 'Lỗi', score: 0 };
+          newRiskLevels[assessment.assessment_id] = { riskLevel: 'Lỗi', score: 0, actionName: 'N/A' };
         }
-      }
+      });
       
       setRiskLevels(newRiskLevels);
     };
 
-    if (assessments.length > 0) {
+    if (assessments.length > 0 && actions.length > 0) {
       calculateAllRiskLevels();
     }
-  }, [assessments]);
+  }, [assessments, actions]);
 
   // Sorting function
   const handleSort = (field) => {
@@ -190,6 +189,8 @@ const AssessmentListPage = () => {
     actionsByType[action.type].push(action);
   });
 
+
+
   const getActionName = (actionId) => {
     if (actionId === 1) return 'Hidden Action';
     const action = actions.find(a => a.action_id === actionId);
@@ -199,25 +200,47 @@ const AssessmentListPage = () => {
   // Get unique action types
   const actionTypes = Object.keys(actionsByType);
 
-  // Prepare data for each action type
+  // Simplified chart data preparation with hardcoded values
   const getChartDataForType = (actionType) => {
-    const actionsOfType = actionsByType[actionType] || [];
     const actionIdCounts = {};
 
+    // Count assessments for each action ID
     assessments.forEach(assessment => {
       if (assessment.action_id && assessment.action_id !== 1) {
-        const action = actions.find(a => a.action_id === assessment.action_id);
-        if (action && action.type === actionType) {
-          actionIdCounts[assessment.action_id] = (actionIdCounts[assessment.action_id] || 0) + 1;
-        }
+        actionIdCounts[assessment.action_id] = (actionIdCounts[assessment.action_id] || 0) + 1;
       }
     });
 
-    const actionIds = Object.keys(actionIdCounts);
-    const actionCounts = Object.values(actionIdCounts);
-    const actionLabels = actionIds.map(id => `Action ${id}`);
+    // Hardcoded mapping for CRAFFT
+    if (actionType === 'ASSIST') {
+      const crafftData = {
+        actionIds: ['2', '3', '4'],
+        actionCounts: [
+          actionIdCounts[2] || 0,
+          actionIdCounts[3] || 0,
+          actionIdCounts[4] || 0
+        ],
+        actionLabels: ['Thấp', 'Trung bình', 'Cao']
+      };
+      return crafftData;
+    }
 
-    return { actionIds, actionCounts, actionLabels };
+    // Hardcoded mapping for ASSIST
+    if (actionType === 'CRAFFT') {
+      const assistData = {
+        actionIds: ['5', '6', '7'],
+        actionCounts: [
+          actionIdCounts[5] || 0,
+          actionIdCounts[6] || 0,
+          actionIdCounts[7] || 0
+        ],
+        actionLabels: ['Thấp', 'Trung bình', 'Cao']
+      };
+      return assistData;
+    }
+
+    // Default fallback
+    return { actionIds: [], actionCounts: [], actionLabels: [] };
   };
 
   // Chart creation for first action type
@@ -238,7 +261,7 @@ const AssessmentListPage = () => {
             datasets: [{
               label: `Assessment theo ${firstType}`,
               data: chartData.actionCounts,
-              backgroundColor: ['#4BC0C0', '#FFCE56', '#FF6384', '#36A2EB', '#9966FF']
+              backgroundColor: ['#28a745', '#ffc107', '#dc3545'] // Green for Thấp, Yellow for Trung bình, Red for Cao
             }]
           },
           options: {
@@ -280,7 +303,7 @@ const AssessmentListPage = () => {
             datasets: [{
               label: `Assessment theo ${secondType}`,
               data: chartData.actionCounts,
-              backgroundColor: ['#FF6384', '#36A2EB', '#9966FF', '#4BC0C0', '#FFCE56']
+              backgroundColor: ['#28a745', '#ffc107', '#dc3545'] // Green for Thấp, Yellow for Trung bình, Red for Cao
             }]
           },
           options: {
@@ -304,51 +327,69 @@ const AssessmentListPage = () => {
     }
   }, [assessments, actions]);
 
-  // Helper function to calculate risk level from assessment data
-  const calculateRiskLevel = async (assessment) => {
+  // Dynamic action risk mapping using actual action descriptions
+  const getActionRiskMapping = () => {
+    const actionRiskMap = {};
+    
+    // Map actions to risk levels based on action_id
+    const riskLevelMap = {
+      2: 'Thấp',
+      3: 'Trung bình', 
+      4: 'Cao',
+      5: 'Thấp',
+      6: 'Trung bình',
+      7: 'Cao'
+    };
+    
+    // Build mapping using actual action data
+    actions.forEach(action => {
+      if (action.action_id !== 1) { // Skip hidden action
+        actionRiskMap[action.action_id] = {
+          riskLevel: riskLevelMap[action.action_id] || 'Không xác định',
+          actionName: action.description || `Action ${action.action_id}`,
+          range: action.range || 0,
+          type: action.type || 'Unknown'
+        };
+      }
+    });
+    
+    return actionRiskMap;
+  };
+
+  // Simplified function to get risk level and score from assessment
+  const calculateRiskLevel = (assessment) => {
     try {
       const resultData = typeof assessment.result_json === 'string'
         ? JSON.parse(assessment.result_json)
         : assessment.result_json;
 
-      if (!resultData || resultData.score === undefined) {
-        return { riskLevel: 'Không xác định', score: 0 };
-      }
-
-      const score = resultData.score;
-      let riskLevel = 'Không xác định';
-      const assessmentType = assessment.type?.toLowerCase();
-
-      if (assessmentType === 'crafft') {
-        // Create userAnswers object for CRAFFT assessment
-        const userAnswers = {};
-        if (resultData.result) {
-          resultData.result.forEach((answer, index) => {
-            userAnswers[index] = answer;
-          });
-        }
-
-        // Use database-driven helper functions instead of hardcoded logic
-        const hasSubstanceUse = hasSubstanceUseInPartA(userAnswers);
-        const hasCarRiskFactor = hasCarRisk(userAnswers);
-
-        const calculatedRiskLevel = assessCrafftRisk(score, userAnswers);
-        riskLevel = typeof calculatedRiskLevel === 'string' ? calculatedRiskLevel : 'Không xác định';
-      } else if (assessmentType === 'assist') {
-        // For ASSIST, now using async function without isCannabis parameter
-        try {
-          const calculatedRiskLevel = await assessAssistRisk(score);
-          riskLevel = typeof calculatedRiskLevel === 'string' ? calculatedRiskLevel : 'Không xác định';
-        } catch (error) {
-          console.error('Error calculating ASSIST risk level:', error);
-          riskLevel = 'Lỗi';
-        }
-      }
-
-      return { riskLevel, score };
+      const score = resultData?.score || 0;
+      const actionId = assessment.action_id;
+      
+      // Get action from actions array
+      const action = actions.find(a => a.action_id === actionId);
+      const actionName = action ? action.description : `Action ${actionId}`;
+      
+      // Hardcoded risk level mapping based on action_id
+      const riskLevelMap = {
+        2: 'Thấp',
+        3: 'Trung bình', 
+        4: 'Cao',
+        5: 'Thấp',
+        6: 'Trung bình',
+        7: 'Cao'
+      };
+      
+      const riskLevel = riskLevelMap[actionId] || 'Không xác định';
+      
+      return { 
+        riskLevel: riskLevel, 
+        score: score,
+        actionName: actionName 
+      };
     } catch (error) {
-      console.error('Error calculating risk level:', error);
-      return { riskLevel: 'Lỗi', score: 0 };
+      console.error('Error getting risk level:', error);
+      return { riskLevel: 'Lỗi', score: 0, actionName: 'N/A' };
     }
   };
 
@@ -526,8 +567,8 @@ const AssessmentListPage = () => {
           </thead>
           <tbody>
             {paginatedAssessments.map((assessment, index) => {
-              const calculatedData = riskLevels[assessment.assessment_id] || { riskLevel: 'Đang tính...', score: 0 };
-              const { riskLevel, score } = calculatedData;
+              const calculatedData = riskLevels[assessment.assessment_id] || { riskLevel: 'Đang tính...', score: 0, actionName: 'N/A' };
+              const { riskLevel, score, actionName } = calculatedData;
               return (
                 <tr key={assessment.assessment_id}>
                   <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
@@ -547,6 +588,10 @@ const AssessmentListPage = () => {
                     <span className={`badge ${getRiskLevelClass(riskLevel)}`}>
                       {riskLevel}
                     </span>
+                    <br />
+                    <small className="text-muted" title={actionName}>
+                      {actionName.length > 30 ? `${actionName.substring(0, 30)}...` : actionName}
+                    </small>
                   </td>
                   <td>{assessment.action_id || 'N/A'}</td>
                   <td>{assessment.create_at ? new Date(assessment.create_at).toLocaleDateString('vi-VN') : 'N/A'}</td>
@@ -619,7 +664,7 @@ const AssessmentListPage = () => {
         <div className="col-12">
           <div className="card" style={{ background: '#fff', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
             <div className="card-header" style={{ background: '#f8f9fa', borderBottom: '1px solid #e9ecef' }}>
-              <h5 className="mb-0" style={{ color: '#212529', fontWeight: 'bold' }}>Từ điển Action</h5>
+              <h5 className="mb-0" style={{ color: '#212529', fontWeight: 'bold' }}>Từ điển gợi ý</h5>
             </div>
             <div className="card-body">
               {actions.length > 0 ? (
@@ -627,8 +672,7 @@ const AssessmentListPage = () => {
                   {actionTypes.map((actionType, typeIndex) => (
                     <div key={actionType} className="col-lg-6 mb-3">
                       <h6 className="text-muted mb-2">
-                        <span className="badge bg-info me-2">{actionType}</span>
-                        Action Type
+                        <span className="badge bg-info me-2">{actionType}</span>    
                       </h6>
                       <div className="table-responsive">
                         <table className="table table-sm table-hover">
@@ -636,7 +680,7 @@ const AssessmentListPage = () => {
                             <tr>
                               <th style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>ID</th>
                               <th style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Mô tả</th>
-                              <th style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Range</th>
+                              <th style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Phạm vi</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -721,12 +765,12 @@ const AssessmentListPage = () => {
                   <div className="col-md-6">
                     <h6>Kết quả đánh giá</h6>
                     {(() => {
-                      const calculatedData = riskLevels[selectedAssessment.assessment_id] || { riskLevel: 'Đang tính...', score: 0 };
-                      const { riskLevel, score } = calculatedData;
+                      const calculatedData = riskLevels[selectedAssessment.assessment_id] || { riskLevel: 'Đang tính...', score: 0, actionName: 'N/A' };
+                      const { riskLevel, score, actionName } = calculatedData;
                       return (
                         <div className="card">
                           <div className="card-body">
-                            <div className="row text-center">
+                            <div className="row text-center mb-3">
                               <div className="col-6">
                                 <h4 className="text-primary">{score}</h4>
                                 <small className="text-muted">Điểm số</small>
@@ -738,6 +782,12 @@ const AssessmentListPage = () => {
                                 <br />
                                 <small className="text-muted">Mức độ rủi ro</small>
                               </div>
+                            </div>
+                            <div className="text-center">
+                              <h6 className="text-info">Khuyến nghị Action</h6>
+                              <p className="small text-muted" title={actionName}>
+                                {actionName}
+                              </p>
                             </div>
                           </div>
                         </div>
