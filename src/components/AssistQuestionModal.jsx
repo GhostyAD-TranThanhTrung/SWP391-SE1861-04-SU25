@@ -35,7 +35,7 @@ const AssistQuestionModal = ({
         note: question.note || '',
         multiSelect: question.multiSelect || false,
         allowMultiple: question.allowMultiple || false,
-        substance: question.substance || '',
+        substance: '',
         options: question.options && question.options.length > 0 
           ? question.options.map((opt, index) => ({
               id: opt.id || index + 1,
@@ -122,7 +122,7 @@ const AssistQuestionModal = ({
         note: formData.note,
         multiSelect: formData.multiSelect,
         allowMultiple: formData.allowMultiple,
-        substance: formData.substance,
+        substance: '',
         options: formData.options.map((opt, index) => ({
           id: opt.id,
           text: opt.text,
@@ -207,20 +207,7 @@ const AssistQuestionModal = ({
                   </select>
                 </div>
 
-                {/* Substance */}
-                <div className="col-md-6 mb-3">
-                  <label className="form-label" style={{ color: '#495057', fontWeight: '500' }}>Chất gây nghiện</label>
-                  <input
-                    type="text"
-                    name="substance"
-                    className="form-control"
-                    style={{ border: '1px solid #ced4da', borderRadius: '4px' }}
-                    value={formData.substance}
-                    onChange={handleInputChange}
-                    disabled={mode === 'view'}
-                    placeholder="Ví dụ: Rượu, Cần sa, Cocaine..."
-                  />
-                </div>
+                
               </div>
 
               {/* Note */}

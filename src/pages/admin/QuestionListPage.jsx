@@ -70,7 +70,7 @@ const QuestionListPage = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data.success) {
-        setActions(res.data.data);
+        setActions(res.data.data.filter(item => item.type !== "Referral"));
       }
     } catch (err) {
       console.error("Lỗi khi gọi API:", err);
@@ -809,7 +809,7 @@ const fetchCrafftQuestions = async () => {
                       editingActionId ? editActionData?.type || "" : newAction.type}
                     onChange={editingActionId ? handleEditChange : handleChange}
                     required
-                    disabled={viewingActionId}
+                    disabled={true}
                     className="form-select"
                     style={{
                       color: '#000',

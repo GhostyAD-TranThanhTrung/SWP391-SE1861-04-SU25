@@ -56,7 +56,7 @@ const CrafftQuestionModal = ({
         multiSelect: question.multiSelect || false,
         allowMultiple: question.allowMultiple || false,
         category: question.category || '',
-        substance: question.substance || '',
+        substance: '',
         letter: question.letter || '',
         options: question.options && question.options.length > 0 
           ? question.options.map((opt, index) => ({
@@ -147,7 +147,7 @@ const CrafftQuestionModal = ({
         multiSelect: formData.multiSelect,
         allowMultiple: formData.allowMultiple,
         category: formData.category,
-        substance: formData.substance,
+        substance: '',
         letter: formData.letter,
         options: formData.options.map((opt, index) => ({
           id: opt.id,
@@ -275,19 +275,7 @@ const CrafftQuestionModal = ({
               </div>
 
               {/* Substance */}
-              <div className="mb-3">
-                <label className="form-label" style={{ color: '#495057', fontWeight: '500' }}>Chất gây nghiện</label>
-                <input
-                  type="text"
-                  name="substance"
-                  className="form-control"
-                  style={{ border: '1px solid #ced4da', borderRadius: '4px' }}
-                  value={formData.substance}
-                  onChange={handleInputChange}
-                  disabled={mode === 'view'}
-                  placeholder="Ví dụ: Rượu, Cần sa, Cocaine..."
-                />
-              </div>
+            
 
               {/* Note */}
               <div className="mb-3">
