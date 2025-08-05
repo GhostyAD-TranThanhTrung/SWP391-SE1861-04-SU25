@@ -586,9 +586,8 @@ const MemberListPage = () => {
                 onChange={e => setStatusFilter(e.target.value)}
               >
                 <option value="">Tất cả trạng thái</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="banned">Banned</option>
+                <option value="active">Hoạt động</option>
+                <option value="banned">Bị cấm</option>
               </select>
               <div className="input-group" style={{ minWidth: '250px' }}>
                 <input

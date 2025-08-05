@@ -905,9 +905,9 @@ const CourseListPage = () => {
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
                 <option value="all">Tất cả trạng thái</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="draft">Draft</option>
+                <option value="active">Hoạt động</option>
+                <option value="inactive">Không hoạt động</option>
+                <option value="draft">Bản nháp</option>
               </select>
               <div className="input-group" style={{ minWidth: '250px' }}>
                 <input

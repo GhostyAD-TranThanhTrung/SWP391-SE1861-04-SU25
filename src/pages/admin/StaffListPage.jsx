@@ -606,9 +606,8 @@ const StaffListPage = () => {
                 onChange={handleStatusChange}
               >
                 <option value="all">Tất cả trạng thái</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="banned">Banned</option>
+                <option value="active">Hoạt động</option>
+                <option value="banned">Bị cấm</option>
               </select>
               <select
                 className="form-select shadow-sm"
@@ -617,9 +616,9 @@ const StaffListPage = () => {
                 onChange={handleRoleChange}
               >
                 <option value="all">Tất cả vai trò</option>
-                <option value="admin">Admin</option>
-                <option value="staff">Staff</option>
-                <option value="manager">Manager</option>
+                <option value="admin">Quản trị viên</option>
+                <option value="staff">Nhân viên</option>
+                <option value="manager">Quản lý</option>
               </select>
               <div className="input-group" style={{ minWidth: '250px' }}>
                 <input
