@@ -193,7 +193,7 @@ const CourseListPage = () => {
         console.log("Category created successfully");
         await fetchCategories();
         setNewCategory({ name: "", description: "" });
-        alert("Category created successfully!");
+        alert("Tạo danh mục thành công!");
       }
     } catch (err) {
       console.error("Error creating category:", {
@@ -202,23 +202,23 @@ const CourseListPage = () => {
         data: err.response?.data,
         status: err.response?.status
       });
-      alert("Error creating category: " + (err.response?.data?.message || err.message));
+      alert("Lỗi khi tạo danh mục: " + (err.response?.data?.message || err.message));
     }
   };
 
   const handleDeleteCategory = async (categoryId, categoryName) => {
-    if (window.confirm(`Are you sure you want to delete category "${categoryName}"?`)) {
+    if (window.confirm(`Bạn có chắc chắn muốn xóa danh mục "${categoryName}"?`)) {
       try {
         const res = await axios.delete(`http://localhost:3000/api/categories/${categoryId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.data.success) {
           await fetchCategories();
-          alert("Category deleted successfully!");
+          alert("Xóa danh mục thành công!");
         }
       } catch (err) {
         console.error("Error deleting category:", err);
-        alert("Error deleting category: " + (err.response?.data?.message || err.message));
+        alert("Lỗi khi xóa danh mục: " + (err.response?.data?.message || err.message));
       }
     }
   };
@@ -250,7 +250,7 @@ const CourseListPage = () => {
           status: "active",
           img_link: ""
         });
-        alert("Program created successfully!");
+        alert("Tạo chương trình thành công!");
       }
     } catch (err) {
       console.error("Error creating program:", {
@@ -259,23 +259,23 @@ const CourseListPage = () => {
         data: err.response?.data,
         status: err.response?.status
       });
-      alert("Error creating program: " + (err.response?.data?.message || err.message));
+      alert("Lỗi khi tạo chương trình: " + (err.response?.data?.message || err.message));
     }
   };
 
   const handleDeleteProgram = async (programId, programTitle) => {
-    if (window.confirm(`Are you sure you want to delete "${programTitle}"?`)) {
+    if (window.confirm(`Bạn có chắc chắn muốn xóa "${programTitle}"?`)) {
       try {
         const res = await axios.delete(`http://localhost:3000/api/programs/${programId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.data.success) {
           fetchPrograms();
-          alert("Program deleted successfully!");
+          alert("Xóa chương trình thành công!");
         }
       } catch (err) {
         console.error("Error deleting program:", err);
-        alert("Error deleting program: " + (err.response?.data?.message || err.message));
+        alert("Lỗi khi xóa chương trình: " + (err.response?.data?.message || err.message));
       }
     }
   };
@@ -321,7 +321,7 @@ const CourseListPage = () => {
           status: "active",
           img_link: ""
         });
-        alert("Program updated successfully!");
+        alert("Cập nhật chương trình thành công!");
       }
     } catch (err) {
       console.error("Error updating program:", {
@@ -330,7 +330,7 @@ const CourseListPage = () => {
         data: err.response?.data,
         status: err.response?.status
       });
-      alert("Error updating program: " + (err.response?.data?.message || err.message));
+      alert("Lỗi khi cập nhật chương trình: " + (err.response?.data?.message || err.message));
     }
   };
 
@@ -432,7 +432,7 @@ const CourseListPage = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data.success) {
-        alert("Content created successfully!");
+        alert("Tạo nội dung thành công!");
         // Refresh content list
         const contentRes = await axios.get(`http://localhost:3000/api/content/program/${selectedProgram.program_id}`, {
           headers: { Authorization: `Bearer ${token}` }
@@ -443,7 +443,7 @@ const CourseListPage = () => {
       }
     } catch (err) {
       console.error("Error creating content:", err);
-      alert("Error creating content: " + (err.response?.data?.message || err.message));
+      alert("Lỗi khi tạo nội dung: " + (err.response?.data?.message || err.message));
     }
   };
 
@@ -463,7 +463,7 @@ const CourseListPage = () => {
       }
     } catch (err) {
       console.error("Error updating content:", err);
-      alert("Error updating content: " + (err.response?.data?.message || err.message));
+      alert("Lỗi khi cập nhật nội dung: " + (err.response?.data?.message || err.message));
     }
   };
 
@@ -473,7 +473,7 @@ const CourseListPage = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data.success) {
-        alert("Content deleted successfully!");
+        alert("Xóa nội dung thành công!");
         // Refresh content list
         const contentRes = await axios.get(`http://localhost:3000/api/content/program/${selectedProgram.program_id}`, {
           headers: { Authorization: `Bearer ${token}` }
@@ -484,7 +484,7 @@ const CourseListPage = () => {
       }
     } catch (err) {
       console.error("Error deleting content:", err);
-      alert("Error deleting content: " + (err.response?.data?.message || err.message));
+      alert("Lỗi khi xóa nội dung: " + (err.response?.data?.message || err.message));
     }
   };
 
@@ -544,7 +544,7 @@ const CourseListPage = () => {
     const pre = hasPre !== null ? hasPre : surveys.some(s => s.type === 'pre-assessment');
     const post = hasPost !== null ? hasPost : surveys.some(s => s.type === 'post-assessment');
     if (pre && post) {
-      alert('Only one pre-assessment and one post-assessment survey are allowed per program.');
+              alert('Chỉ cho phép một khảo sát trước và một khảo sát sau cho mỗi chương trình.');
       return;
     }
     // Pre-select the type that is still available
@@ -662,13 +662,13 @@ const CourseListPage = () => {
           console.log("✅ CourseListPage - Updated survey data:", res.data.data);
           console.log("✅ CourseListPage - Changes made:", res.data.changes);
 
-          alert(`Survey updated successfully!${res.data.changes?.warning ? `\n\nWarning: ${res.data.changes.warning}` : ''}`);
+          alert(`Cập nhật khảo sát thành công!${res.data.changes?.warning ? `\n\nCảnh báo: ${res.data.changes.warning}` : ''}`);
           setShowSurveyCreator(false);
           // Refresh surveys list
           openSurveyModal();
         } else {
           console.log("❌ CourseListPage - Survey update failed:", res.data.message);
-          alert("Survey update failed: " + res.data.message);
+          alert("Cập nhật khảo sát thất bại: " + res.data.message);
         }
       } else {
         // Create new survey
@@ -687,13 +687,13 @@ const CourseListPage = () => {
           console.log("✅ CourseListPage - Survey created successfully");
           console.log("✅ CourseListPage - Created survey data:", res.data.data);
 
-          alert("Survey created successfully!");
+          alert("Tạo khảo sát thành công!");
           setShowSurveyCreator(false);
           // Refresh surveys list
           openSurveyModal();
         } else {
           console.log("❌ CourseListPage - Survey creation failed:", res.data.message);
-          alert("Survey creation failed: " + res.data.message);
+          alert("Tạo khảo sát thất bại: " + res.data.message);
         }
       }
     } catch (err) {
@@ -703,7 +703,7 @@ const CourseListPage = () => {
         data: err.response?.data,
         status: err.response?.status
       });
-      alert("Error saving survey: " + (err.response?.data?.message || err.message));
+      alert("Lỗi khi lưu khảo sát: " + (err.response?.data?.message || err.message));
     }
   };
 
@@ -888,13 +888,13 @@ const CourseListPage = () => {
                 className="btn btn-primary shadow-sm"
                 onClick={() => setShowCreateModal(true)}
               >
-                <FaPlus className="me-1" /> Create New Program
+                <FaPlus className="me-1" /> Tạo chương trình mới
               </button>
               <button
                 className="btn btn-outline-secondary shadow-sm"
                 onClick={() => setShowCategoryModal(true)}
               >
-                <FaEdit className="me-1" /> Manage Categories
+                <FaEdit className="me-1" /> Quản lý danh mục
               </button>
             </div>
             <div className="d-flex gap-2 flex-wrap">
@@ -913,7 +913,7 @@ const CourseListPage = () => {
                 <input
                   type="text"
                   className="form-control shadow-sm"
-                  placeholder="Search programs..."
+                  placeholder="Tìm kiếm chương trình..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -927,7 +927,7 @@ const CourseListPage = () => {
       </div>
 
       {loading ? (
-        <div className="text-center">Loading...</div>
+        <div className="text-center">Đang tải...</div>
       ) : (
         <div className="table-wrapper">
           <table className="table table-bordered">
@@ -935,24 +935,24 @@ const CourseListPage = () => {
               <tr>
                 <th>#</th>
                 <th onClick={() => handleSort('title')} style={{ cursor: 'pointer' }}>
-                  Title {getSortIcon('title')}
+                  Tiêu đề {getSortIcon('title')}
                 </th>
                 <th onClick={() => handleSort('description')} style={{ cursor: 'pointer' }}>
-                  Description {getSortIcon('description')}
+                  Mô tả {getSortIcon('description')}
                 </th>
                 <th onClick={() => handleSort('age_group')} style={{ cursor: 'pointer' }}>
-                  Age Group {getSortIcon('age_group')}
+                  Nhóm tuổi {getSortIcon('age_group')}
                 </th>
                 <th onClick={() => handleSort('category_name')} style={{ cursor: 'pointer' }}>
-                  Category {getSortIcon('category_name')}
+                  Danh mục {getSortIcon('category_name')}
                 </th>
                 <th onClick={() => handleSort('status')} style={{ cursor: 'pointer' }}>
-                  Status {getSortIcon('status')}
+                  Trạng thái {getSortIcon('status')}
                 </th>
                 <th onClick={() => handleSort('created_at')} style={{ cursor: 'pointer' }}>
-                  Creation Date {getSortIcon('created_at')}
+                  Ngày tạo {getSortIcon('created_at')}
                 </th>
-                <th>Actions</th>
+                <th>Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -980,7 +980,7 @@ const CourseListPage = () => {
                     <button
                       className="btn btn-light btn-sm me-1"
                       onClick={() => openUpdateModal(program)}
-                      title="Sửa chương trình"
+                      title="Chỉnh sửa chương trình"
                     >
                       <FaEdit color="yellow"/>
                     </button>
@@ -1014,7 +1014,7 @@ const CourseListPage = () => {
           <div className="modal-dialog modal-lg">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">Create New Program</h5>
+                <h5 className="modal-title">Tạo chương trình mới</h5>
                 <button
                   className="btn-close"
                   onClick={() => setShowCreateModal(false)}
@@ -1025,7 +1025,7 @@ const CourseListPage = () => {
                   <div className="row">
                     <div className="col-md-6">
                       <div className="mb-3">
-                        <label className="form-label">Title *</label>
+                        <label className="form-label">Tiêu đề *</label>
                         <input
                           type="text"
                           className="form-control"
@@ -1037,14 +1037,14 @@ const CourseListPage = () => {
                     </div>
                     <div className="col-md-6">
                       <div className="mb-3">
-                        <label className="form-label">Category *</label>
+                        <label className="form-label">Danh mục *</label>
                         <select
                           className="form-control"
                           value={newProgram.category_id}
                           onChange={(e) => setNewProgram({ ...newProgram, category_id: e.target.value })}
                           required
                         >
-                          <option value="">Select Category</option>
+                          <option value="">Chọn danh mục</option>
                           {categories.map(cat => (
                             <option key={cat.category_id} value={cat.category_id}>
                               {cat.name}
@@ -1055,7 +1055,7 @@ const CourseListPage = () => {
                     </div>
                   </div>
                   <div className="mb-3">
-                    <label className="form-label">Description</label>
+                    <label className="form-label">Mô tả</label>
                     <textarea
                       className="form-control"
                       rows="3"
@@ -1066,37 +1066,37 @@ const CourseListPage = () => {
                   <div className="row">
                     <div className="col-md-6">
                       <div className="mb-3">
-                        <label className="form-label">Age Group</label>
+                        <label className="form-label">Nhóm tuổi</label>
                         <select
                           className="form-control"
                           value={newProgram.age_group}
                           onChange={(e) => setNewProgram({ ...newProgram, age_group: e.target.value })}
                         >
-                          <option value="">Select Age Group</option>
-                          <option value="youth">Youth (13-18)</option>
-                          <option value="adult">Adult (18-65)</option>
-                          <option value="senior">Senior (65+)</option>
-                          <option value="all">All Ages</option>
+                          <option value="">Chọn nhóm tuổi</option>
+                          <option value="youth">Trẻ (13-18)</option>
+                          <option value="adult">Người lớn (18-65)</option>
+                          <option value="senior">Cao tuổi (65+)</option>
+                          <option value="all">Mọi lứa tuổi</option>
                         </select>
                       </div>
                     </div>
                     <div className="col-md-6">
                       <div className="mb-3">
-                        <label className="form-label">Status</label>
+                        <label className="form-label">Trạng thái</label>
                         <select
                           className="form-control"
                           value={newProgram.status}
                           onChange={(e) => setNewProgram({ ...newProgram, status: e.target.value })}
                         >
-                          <option value="active">Active</option>
-                          <option value="inactive">Inactive</option>
-                          <option value="draft">Draft</option>
+                          <option value="active">Hoạt động</option>
+                          <option value="inactive">Không hoạt động</option>
+                          <option value="draft">Bản nháp</option>
                         </select>
                       </div>
                     </div>
                   </div>
                   <div className="mb-3">
-                    <label className="form-label">Image URL</label>
+                    <label className="form-label">Liên kết hình ảnh</label>
                     <input
                       type="url"
                       className="form-control"
@@ -1108,10 +1108,10 @@ const CourseListPage = () => {
                 </div>
                 <div className="modal-footer">
                   <button type="button" className="btn btn-secondary" onClick={() => setShowCreateModal(false)}>
-                    Cancel
+                    Hủy
                   </button>
                   <button type="submit" className="btn btn-primary">
-                    <MdSave className="me-1" /> Create Program
+                    <MdSave className="me-1" /> Tạo chương trình
                   </button>
                 </div>
               </form>
@@ -1126,7 +1126,7 @@ const CourseListPage = () => {
           <div className="modal-dialog modal-lg">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">Update Program: {selectedProgram.title}</h5>
+                <h5 className="modal-title">Cập nhật chương trình: {selectedProgram.title}</h5>
                 <button
                   className="btn-close"
                   onClick={() => setShowUpdateModal(false)}
@@ -1137,7 +1137,7 @@ const CourseListPage = () => {
                   <div className="row">
                     <div className="col-md-6">
                       <div className="mb-3">
-                        <label className="form-label">Title *</label>
+                        <label className="form-label">Tiêu đề *</label>
                         <input
                           type="text"
                           className="form-control"
@@ -1149,14 +1149,14 @@ const CourseListPage = () => {
                     </div>
                     <div className="col-md-6">
                       <div className="mb-3">
-                        <label className="form-label">Category *</label>
+                        <label className="form-label">Danh mục *</label>
                         <select
                           className="form-control"
                           value={updateProgram.category_id}
                           onChange={(e) => setUpdateProgram({ ...updateProgram, category_id: e.target.value })}
                           required
                         >
-                          <option value="">Select Category</option>
+                          <option value="">Chọn danh mục</option>
                           {categories.map(cat => (
                             <option key={cat.category_id} value={cat.category_id}>
                               {cat.name}
@@ -1167,7 +1167,7 @@ const CourseListPage = () => {
                     </div>
                   </div>
                   <div className="mb-3">
-                    <label className="form-label">Description</label>
+                    <label className="form-label">Mô tả</label>
                     <textarea
                       className="form-control"
                       rows="3"
@@ -1178,37 +1178,37 @@ const CourseListPage = () => {
                   <div className="row">
                     <div className="col-md-6">
                       <div className="mb-3">
-                        <label className="form-label">Age Group</label>
+                        <label className="form-label">Nhóm tuổi</label>
                         <select
                           className="form-control"
                           value={updateProgram.age_group}
                           onChange={(e) => setUpdateProgram({ ...updateProgram, age_group: e.target.value })}
                         >
-                          <option value="">Select Age Group</option>
-                          <option value="youth">Youth (13-18)</option>
-                          <option value="adult">Adult (18-65)</option>
-                          <option value="senior">Senior (65+)</option>
-                          <option value="all">All Ages</option>
+                          <option value="">Chọn nhóm tuổi</option>
+                          <option value="youth">Trẻ (13-18)</option>
+                          <option value="adult">Người lớn (18-65)</option>
+                          <option value="senior">Cao tuổi (65+)</option>
+                          <option value="all">Mọi lứa tuổi</option>
                         </select>
                       </div>
                     </div>
                     <div className="col-md-6">
                       <div className="mb-3">
-                        <label className="form-label">Status</label>
+                        <label className="form-label">Trạng thái</label>
                         <select
                           className="form-control"
                           value={updateProgram.status}
                           onChange={(e) => setUpdateProgram({ ...updateProgram, status: e.target.value })}
                         >
-                          <option value="active">Active</option>
-                          <option value="inactive">Inactive</option>
-                          <option value="draft">Draft</option>
+                          <option value="active">Hoạt động</option>
+                          <option value="inactive">Không hoạt động</option>
+                          <option value="draft">Bản nháp</option>
                         </select>
                       </div>
                     </div>
                   </div>
                   <div className="mb-3">
-                    <label className="form-label">Image URL</label>
+                    <label className="form-label">Liên kết hình ảnh</label>
                     <input
                       type="url"
                       className="form-control"
@@ -1220,10 +1220,10 @@ const CourseListPage = () => {
                 </div>
                 <div className="modal-footer">
                   <button type="button" className="btn btn-secondary" onClick={() => setShowUpdateModal(false)}>
-                    Cancel
+                    Hủy
                   </button>
                   <button type="submit" className="btn btn-primary">
-                    <MdSave className="me-1" /> Update Program
+                    <MdSave className="me-1" /> Cập nhật chương trình
                   </button>
                 </div>
               </form>
@@ -1238,7 +1238,7 @@ const CourseListPage = () => {
           <div className="modal-dialog modal-xl">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">Program Details: {selectedProgram.title}</h5>
+                <h5 className="modal-title">Chi tiết chương trình: {selectedProgram.title}</h5>
                 <button
                   className="btn-close"
                   onClick={() => setShowDetailModal(false)}
@@ -1265,27 +1265,27 @@ const CourseListPage = () => {
                   </div>
                   <div className="col-md-8">
                     <div className="program-info">
-                      <h6>Program Information</h6>
-                      <p><strong>Description:</strong> {selectedProgram.description}</p>
-                      <p><strong>Age Group:</strong> {selectedProgram.age_group}</p>
-                      <p><strong>Category:</strong> {selectedProgram.category?.name}</p>
-                      <p><strong>Status:</strong>
+                      <h6>Thông tin chương trình</h6>
+                      <p><strong>Mô tả:</strong> {selectedProgram.description}</p>
+                      <p><strong>Nhóm tuổi:</strong> {selectedProgram.age_group}</p>
+                      <p><strong>Danh mục:</strong> {selectedProgram.category?.name}</p>
+                      <p><strong>Trạng thái:</strong>
                         <span className={`badge ms-2 ${selectedProgram.status === 'active' ? 'bg-success' :
                           selectedProgram.status === 'draft' ? 'bg-warning' : 'bg-secondary'
                           }`}>
                           {selectedProgram.status?.toUpperCase()}
                         </span>
                       </p>
-                      <p><strong>Enrollments:</strong> {selectedProgram.statistics?.total_enrollments || 0}</p>
-                      <p><strong>Contents:</strong> {selectedProgram.statistics?.total_contents || 0}</p>
-                      <p><strong>Surveys:</strong> {selectedProgram.statistics?.total_surveys || 0}</p>
+                      <p><strong>Đăng ký:</strong> {selectedProgram.statistics?.total_enrollments || 0}</p>
+                      <p><strong>Nội dung:</strong> {selectedProgram.statistics?.total_contents || 0}</p>
+                      <p><strong>Khảo sát:</strong> {selectedProgram.statistics?.total_surveys || 0}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Management Actions */}
                 <div className="d-flex justify-content-between mb-3">
-                  <h6>Management Actions</h6>
+                  <h6>Thao tác quản lý</h6>
                 </div>
                 <div className="row g-3 mb-4">
                   <div className="col-md-6">
@@ -1293,7 +1293,7 @@ const CourseListPage = () => {
                       className="btn btn-info w-100"
                       onClick={openContentCreator}
                     >
-                      <FaFile className="me-1" /> Manage Content
+                      <FaFile className="me-1" /> Quản lý nội dung
                     </button>
                   </div>
                   <div className="col-md-6">
@@ -1301,7 +1301,7 @@ const CourseListPage = () => {
                       className="btn btn-success w-100"
                       onClick={openSurveyModal}
                     >
-                      <FaQuestion className="me-1" /> Manage Surveys
+                      <FaQuestion className="me-1" /> Quản lý khảo sát
                     </button>
                   </div>
                 </div>
@@ -1311,34 +1311,34 @@ const CourseListPage = () => {
                     <div className="spinner-border text-primary" role="status">
                       <span className="visually-hidden">Loading analytics...</span>
                     </div>
-                    <p className="mt-2 text-muted">Loading survey analytics...</p>
+                    <p className="mt-2 text-muted">Đang tải phân tích khảo sát...</p>
                   </div>
                 ) : surveyAnalytics && (
                   <div className="survey-analytics mt-4">
-                    <h6>Survey Analytics Overview</h6>
+                    <h6>Tổng quan phân tích khảo sát</h6>
                     <div className="row mb-3">
                       <div className="col-md-3">
                         <div className="stat-card">
                           <div className="stat-number">{surveyAnalytics.total_surveys}</div>
-                          <div className="stat-label">Total Surveys</div>
+                          <div className="stat-label">Tổng khảo sát</div>
                         </div>
                       </div>
                       <div className="col-md-3">
                         <div className="stat-card">
                           <div className="stat-number">{surveyAnalytics.total_responses}</div>
-                          <div className="stat-label">Total Responses</div>
+                          <div className="stat-label">Tổng phản hồi</div>
                         </div>
                       </div>
                       <div className="col-md-3">
                         <div className="stat-card">
                           <div className="stat-number">{surveyAnalytics.completion_statistics.completed_participants}</div>
-                          <div className="stat-label">Completed</div>
+                          <div className="stat-label">Hoàn thành</div>
                         </div>
                       </div>
                       <div className="col-md-3">
                         <div className="stat-card">
                           <div className="stat-number">{surveyAnalytics.completion_statistics.incomplete_participants}</div>
-                          <div className="stat-label">Incompleted</div>
+                          <div className="stat-label">Chưa hoàn thành</div>
                         </div>
                       </div>
                     </div>
@@ -1346,7 +1346,7 @@ const CourseListPage = () => {
                     {/* Survey Charts */}
                     {surveyAnalytics.surveys && surveyAnalytics.surveys.length > 0 && (
                       <div className="survey-charts mt-4">
-                        <h6>Question Response Analytics</h6>
+                        <h6>Phân tích phản hồi câu hỏi</h6>
 
 
 
@@ -1355,21 +1355,21 @@ const CourseListPage = () => {
                             <h6 className="survey-title">
                               {survey.type} Survey (ID: {survey.id})
                               <span className="badge bg-info ms-2">
-                                {survey.total_responses} responses
+                                {survey.total_responses} phản hồi
                               </span>
                               {survey.error && (
                                 <span className="badge bg-warning ms-2">
-                                  Error: {survey.error}
+                                  Lỗi: {survey.error}
                                 </span>
                               )}
                             </h6>
 
                             {survey.error ? (
                               <div className="alert alert-warning">
-                                <strong>Survey Processing Error:</strong> {survey.error}
+                                <strong>Lỗi xử lý khảo sát:</strong> {survey.error}
                                 {survey.error_details && (
                                   <div className="mt-1">
-                                    <small>Details: {survey.error_details}</small>
+                                    <small>Chi tiết: {survey.error_details}</small>
                                   </div>
                                 )}
                               </div>
@@ -1423,7 +1423,7 @@ const CourseListPage = () => {
                                         </div>
                                         <div className="chart-summary text-center mt-2">
                                           <small className="text-muted">
-                                            Total: {totalResponses} responses
+                                            Tổng: {totalResponses} phản hồi
                                           </small>
                                         </div>
                                       </div>
@@ -1435,8 +1435,8 @@ const CourseListPage = () => {
                               <div className="text-center py-3">
                                 <p className="text-muted">
                                   {survey.total_responses > 0
-                                    ? "No response data available for this survey."
-                                    : "No responses recorded for this survey yet."}
+                                    ? "Không có dữ liệu phản hồi cho khảo sát này."
+                                    : "Chưa có phản hồi nào được ghi nhận cho khảo sát này."}
                                 </p>
 
                               </div>
@@ -1448,12 +1448,12 @@ const CourseListPage = () => {
 
                     {(!surveyAnalytics.surveys || surveyAnalytics.surveys.length === 0) && (
                       <div className="text-center py-4">
-                        <p className="text-muted">No surveys found for this program.</p>
+                        <p className="text-muted">Không tìm thấy khảo sát nào cho chương trình này.</p>
                         <button
                           className="btn btn-primary"
                           onClick={openSurveyModal}
                         >
-                          <FaQuestion className="me-1" /> Create Survey
+                          <FaQuestion className="me-1" /> Tạo khảo sát
                         </button>
                       </div>
                     )}
@@ -1462,7 +1462,7 @@ const CourseListPage = () => {
               </div>
               <div className="modal-footer">
                 <button className="btn btn-secondary" onClick={() => setShowDetailModal(false)}>
-                  Close
+                  Đóng
                 </button>
               </div>
             </div>
@@ -1476,7 +1476,7 @@ const CourseListPage = () => {
           <div className="modal-dialog modal-xl">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">Content Management: {selectedProgram?.title}</h5>
+                <h5 className="modal-title">Quản lý nội dung: {selectedProgram?.title}</h5>
                 <button
                   className="btn-close"
                   onClick={() => setShowContentCreator(false)}
@@ -1503,7 +1503,7 @@ const CourseListPage = () => {
           <div className="modal-dialog modal-xl">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">Survey Management: {selectedProgram?.title}</h5>
+                <h5 className="modal-title">Quản lý khảo sát: {selectedProgram?.title}</h5>
                 <button
                   className="btn-close"
                   onClick={() => setShowSurveyModal(false)}
@@ -1511,24 +1511,24 @@ const CourseListPage = () => {
               </div>
               <div className="modal-body">
                 <div className="d-flex justify-content-between mb-3">
-                  <h6>Surveys</h6>
+                  <h6>Khảo sát</h6>
                   {(() => {
                     const hasPre = surveys.some(s => s.type === 'pre-assessment');
                     const hasPost = surveys.some(s => s.type === 'post-assessment');
                     if (hasPre && hasPost) {
                       return (
                         <button className="btn btn-secondary" disabled>
-                          <FaPlus className="me-1" /> Both Pre & Post Surveys Exist
+                          <FaPlus className="me-1" /> Cả khảo sát trước và sau đã tồn tại
                         </button>
                       );
                     }
                     return (
-                      <button
-                        className="btn btn-primary"
-                        onClick={() => openSurveyCreator(null, hasPre, hasPost)}
-                      >
-                        <FaPlus className="me-1" /> Create New Survey
-                      </button>
+                                              <button
+                          className="btn btn-primary"
+                          onClick={() => openSurveyCreator(null, hasPre, hasPost)}
+                        >
+                          <FaPlus className="me-1" /> Tạo khảo sát mới
+                        </button>
                     );
                   })()}
                 </div>
@@ -1549,12 +1549,12 @@ const CourseListPage = () => {
                     if (surveyTypes.length === 0) {
                       return (
                         <div className="text-center py-4">
-                          <p className="text-muted">No surveys found for this program.</p>
+                          <p className="text-muted">Không tìm thấy khảo sát nào cho chương trình này.</p>
                           <button
                             className="btn btn-primary"
                             onClick={() => openSurveyCreator(null, surveys.some(s => s.type === 'pre-assessment'), surveys.some(s => s.type === 'post-assessment'))}
                           >
-                            <FaPlus className="me-1" /> Create First Survey
+                            <FaPlus className="me-1" /> Tạo khảo sát đầu tiên
                           </button>
                         </div>
                       );
@@ -1567,7 +1567,7 @@ const CourseListPage = () => {
                             type === 'post-assessment' ? 'success' : 'warning'} me-2`}>
                             {type.replace('-', ' ').toUpperCase()}
                           </span>
-                          {surveysByType[type].length} Survey{surveysByType[type].length !== 1 ? 's' : ''}
+                          {surveysByType[type].length} Khảo sát
                         </h6>
 
                         {surveysByType[type].map(survey => (
@@ -1577,17 +1577,17 @@ const CourseListPage = () => {
                                 <div>
                                   <h6 className="mb-1">Survey #{survey.survey_id}</h6>
                                   <p className="mb-0 text-muted">
-                                    Questions: {survey.questions_json ? JSON.parse(survey.questions_json).questions?.length || 0 : 0}
+                                    Câu hỏi: {survey.questions_json ? JSON.parse(survey.questions_json).questions?.length || 0 : 0}
                                   </p>
                                   {surveyAnalytics && surveyAnalytics.surveys && (
                                     (() => {
                                       const analyticsSurvey = surveyAnalytics.surveys.find(s => s.id === survey.survey_id);
                                       return analyticsSurvey ? (
                                         <p className="mb-0 text-muted">
-                                          Responses: {analyticsSurvey.total_responses || 0}
+                                          Phản hồi: {analyticsSurvey.total_responses || 0}
                                           {analyticsSurvey.error && (
                                             <span className="text-warning ms-2">
-                                              ⚠️ Error: {analyticsSurvey.error}
+                                              ⚠️ Lỗi: {analyticsSurvey.error}
                                             </span>
                                           )}
                                         </p>
@@ -1599,14 +1599,14 @@ const CourseListPage = () => {
                                   <button
                                     className="btn btn-sm btn-info me-1"
                                     onClick={() => openSurveyViewer(survey)}
-                                    title="View Survey"
+                                    title="Xem khảo sát"
                                   >
                                     <FaEye />
                                   </button>
                                   <button
                                     className="btn btn-sm btn-warning"
                                     onClick={() => openSurveyCreator(survey, surveys.some(s => s.type === 'pre-assessment'), surveys.some(s => s.type === 'post-assessment'))}
-                                    title="Edit Survey"
+                                    title="Chỉnh sửa khảo sát"
                                   >
                                     <FaEdit />
                                   </button>
@@ -1622,10 +1622,10 @@ const CourseListPage = () => {
               </div>
               <div className="modal-footer">
                 <button className="btn btn-secondary" onClick={() => setShowSurveyModal(false)}>
-                  Close
+                  Đóng
                 </button>
                 <button className="btn btn-secondary" onClick={() => setShowDetailModal(true)}>
-                  Back to Details
+                  Trở lại chi tiết
                 </button>
               </div>
             </div>
@@ -1639,7 +1639,7 @@ const CourseListPage = () => {
           <div className="modal-dialog modal-xl">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">View Survey: {selectedSurvey.type}</h5>
+                <h5 className="modal-title">Xem khảo sát: {selectedSurvey.type}</h5>
                 <button
                   className="btn-close"
                   onClick={() => setShowSurveyViewer(false)}
@@ -1659,10 +1659,10 @@ const CourseListPage = () => {
                     openSurveyCreator(selectedSurvey, surveys.some(s => s.type === 'pre-assessment'), surveys.some(s => s.type === 'post-assessment'));
                   }}
                 >
-                  <FaEdit className="me-1" /> Edit Survey
+                  <FaEdit className="me-1" /> Chỉnh sửa khảo sát
                 </button>
                 <button className="btn btn-secondary" onClick={() => setShowSurveyViewer(false)}>
-                  Close
+                  Đóng
                 </button>
               </div>
             </div>
@@ -1677,7 +1677,7 @@ const CourseListPage = () => {
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">
-                  {selectedSurvey ? `Edit Survey: ${selectedSurvey.type}` : 'Create New Survey'}
+                  {selectedSurvey ? `Chỉnh sửa khảo sát: ${selectedSurvey.type}` : 'Tạo khảo sát mới'}
                 </h5>
                 <button
                   className="btn-close"
@@ -1703,7 +1703,7 @@ const CourseListPage = () => {
           <div className="modal-dialog modal-lg">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">Category Management</h5>
+                <h5 className="modal-title">Quản lý danh mục</h5>
                 <button
                   className="btn-close"
                   onClick={() => setShowCategoryModal(false)}
@@ -1712,37 +1712,37 @@ const CourseListPage = () => {
               <div className="modal-body">
                 {/* Create New Category Form */}
                 <div className="create-category-section mb-4">
-                  <h6>Create New Category</h6>
+                  <h6>Tạo danh mục mới</h6>
                   <form onSubmit={handleCreateCategory}>
                     <div className="row">
                       <div className="col-md-6">
                         <div className="mb-3">
-                          <label className="form-label">Category Name *</label>
+                          <label className="form-label">Tên danh mục *</label>
                           <input
                             type="text"
                             className="form-control"
                             value={newCategory.name}
                             onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
-                            placeholder="Enter category name"
+                            placeholder="Nhập tên danh mục"
                             required
                           />
                         </div>
                       </div>
                       <div className="col-md-6">
                         <div className="mb-3">
-                          <label className="form-label">Description</label>
+                          <label className="form-label">Mô tả</label>
                           <input
                             type="text"
                             className="form-control"
                             value={newCategory.description}
                             onChange={(e) => setNewCategory({ ...newCategory, description: e.target.value })}
-                            placeholder="Enter description (optional)"
+                            placeholder="Nhập mô tả (tùy chọn)"
                           />
                         </div>
                       </div>
                     </div>
                     <button type="submit" className="btn btn-primary">
-                      <FaPlus className="me-1" /> Create Category
+                      <FaPlus className="me-1" /> Tạo danh mục
                     </button>
                   </form>
                 </div>
@@ -1751,10 +1751,10 @@ const CourseListPage = () => {
 
                 {/* Existing Categories List */}
                 <div className="existing-categories-section">
-                  <h6>Existing Categories ({categories.length})</h6>
+                  <h6>Danh mục hiện tại ({categories.length})</h6>
                   {categories.length === 0 ? (
                     <div className="text-center py-3">
-                      <p className="text-muted">No categories found.</p>
+                      <p className="text-muted">Không tìm thấy danh mục nào.</p>
                     </div>
                   ) : (
                     <div className="category-list">
@@ -1763,7 +1763,7 @@ const CourseListPage = () => {
                           <div className="card-body">
                             <div className="d-flex justify-content-between align-items-center">
                               <div>
-                                <h6 className="mb-1">{category.name || 'Unnamed Category'}</h6>
+                                <h6 className="mb-1">{category.name || 'Danh mục chưa đặt tên'}</h6>
                                 {category.description && (
                                   <p className="mb-0 text-muted">{category.description}</p>
                                 )}
@@ -1773,7 +1773,7 @@ const CourseListPage = () => {
                                 <button
                                   className="btn btn-sm btn-danger"
                                   onClick={() => handleDeleteCategory(category.category_id, category.name || `Category ${category.category_id}`)}
-                                  title="Delete Category"
+                                  title="Xóa danh mục"
                                 >
                                   <FaTrash />
                                 </button>
@@ -1788,7 +1788,7 @@ const CourseListPage = () => {
               </div>
               <div className="modal-footer">
                 <button className="btn btn-secondary" onClick={() => setShowCategoryModal(false)}>
-                  Close
+                  Đóng
                 </button>
               </div>
             </div>

@@ -40,54 +40,43 @@ const MemberListPage = () => {
   // Helper function to calculate risk level from assessment data
   const calculateRiskLevel = (assessment) => {
     try {
+      const actionMapping ={
+        '2':'Thấp',
+        '3':'Trung Bình',
+        '4':'Cao',
+        '5':'Thấp',
+        '6':'Trung Bình',
+        '7':'Cao',
+      }
+
+      const riskLevel = actionMapping[assessment.action?.action_id] || 'demo';
+      
       const resultData = typeof assessment.result_json === 'string'
         ? JSON.parse(assessment.result_json)
         : assessment.result_json;
 
-      if (!resultData || resultData.score === undefined) {
-        return { riskLevel: 'Thấp', score: 0 };
-      }
-
       const score = resultData.score;
-      let riskLevel = 'Thấp'; // Default to 'Thấp' instead of 'Không xác định'
-      const assessmentType = assessment.type?.toLowerCase();
-
-      if (assessmentType === 'crafft') {
-        // CRAFFT risk level calculation
-        if (score >= 2) {
-          riskLevel = "Cao";
-        } else if (score >= 1) {
-          riskLevel = "Trung bình";
-        } else {
-          riskLevel = "Thấp";
-        }
-      } else if (assessmentType === 'assist') {
-        // ASSIST risk level calculation
-        if (score >= 27) {
-          riskLevel = "Cao";
-        } else if (score >= 4) {
-          riskLevel = "Trung bình";
-        } else {
-          riskLevel = "Thấp";
-        }
-      } else {
-        // For unknown types, use ASSIST scoring as default
-        if (score >= 27) {
-          riskLevel = "Cao";
-        } else if (score >= 4) {
-          riskLevel = "Trung bình";
-        } else {
-          riskLevel = "Thấp";
-        }
-      }
 
       return { riskLevel, score };
     } catch (error) {
       console.error('Error calculating risk level:', error);
-      return { riskLevel: 'Thấp', score: 0 };
     }
   };
+  
+  const translateStatus = (status) => {
+    if (!status) return 'Không xác định';
 
+    const statusTranslations = {
+      'Hoạt động': 'Hoạt động',
+      'Không hoạt động': 'Không hoạt động',
+      'Bị cấm': 'Bị cấm',
+      'active': 'Hoạt động',
+      'inactive': 'Không hoạt động',
+      'banned': 'Bị cấm'
+    };
+
+    return statusTranslations[status] || status;
+  };
   // Get risk level color class
   const getRiskLevelClass = (riskLevel) => {
     // Ensure riskLevel is a string
@@ -656,7 +645,7 @@ const MemberListPage = () => {
                 <td>{member.profile?.name ? member.profile.name : 'Unnamed'}</td>
                 <td>{member.email}</td>
                 <td>{member.role}</td>
-                <td>{member.status}</td>
+                <td>{translateStatus(member.status)}</td>
                 <td>{new Date(member.date_create).toLocaleDateString()}</td>
                 <td className="action-buttons">
                   <button className="btn btn-light me-2" onClick={() => handleView(member.user_id)}>
@@ -734,25 +723,25 @@ const MemberListPage = () => {
                 <div className="row">
                   <div className="col-md-6">
                     <div className="member-detail-row">
-                      <span className="member-detail-label">ID thành viên:</span>
+                      <span className="member-detail-label">ID thành viên: </span>
                       <span className="member-detail-value">{selectedMember.user?.user_id || selectedMember.profile?.user_id || 'Chưa cập nhật'}</span>
                     </div>
                     <div className="member-detail-row">
-                      <span className="member-detail-label">Họ và tên:</span>
+                      <span className="member-detail-label">Họ và tên: </span>
                       <span className="member-detail-value" style={{ fontWeight: 'bold' }}>{selectedMember.profile?.name || 'Chưa cập nhật'}</span>
                     </div>
                     <div className="member-detail-row">
-                      <span className="member-detail-label">Email:</span>
+                      <span className="member-detail-label">Email: </span>
                       <span className="member-detail-value">{selectedMember.user?.email || selectedMember.email || 'Chưa cập nhật'}</span>
                     </div>
                     <div className="member-detail-row">
-                      <span className="member-detail-label">Nghề nghiệp:</span>
+                      <span className="member-detail-label">Nghề nghiệp: </span>
                       <span className="member-detail-value">{selectedMember.profile?.job || 'Chưa cập nhật'}</span>
                     </div>
                   </div>
                   <div className="col-md-6">
                     <div className="member-detail-row">
-                      <span className="member-detail-label">Ngày sinh:</span>
+                      <span className="member-detail-label">Ngày sinh: </span>
                       <span className="member-detail-value">
                         {selectedMember.profile?.date_of_birth ?
                           new Date(selectedMember.profile.date_of_birth).toLocaleDateString('vi-VN') :
@@ -760,14 +749,14 @@ const MemberListPage = () => {
                       </span>
                     </div>
                     <div className="member-detail-row">
-                      <span className="member-detail-label">Vai trò:</span>
+                      <span className="member-detail-label">Vai trò: </span>
                       <span className="member-detail-value">{selectedMember.user?.role || selectedMember.role || 'Chưa cập nhật'}</span>
                     </div>
                     <div className="member-detail-row">
-                      <span className="member-detail-label">Trạng thái:</span>
+                      <span className="member-detail-label">Trạng thái: </span>
                       <span className="member-detail-value">
                         <span className={`status-badge ${(selectedMember.user?.status || selectedMember.status)?.toLowerCase()}`}>
-                          {selectedMember.user?.status || selectedMember.status || 'Không xác định'}
+                          {translateStatus(selectedMember.user?.status || selectedMember.status || 'Không xác định')}
                         </span>
                       </span>
                     </div>

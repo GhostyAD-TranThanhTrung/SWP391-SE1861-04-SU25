@@ -305,50 +305,28 @@ const AssessmentListPage = () => {
   }, [assessments, actions]);
 
   // Helper function to calculate risk level from assessment data
-  const calculateRiskLevel = async (assessment) => {
+  const calculateRiskLevel = (assessment) => {
     try {
+      const actionMapping ={
+        '2':'Thấp',
+        '3':'Trung Bình',
+        '4':'Cao',
+        '5':'Thấp',
+        '6':'Trung Bình',
+        '7':'Cao',
+      }
+
+      const riskLevel = actionMapping[assessment.action_id] || 'demo';
+      
       const resultData = typeof assessment.result_json === 'string'
         ? JSON.parse(assessment.result_json)
         : assessment.result_json;
 
-      if (!resultData || resultData.score === undefined) {
-        return { riskLevel: 'Không xác định', score: 0 };
-      }
-
       const score = resultData.score;
-      let riskLevel = 'Không xác định';
-      const assessmentType = assessment.type?.toLowerCase();
-
-      if (assessmentType === 'crafft') {
-        // Create userAnswers object for CRAFFT assessment
-        const userAnswers = {};
-        if (resultData.result) {
-          resultData.result.forEach((answer, index) => {
-            userAnswers[index] = answer;
-          });
-        }
-
-        // Use database-driven helper functions instead of hardcoded logic
-        const hasSubstanceUse = hasSubstanceUseInPartA(userAnswers);
-        const hasCarRiskFactor = hasCarRisk(userAnswers);
-
-        const calculatedRiskLevel = assessCrafftRisk(score, userAnswers);
-        riskLevel = typeof calculatedRiskLevel === 'string' ? calculatedRiskLevel : 'Không xác định';
-      } else if (assessmentType === 'assist') {
-        // For ASSIST, now using async function without isCannabis parameter
-        try {
-          const calculatedRiskLevel = await assessAssistRisk(score);
-          riskLevel = typeof calculatedRiskLevel === 'string' ? calculatedRiskLevel : 'Không xác định';
-        } catch (error) {
-          console.error('Error calculating ASSIST risk level:', error);
-          riskLevel = 'Lỗi';
-        }
-      }
 
       return { riskLevel, score };
     } catch (error) {
       console.error('Error calculating risk level:', error);
-      return { riskLevel: 'Lỗi', score: 0 };
     }
   };
 

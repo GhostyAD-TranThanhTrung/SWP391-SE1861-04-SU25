@@ -108,6 +108,21 @@ const StaffListPage = () => {
     });
   };
 
+  const translateStatus = (status) => {
+    if (!status) return 'Không xác định';
+
+    const statusTranslations = {
+      'Hoạt động': 'Hoạt động',
+      'Không hoạt động': 'Không hoạt động',
+      'Bị cấm': 'Bị cấm',
+      'active': 'Hoạt động',
+      'inactive': 'Không hoạt động',
+      'banned': 'Bị cấm'
+    };
+
+    return statusTranslations[status] || status;
+  };
+
   const handleChange = (e) => {
     setNewStaff({ ...newStaff, [e.target.name]: e.target.value });
   };
@@ -687,7 +702,7 @@ const StaffListPage = () => {
                 <td>{staff.profile?.name}</td>
                 <td>{staff.email}</td>
                 <td>{staff.role}</td>
-                <td>{staff.status}</td>
+                <td>{translateStatus(staff.status)}</td>
                 <td>{new Date(staff.date_create).toLocaleDateString()}</td>
                 <td className="action-buttons">
                   <button className="btn btn-light me-2" onClick={() => handleView(staff.user_id)} title="Xem chi tiết">

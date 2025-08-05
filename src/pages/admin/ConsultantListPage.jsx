@@ -285,6 +285,21 @@ const ConsultantListPage = () => {
 
   }, []);
 
+  const translateStatus = (status) => {
+    if (!status) return 'Không xác định';
+
+    const statusTranslations = {
+      'Hoạt động': 'Hoạt động',
+      'Không hoạt động': 'Không hoạt động',
+      'Bị cấm': 'Bị cấm',
+      'active': 'Hoạt động',
+      'inactive': 'Không hoạt động',
+      'banned': 'Bị cấm'
+    };
+
+    return statusTranslations[status] || status;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -858,7 +873,7 @@ const ConsultantListPage = () => {
                 <td>{consultant.name}</td>
                 <td>{consultant.email}</td>
                 <td>{consultant.role}</td>
-                <td>{consultant.status}</td>
+                <td>{translateStatus(consultant.status)}</td>
                 <td>{new Date(consultant.date_create).toLocaleDateString()}</td>
                 <td className="action-buttons">
                   <button className="btn btn-light btn-sm me-2" onClick={async () => await handleEdit(consultant.id_consultant)}>
