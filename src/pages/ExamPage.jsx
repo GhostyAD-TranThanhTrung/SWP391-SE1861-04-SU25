@@ -59,12 +59,17 @@ const ExamPage = () => {
             });
         } else {
             setSelectedOption(option);
-            // Lưu đáp án đã chọn với câu hỏi
+            // Lưu đáp án đã chọn với câu hỏi cho CRAFFT cần thêm thông tin category và score
+            const currentQuestion = quizData.questions[currentQuestionIndex];
             setSavedAnswers(prev => ({
                 ...prev,
                 [currentQuestionIndex]: {
                     question: getCurrentQuestionText(),
-                    selectedOption: option
+                    selectedOption: {
+                        ...option,
+                        category: currentQuestion.category,
+                        letter: currentQuestion.letter
+                    }
                 }
             }));
         }
@@ -145,6 +150,7 @@ const ExamPage = () => {
         const newScore = result.score + scoreToAdd;
 
         // Update savedAnswers with current answer for final calculation
+        const currentQuestion = quizData.questions[currentQuestionIndex];
         const updatedAnswers = {
             ...savedAnswers,
             [currentQuestionIndex]: currentQuestionIndex === 0 && type.toLowerCase() === 'assist' 
@@ -154,7 +160,11 @@ const ExamPage = () => {
                 }
                 : {
                     question: getCurrentQuestionText(),
-                    selectedOption: selectedOption
+                    selectedOption: {
+                        ...selectedOption,
+                        category: currentQuestion.category,
+                        letter: currentQuestion.letter
+                    }
                 }
         };
 
@@ -187,7 +197,8 @@ const ExamPage = () => {
             let riskLevel;
             try {
                 if (type.toLowerCase() === 'crafft') {
-                    riskLevel = assessRiskLevel(newScore, updatedAnswers);
+                    // For CRAFFT, pass userAnswers instead of score
+                    riskLevel = await assessRiskLevel(updatedAnswers);
                 } else {
                     // For ASSIST, await the async function
                     riskLevel = await assessRiskLevel(newScore);
