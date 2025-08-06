@@ -6,6 +6,9 @@ const AppDataSource = require("../src/data-source");
 const Assessment = require("../src/entities/Assessment");
 const Action = require("../src/entities/Action");
 const User = require("../src/entities/User");
+const AssessmentQuestion = require("../src/entities/AssessmentQuestion");
+const Answer = require("../src/entities/Answer");
+const { In } = require("typeorm");
 
 class AssessmentController {
   /**
@@ -166,6 +169,7 @@ class AssessmentController {
    * Take test from user - Process test score and save assessment
    * POST /api/assessments/take-test
    * Takes score from user, finds matching action based on score range, and saves assessment
+   * For CRAFFT type: implements CRAFFT 2.1 scoring logic using questionIds from result_json
    */
   static async takeTestFromUser(req, res) {
     // Start database transaction
@@ -175,21 +179,22 @@ class AssessmentController {
 
     try {
       const { score, type, results } = req.body;
-
       const user_id = req.user.userId;
 
-      if (!results || !Array.isArray(results) || results.length === 0 || results === undefined || results === null) {
+      // Validate required fields
+      if (!results || !Array.isArray(results) || results.length === 0) {
+        await queryRunner.rollbackTransaction();
         return res.status(400).json({
           success: false,
           message: "Results array is required and cannot be empty",
         });
       }
-      // Validate required fields
-      if (!user_id || score === undefined || score === null) {
+
+      if (!user_id || score === undefined || score === null || !type) {
         await queryRunner.rollbackTransaction();
         return res.status(400).json({
           success: false,
-          message: "User ID and score are required",
+          message: "User ID, score, and type are required",
         });
       }
 
@@ -223,21 +228,138 @@ class AssessmentController {
           success: false,
           message: "Only members can take tests",
         });
-      }      // Find action based on score (highest range <= score)
-      const actionRepository = queryRunner.manager.getRepository("Action");
+      }
 
-      const action = await actionRepository
-        .createQueryBuilder("action")
-        .where("action.type = :type", { type })
-        .andWhere("action.range <= :score", { score: numericScore })
-        .orderBy("action.range", "DESC")
-        .getOne();
+      let finalScore = numericScore;
+      let actionRange = numericScore;
+      const actionRepository = queryRunner.manager.getRepository("Action");
+      // Special handling for CRAFFT assessment
+      if (type.toLowerCase() === 'crafft') {
+        console.log('🎯 Processing CRAFFT assessment with special logic');
+        
+        // Extract question texts from results to query questions
+        const questionTexts = results.map(result => result.question).filter(q => q && q.trim());
+        
+        console.log('🔍 Extracted question texts:', questionTexts.map(q => q.substring(0, 80) + '...'));
+        console.log('🔍 Raw results structure:', results.map(r => ({ 
+          question: r.question?.substring(0, 50) + '...', 
+          selectedOption: r.selectedOption,
+          score: r.score 
+        })));
+        
+        if (questionTexts.length === 0) {
+          await queryRunner.rollbackTransaction();
+          return res.status(400).json({
+            success: false,
+            message: "Question texts are required for CRAFFT assessment. Check that results contain valid question values.",
+          });
+        }
+
+        // Query assessment questions using question text
+        const questionRepository = queryRunner.manager.getRepository("AssessmentQuestion");
+
+        const questions = await questionRepository.find({
+          where: {
+            question: In(questionTexts),
+            assessment_type: 'CRAFFT'
+          }
+        });
+
+        console.log('📊 Found CRAFFT questions in database:', questions.length);
+
+        if (questions.length === 0) {
+          await queryRunner.rollbackTransaction();
+          return res.status(404).json({
+            success: false,
+            message: "No CRAFFT questions found with provided question texts",
+          });
+        }
+
+        // Identify Part A questions from database (substance use screening)
+        const partAQuestions = questions.filter(q => q.category === 'partA');
+        const partAQuestionTexts = partAQuestions.map(q => q.question);
+        
+        console.log('📊 Part A questions found:', partAQuestions.length);
+        console.log('📊 Part A question texts:', partAQuestionTexts.map(q => q.substring(0, 50) + '...'));
+
+        let hasSubstanceUse = false;
+
+        let partBScore = score;
+
+        for (const result of results) {
+          if (!result.question || result.score === undefined) continue;
+
+          const resultScore = parseInt(result.score) || 0;
+          console.log(`📝 Processing: "${result.question.substring(0, 50)}..." with score=${resultScore}`);
+
+          // Check if this question is a Part A question (substance use screening)
+          const isPartAQuestion = partAQuestionTexts.some(partAText => 
+            partAText === result.question
+          );
+
+          if (isPartAQuestion) {
+            if (resultScore > 0) {
+              hasSubstanceUse = true;
+              break;
+            }
+          } 
+        }
+        // Get CRAFFT actions from database to determine dynamic ranges
+        
+        const crafftActions = await actionRepository.find({
+          where: { type: 'CRAFFT' },
+          order: { range: 'ASC' }
+        });
+        // Extract ranges dynamically (sorted ascending: low, medium, high)
+        const lowRiskRange = crafftActions[0].range;
+        const mediumRiskRange = crafftActions[1].range;
+        const highRiskRange = crafftActions[2].range;
+
+
+        // Apply CRAFFT 2.1 logic to determine risk level range using dynamic values
+        if (!hasSubstanceUse && partBScore === 0) {
+          // Low risk
+          actionRange = crafftActions[0].action_id;
+        } else if ((hasSubstanceUse && partBScore < highRiskRange) || (!hasSubstanceUse && partBScore > highRiskRange)) {
+          // Medium risk
+          actionRange = crafftActions[1].action_id;
+        } else if (hasSubstanceUse && partBScore >= highRiskRange) {
+          // High risk
+          actionRange = crafftActions[2].action_id;
+        } else {
+          // Default to medium risk for edge cases
+          actionRange = crafftActions[1].action_id;
+        }
+        
+      }
+      else{
+        const action = await queryRunner.manager.getRepository("Action")
+          .createQueryBuilder("action")
+          .where("action.type = :type", { type })
+          .andWhere("action.range <= :range", { range: score })
+          .orderBy("action.range", "DESC")
+          .getOne();
+
+        if (!action) {
+          await queryRunner.rollbackTransaction();
+          return res.status(404).json({
+            success: false,
+            message: `No action found for ${type} assessment with score ${score}`,
+          });
+        }
+
+        actionRange = action.action_id;
+      }
+
+      const action = await actionRepository.findOne({
+        where: { action_id: actionRange }
+      });
 
       if (!action) {
         await queryRunner.rollbackTransaction();
         return res.status(404).json({
           success: false,
-          message: `No action found for score ${numericScore}`,
+          message: `Action with ID ${actionRange} not found`,
         });
       }
 
@@ -245,10 +367,10 @@ class AssessmentController {
       const assessmentRepository = queryRunner.manager.getRepository("Assessment");
       const newAssessment = assessmentRepository.create({
         user_id: parseInt(user_id),
-        type: type || "test", // Default type if not provided
+        type: type || "test",
         result_json: JSON.stringify({ result: results, score: score }),
         create_at: new Date(),
-        action_id: action.action_id,
+        action_id: actionRange,
       });
 
       const savedAssessment = await assessmentRepository.save(newAssessment);
@@ -256,13 +378,13 @@ class AssessmentController {
       // Commit transaction
       await queryRunner.commitTransaction();
 
-      // Return complete information (excluding action_id and assessment_id as requested)
+      // Return complete information
       const response = {
         user: {
           user_id: user.user_id
         },
         test_result: {
-          score: numericScore,
+          score: finalScore,
           type: savedAssessment.type,
           create_at: savedAssessment.create_at,
         },
